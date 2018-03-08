@@ -1,7 +1,6 @@
 import json
 import requests
-import multiprocessing
-  
+import time
     
 class Slack():
     def __init__(self, webhook):
@@ -19,9 +18,21 @@ class Dweet():
         self.guid = guid
         
     def receive(self):
-        url = 'https://dweet.io/get/latest/dweet/for/%s'%self.guid
-        r = json.loads(requests.get(url).text)
-        return r['with'][0]['content']
+        try:
+            url = 'https://dweet.io/get/latest/dweet/for/%s'%self.guid
+            r = json.loads(requests.get(url).text)
+
+            j = r['with'][0]['content']
+#            j['time'] = r['with'][0]['created']
+            return j
+        except KeyError:
+            if r['because'] == 'Rate limit exceeded, try again in 1 second(s).':
+                time.sleep(1.01)
+                return self.receive()
+            else:
+                print(r)
+
+        
     
     def send(self, params, vals):
         ''' Sends a list of values for named parameters to a Dweet guid '''
@@ -29,31 +40,12 @@ class Dweet():
         for i in range(len(params)):
             url += '%s=%s&'%(params[i], vals[i])
         url = url[0:-1]
-        print(url)
         r = json.loads(requests.get(url).text)
         
         return r
    
-class DweetTransmitter(Dweet):
-    ''' Sends dweets in real time from the last line of a file. '''
-    def __init__(self, guid, filename):
-        super.__init__(guid)
-        self.filename = filename
-    
-    def start(self):
-        self.transmitProcess = mp.Process(target = self.transmit)
-        self.transmitProcess.start()
-        
-    def transmit(self):
-        while True:
-            with open(filename, 'r') as file:
-                update = file.readlines[-1]
-            
-        
-class DweetReceiver(Dweet):
-    ''' Receives dweets in real time and allows logging and visualization. '''
-    def __init__(self, guid):
-        super.__init__(guid)
 
     
-filename = 'O:\Public\\Yb clock\\180306\\twoClocksDifferenceExport_1.txt'
+if __name__ == '__main__':
+    dev = Dweet('ybdatalogger12345')
+    r = dev.receive()
