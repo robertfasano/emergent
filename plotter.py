@@ -9,6 +9,7 @@ if os.name == 'posix':        # if using OS X, open a special testing version of
     sys.path.append('C:\\Users\\Public\\Documents\\GitHub')
 else:
     sys.path.append('/Users/rjf2/Documents/GitHub')
+    
 import labAPI.IO
 from PyQt5.QtWidgets import QComboBox, QPushButton
 import functools
