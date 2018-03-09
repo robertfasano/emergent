@@ -4,7 +4,7 @@ import json
 import functools
 import numpy as np
 import os
-import monitorGUI
+#import monitorGUI
 
 class SubMenu(QMenuBar):
     def __init__(self, parent=None):
@@ -37,7 +37,7 @@ class Tab(QWidget):
 #        self.loadButton = self.addButton('Load', 'Save', self.load,self.maxRow+1,2, append=False)
 
 
-    def addButton(self, title, label, function, row, col, width = 1, height = 1, args = None, append = True, style = 0):
+    def _addButton(self, title, label, function, row, col, width = 1, height = 1, args = None, append = False, style = 0):
         button = QPushButton(title)
         if args == None:
             button.clicked.connect(functools.partial(function))
@@ -237,23 +237,3 @@ class Panel(QWidget):
         self.layout.addWidget(self.tabs)
         self.setLayout(self.layout)
         self.show()
-    
-
-
-        
-
-        
-        
-if __name__ == '__main__':
-    app = 0
-    #app = QApplication(sys.argv)
-    app = QApplication(['gMOT test controller'])
-    test = False
-    if os.name == 'posix':        # if using OS X, open a special testing version of the program
-        test = True  
-    panel = Panel(app, test=test)
-    panel.monitorTab = monitorGUI.MonitorTab(panel)
-    panel.initUI()
-    #sys.exit(app.exec_())
-
-    app.exec_()
