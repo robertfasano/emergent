@@ -1,4 +1,6 @@
-def convertUnits(edit):
+import numpy as np
+
+def convertUnits(edit, precision = 3):
     ''' Allows unit comprehension by detecting SI prefixes and converting to an absolute value in base SI units, e.g. '10 mV' -> 0.01.
         TODO: allow context-based reverse comprehension: given a float and a base unit (e.g. V) a string will be returned, e.g. 0.01 -> '10 mV'
         Arguments: 
@@ -7,6 +9,7 @@ def convertUnits(edit):
             val (float): a value in base SI units
     '''   
     if type(edit) == str:
+    
         val = float(edit.split(' ')[0])
         unit = edit.split(' ')[1]
         prefix = unit[0]
@@ -16,6 +19,7 @@ def convertUnits(edit):
         else:
             return val
     elif type(edit) == float:
+        edit = np.round(edit, precision)
         if edit == 0:
             return str(0)
         # check number of zeros
@@ -58,6 +62,7 @@ def convertUnits(edit):
             return prefix + stringEdit[5::] + ' uV'
         elif zeroCount == 5:
             return prefix + stringEdit[6:8] + '.' + stringEdit[8] + 'uV'
+
         ''' general form: 
         if zeroCount in [1,2]:
             return prefix + stringEdit[zeroCount+1::] + 'mV'
