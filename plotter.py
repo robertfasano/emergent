@@ -74,7 +74,7 @@ class Plotter():
         
         ''' Create uptime log '''
         self.tab.uptimeLog = self.tab._addLabel('', self.row+self.height+1, self.col)
-        self.tab.uptimeTotal = self.tab._addLabel('', self.row+self.height+1, self.col+1)
+        self.tab.uptimeTotal = self.tab._addLabel('', self.row+self.height+1, self.col+1, width=2)
 
     def uptime(self, choice):
         boolfile = self.filename.replace('log', 'bool')
@@ -88,7 +88,7 @@ class Plotter():
         self.tab.uptimeLog.setText('Uptime: %.0f%%'%(uptime*100))
         
         total = len(data[data['Human']==1])/len(data) * (data.iloc[-1]['Timestamp'] - data.iloc[0]['Timestamp'])
-        self.tab.uptimeTotal.setText('Lock time today: %.0f minutes'%(total/60))
+        self.tab.uptimeTotal.setText('Total uptime: %.0f min'%(total/60))
 
     def plotSelect(self, args = None):
         choice = self.tab.plotterComboBox.currentText()

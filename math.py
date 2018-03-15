@@ -18,7 +18,7 @@ def convertUnits(edit, precision = 3):
             return val*prefixDict[prefix]
         else:
             return val
-    elif type(edit) == float:
+    elif type(edit) in [float, np.float64]:
         edit = np.round(edit, precision)
         if edit == 0:
             return str(0)

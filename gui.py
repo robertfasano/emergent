@@ -1,8 +1,11 @@
 from PyQt5.QtWidgets import QWidget, QPushButton, QGridLayout, QLineEdit, QLabel, QComboBox, QTabWidget, QVBoxLayout, QMenuBar, QAction
 from PyQt5.QtGui import QFontDatabase, QFont
+from PyQt5.QtCore import QSize
 import json
+import datetime
 import functools
 import numpy as np
+import os
 
 class SubMenu(QMenuBar):
     def __init__(self, parent=None):
@@ -32,12 +35,14 @@ class Popup(QWidget):
         
        
     def populate(self):
+        self.widgets = {}
         row = 0
         for key in self.params:
             label = QLabel(key)    
             self.layout.addWidget(label, row, 0)
             edit = QLineEdit(self.params[key])    
             self.layout.addWidget(edit, row, 1)
+            self.widgets[key] = edit
             row += 1
         self.setLayout(self.layout)
         
@@ -50,7 +55,16 @@ class Tab(QWidget):
         self.layout = QGridLayout()
         self.layout.setSpacing(10)
         self.panel.tabs.addTab(self, self.name)
-        
+        self.setLayout(self.layout)
+
+    
+    def _setSpacing(self):
+        ''' Fix size of grid rows, columns '''
+        for row in range(self.layout.rowCount()):
+            self.layout.setRowStretch(row, 1)
+        for col in range(self.layout.columnCount()):
+            self.layout.setColumnStretch(col, 1)
+        self.setLayout(self.layout)
 
     def _addButton(self, label, function, row, col, width = 1, height = 1, args = None, style = 0):
         button = QPushButton(label)
@@ -64,29 +78,38 @@ class Tab(QWidget):
         
         if style != 0:
             button.setStyleSheet(style)
-        
+        button.setFont(self.panel.font['S'])
+        size = self.panel.gridSize
+        button.setFixedSize(size.scaled(size.width()*width, size.height()*height, 0))
+
         
 
         return button
     
-    def _addLabel(self, label, row, col, width=1, height=1, style = 0):
+    def _addLabel(self, label, row, col, width=1, height=1, style = 0, size = 'default'):
         label = QLabel(label)
         self.layout.addWidget(label, row, col, height, width)
         self.setLayout(self.layout)
         
         if style != 0:
             label.setStyleSheet(style)
-
+        label.setFont(self.panel.font['M'])
+        
+        size = self.panel.gridSize
+        label.setFixedSize(size.scaled(size.width()*width, size.height()*height, 0))
         return label
     
     def _addEdit(self, label, row, col, width=1, height=1):          
         edit = QLineEdit(label)
         self.layout.addWidget(edit, row, col, height, width)
         self.setLayout(self.layout)
+        edit.setFont(self.panel.font['S'])
         
+        size = self.panel.gridSize
+        edit.setFixedSize(size.scaled(size.width()*width, size.height()*height, 0))
         return edit
     
-    def _addComboBox(self,items, row, col, currentText = None):
+    def _addComboBox(self,items, row, col, currentText = None, width=1, height=1):
         box = QComboBox()
         for item in items:
             box.addItem(item)
@@ -95,29 +118,25 @@ class Tab(QWidget):
         box.setCurrentText(currentText)
         self.layout.addWidget(box, row, col)
         self.setLayout(self.layout)
+        box.setFont(self.panel.font['S'])
         
+        size = self.panel.gridSize
+        box.setFixedSize(size.scaled(size.width()*width, size.height()*height, 0))
+
         return box
         
         
 class Panel(QWidget):
     ''' add ___get_state___()? - compatibility with pickling '''
-    def __init__(self, app, test = False):
+    def __init__(self, app, clock, folder, subfolder = '', mode = 'local'):
         super().__init__()
-        # create current directory
-
-#        today = datetime.datetime.today()
-#        dateString = today.strftime('%y%m%d')
-#        self.directory = './%s/'%(dateString)
-#        try:
-#            os.stat(self.directory)
-#        except:
-#            os.mkdir(self.directory) 
-#        self.filepath = '%s/logfile.txt'%(self.directory)
-
+        self.mode = mode
         self.threads = {}
+        self.folder = folder
+        self.subfolder = subfolder
         
         # set style of child apps
-        QFontDatabase.addApplicationFont('./meda/fonts/Roboto/Roboto-Light.ttf')
+        QFontDatabase.addApplicationFont('./media/fonts/Roboto/Roboto-Light.ttf')
         self.color = 'red'
         self.font = {}
         self.font['S'] = QFont('Roboto', 10,weight=QFont.Light)
@@ -127,10 +146,12 @@ class Panel(QWidget):
         self.styleAlarm = "background-color:%s; color:black;  border-radius:5px; padding: 10px;"%'yellow'
         self.styleUnlock = "background-color:%s; color:white; border-radius:5px; padding: 10px;"%'red'
         self.styleLock = "background-color:%s; color:white; border-radius:5px; padding: 10px;"%'green'
+        self.gridSize = QSize(100,30)
         
-        self.filepath = None
-        self.initUI()                                   # create UI panel
+        self.guid = '1d9380dd-5ffd-4eb1-81d0-0db64c939a7f'
 
+        self.prepare_filepath()
+        self.initUI()                                   # create UI panel
 
     def exitApp(self):
         for thread in self.threads:
@@ -161,3 +182,21 @@ class Panel(QWidget):
         self.layout.addWidget(self.tabs)
         self.setLayout(self.layout)
         self.show()
+        
+    def prepare_filepath(self):
+        ''' Create file directory for the current day'''
+        today = datetime.datetime.today().strftime('%y%m%d')
+        self.directory = self.folder + today + '/' + self.subfolder
+
+        for d in [self.folder + today, self.directory]:
+            try:
+                os.stat(d)
+            except:
+                os.mkdir(d) 
+        if self.mode == 'local':
+            self.filepath = '%s/logfile.txt'%(self.directory)
+        elif self.mode == 'remote':
+            self.filepath = '%s/remote_logfile.txt'%(self.directory)
+
+#        self.filepath = 'C:\\Users\\Robbie\\Documents\\GitHub\\pyClock2.0\\logfile.txt'
+        

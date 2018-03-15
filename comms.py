@@ -47,5 +47,5 @@ class Dweet():
 
     
 if __name__ == '__main__':
-    dev = Dweet('ybdatalogger12345')
+    dev = Dweet('YbRemoteMonitor')
     r = dev.receive()
