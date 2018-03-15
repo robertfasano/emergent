@@ -146,7 +146,7 @@ class Panel(QWidget):
         self.styleAlarm = "background-color:%s; color:black;  border-radius:5px; padding: 10px;"%'yellow'
         self.styleUnlock = "background-color:%s; color:white; border-radius:5px; padding: 10px;"%'red'
         self.styleLock = "background-color:%s; color:white; border-radius:5px; padding: 10px;"%'green'
-        self.gridSize = QSize(100,30)
+        self.gridSize = QSize(120,40)
         
         self.guid = '1d9380dd-5ffd-4eb1-81d0-0db64c939a7f'
 

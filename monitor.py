@@ -259,10 +259,15 @@ class MonitorTab(gui.Tab):
                 bools.append(state)
                 if not state and self.unlockedWatchpoint == None:
                     self.unlockedWatchpoint = wp.name
-            prelock = self.lock
-            self.lock = self.lock and all(bools)
-            if prelock == 1 and self.lock == 0:
-                self.update_lock(state='off')
+            if self.mode == 'local':
+                prelock = self.lock
+                self.lock = self.lock and all(bools)
+                if prelock == 1 and self.lock == 0:
+                    self.update_lock(state='off')
+            elif self.mode == 'remote':
+                if self.receiver['Lock'] != self.lock:
+                    self.lock = self.receiver['Lock']
+                    self.update_lock(state={1:'on',0:'off'}[self.lock])
             bools.append(self.lock)
             
             mjd = astropy.time.Time(datetime.datetime.today()).mjd
