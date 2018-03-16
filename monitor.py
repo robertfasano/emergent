@@ -29,17 +29,17 @@ class Watchpoint():
         contains methods to check the state of the corresponding variable based on ADC measurements and comparisons to the setpoints.
         If mode = 'remote', live data is streamed over Dweet from a 'local' transmitter in the lab. '''
         
-    def __init__(self, name, tab, params, row, col, mode = 'local', logic = 'mean'):
+    def __init__(self, name, tab, params, row, col, mode = 'local'):
         self.tab = tab
         self.adc = params['ADC']
         self.mode = mode
-        self.logic = logic
         if mode == 'remote':
             self.adc = {'type':'remote', 'id':self.tab.panel.guid}
         self.tab.connect_adc(self.adc)
         self.name = name
         self.params = params
         self.channel = params['Channel']
+        self.logic = params['Logic']
         self.label = self.tab._addButton(self.name, self.options, row, col, style = self.tab.panel.styleDynamic)
 #        self.label = self.tab._addLabel(self.name, row, col, style = self.tab.panel.styleDynamic)
 
@@ -205,10 +205,7 @@ class MonitorTab(gui.Tab):
         row = 1
         for ch in d.keys():
             if ch not in ['General', 'Blue probe TTL']:
-                if ch == 'Blue probe':
-                    Watchpoint(ch, self, d[ch], row, 0, mode = self.mode, logic='max')
-                else:
-                    Watchpoint(ch, self, d[ch], row, 0, mode = self.mode, logic='mean')
+                Watchpoint(ch, self, d[ch], row, 0, mode = self.mode)
                 row += 1
             if ch == 'General':
                 self.params = d[ch]
