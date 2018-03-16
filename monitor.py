@@ -128,8 +128,9 @@ class MonitorTab(gui.Tab):
         containing the logical state of each Watchpoint: 1 for lock, 0 for unlock, and -1 for warning (this last case is used to alert the
         operator of drifting levels before they trigger an unlock). '''
         
-    def __init__(self, panel, clock, mode = 'local'):
+    def __init__(self, panel, clock, mode = 'local', TTL = None):
         super().__init__('Monitor', panel)
+        self.TTL = TTL
         self.panel = panel
         self.clock = clock
         self.mode = mode
@@ -262,7 +263,8 @@ class MonitorTab(gui.Tab):
             
             self.LED.set_state(0)
             ''' Wait for TTL high '''
-            params = {'ADC':self.ADCs['1C2678C'], 'gate_time':1, 'channel':0}
+            
+            params = {'ADC':self.ADCs[self.TTL], 'gate_time':1, 'channel':0}
             daq.TTL(params)
             self.LED.set_state(1)
             ''' Measure all watchpoints and update lock state'''
