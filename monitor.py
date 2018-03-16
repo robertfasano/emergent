@@ -1,11 +1,9 @@
 '''
     TODO: catch exception if user inputs blank value to a line edit (use last value)
-          hook up hidden options
           implement unlock last N points
           allow user to save parameter values
           add alarm reset time option in settings menu
     '''
-
 import json
 import sys
 import os
@@ -24,11 +22,18 @@ else:
 
 from labAPI import gui, plotter, math, daq, IO, comms
 
+
 class Watchpoint():
-    def __init__(self, name, tab, params, row, col, mode = 'local'):
+    ''' A Watchpoint object should be created for each variable you are monitoring. Upon initialization, this class generates
+        GUI elements corresponding to the variable and checks that the Tab is connected to the corresponding ADC. The class also
+        contains methods to check the state of the corresponding variable based on ADC measurements and comparisons to the setpoints.
+        If mode = 'remote', live data is streamed over Dweet from a 'local' transmitter in the lab. '''
+        
+    def __init__(self, name, tab, params, row, col, mode = 'local', logic = 'mean'):
         self.tab = tab
         self.adc = params['ADC']
         self.mode = mode
+        self.logic = logic
         if mode == 'remote':
             self.adc = {'type':'remote', 'id':self.tab.panel.guid}
         self.tab.connect_adc(self.adc)
@@ -39,8 +44,6 @@ class Watchpoint():
 #        self.label = self.tab._addLabel(self.name, row, col, style = self.tab.panel.styleDynamic)
 
         self.label.setProperty('lock',0)
-        self.label.style().unpolish(self.label)
-        self.label.style().polish(self.label)
         
         self.value = self.tab._addEdit('0 V', row,col+1)
         self.lock = self.tab._addEdit(params['Unlock threshold'], row,col+2)
@@ -48,17 +51,13 @@ class Watchpoint():
         self.type = params['Type']
         self.tab.watchpoints[self.name] = self
         
-        
         self.unlockedPoints = 0
         ''' Initialize behind-the-scenes options '''
         self.ADCOptions = dict((k,params[k]) for k in ['Type', 'Gate time (ms)', 'Channel'])
-        self.settings = gui.Popup(self.name, self.ADCOptions, self)
+        self.settings = gui.Popup(self.name, self.ADCOptions)
         
     def options(self):
         self.settings.show()        
-        
-    def update(self, val):
-        return
     
     def read_widget(self, widget, default = '1'):
         ''' Returns the value stored in a QLineEdit; if the widget is blank, returns default '''
@@ -75,10 +74,9 @@ class Watchpoint():
         if self.mode == 'local':
             ''' Measure from ADC '''
             params = {'ADC':self.tab.ADCs[self.adc['id']], 'gate_time':self.ADCOptions['Gate time (ms)'], 'channel':self.channel}
-            self.val = daq.measure(params)
+            self.val = daq.measure(params, logic = self.logic)
             self.value.setText(math.convertUnits(self.val))
             
-
         elif self.mode == 'remote':
             self.val = self.tab.receiver[self.name]
             self.value.setText(math.convertUnits(self.val))
@@ -92,13 +90,13 @@ class Watchpoint():
             self.val = np.abs(self.val)
         if sign*(self.val - self.alarmVal) > 0:
             state = 1
-#            self.label.setStyleSheet(self.tab.panel.styleLock)
-            self.label.setProperty('lock',1)
+            self.label.setStyleSheet(self.tab.panel.styleLock)
+#            self.label.setProperty('lock',1)
 
         elif sign*(self.val - self.lockVal) > 0:
             state = -1   
-#            self.label.setStyleSheet(self.tab.panel.styleAlarm)
-            self.label.setProperty('lock',-1)
+            self.label.setStyleSheet(self.tab.panel.styleAlarm)
+#            self.label.setProperty('lock',-1)
 
         else:
             self.unlockedPoints += 1
@@ -106,15 +104,30 @@ class Watchpoint():
                 state = 0
             else:
                 state = -1
-#            self.label.setStyleSheet(self.tab.panel.styleUnlock)
-            self.label.setProperty('lock',0)
-        self.label.style().unpolish(self.label)
-        self.label.style().polish(self.label)   
-        self.label.update()
+            self.label.setStyleSheet(self.tab.panel.styleUnlock)
+#            self.label.setProperty('lock',0)
+#        self.label.style().unpolish(self.label)
+#        self.label.style().polish(self.label)  
+#        self.label.update()
+#        self.label.setStyle(self.label.style())
+#        self.tab.panel.app.processEvents()
+
         return self.val, state
-        
     
 class MonitorTab(gui.Tab):
+    ''' The MonitorTab class fully implements a GUI-based data logger and viewer. Names and settings for each variable are read from
+        a JSON file and the Watchpoint objects are created. Data is read from the Watchpoints when the user toggles the 'Saving' button,
+        and lock/unlock decisions are handled logically. When unlocked, the clock must be manually relocked by toggling the 'Unlocked' 
+        button into the 'Locked' state, where it will remain until an unlock signal is generated either from setpoint comparisons or 
+        manual toggling. 
+        
+        If the MonitorTab is in mode = 'local', data is recorded from the ADC and broadcast over Dweet, where it can be read by additional
+        MonitorTab objects in mode = 'remote'. In mode = 'local', the Tab also sends lock/unlock messages to a specified Slack webhook. 
+        
+        During data recording, two files are written in real time: logfile.txt, containing time series for all Watchpoints, and boolfile.txt,
+        containing the logical state of each Watchpoint: 1 for lock, 0 for unlock, and -1 for warning (this last case is used to alert the
+        operator of drifting levels before they trigger an unlock). '''
+        
     def __init__(self, panel, clock, mode = 'local'):
         super().__init__('Monitor', panel)
         self.panel = panel
@@ -134,7 +147,6 @@ class MonitorTab(gui.Tab):
         self.lock = 0
         self.day = datetime.datetime.today().day
         self.sync = 0
-        
 
         ''' Generate UI '''
         self.load() 
@@ -184,13 +196,16 @@ class MonitorTab(gui.Tab):
         with open('monitorSettings_%i.json'%int(self.clock)) as json_data:
             d = json.load(json_data)
         col = 0
-        for item in ['Value', 'Alarm level', 'Unlock level']:
+        for item in ['Value', 'Unlock level', 'Alarm level']:
             col += 1
             self._addLabel(item, 0, col)
         row = 1
         for ch in d.keys():
             if ch not in ['General', 'Blue probe TTL']:
-                Watchpoint(ch, self, d[ch], row, 0, mode = self.mode)
+                if ch == 'Blue probe':
+                    Watchpoint(ch, self, d[ch], row, 0, mode = self.mode, logic='max')
+                else:
+                    Watchpoint(ch, self, d[ch], row, 0, mode = self.mode, logic='mean')
                 row += 1
             if ch == 'General':
                 self.params = d[ch]
@@ -209,6 +224,8 @@ class MonitorTab(gui.Tab):
             
         if self.mode == 'remote':
             self.lockButton = self._addButton('Unlocked', self.do_nothing, row, 2, style = self.panel.styleUnlock)
+        
+        self.LED = self._addLED(row+1, 1, scale=0.25)
 
         self._setSpacing()
         
@@ -243,14 +260,15 @@ class MonitorTab(gui.Tab):
                 self.panel.prepare_filepath()
                 self.prepare_files()
             
+            self.LED.set_state(0)
             ''' Wait for TTL high '''
-            daq.TTL(self.TTLaddr, self.TTLchannel)
-            
+            params = {'ADC':self.ADCs['1C2678C'], 'gate_time':1, 'channel':0}
+            daq.TTL(params)
+            self.LED.set_state(1)
             ''' Measure all watchpoints and update lock state'''
             vals = []
             params = []
             bools = []
-              
 
             for wp in self.watchpoints.values():
                 val, state = wp.state()
@@ -281,8 +299,6 @@ class MonitorTab(gui.Tab):
                 self.dvals.append(int(self.lock))
                 self.dbools = bools.copy()
                 self.sync = 1
-                
-
                 
             ''' Format and write bool string '''
             decs = [7, 3]
@@ -316,7 +332,7 @@ class MonitorTab(gui.Tab):
             self.panel.threads['Saving'] = 1
             print('Starting data acquisition!')
             self.saveButton.setStyleSheet(self.panel.styleLock)
-            self.saveButton.setText('Saving.')
+            self.saveButton.setText('Saving')
             self.thread = Thread(target=self.record)
             self.thread.start()
             
@@ -333,7 +349,7 @@ class MonitorTab(gui.Tab):
             self.panel.threads['Saving'] = 0
             print('Stopping data acquisition.')
             self.saveButton.setStyleSheet(self.panel.styleUnlock)
-            self.saveButton.setText('Not saving.')
+            self.saveButton.setText('Not saving')
             
             
             self.panel.threads['Transmitting'] = 0
@@ -344,7 +360,7 @@ class MonitorTab(gui.Tab):
     
     def toggle_snooze(self):
         self.snooze = (self.snooze + 1) % 2
-        if self.snooze:
+        if not self.snooze:
             self.snoozeButton.setStyleSheet(self.panel.styleLock)
             self.snoozeButton.setText('Snooze off')
         else:
@@ -385,9 +401,5 @@ class MonitorTab(gui.Tab):
             
             if self.mode == 'local':
                 self.panel.slack.send('UNLOCKED: %s'%self.unlockedWatchpoint)
-            
-
-
-
-
-
+                self.alarmThread = Thread(target=self.alarm)
+                self.alarmThread.start()

@@ -8,13 +8,9 @@ if os.name == 'posix':        # if using OS X, open a special testing version of
 else:
     sys.path.append('C:\\Users\\Public\\Documents\\GitHub')
     sys.path.append('C:\\Users\\Robbie\\Documents\\GitHub')
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from PyQt5.QtWidgets import QComboBox, QPushButton
-from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 import labAPI.IO
 import functools
-import matplotlib.pyplot as plt
-import numpy as np
 
 class CustomViewBox(pg.ViewBox):
     def __init__(self, plotter):
@@ -34,7 +30,6 @@ class CustomViewBox(pg.ViewBox):
             pg.ViewBox.mouseDragEvent(self, ev)
             self.plotter.viewbox = self.getState()
             
-
 class Clickable(QPushButton):
     def __init__(self, name, tab, function, args = None):
         super().__init__()
@@ -73,8 +68,8 @@ class Plotter():
         self.tab.layout.addWidget(self.tab.plotRefreshButton, self.row+self.height, self.col+1)
         
         ''' Create uptime log '''
-        self.tab.uptimeLog = self.tab._addLabel('', self.row+self.height+1, self.col)
-        self.tab.uptimeTotal = self.tab._addLabel('', self.row+self.height+1, self.col+1, width=2)
+        self.tab.uptimeLog = self.tab._addLabel('', self.row+self.height+1, self.col, width=2)
+        self.tab.uptimeTotal = self.tab._addLabel('', self.row+self.height+1, self.col+2, width=2)
 
     def uptime(self, choice):
         boolfile = self.filename.replace('log', 'bool')
@@ -88,7 +83,7 @@ class Plotter():
         self.tab.uptimeLog.setText('Uptime: %.0f%%'%(uptime*100))
         
         total = len(data[data['Human']==1])/len(data) * (data.iloc[-1]['Timestamp'] - data.iloc[0]['Timestamp'])
-        self.tab.uptimeTotal.setText('Total uptime: %.0f min'%(total/60))
+        self.tab.uptimeTotal.setText('Lock uptime: %.0f min'%(total/60))
 
     def plotSelect(self, args = None):
         choice = self.tab.plotterComboBox.currentText()
@@ -111,67 +106,3 @@ class Plotter():
         if args == 'refresh':
             if self.viewbox != 0:
                 vb.setState(self.viewbox)
-
-#class Plotter():
-#    def __init__(self, tab, row, col, height, width, filename, timecols = 2):
-#        timecols = 2
-#        self.tab = tab
-#        self.row = row
-#        self.col = col
-#        self.height = height
-#        self.width = width
-#        
-#        ''' Create canvas and navigation toolbar '''
-#        self.figure = plt.figure()
-#        self.canvas = FigureCanvas(self.figure)
-#        self.tab.layout.addWidget(self.canvas, self.row+1, self.col, self.height-1, self.width)
-#        self.toolbar = NavigationToolbar(self.canvas, self.tab)
-#        
-#        
-#        ''' Create combo box of plottable quantities '''
-#        with open(self.tab.panel.filepath, 'r') as file:
-#            self.watchpoints = labAPI.IO.parseRow(file.readlines()[0])[timecols::]
-#        self.choicebox = self.tab._addComboBox(self.watchpoints, self.row+self.height+1, self.col)
-#        self.choicebox.activated.connect(self.plot)
-#        
-#        self.plots = ['Histogram', 'Time series']
-#        self.plotbox = self.tab._addComboBox(self.plots, self.row+self.height+1, self.col+1)
-#        self.plotbox.activated.connect(self.plot)
-#        
-#
-#    def plot(self):
-#        self.tab.layout.addWidget(self.toolbar, self.row, self.col, 1, self.width)
-#        if self.plotbox.currentText() == 'Histogram':
-#            self.histogram()
-#        elif self.plotbox.currentText() == 'Time series':
-#            self.timeSeries()
-#            
-#    def histogram(self):
-#        choice = self.choicebox.currentText()
-#        self.figure.clear()
-#        ax = self.figure.add_subplot(111)
-#        plt.gcf().subplots_adjust(bottom=0.15)
-#        data = pd.read_csv(self.tab.panel.filepath,delimiter='\t',index_col = 0)[choice]
-#        ''' filter outliers '''
-#        n = 3
-#        data = data[np.abs(data-data.mean()) < n*data.std()]
-#        ''' plot data '''
-#        data.hist(ax=ax, figure=self.figure)
-#        ax.set_xlabel('%s (V)'%choice)
-#        ax.set_ylabel('Counts')
-#        
-#        self.canvas.draw()
-#        
-#    def timeSeries(self):
-#        choice = self.choicebox.currentText()
-#        self.figure.clear()
-#        ax = self.figure.add_subplot(111)
-#
-#        data = pd.read_csv(self.tab.panel.filepath,delimiter='\t',index_col = 0)[choice]
-#        
-#        data.plot(ax=ax, figure = self.figure)
-#        ax.set_xlabel('MJD')
-#        ax.set_ylabel('%s (V)'%choice)
-#        
-#        self.canvas.draw() 
-        

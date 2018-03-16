@@ -10,7 +10,7 @@ else:
     import mcdaq
 from labAPI.comms import Dweet
 
-def measure(params=None):
+def measure(params=None, logic = 'mean'):
     ''' Args:
         params: dict containing three fields
             ADC: a member of some ADC class with a .read() method
@@ -25,15 +25,28 @@ def measure(params=None):
             vals.append(np.random.uniform())
         else:
             vals.append(params['ADC'].read(params['channel']))
-    return np.mean(vals)
+    if logic == 'mean':
+        return np.mean(vals)
+    elif logic == 'max':
+        return np.max(vals)
     
 
-def TTL(source, channel):
+def TTL(params):
     ''' Waits until a positive TTL signal appears on the given channel, then return '''
-#    while measure(source, channel) < 2:
-#        continue
-    time.sleep(1)
+    while measure(params, logic = 'max') < 2:
+        continue
+
    
+    
+class MCDAQ(mcdaq.MCDAQ):
+    def __init__(self, params):
+        super().__init__(params['device'].encode(), params['id'].encode())
+        self.AInputMode(mcdaq.Mode.DIFFERENTIAL)
+        self.arange = mcdaq.Range.BIP20VOLTS
+        
+    def read(self, channel):
+        return self.VIn(int(channel), self.arange)
+    
 def connect(adc):
     ''' A wrapper function which initializes an ADC of the desired type with the arguments contained in the params dict '''
     if adc['type'] == 'mcdaq':
@@ -43,14 +56,7 @@ def connect(adc):
     else:
         return None
     
-#class MCDAQ(mcdaq.MCDAQ):
-#    def __init__(self, params):
-#        super().__init__(params['device'], params['id'])
-#        self.AInputMode(mcdaq.Mode.DIFFERENTIAL)
-#        self.arange = mcdaq.Range.BIP20VOLTS
-#        
-#    def read(self, channel):
-#        return self.VIn(channel, self.arange)
+
     
     
         

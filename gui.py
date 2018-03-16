@@ -1,10 +1,8 @@
 from PyQt5.QtWidgets import QWidget, QPushButton, QGridLayout, QLineEdit, QLabel, QComboBox, QTabWidget, QVBoxLayout, QMenuBar, QAction
-from PyQt5.QtGui import QFontDatabase, QFont
-from PyQt5.QtCore import QSize
-import json
+from PyQt5.QtGui import QFontDatabase, QFont, QPixmap
+from PyQt5.QtCore import QSize, Qt
 import datetime
 import functools
-import numpy as np
 import os
 
 class SubMenu(QMenuBar):
@@ -20,7 +18,8 @@ class SubMenu(QMenuBar):
         self.resize(320, 240)
        
 class Popup(QWidget):
-    def __init__(self, name, params, watchpoint):
+    ''' A popup for managing less-used options not displayed on the front panel of a Tab. '''
+    def __init__(self, name, params):
         super().__init__()
         self.params = params
         self.setWindowTitle('%s options'%name)
@@ -32,8 +31,7 @@ class Popup(QWidget):
         
         self.saveButton = QPushButton('Save')
         self.layout.addWidget(self.saveButton, 0, 2)
-        
-       
+          
     def populate(self):
         self.widgets = {}
         row = 0
@@ -46,8 +44,24 @@ class Popup(QWidget):
             row += 1
         self.setLayout(self.layout)
         
-        
+class LED(QLabel):
+    ''' A simple on/off LED whose state can be toggled with the set_state() function '''
+    def __init__(self, scale=1):
+        super().__init__('')
+        self.scale = scale
+        self.setPixmap(QPixmap('./media/led-red-on.png').scaled(self.scale*100, self.scale*100))
+        self.setAlignment(Qt.AlignCenter | Qt.AlignVCenter)
+
+    def set_state(self, i):
+        if i == 1:
+            self.setPixmap(QPixmap('./media/led-blue-on.png').scaled(self.scale*100, self.scale*100))
+        elif i == 0:
+            self.setPixmap(QPixmap('./media/led-red-on.png').scaled(self.scale*100, self.scale*100))
+            
 class Tab(QWidget):
+    ''' The Tab class is a higher-level version of the tab objects stored by a QTabWidget. This class aims to streamline and 
+        standardize creation of tabs and their respective GUI elements to enable efficient development.    
+    '''
     def __init__(self, name, panel):
         super().__init__()
         self.panel = panel
@@ -81,8 +95,6 @@ class Tab(QWidget):
         button.setFont(self.panel.font['S'])
         size = self.panel.gridSize
         button.setFixedSize(size.scaled(size.width()*width, size.height()*height, 0))
-
-        
 
         return button
     
@@ -125,31 +137,48 @@ class Tab(QWidget):
 
         return box
         
+    def _addLED(self, row, col, scale=1):
+        led = LED(scale=scale)
+        self.layout.addWidget(led, row, col)
+        self.setLayout(self.layout)
         
+        return led
+
 class Panel(QWidget):
-    ''' add ___get_state___()? - compatibility with pickling '''
+    ''' The Panel class is the central GUI element hosting multiple Tabs for different tasks. '''
     def __init__(self, app, clock, folder, subfolder = '', mode = 'local'):
         super().__init__()
         self.mode = mode
         self.threads = {}
         self.folder = folder
         self.subfolder = subfolder
+        self.app = app
         
-        # set style of child apps
+        self.threads = {}
+        
+        ''' Placeholder for remote communications - should initialize in child object '''
+        self.slack = None
+        self.guid = None
+        
+        ''' Define styles for child apps '''
         QFontDatabase.addApplicationFont('./media/fonts/Roboto/Roboto-Light.ttf')
         self.color = 'red'
         self.font = {}
         self.font['S'] = QFont('Roboto', 10,weight=QFont.Light)
         self.font['M'] = QFont('Roboto', 16,weight=QFont.Light)
         self.font['L'] = QFont('Roboto', 24,weight=QFont.Light)
-        self.styleSheet = "background-color:%s; color:white; border-width: 1px; border-radius: 5px;border-color: black; padding: 6px;"%self.color
-        self.styleAlarm = "background-color:%s; color:black;  border-radius:5px; padding: 10px;"%'yellow'
-        self.styleUnlock = "background-color:%s; color:white; border-radius:5px; padding: 10px;"%'red'
-        self.styleLock = "background-color:%s; color:white; border-radius:5px; padding: 10px;"%'green'
+        
+        self.styleButton = ''
+        self.styleAlarm = "background-color:%s; color:black;  border-width:10px; border-radius:5px; padding: 10px;"%'yellow'
+        self.styleUnlock = "background-color:%s; color:white;  border-width:10px; border-radius:5px; padding: 10px;"%'red'
+        self.styleLock = "background-color:%s; color:white;  border-width:10px; border-radius:5px; padding: 10px;"%'green'
+        self.styleDynamic = """ QPushButton[lock='0'] {background-color:red; color:white; border-width: 20px; border-radius:50px; border-color:black; padding:10px;}
+                                QPushButton[lock='1'] {background-color:green; color:white; border-width: 20px; border-radius:50px; border-color:black; padding:10px;}
+                                QPushButton[lock='-1'] {background-color:yellow; color:black; border-width: 20px; border-radius:50px; border-color:black; padding:10px;}"""
+
         self.gridSize = QSize(120,40)
         
-        self.guid = '1d9380dd-5ffd-4eb1-81d0-0db64c939a7f'
-
+        self.guid = None
         self.prepare_filepath()
         self.initUI()                                   # create UI panel
 
@@ -159,9 +188,7 @@ class Panel(QWidget):
         self.quit()
         
     def initUI(self):    
-        ''' Generates the user interface layout and menu.
-        '''
-        # create main window with tabs
+        ''' Generates the user interface layout and menu. '''
         self.layout = QVBoxLayout(self)
         self.myQMenuBar = SubMenu()
         self.layout.addWidget(self.myQMenuBar)
@@ -170,14 +197,11 @@ class Panel(QWidget):
 #        exitAction.triggered.connect(self.exitApp)
 #        fileMenu.addAction(exitAction)
         
-        
         self.tabs = QTabWidget()
-        
+    
 #        self.tabs.setCurrentIndex(0)            # sets default tab
 #        self.tabs.setTabPosition(2)
 
-
-        
     def loadTabs(self):
         self.layout.addWidget(self.tabs)
         self.setLayout(self.layout)
@@ -196,7 +220,4 @@ class Panel(QWidget):
         if self.mode == 'local':
             self.filepath = '%s/logfile.txt'%(self.directory)
         elif self.mode == 'remote':
-            self.filepath = '%s/remote_logfile.txt'%(self.directory)
-
-#        self.filepath = 'C:\\Users\\Robbie\\Documents\\GitHub\\pyClock2.0\\logfile.txt'
-        
+            self.filepath = '%s/remote_logfile.txt'%(self.directory)        

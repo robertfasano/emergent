@@ -57,7 +57,7 @@ class AnalysisTab(gui.Tab):
         n = 3
         data = data[np.abs(data-data.mean()) < n*data.std()]
         ''' plot data '''
-        ax = data.hist(ax=ax)
+        ax = data.hist(ax=ax,bins=50)
 #        ax.set_xlabel('%s (V)'%choice)
 #        ax.set_ylabel('Counts')
         
