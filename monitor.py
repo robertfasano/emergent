@@ -140,6 +140,8 @@ class MonitorTab(gui.Tab):
         self.offset = 2082844800 - 3437602072           # the offset from UNIX time defining the Yb timestamp
         self.dweet = comms.Dweet(self.panel.guid)
         
+        if mode == 'remote':
+            self.TTL = 'remote'
         ''' Initialize tracking dicts '''
         self.ADCs = {}
         
@@ -264,8 +266,11 @@ class MonitorTab(gui.Tab):
             self.LED.set_state(0)
             ''' Wait for TTL high '''
             
-            params = {'ADC':self.ADCs[self.TTL], 'gate_time':1, 'channel':0}
-            daq.TTL(params)
+            if self.mode == 'local':
+                params = {'ADC':self.ADCs[self.TTL], 'gate_time':1, 'channel':0}
+                daq.TTL(params)
+            elif self.mode == 'remote':
+                time.sleep(1)
             self.LED.set_state(1)
             ''' Measure all watchpoints and update lock state'''
             vals = []
