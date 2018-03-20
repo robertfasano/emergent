@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QCheckBox, QWidget, QPushButton, QGridLayout, QLineEdit, QLabel, QComboBox, QTabWidget, QVBoxLayout, QMenuBar, QAction
-from PyQt5.QtGui import QFontDatabase, QFont, QPixmap
+from PyQt5.QtGui import QFontDatabase, QFont, QPixmap, QIcon
 from PyQt5.QtCore import QSize, Qt
 import datetime
 import functools
@@ -81,7 +81,7 @@ class Tab(QWidget):
             self.layout.setColumnStretch(col, 1)
         self.setLayout(self.layout)
 
-    def _addButton(self, label, function, row, col, width = 1, height = 1, args = None, style = 0):
+    def _addButton(self, label, function, row, col, width = 1, height = 1, args = None, style = 0, icon = None):
         button = QPushButton(label)
         if args == None:
             button.clicked.connect(functools.partial(function))
@@ -93,6 +93,11 @@ class Tab(QWidget):
         
         if style != 0:
             button.setStyleSheet(style)
+            
+        if not icon == None:
+            button.setIcon(QIcon(icon))
+            button.setText('')
+            
         button.setFont(self.panel.font['S'])
         size = self.panel.gridSize
         button.setFixedSize(size.scaled(size.width()*width, size.height()*height, 0))
