@@ -16,8 +16,10 @@ import pandas as pd
 import numpy as np
 
 class AnalysisTab(gui.Tab):
-    def __init__(self, panel, clock):
-        super().__init__('Analysis', panel)
+    def __init__(self, panel, clock, name, filepath):
+        super().__init__(name, panel)
+        self.name = name
+        self.filepath = filepath
         timecols = 2
         
         ''' Create canvas and navigation toolbar '''
@@ -30,7 +32,7 @@ class AnalysisTab(gui.Tab):
         
         
         ''' Create combo box of plottable quantities '''
-        with open(self.panel.filepath, 'r') as file:
+        with open(self.filepath, 'r') as file:
             self.watchpoints = IO.parseRow(file.readlines()[0])[timecols::]
         self.choicebox = self._addComboBox(self.watchpoints, 3, 0)
         self.choicebox.activated.connect(self.plot)
@@ -52,7 +54,7 @@ class AnalysisTab(gui.Tab):
         self.figure.clear()
         ax = self.figure.add_subplot(111)
         
-        data = pd.read_csv(self.panel.filepath,delimiter='\t',index_col = 0)[choice]
+        data = pd.read_csv(self.filepath,delimiter='\t',index_col = 0)[choice]
         ''' filter outliers '''
         n = 3
         data = data[np.abs(data-data.mean()) < n*data.std()]
@@ -68,7 +70,7 @@ class AnalysisTab(gui.Tab):
         self.figure.clear()
         ax = self.figure.add_subplot(111)
         
-        data = pd.read_csv(self.panel.filepath,delimiter='\t',index_col = 0)[choice]
+        data = pd.read_csv(self.filepath,delimiter='\t',index_col = 0)[choice]
         
         data.plot(ax=ax)
 #        ax.set_xlabel('MJD')
