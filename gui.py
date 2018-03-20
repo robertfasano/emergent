@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QWidget, QPushButton, QGridLayout, QLineEdit, QLabel, QComboBox, QTabWidget, QVBoxLayout, QMenuBar, QAction
+from PyQt5.QtWidgets import QCheckBox, QWidget, QPushButton, QGridLayout, QLineEdit, QLabel, QComboBox, QTabWidget, QVBoxLayout, QMenuBar, QAction
 from PyQt5.QtGui import QFontDatabase, QFont, QPixmap
 from PyQt5.QtCore import QSize, Qt
 import datetime
@@ -99,14 +99,15 @@ class Tab(QWidget):
 
         return button
     
-    def _addLabel(self, label, row, col, width=1, height=1, style = 0, size = 'default'):
+    def _addLabel(self, label, row, col, width=1, height=1, style = 0, size = 'default', fontsize = 'M'):
         label = QLabel(label)
         self.layout.addWidget(label, row, col, height, width)
         self.setLayout(self.layout)
         
         if style != 0:
             label.setStyleSheet(style)
-        label.setFont(self.panel.font['M'])
+            
+        label.setFont(self.panel.font[fontsize])
         
         size = self.panel.gridSize
         label.setFixedSize(size.scaled(size.width()*width, size.height()*height, 0))
@@ -144,17 +145,26 @@ class Tab(QWidget):
         self.setLayout(self.layout)
         
         return led
+    
+    def _addCheckbox(self, name, row, col):
+        checkbox = QCheckBox(name)
+        self.layout.addWidget(checkbox, row, col)
+        self.setLayout(self.layout)
+        
+        return checkbox
 
 class Panel(QWidget):
     ''' The Panel class is the central GUI element hosting multiple Tabs for different tasks. '''
     def __init__(self, app, clock, folder, subfolder = '', mode = 'local'):
         super().__init__()
+        print('Creating panel')
         self.mode = mode
         self.threads = {}
         self.folder = folder
         self.subfolder = subfolder
         self.app = app
-        
+        self.filepath = {}
+
         self.threads = {}
         
         ''' Placeholder for remote communications - should initialize in child object '''
@@ -182,7 +192,6 @@ class Panel(QWidget):
         self.guid = None
         self.prepare_filepath()
         self.initUI()                                   # create UI panel
-
     def exitApp(self):
         for thread in self.threads:
             self.threads[thread] = 0
@@ -222,4 +231,4 @@ class Panel(QWidget):
         if self.mode == 'local':
             self.filepath['Monitor'] += '/logfile.txt'
         elif self.mode == 'remote':
-            self.filepath['Monitor'] += '/remote_logfile.txt'      
+            self.filepath['Monitor'] += '/remote_logfile.txt'    
