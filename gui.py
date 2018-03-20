@@ -66,6 +66,7 @@ class Tab(QWidget):
         super().__init__()
         self.panel = panel
         self.name = name
+        self.filepath = {}
         self.layout = QGridLayout()
         self.layout.setSpacing(10)
         self.panel.tabs.addTab(self, self.name)
@@ -217,7 +218,8 @@ class Panel(QWidget):
                 os.stat(d)
             except:
                 os.mkdir(d) 
+        self.filepath['Monitor'] = self.directory
         if self.mode == 'local':
-            self.filepath = '%s/logfile.txt'%(self.directory)
+            self.filepath['Monitor'] += '/logfile.txt'
         elif self.mode == 'remote':
-            self.filepath = '%s/remote_logfile.txt'%(self.directory)        
+            self.filepath['Monitor'] += '/remote_logfile.txt'      
