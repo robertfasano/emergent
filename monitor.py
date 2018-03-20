@@ -213,7 +213,7 @@ class MonitorTab(gui.Tab):
 
         self.prepare_files()
 
-        self.plotter = plotter.Plotter(self, 1, 4, row-1, 4, self.panel.filepath)
+        self.plotter = plotter.Plotter(self, 1, 4, row-1, 4, self.panel.filepath['Monitor'])
 
         ''' Create buttons '''
         self.saveButton = self._addButton('Not saving', self.save, row, 1, style = self.panel.styleUnlock)
@@ -230,17 +230,17 @@ class MonitorTab(gui.Tab):
         self._setSpacing()
         
     def prepare_files(self):
-        if os.path.isfile(self.panel.filepath): 
-            self.logfile = open(self.panel.filepath, 'a')
-            self.boolfile = open(self.panel.filepath.replace('log','bool'), 'a')
+        if os.path.isfile(self.panel.filepath['Monitor']): 
+            self.logfile = open(self.panel.filepath['Monitor'], 'a')
+            self.boolfile = open(self.panel.filepath['Monitor'].replace('log','bool'), 'a')
         else:
-            self.logfile = open(self.panel.filepath, 'w')
+            self.logfile = open(self.panel.filepath['Monitor'], 'w')
             header = ['MJD', 'Timestamp']
             header.extend(list(self.watchpoints.keys()))
             self.logfile.write(IO.formatRow(header, newline='none'))
             self.logfile.flush()
             
-            self.boolfile = open(self.panel.filepath.replace('log','bool'), 'w')
+            self.boolfile = open(self.panel.filepath['Monitor'].replace('log','bool'), 'w')
             header.append('Human')
             self.boolfile.write(IO.formatRow(header, newline='none'))
             self.boolfile.flush()
