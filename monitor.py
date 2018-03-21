@@ -179,7 +179,7 @@ class MonitorTab(gui.Tab):
                 time.sleep(15)
 
     def align(self):
-        return
+        print('Align functionality coming soon!')
         
     def check(self):
         for wp in self.watchpoints.values():
