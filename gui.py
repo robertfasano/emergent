@@ -58,19 +58,50 @@ class LED(QLabel):
         elif i == 0:
             self.setPixmap(QPixmap('./media/led-red-on.png').scaled(self.scale*100, self.scale*100))
             
+class ToggleButton(QPushButton):
+    def __init__(self, panel, width=1, height=1):
+        super().__init__()
+        self.state = 0
+        self.panel = panel
+        self.setStyleSheet(self.panel.styleGray)
+        self.clicked.connect(self.toggle)
+        size = panel.gridSize
+        self.setFixedSize(size.scaled(size.width()*width, size.height()*height, 0))
+    def toggle(self):
+        self.state = (self.state + 1) % 2
+        if self.state == 1:
+            self.setStyleSheet(self.panel.styleYellow)
+        else:
+            self.setStyleSheet(self.panel.styleGray)
+            
 class Tab(QWidget):
     ''' The Tab class is a higher-level version of the tab objects stored by a QTabWidget. This class aims to streamline and 
         standardize creation of tabs and their respective GUI elements to enable efficient development.    
     '''
-    def __init__(self, name, panel):
+    def __init__(self, name, panel, subtab = False):
         super().__init__()
         self.panel = panel
+        if subtab:
+            self.tab = panel
+            if self.tab.tabs == None:
+                self.tab.tabs = QTabWidget()
+            self.panel = panel.panel
+            
         self.name = name
         self.filepath = {}
         self.layout = QGridLayout()
         self.layout.setSpacing(10)
-        self.panel.tabs.addTab(self, self.name)
-        self.setLayout(self.layout)
+        if not subtab:
+            self.panel.tabs.addTab(self, self.name)
+            self.setLayout(self.layout)
+
+        else:
+            self.tab.tabs.addTab(self, self.name)
+            self.tab.layout.addWidget(self.tab.tabs)
+            self.setLayout(self.layout)
+            self.tab.setLayout(self.tab.layout)
+
+
 
     
     def _setSpacing(self):
@@ -104,7 +135,12 @@ class Tab(QWidget):
 
         return button
     
-    def _addLabel(self, label, row, col, width=1, height=1, style = 0, size = 'default', fontsize = 'M'):
+    def _addToggleButton(self, row, col, width = 1, height = 1):
+        button = ToggleButton(self.panel)
+        self.layout.addWidget(button, row, col, height, width)
+        self.setLayout(self.layout)
+        
+    def _addLabel(self, label, row, col, width=1, height=1, style = 0, size = 'default', fontsize = 'M', centered = False):
         label = QLabel(label)
         self.layout.addWidget(label, row, col, height, width)
         self.setLayout(self.layout)
@@ -116,6 +152,10 @@ class Tab(QWidget):
         
         size = self.panel.gridSize
         label.setFixedSize(size.scaled(size.width()*width, size.height()*height, 0))
+        
+        if centered:
+            label.setAlignment(Qt.AlignVCenter)
+            
         return label
     
     def _addEdit(self, label, row, col, width=1, height=1):          
@@ -151,8 +191,11 @@ class Tab(QWidget):
         
         return led
     
-    def _addCheckbox(self, name, row, col):
-        checkbox = QCheckBox(name)
+    def _addCheckbox(self, row, col, name = None):
+        if name == None:
+            checkbox = QCheckBox()
+        else:
+            checkbox = QCheckBox(name)
         self.layout.addWidget(checkbox, row, col)
         self.setLayout(self.layout)
         
@@ -191,6 +234,9 @@ class Panel(QWidget):
         self.styleDynamic = """ QPushButton[lock='0'] {background-color:red; color:white; border-width: 20px; border-radius:50px; border-color:black; padding:10px;}
                                 QPushButton[lock='1'] {background-color:green; color:white; border-width: 20px; border-radius:50px; border-color:black; padding:10px;}
                                 QPushButton[lock='-1'] {background-color:yellow; color:black; border-width: 20px; border-radius:50px; border-color:black; padding:10px;}"""
+
+        self.styleGray = "background-color:%s; color:white;  border-width:10px; padding: 10px;"%'gray'
+        self.styleYellow = "background-color:%s; color:white;  border-width:10px; padding: 10px;"%'yellow'
 
         self.gridSize = QSize(120,40)
         
