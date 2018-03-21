@@ -52,7 +52,7 @@ class AnalysisTab(gui.Tab):
         
         ''' Create user options '''
         self.filter = 0
-        self.filterCheckbox = self._addCheckbox('Remove outliers', 3, 2)
+        self.filterCheckbox = self._addCheckbox(3, 2, name='Remove outliers')
 
         ''' Create filename output and explore option '''
         self.fileLabel = self._addLabel(self.parse_filestring(self.filepath), 3, 4, width = 3, fontsize = 'S')
