@@ -292,7 +292,8 @@ class MonitorTab(gui.Tab):
                     self.update_lock(state={1:'on',0:'off'}[self.lock])
             bools.append(self.lock)
             
-            mjd = astropy.time.Time(datetime.datetime.today()).mjd
+#            mjd = astropy.time.Time.now().mjd     # CORRECT GLOBAL
+            mjd = astropy.time.Time(datetime.datetime.today()).mjd    # WRONG LOCAL
             ybTime = astropy.time.Time(mjd,format='mjd').unix + self.offset
             
             if self.mode == 'local':
