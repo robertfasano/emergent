@@ -5,6 +5,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from PyQt5.QtWidgets import QComboBox, QPushButton, QFileDialog
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 import time
+from threading import Thread
 if os.name == 'posix':        # if using OS X, open a special testing version of the program
     sys.path.append('/Users/rjf2/Documents/GitHub')
 else:
@@ -51,12 +52,12 @@ class AnalysisTab(gui.Tab):
         self.plotbox.activated.connect(self.plot)
         
         ''' Create user options '''
-        self.filter = 0
         self.filterCheckbox = self._addCheckbox(3, 2, name='Remove outliers')
-
+        self.averageCheckbox = self._addCheckbox(3,3, name='1-hour averaging')
+        
         ''' Create filename output and explore option '''
-        self.fileLabel = self._addLabel(self.parse_filestring(self.filepath), 3, 4, width = 3, fontsize = 'S')
-        self.fileButton = self._addButton('Change', self.change_directory, 3, 3, icon = './media/folder.png')
+        self.fileLabel = self._addLabel(self.parse_filestring(self.filepath), 3, 5, width = 3, fontsize = 'S')
+        self.fileButton = self._addButton('Change', self.change_directory, 3, 4, icon = './media/folder.png')
         
     def parse_filestring(self, path):
         return '../'+path.split(self.panel.folder)[-1]
@@ -77,6 +78,10 @@ class AnalysisTab(gui.Tab):
         elif self.plotbox.currentText() == 'Allan deviation':
             self.allan_deviation()
     
+    def plot_thread(self):
+        self.threadPlot = Thread(target=self.plot)
+        self.threadPlot.start()
+        
     def remove_outliers(self, data):
         for i in range(3):
             data = data[np.abs((data-data.mean())/data.std()) < 3]
@@ -95,6 +100,7 @@ class AnalysisTab(gui.Tab):
                 continue
         if self.filterCheckbox.checkState():
             data = self.remove_outliers(data)
+        
         return data
     
     def histogram(self):
@@ -115,8 +121,19 @@ class AnalysisTab(gui.Tab):
         ax = self.figure.add_subplot(111)
         
         data = self.read_data(choice)
-
-        data.plot(ax=ax)
+        
+        if self.averageCheckbox.checkState():
+            window = int(3600/np.mean(np.diff(data.index.values)))
+            mean = data.rolling(window=window).mean()
+            std = data.rolling(window=window).std()
+            lower = mean-std
+            upper = mean+std
+            
+            ax.plot(mean, 'k')
+            ax.plot(lower, '--k')
+            ax.plot(upper, '--k')
+        else:
+            data.plot(ax=ax)
 #        ax.set_xlabel('MJD')
 #        ax.set_ylabel('%s (V)'%choice)
         
@@ -143,7 +160,7 @@ class AnalysisTab(gui.Tab):
         
 
         ''' Fit line and plot '''
-        first_point = 10
+        first_point = 100
         tau = t2[np.where(t2>first_point)]
         dev = ad[np.where(t2>first_point)]
         popt, pcov = curve_fit(self.power_law, tau, dev)
@@ -155,6 +172,15 @@ class AnalysisTab(gui.Tab):
         self.canvas.draw()
 
         
+def filter_data(df, window=3600):
+    mean = df.rolling(window=window).mean()
+    std = df.rolling(window=window).std()
+    lower = mean-std
+    upper = mean+std
+    
+    plt.plot(mean, 'k')
+    plt.plot(lower, '--k')
+    plt.plot(upper, '--k')
 
 
 
