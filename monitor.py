@@ -36,6 +36,7 @@ class Watchpoint():
         if mode == 'remote':
             self.adc = {'type':'remote', 'id':self.tab.panel.guid}
         self.tab.connect_adc(self.adc)
+        self.TTL = self.adc['TTL']
         self.name = name
         self.params = params
         self.channel = params['Channel']
@@ -73,7 +74,7 @@ class Watchpoint():
         
         if self.mode == 'local':
             ''' Measure from ADC '''
-            params = {'ADC':self.tab.ADCs[self.adc['id']], 'gate_time':self.ADCOptions['Gate time (ms)'], 'channel':self.channel}
+            params = {'ADC':self.tab.ADCs[self.adc['id']], 'gate_time':self.ADCOptions['Gate time (ms)'], 'channel':self.channel, 'TTL':self.TTL}
             self.val = daq.measure(params, logic = self.logic)
             self.value.setText(math.convertUnits(self.val))
             
@@ -260,20 +261,22 @@ class MonitorTab(gui.Tab):
                 self.panel.prepare_filepath()
                 self.prepare_files()
             
-            self.LED.set_state(0)
-            ''' Wait for TTL high '''
+#            self.LED.set_state(0)
+#            ''' Wait for TTL high '''
+#            
+#            if self.mode == 'local':
+#                params = {'ADC':self.ADCs[self.TTL], 'gate_time':1, 'channel':0}
+#                daq.TTL(params)
+#            elif self.mode == 'remote':
+#                time.sleep(1)
+#                
+#            self.LED.set_state(1)
             
-            if self.mode == 'local':
-                params = {'ADC':self.ADCs[self.TTL], 'gate_time':1, 'channel':0}
-                daq.TTL(params)
-            elif self.mode == 'remote':
-                time.sleep(1)
-            self.LED.set_state(1)
             ''' Measure all watchpoints and update lock state'''
             vals = []
             params = []
             bools = []
-
+            self.LED.set_state(0)
             for wp in self.watchpoints.values():
                 val, state = wp.state()
                 params.append(wp.name)
@@ -281,6 +284,8 @@ class MonitorTab(gui.Tab):
                 bools.append(state)
                 if not state and self.unlockedWatchpoint == None:
                     self.unlockedWatchpoint = wp.name
+            self.LED.set_state(1)
+
             if self.mode == 'local':
                 prelock = self.lock
                 self.lock = self.lock and all(bools)
@@ -292,8 +297,8 @@ class MonitorTab(gui.Tab):
                     self.update_lock(state={1:'on',0:'off'}[self.lock])
             bools.append(self.lock)
             
-#            mjd = astropy.time.Time.now().mjd     # CORRECT GLOBAL
-            mjd = astropy.time.Time(datetime.datetime.today()).mjd    # WRONG LOCAL
+            mjd = astropy.time.Time.now().mjd     # CORRECT GLOBAL
+#            mjd = astropy.time.Time(datetime.datetime.today()).mjd    # WRONG LOCAL
             ybTime = astropy.time.Time(mjd,format='mjd').unix + self.offset
             
             if self.mode == 'local':

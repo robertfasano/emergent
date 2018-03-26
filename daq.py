@@ -18,10 +18,12 @@ def measure(params=None, logic = 'mean'):
             channel: the proper channel for the ADC
     '''
     vals = []
+    if params['TTL'] != "None":
+        while params['ADC'].read(params['TTL']) < 3:
+            continue
+
     for i in range(int(params['gate_time'])):
         if params['ADC'] == None:
-            vals.append(np.random.uniform())
-        elif params['ADC'] == 'remote':
             vals.append(np.random.uniform())
         else:
             vals.append(params['ADC'].read(params['channel']))
@@ -33,7 +35,7 @@ def measure(params=None, logic = 'mean'):
 
 def TTL(params):
     ''' Waits until a positive TTL signal appears on the given channel, then return '''
-    while measure(params, logic = 'max') < 2:
+    while measure(params, logic = 'max') < 3:
         continue
 
    
