@@ -2,11 +2,18 @@ import numpy as np
 import time
 import os
 import sys
+try:
+    sys.path.remove('C:\\ProgramData\\Anaconda3\\lib\\site-packages\\mcdaq-1-py3.6.egg')
+except ValueError:
+    pass
 if os.name == 'posix':        # if using OS X, open a special testing version of the program
     sys.path.append('/Users/rjf2/Documents/GitHub')
 else:
     sys.path.append('C:\\Users\\Public\\Documents\\GitHub')
     sys.path.append('C:\\Users\\Robbie\\Documents\\GitHub')
+    sys.path.append('C:\\Users\\yblab\\Python\\mcdaq')
+
+    sys.path.append('O:\\Public\\Yb clock')
     import mcdaq
 from labAPI.comms import Dweet
 
@@ -41,13 +48,20 @@ def TTL(params):
    
     
 class MCDAQ(mcdaq.MCDAQ):
-    def __init__(self, params):
+    def __init__(self, params, function = 'input'):
         super().__init__(params['device'].encode(), params['id'].encode())
-        self.AInputMode(mcdaq.Mode.DIFFERENTIAL)
-        self.arange = mcdaq.Range.BIP20VOLTS
         
+        if function == 'input':
+            self.AInputMode(mcdaq.Mode.DIFFERENTIAL)
+            self.arange = mcdaq.Range.BIP20VOLTS
+        elif function == 'output':
+            self.arange = mcdaq.Range.UNI10VOLTS
+
     def read(self, channel):
         return self.VIn(int(channel), self.arange)
+    
+    def out(self, channel, value):
+        return self.VOut(int(channel), self.arange, value)
     
 def connect(adc):
     ''' A wrapper function which initializes an ADC of the desired type with the arguments contained in the params dict '''
@@ -58,7 +72,10 @@ def connect(adc):
     else:
         return None
     
-
-    
+if __name__ == '__main__':
+#    params = {'device':'USB-3105', 'id':'111696'}
+#    m = MCDAQ(params)
+    p = m.out(0,0)
+    print(p)
     
         
