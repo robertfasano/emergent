@@ -136,6 +136,8 @@ class MonitorTab(gui.Tab):
         self.clock = clock
         self.mode = mode
         self.panel.threads['Saving'] = 0
+        self.logqueue = []
+        self.boolqueue = []
         self.TTLaddr = None
         self.TTLchannel = None
         self.offset = 2082844800 - 3437602072           # the offset from UNIX time defining the Yb timestamp
@@ -143,6 +145,7 @@ class MonitorTab(gui.Tab):
         
         if mode == 'remote':
             self.TTL = 'remote'
+            
         ''' Initialize tracking dicts '''
         self.ADCs = {}
         
@@ -230,6 +233,20 @@ class MonitorTab(gui.Tab):
 
         self._setSpacing()
         
+    def write_queue(self):
+        while self.panel.threads['Saving']:
+            try:
+                self.logfile.write(self.logqueue[0])
+                self.logfile.flush()
+                del self.logqueue[0]
+                
+                self.boolfile.write(self.boolqueue[0])
+                self.boolfile.flush()
+                del self.boolqueue[0]
+            except:
+                continue
+                
+            
     def prepare_files(self):
         if os.path.isfile(self.panel.filepath['Monitor']): 
             self.logfile = open(self.panel.filepath['Monitor'], 'a')
@@ -245,6 +262,8 @@ class MonitorTab(gui.Tab):
             header.append('Human')
             self.boolfile.write(IO.formatRow(header, newline='none'))
             self.boolfile.flush()
+        
+        
     
     def recall(self):
         print('Loading monitor settings from file.')
@@ -254,6 +273,9 @@ class MonitorTab(gui.Tab):
             self.receiver = self.dweet.receive()
         
     def record(self):
+        self.queue_thread = Thread(target=self.write_queue)
+        self.queue_thread.start()
+        
         while self.panel.threads['Saving']:              
             ''' Check for day change and create new folder if necessary'''
             if datetime.datetime.today().day != self.day:
@@ -317,9 +339,7 @@ class MonitorTab(gui.Tab):
             lengths.extend([1]*(len(self.watchpoints)+1))
             lst = [mjd, ybTime]
             lst.extend(bools)
-            boolString = IO.formatRow(lst, newline = 'start', decs = decs, lengths = lengths)
-            self.boolfile.write(boolString)
-            self.boolfile.flush()
+            self.boolqueue.append(boolString = IO.formatRow(lst, newline = 'start', decs = decs, lengths = lengths))
             
             
             ''' Format and write log string '''
@@ -329,9 +349,7 @@ class MonitorTab(gui.Tab):
             lengths.extend([7]*len(self.watchpoints))
             lst = [mjd, ybTime]
             lst.extend(vals)
-            logString = IO.formatRow(lst, newline = 'start',decs=decs, lengths=lengths)
-            self.logfile.write(logString)
-            self.logfile.flush()
+            self.logqueue.append(IO.formatRow(lst, newline = 'start',decs=decs, lengths=lengths))
                 
 
             ''' TODO: is this wait necessary? '''
