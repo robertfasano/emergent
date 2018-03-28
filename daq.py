@@ -9,8 +9,8 @@ except ValueError:
 if os.name == 'posix':        # if using OS X, open a special testing version of the program
     sys.path.append('/Users/rjf2/Documents/GitHub')
 else:
-    sys.path.append('C:\\Users\\Public\\Documents\\GitHub')
-    sys.path.append('C:\\Users\\Robbie\\Documents\\GitHub')
+#    sys.path.append('C:\\Users\\Public\\Documents\\GitHub')
+#    sys.path.append('C:\\Users\\Robbie\\Documents\\GitHub')
     sys.path.append('C:\\Users\\yblab\\Python\\mcdaq')
 
     sys.path.append('O:\\Public\\Yb clock')
@@ -55,7 +55,9 @@ class MCDAQ(mcdaq.MCDAQ):
             self.AInputMode(mcdaq.Mode.DIFFERENTIAL)
             self.arange = mcdaq.Range.BIP20VOLTS
         elif function == 'output':
+#            self.arange = mcdaq.Range.BIP5VOLTS
             self.arange = mcdaq.Range.UNI10VOLTS
+
 
     def read(self, channel):
         return self.VIn(int(channel), self.arange)
@@ -73,9 +75,15 @@ def connect(adc):
         return None
     
 if __name__ == '__main__':
-#    params = {'device':'USB-3105', 'id':'111696'}
-#    m = MCDAQ(params)
-    p = m.out(0,0)
-    print(p)
+    params = {'device':'USB-3105', 'id':'111696'}
+    m = MCDAQ(params, function = 'output')
+    
+    rng = 10
+#    time.sleep(5)
+#    for x in np.linspace(0, rng, 10):
+#        p = m.out(6,x)
+#        time.sleep(1)
+#    m.out(0, 0)
+    m.out(6,1)
     
         
