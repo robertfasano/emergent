@@ -1,23 +1,27 @@
 import socket
-from daq import MCDAQ
+from labAPI import daq
 import json
 import astropy.time
 
 class Client():
-    def __init__(self):
+    def __init__(self, adc = None):
         # Create a TCP/IP socket
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    
+        self.connected = False
         # connect to mcdaq
 #        params = {'device':'USB-2416', 'id':'1C2678C'}
-        params = {'device':'USB-2416', 'id':'1C26788'}
 
-        self.daq = MCDAQ(params, function = 'input')
+        if daq == None:
+            params = {'device':'USB-2416', 'id':'1C26788'}
+            self.daq = daq.MCDAQ(params, function = 'input')
+        else: 
+            self.daq = adc
         
     def connect(self):
         server_address = ('132.163.82.22', 6666)
         print('Connecting to %s port %s' % server_address)
         self.sock.connect(server_address)
+        self.connected = True
         
     def message(self, op, parameters = {}):
         ''' Sends a command to the server '''
@@ -28,9 +32,11 @@ class Client():
         return self.receive()
         
     def ping(self):
+        if not self.connected:
+            self.connect()
         reply = self.message(op='ping', parameters={'time': astropy.time.Time.now().unix})
         print(reply)
-        
+
     def acquire_etalon_lock(self):
         self.message(op='acquire_etalon_lock')  
         
@@ -52,6 +58,8 @@ class Client():
         print(reply)
         
     def lock(self, parameters):
+        if not self.connected:
+            self.connect()
         try:
             self.message(op='lock', parameters = parameters)
             
@@ -74,18 +82,19 @@ class Client():
                     break
         except KeyboardInterrupt:
             print('Locking routine aborted by user.')
-         
+#        self.sock.close()
+        
     def send(self, cmd):
         cmd = json.dumps(cmd).encode('ascii')
         self.sock.sendall(cmd)
 
 if __name__ == '__main__':
     try:
-        c.connect()
+        c
     except NameError:    
         c = Client()
-#    c.ping()
+    c.connect()
     parameters = {'pzt_center_gain':.0002, 'cavity_tune_delay':.5, 'sweep_steps':60, 'cavity_tune_threshold':.02, 'cavity_transmission_threshold':0.1, 'pzt_center_threshold':.3}
-    c.lock(parameters)
+#    c.lock(parameters)
     
             
