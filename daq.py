@@ -2,14 +2,14 @@ import numpy as np
 import time
 import os
 import sys
-try:
-    sys.path.remove('C:\\ProgramData\\Anaconda3\\lib\\site-packages\\mcdaq-1-py3.6.egg')
-except ValueError:
-    pass
+#try:
+#    sys.path.remove('C:\\ProgramData\\Anaconda3\\lib\\site-packages\\mcdaq-1-py3.6.egg')
+#except ValueError:
+#    pass
 if os.name == 'posix':        # if using OS X, open a special testing version of the program
     sys.path.append('/Users/rjf2/Documents/GitHub')
 else:
-#    sys.path.append('C:\\Users\\Public\\Documents\\GitHub')
+    sys.path.append('C:\\Users\\Public\\Documents\\GitHub')
 #    sys.path.append('C:\\Users\\Robbie\\Documents\\GitHub')
     sys.path.append('C:\\Users\\yblab\\Python\\mcdaq')
 
@@ -56,7 +56,7 @@ class MCDAQ(mcdaq.MCDAQ):
             self.arange = mcdaq.Range.BIP20VOLTS
         elif function == 'output':
 #            self.arange = mcdaq.Range.BIP5VOLTS
-            self.arange = mcdaq.Range.UNI10VOLTS
+            self.arange = mcdaq.Range.BIP10VOLTS
 
 
     def read(self, channel):
