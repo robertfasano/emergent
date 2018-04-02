@@ -57,6 +57,9 @@ class Client():
         reply = self.message(op='tune_cavity')
         print(reply)
         
+    def abort(self):
+        self.message(op = 'abort')
+        
     def lock(self, parameters):
         if not self.connected:
             self.connect()
