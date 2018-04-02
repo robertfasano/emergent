@@ -225,7 +225,7 @@ class MonitorTab(gui.Tab):
             self.snoozeButton = self._addButton('Snooze off', self.toggle_snooze, row, 0, style = self.panel.styleLock)
             self.lockButton = self._addButton('Unlocked', self.update_lock, row, 2, style = self.panel.styleUnlock, args='toggle')
             self._addButton('Align', self.align, row, 3, style = self.panel.styleUnlock)
-            
+
         if self.mode == 'remote':
             self.lockButton = self._addButton('Unlocked', self.do_nothing, row, 2, style = self.panel.styleUnlock)
         
@@ -339,7 +339,7 @@ class MonitorTab(gui.Tab):
             lengths.extend([1]*(len(self.watchpoints)+1))
             lst = [mjd, ybTime]
             lst.extend(bools)
-            self.boolqueue.append(boolString = IO.formatRow(lst, newline = 'start', decs = decs, lengths = lengths))
+            self.boolqueue.append(IO.formatRow(lst, newline = 'start', decs = decs, lengths = lengths))
             
             
             ''' Format and write log string '''
