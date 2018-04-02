@@ -7,6 +7,8 @@ import os
 import astropy.time
 from threading import Thread
 import matplotlib.pyplot as plt
+
+
 plt.ion()
 try:
     sys.path.remove('C:\\ProgramData\\Anaconda3\\lib\\site-packages\\mcdaq-1-py3.6.egg')
@@ -15,16 +17,16 @@ except ValueError:
 if os.name == 'posix':        # if using OS X, open a special testing version of the program
     sys.path.append('/Users/rjf2/Documents/GitHub')
 else:
-#    sys.path.append('C:\\Users\\Public\\Documents\\GitHub')
+    sys.path.append('C:\\Users\\Public\\Documents\\GitHub')
 #    sys.path.append('C:\\Users\\Robbie\\Documents\\GitHub')
     sys.path.insert(0, 'C:\\Users\\yblab\\Python\\mcdaq')
 
     sys.path.append('O:\\Public\\Yb clock')
 #    import mcdaq
+
+from labAPI import gui,  daq, lattice_client, optimize
 import bristol671     # note: this MUST be after mcdaq import, since bristol imports a different version
 
-from daq import MCDAQ
-from optimize import line_search
 
 class MSquared():
     def __init__(self, server, port, client):
@@ -38,10 +40,10 @@ class MSquared():
         
         ''' Connect to DAC '''
         params = {'device':'USB-3105', 'id':'111696'}
-        self.daq = MCDAQ(params, function = 'output')
+        self.daq = daq.MCDAQ(params, function = 'output')
         
         ''' Configure lock process settings '''
-        self.etalon = 46.96
+        self.etalon = 43.56
         self.cavity_offset = 0
         self.increment = 3
         self.threshold = 1
@@ -53,7 +55,7 @@ class MSquared():
         self.pzt_output = 0
         
         self.cavity_transmission_threshold = 0.5
-        self.etalon_tune_step = 1
+        self.etalon_tune_step = .25
         self.cavity_tune_step = .1
         self.etalon_tune_delay = 1
         self.cavity_tune_delay = .6
@@ -102,21 +104,20 @@ class MSquared():
         sock.bind(server_address)
         print('Hosting server at %s:%i'%(server_address[0], server_address[1]))
         sock.listen(1)
-
+        self.connection = None
         while True:
             # Wait for a connection
             try:
-                self.connection, client_address = sock.accept()
-                print('Connection from', client_address)
-                break
+                if self.connection == None:
+                    self.connection, client_address = sock.accept()
+                    print('Connection from', client_address)
             except:
                 continue
             
-
             data = self.connection.recv(1024)
             cmd = json.loads(data)
             func = self.cmds.get(cmd['message']['op'])
-            self.message(op='confirmation',parameters = 'Running %s function'%func, destination = 'PC')
+#            self.message(op='confirmation',parameters = 'Running %s function'%func, destination = 'PC')
             if cmd['message']['parameters'] == {}:
                 func()
             else:
@@ -125,19 +126,19 @@ class MSquared():
 #            self.message(op='done',  parameters = 'Successfully executed %s'%cmd['message']['op'], destination = 'PC')
 #            finally:
         # Clean up the connection
-            self.connection.close()
+#            self.connection.close()
         
     def ping(self, parameters):
-        self.latency = (-astropy.time.Time.now().unix+parameters['time'])*1000
+        self.latency = (astropy.time.Time.now().unix-parameters['time'])*1000
         self.message(op='update', parameters = 'Ping: %.0f ms latency'%self.latency, destination = 'PC')
         
     def lock(self, parameters):
-        self.cavity_tune_delay = parameters['cavity_tune_delay']
-        self.sweep_steps = parameters['sweep_steps']
-        self.cavity_tune_threshold = parameters['cavity_tune_threshold']
-        self.cavity_transmission_threshold = parameters['cavity_transmission_threshold']
-        self.pzt_center_threshold = parameters['pzt_center_threshold']
-        self.pzt_center_gain = parameters['pzt_center_gain']
+        self.cavity_tune_delay = float(parameters['cavity_tune_delay'])
+        self.sweep_steps = int(parameters['sweep_steps'])
+        self.cavity_tune_threshold = float(parameters['cavity_tune_threshold'])
+        self.cavity_transmission_threshold = float(parameters['cavity_transmission_threshold'])
+        self.pzt_center_threshold = float(parameters['pzt_center_threshold'])
+        self.pzt_center_gain = float(parameters['pzt_center_gain'])
             
         self.daq.out(13,10)             # send +10V to windowing inputs of loop filters to cut output
         self.daq.out(0, 10)        
@@ -166,11 +167,6 @@ class MSquared():
         msg = 'Lock engaged with %f V transmission. Centering output...'%self.cavityTransmission
         self.message(op='request', parameters = msg, destination = 'PC')
         self.center_cavity_lock()
-        
-
-
-
-
         
     def check_etalon_lock(self):
         reply = self.message(op='etalon_lock_status', parameters = {}, destination = 'laser')
@@ -320,10 +316,10 @@ class MSquared():
         return self.getFrequency()
         
     def tune_etalon(self):
-        self.etalon = line_search(x0 = self.etalon, cost = self.cost, actuate = self.actuateEtalon, step = self.etalon_tune_step, threshold = self.etalon_tune_threshold)
+        self.etalon = optimize.line_search(x0 = self.etalon, cost = self.cost, actuate = self.actuateEtalon, step = self.etalon_tune_step, threshold = self.etalon_tune_threshold)
     
     def tune_cavity(self):
-        self.cavity_offset = line_search(x0 = self.cavity_offset, cost = self.cost, actuate = self.actuateCavityOffset, step = self.cavity_tune_step, threshold = self.cavity_tune_threshold)
+        self.cavity_offset = optimize.line_search(x0 = self.cavity_offset, cost = self.cost, actuate = self.actuateCavityOffset, step = self.cavity_tune_step, threshold = self.cavity_tune_threshold)
         time.sleep(self.cavity_tune_delay)
         if np.abs(self.cost()) > self.cavity_tune_threshold:
             self.tune_cavity()
@@ -334,16 +330,56 @@ class MSquared():
     def getFrequency(self):
         return self.wavemeter.frequency()*1000
 
-''' Connect to MSquared laser and start server '''
-server = "192.168.1.207"
-port = 39933
-client = "192.168.1.1"
-m = MSquared(server, port, client)
-m.daq.out(0,0)
-m.daq.out(6,0)
-m.daq.out(13,0)
+class Setpoint():
+    def __init__(self, name, tab, value, row, col):
+        self.tab = tab
+        self.name = name
+        self.label = self.tab._addLabel(self.name, row, col, style = self.tab.panel.styleUnlock)
+        self.value = self.tab._addEdit(str(value), row,col+1)
 
-m.server()
+        
+class LasersTab(gui.Tab):
+    def __init__(self, panel, clock):
+        super().__init__('Lattice', panel)
+        self.panel = panel
+        adc_id = {'1':'1C2678C', '2':'1C26788'}[clock]
+        self.adc = self.panel.monitorTab.ADCs[adc_id]
+        
+        self.client = lattice_client.Client(adc = self.adc)
+#        self.client.connect()
+        
+        self.parameters = {'pzt_center_gain':.0002, 'cavity_tune_delay':.5, 'sweep_steps':60, 'cavity_tune_threshold':.02, 'cavity_transmission_threshold':0.1, 'pzt_center_threshold':.3}
+        
+        self.setpoints = {}
+        row = 0
+        for p in self.parameters:
+            self.setpoints[p] = Setpoint(p, self, self.parameters[p], row, 0)
+            row += 1
+            
+        self._addButton('Lock', self.lock, row, 1, style = self.panel.styleUnlock)
+        self._addButton('Ping', self.client.ping, row, 0, style = self.panel.styleUnlock)
+        
+    def lock(self):
+        self.panel.threads['Saving'] = 0
+        self.panel.monitorTab.saveButton.setStyleSheet(self.panel.styleUnlock)
+        for p in self.parameters:
+            self.parameters[p] = self.setpoints[p].value.text()
+            
+        self.thread = Thread(target=self.client.lock, args=(self.parameters,))
+        self.panel.threads['Lattice lock'] = 1
+        self.thread.start()
+if __name__ == '__main__':
+
+    ''' Connect to MSquared laser and start server '''
+    server = "192.168.1.207"
+    port = 39933
+    client = "192.168.1.1"
+    m = MSquared(server, port, client)
+    m.daq.out(0,0)
+    m.daq.out(6,0)
+    m.daq.out(13,0)
+    
+    m.server()
 
 #m.acquireEtalonLock()
 #
