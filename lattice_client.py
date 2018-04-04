@@ -16,7 +16,7 @@ class Client():
             self.daq = daq.MCDAQ(params, function = 'input')
         else: 
             self.daq = adc
-        
+        self.abort = 0
     def connect(self):
         server_address = ('132.163.82.22', 6666)
         print('Connecting to %s port %s' % server_address)
@@ -25,7 +25,10 @@ class Client():
         
     def message(self, op, parameters = {}):
         ''' Sends a command to the server '''
-        cmd = { "message": {"transmission_id": [1001],"op": op,"parameters": parameters }}
+        if self.abort:
+            cmd = { "message": {"transmission_id": [1001],"op": 'abort',"parameters": parameters }}
+        else:
+            cmd = { "message": {"transmission_id": [1001],"op": op,"parameters": parameters }}
         self.sock.sendall(json.dumps(cmd).encode())
         if op != 'data':
             print('Sent: ', cmd)
@@ -57,10 +60,8 @@ class Client():
         reply = self.message(op='tune_cavity')
         print(reply)
         
-    def abort(self):
-        self.message(op = 'abort')
-        
     def lock(self, parameters):
+        self.abort = 0
         if not self.connected:
             self.connect()
         try:
