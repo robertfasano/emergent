@@ -40,7 +40,7 @@ class MSquared():
         
         ''' Configure lock process settings '''
         try:
-            with open('etalon_setting.txt', 'r') as file:
+            with open('etalon_settings.txt', 'r') as file:
                 self.etalon = float(file.readlines()[0])
         except FileNotFoundError:
             self.etalon = 37
