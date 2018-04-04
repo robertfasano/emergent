@@ -21,10 +21,10 @@ class LasersTab(gui.Tab):
         self.client.connect()
             
         self.parameters = {}
-        self.parameters['Etalon'] = {'Tuning step':.25, 'Tuning delay': 1, 'Tuning threshold':.01, 'Lock threshold':1.5}
-        self.parameters['PZT'] = {'Tuning step': .1, 'Tuning delay': .6, 'Tuning threshold': 0.02}
-        self.parameters['Acquisition'] = {'Transmission threshold': 0.5, 'Sweep steps':50, 'Sweep range': 0.04}
-        self.parameters['Slow'] = {'Gain': 0.0002, 'Center threshold': .2}
+        self.parameters['Etalon'] = {'Tuning step':.1, 'Tuning delay': .5, 'Tuning threshold':.5, 'Lock threshold':1.5}
+        self.parameters['PZT'] = {'Tuning step': .1, 'Tuning delay': .5, 'Tuning threshold': 0.01}
+        self.parameters['Acquisition'] = {'Transmission threshold': 0.6, 'Sweep steps':60, 'Sweep range': 0.03}
+        self.parameters['Slow'] = {'Gain': 0.001, 'Center threshold': .4}
         
         self.setpoints = {}
         self.setpoints['Etalon'] = {}
@@ -49,10 +49,12 @@ class LasersTab(gui.Tab):
             for p in self.parameters[x]:
                 self.setpoints[x][p] = Setpoint(p, self, self.parameters[x][p], row, col, width = 2)
                 row += 1
-            
-        self._addButton('Lock', self.lock, row+3, 1, style = self.panel.styleUnlock)
-        self._addButton('Ping', self.ping, row+3, 0, style = self.panel.styleUnlock)
-        self._addButton('Abort', self.abort, row+3, 2, style = self.panel.styleUnlock)
+        
+        self._addButton('Connect', self.client.connect, row+3, 0, style = self.panel.styleUnlock)
+
+        self._addButton('Lock', self.lock, row+3, 2, style = self.panel.styleUnlock)
+        self._addButton('Ping', self.ping, row+3, 1, style = self.panel.styleUnlock)
+        self._addButton('Abort', self.abort, row+3, 3, style = self.panel.styleUnlock)
         
         ''' Wavemeter '''
         with open(panel.filepath['Lasers']) as file:
@@ -66,14 +68,14 @@ class LasersTab(gui.Tab):
 #        self.wavemeterComboBox.activated.connect(self.select_channel)
         
     def abort(self):
-        self.client.abort()
+        self.client.abort = 1
         
     def lock(self):
         self.panel.threads['Saving'] = 0
         self.panel.monitorTab.saveButton.setStyleSheet(self.panel.styleUnlock)
         for x in self.parameters:
             for p in self.parameters[x]:
-                self.parameters[x][p] = self.setpoints[x][p].value.text()
+                self.parameters[x][p] = float(self.setpoints[x][p].value.text())
             
         print(self.parameters)
         self.thread = Thread(target=self.client.lock, args=(self.parameters,))
