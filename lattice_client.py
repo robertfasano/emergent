@@ -17,6 +17,7 @@ class Client():
         else: 
             self.daq = adc
         self.abort = 0
+        self.transmission_id = 0
     def connect(self):
         server_address = ('132.163.82.22', 6666)
         print('Connecting to %s port %s' % server_address)
@@ -26,9 +27,9 @@ class Client():
     def message(self, op, parameters = {}):
         ''' Sends a command to the server '''
         if self.abort:
-            cmd = { "message": {"transmission_id": [1001],"op": 'abort',"parameters": parameters }}
+            cmd = { "message": {"transmission_id": [self.transmission_id],"op": 'abort',"parameters": parameters }}
         else:
-            cmd = { "message": {"transmission_id": [1001],"op": op,"parameters": parameters }}
+            cmd = { "message": {"transmission_id": [self.transmission_id],"op": op,"parameters": parameters }}
         self.sock.sendall(json.dumps(cmd).encode())
         if op != 'data':
             print('Sent: ', cmd)
@@ -50,6 +51,7 @@ class Client():
         reply = json.loads(self.sock.recv(1024).decode())
         if reply['message']['op'] != 'request':
             print('Received: ', reply['message']['parameters'])
+        self.transmission_id += 1
         return reply
     
     def tune_etalon(self):

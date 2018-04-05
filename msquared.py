@@ -20,7 +20,8 @@ else:
 #    import mcdaq
 from labAPI import daq, lattice_client, optimize
 import bristol671     # note: this MUST be after mcdaq import, since bristol imports a different version
-
+import matplotlib.pyplot as plt
+plt.ion()
 class MSquared():
     def __init__(self, server, port, client):
         ''' Open socket connection '''
@@ -60,51 +61,104 @@ class MSquared():
         self.etalon_fail_count = 0
         self.max_etalon_fails = 5
         self.abort = 0
-        self.sweeps = 10
+        self.sweeps = 1
         
+    def oscillator(self, center, span, steps):
+        step_size = span/steps
+        array = [center]
+        j = 1
+        for i in range(steps-1):
+            if i % 2:
+                array.append(center + step_size * j)
+            else:
+                array.append(center - step_size * j)
+                j += 1
+        return array
+            
+            
+    
+    def peak_search(self, span, steps, sweeps):
+        for i in range(sweeps):
+            X = self.oscillator(self.cavity_offset, span, steps)
+            
+    def acquisition_cost(self):
+        msg = {}
+        self.message(op='request', parameters = msg, destination = 'PC')
+        reply = self.connection.recv(1024).decode()
+        reply = json.loads(reply.split('}}}')[0] + '}}}')    # make sure we only take the first json if multiple are sent
+        print('Received reply ', reply)            
+        if reply['message']['op'] == 'abort':
+            return
+        self.cavityTransmission = reply['message']['parameters']['transmission']
+        self.pzt_output = reply['message']['parameters']['output']
+        return self.parameters['Acquisition']['Transmission threshold'] - self.cavityTransmission
+    
     def acquire_cavity_lock(self, span = 0.05, steps = 200, sweeps = 5):
         ''' At this point, the etalon should be locked and the PZT should be tuned to magic. We now start sweeping the PZT
             in another thread while monitoring the transmission in this thread. Note that the one-way latency between computers
             is about 300 ms, so the sweep must be sufficiently slow to allow locking at the right frequency.'''
 #        bestT = 0
-        for i in range(sweeps):          
-            X = np.linspace(self.cavity_offset-span/2, self.cavity_offset+span/2, steps)
-            X = np.append(X[X>=self.cavity_offset],X[X<self.cavity_offset])[::-1]
+        for i in range(sweeps):
+            steps = int(steps)
+#            X = np.linspace(self.cavity_offset-span/2, self.cavity_offset+span/2, steps)
+#            X = np.append(X[X>=self.cavity_offset],X[X<self.cavity_offset])[::-1]
+            X = self.oscillator(self.cavity_offset, span, steps)
             t = []
             v = []
             o = []
+            f = []
             peak_found = False
             for x in X:
                 msg = "{'Sweep':%i,'V':%f, 'Transmission':%f, 'Output':%f}"%(i,x-self.cavity_offset, self.cavityTransmission, self.pzt_output)
                 self.message(op='request', parameters = msg, destination = 'PC')
                 reply = self.connection.recv(1024).decode()
                 reply = json.loads(reply.split('}}}')[0] + '}}}')    # make sure we only take the first json if multiple are sent
+                print('Received reply ', reply)            
                 if reply['message']['op'] == 'abort':
                     return
                 self.cavityTransmission = reply['message']['parameters']['transmission']
                 self.pzt_output = reply['message']['parameters']['output']
-
+                f.append(self.cost())
                 t.append(self.cavityTransmission)
                 v.append(x)
                 o.append(self.pzt_output)
-                ''' If a 3-sigma outlier is detected, take a closer look '''
-                if o[-1] < np.mean(o) - np.std(o) and self.cavityTransmission > self.parameters['Acquisition']['Transmission threshold']:
-                    return
-                if o[-1] < np.mean(o) - np.std(o) and t[-1] > np.mean(t) + 3*np.std(t):
-                    print('3-sigma peak detected (sigma = %f.'%np.std(t))
-                    peak_found = True
-                    factor = .8
-                    span *= factor
-                    break
+                
+#                ''' Compare points on either side to look for a significant difference; if so, run line_search '''
+                if len(v) > 1:
+                    if o[-1] < np.mean(o) - np.std(o) and np.abs(t[-1]) - np.abs(t[-2]) > 3*np.std(t):
+                        print('Signal found; running line search')
+                        tmax = np.max([t[-1], t[-2]])
+                        vmax = np.argmax(tmax)
+                        self.actuateCavityOffset(vmax)
+                        self.cavity_offset = optimize.line_search(x0 = self.cavity_offset, cost = self.acquisition_cost, actuate = self.actuateCavityOffset, step = -self.parameters['PZT']['Tuning step']/100, threshold = 0.1, gradient = False)
+#                
+#                ''' If a 3-sigma outlier is detected, take a closer look '''
+#                if o[-1] < np.mean(o) - np.std(o) and self.cavityTransmission > self.parameters['Acquisition']['Transmission threshold']:
+#                    print('Cavity transmission exceeds threshold; lock is engaged.')
+#                    return
+#                if o[-1] < np.mean(o) - np.std(o) and t[-1] > np.mean(t) + 3*np.std(t):
+#                    print('3-sigma peak detected (sigma = %f.'%np.std(t))
+#                    peak_found = True
+#                    factor = .8
+#                    span *= factor
+#                    break
                 self.actuateCavityOffset(x)
-            if not peak_found:
-                if np.max(t) > np.mean(t) + np.std(t):              # zoom in slightly on any significant features
-                    self.actuateCavityOffset(v[np.argmax(t)])
-                    span *= .9
-            if np.abs(self.cost()) > .015:
-                print('Retuning cavity to prevent drift.')
-                self.tune_cavity()
+#            if not peak_found:
+#                if np.max(t) > np.mean(t) + np.std(t):              # zoom in slightly on any significant features
+#                    self.actuateCavityOffset(v[np.argmax(t)])
+#                    span *= .9
+#            if np.abs(self.cost()) > .015:
+#                print('Retuning cavity to prevent drift.')
+#                self.tune_cavity()
             print('Sweep %i complete.'%i)
+            plt.plot(v,t, '.')
+#            ax = plt.gca()
+#            ax2 = ax.twiny()
+#            ax2.plot(f,t, '.')
+
+            time.sleep(.5)
+            plt.show()
+            
 #            steps /= factor
 #            self.parameters['PZT']['Tuning delay'] /= factor
         
@@ -182,6 +236,7 @@ class MSquared():
         print('Engaging second integrator!')
         while True:
             if self.abort:
+                print('Second integrator aborted by user.')
                 return
             self.cavity_offset = optimize.line_search(x0 = self.cavity_offset, cost = self.get_pzt_output, actuate = self.actuateCavityOffset, step = self.parameters['Slow']['Gain']/10, threshold = self.parameters['Slow']['Center threshold']/100, gradient = False, failure_threshold = 100, min_step = self.parameters['Slow']['Gain']/10)        
 
@@ -232,6 +287,7 @@ class MSquared():
         if np.abs(self.cost()) > self.parameters['Etalon']['Lock threshold'] or not self.etalon_lock:
             self.acquire_etalon_lock()
         if self.abort:
+            print('Aborted by client after etalon lock')
             return
         print('Tuning PZT near target frequency...')
         ''' Tune near magic '''
@@ -245,13 +301,13 @@ class MSquared():
         self.message(op='done', parameters = msg, destination = 'PC')
         
         ''' Apply slow ramp until cavity is locked '''
-        time.sleep(1)
+        time.sleep(2)
         self.acquire_cavity_lock(span = self.parameters['Acquisition']['Sweep range'], steps = self.parameters['Acquisition']['Sweep steps'], sweeps = self.sweeps)
         msg = 'Lock engaged with %f V transmission. Centering output...'%self.cavityTransmission
         self.message(op='request', parameters = msg, destination = 'PC')
-        with open('lattice_frequency.txt', 'w') as file:
-            file.write(str(self.get_frequency()))
-        self.center_cavity_lock()
+#        with open('lattice_frequency.txt', 'w') as file:
+#            file.write(str(self.get_frequency()))
+#        self.center_cavity_lock()
             
     def message(self, op, parameters, destination):
         ''' Sends a command to the destination, either "laser" or "PC" '''
@@ -303,6 +359,7 @@ class MSquared():
                     func(cmd['message']['parameters']) 
             except ConnectionResetError:
                 print('Connection aborted by client.')
+                self.connection.close()
                 continue
 
     def stream_frequency(self):
@@ -336,5 +393,6 @@ if __name__ == '__main__':
     m.daq.out(0,0)
     m.daq.out(6,0)
     m.daq.out(13,0)
-    
-    m.server()
+    # 5V: 797.8
+    # 10V: 790.8 -> 10V = 14 GHz -> divide by 5 to allow 2.8 GHz tuning range
+#    m.server()
