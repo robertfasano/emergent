@@ -69,6 +69,7 @@ class Watchpoint():
         
     def state(self):
         ''' Get measurement parameters from gui.Popup item '''
+
         for param in self.ADCOptions:
             self.ADCOptions[param] = self.read_widget(self.settings.widgets[param])
         
@@ -275,8 +276,7 @@ class MonitorTab(gui.Tab):
     def record(self):
         self.queue_thread = Thread(target=self.write_queue)
         self.queue_thread.start()
-        
-        while self.panel.threads['Saving']:              
+        while self.panel.threads['Saving']:     
             ''' Check for day change and create new folder if necessary'''
             if datetime.datetime.today().day != self.day:
                 self.day = datetime.datetime.today().day
@@ -293,7 +293,6 @@ class MonitorTab(gui.Tab):
 #                time.sleep(1)
 #                
 #            self.LED.set_state(1)
-            
             ''' Measure all watchpoints and update lock state'''
             vals = []
             params = []

@@ -41,7 +41,7 @@ class MSquared():
         self.daq = daq.MCDAQ(params, function = 'output')
         
         params = {'device':'USB-2408', 'id':'1C96FD5'}
-        self.adc = daq.MCDAQ(params, function = 'input')
+        self.adc = daq.MCDAQ(params, function = 'input', arange = 'BIP10VOLTS')
         
 
         ''' Configure lock process settings '''
@@ -68,19 +68,7 @@ class MSquared():
         self.max_etalon_fails = 5
         self.abort = 0
         self.sweeps = 5
-        
-#    def oscillator(self, center, span, steps):
-#        step_size = span/steps
-#        array = [center]
-#        j = 1
-#        for i in range(steps-1):
-#            if i % 2:
-#                array.append(center + step_size * j)
-#            else:
-#                array.append(center - step_size * j)
-#                j += 1
-#        return array
-    
+            
     def oscillator(self, center, span, step):
         array = [center]
         j = 1
@@ -111,9 +99,6 @@ class MSquared():
 #        bestT = 0
 #        for i in range(sweeps):
         while True:
-#            step = int(steps)
-#            X = np.linspace(self.cavity_offset-span/2, self.cavity_offset+span/2, steps)
-#            X = np.append(X[X>=self.cavity_offset],X[X<self.cavity_offset])[::-1]
             X = self.oscillator(self.cavity_offset, span, step)
             t = []
             v = []
@@ -124,15 +109,6 @@ class MSquared():
             peak_found = False
             count = 0
             for x in X:
-#                msg = "{'Sweep':%i,'V':%f, 'Transmission':%f, 'Output':%f}"%(i,x-self.cavity_offset, self.cavityTransmission, self.pzt_output)
-#                self.message(op='request', parameters = msg, destination = 'PC')
-#                reply = self.connection.recv(1024).decode()
-#                reply = json.loads(reply.split('}}}')[0] + '}}}')    # make sure we only take the first json if multiple are sent
-#                print('Received reply ', reply)            
-#                if reply['message']['op'] == 'abort':
-#                    return
-#                self.cavityTransmission = reply['message']['parameters']['transmission']
-#                self.pzt_output = reply['message']['parameters']['output']
                 self.cavityTransmission = self.get_cavity_transmission()
                 self.pzt_output = self.get_servo_output()
                 
@@ -140,10 +116,6 @@ class MSquared():
                 t.append(self.cavityTransmission)
                 v.append(x)
                 o.append(self.pzt_output)
-#                if count % 2:
-#                    left_points.append(t)
-#                else:
-#                    right_points.append(t)
                 if count > span/step:
                     slope, intercept, r_value, p_value, std_err = stats.linregress(v,t)
                     z0 = 5
@@ -151,33 +123,14 @@ class MSquared():
                         print('Slope detected! %f +/- %f'%(slope, std_err))
                         self.actuateCavityOffset(v[np.argmax(t)])
                         break
-#                if count > 0:
-#                    std = (np.std(left_points) + np.std(right_points))/2
-#                    if np.abs(np.mean(right_points) - np.mean(left_points)) > 3*std:
-#                        self.actuateCavityOffset(v[np.argmax(t)])
-#                        print('Slope detected, recentering... ')
-#                        break
-                        
-                
-#                ''' Compare points on either side to look for a significant difference; if so, run line_search '''
-#                if len(v) > 1:
-#                    if o[-1] < np.mean(o) - np.std(o) and np.abs(t[-1]) - np.abs(t[-2]) > 3*np.std(t):
-#                        print('Signal found; running line search')
-#                        tmax = np.max([t[-1], t[-2]])
-#                        vmax = np.argmax(tmax)
-#                        self.actuateCavityOffset(vmax)
-#                        self.cavity_offset = optimize.line_search(x0 = self.cavity_offset, cost = self.acquisition_cost, actuate = self.actuateCavityOffset, step = -self.parameters['PZT']['Tuning step']/100, threshold = 0.1, gradient = False)
-##                
+
                 ''' If an outlier is detected, take a closer look '''
                 if self.cavityTransmission > self.parameters['Acquisition']['Transmission threshold']:
                     print('Cavity transmission exceeds threshold; lock is engaged.')
                     return
-#                z = (t[-1] - np.mean(t))/np.std(t)
                 
                 if np.std(t) != 0:
                     z = (np.max(t) - np.mean(t))/np.std(t)
-
-#                    z = (np.max(t) - np.min(t))/np.std(t)
                     threshold = 5
                     if z>threshold: #and count > steps/2:
                         fmax = f[np.argmax(t)]
@@ -190,24 +143,11 @@ class MSquared():
                         self.actuateCavityOffset(v[np.argmax(t)])
                         break
                 count += 1
-#                elif z < -threshold:
-#                    ''' We have just stepped off of a peak '''
-#                    print('%i-sigma peak left (sigma = %f.'%(threshold, np.std(t)))
-#                    peak_found = True
-#                    self.actuateCavityOffset(v[np.argmax(t)])
-#                    factor = 1/np.abs(z)
-#                    span *= factor
-#                    break
+
                 self.actuateCavityOffset(x)
             if not peak_found:
-##                z = (np.max(t)-np.mean(t))/np.std(t) 
-#                z = (np.max(t)-np.min(t))/np.std(t)    
-#                self.actuateCavityOffset(v[np.argmax(t)])
-#                self.tune_cavity()
                 self.actuateCavityOffset(v[np.argmax(t)])
                 span *= 1.25
-#                span *= 1/z
-#                print('Zooming in by a factor of ', z)
             if np.abs(self.cost()) > .015:
                 print('Retuning cavity to prevent drift.')
                 self.tune_cavity(quit_function = self.resonant)
@@ -216,16 +156,10 @@ class MSquared():
             plt.plot(v,t, '.')
             plt.xlabel('Voltage')
             plt.ylabel('Transmission')
-#            ax = plt.gca()
-#            ax2 = ax.twiny()
-#            ax2.plot(f,t, '.')
 
             time.sleep(.5)
             plt.show()
-            
-#            steps /= factor
-#            self.parameters['PZT']['Tuning delay'] /= factor
-        
+                    
     def acquire_etalon_lock(self, zoom = 1):
         self.message(op = 'etalon_lock', parameters = {'operation': 'off'}, destination = 'laser')
         self.tune_etalon(zoom = zoom)
@@ -276,58 +210,7 @@ class MSquared():
         
     def center_cavity_lock(self, relative_gain = 1):
         self.cavity_offset = optimize.line_search(x0 = self.cavity_offset, cost = self.get_servo_output, actuate = self.actuateCavityOffset, step = self.parameters['Slow']['Gain'] * relative_gain, threshold = self.parameters['Slow']['Center threshold'], gradient = False, quit_function = self.unresonant) 
-#        t = []
-#        while True:
-#            msg = "{'V':%f, 'Transmission':%f, 'Output':%f}"%(self.cavity_offset, self.cavityTransmission, self.pzt_output)
-#            self.message(op='request', parameters = msg, destination = 'PC')
-#            reply = self.connection.recv(1024).decode()
-#            reply = json.loads(reply.split('}}}')[0] + '}}}')    # make sure we only take the first json if multiple are sent
-#            if reply['message']['op'] == 'abort':
-#                return
-#            self.cavityTransmission = reply['message']['parameters']['transmission']
-#            self.pzt_output = reply['message']['parameters']['output']
-#            t.append(self.cavityTransmission)
-#            if len(t) > 5:
-#                del t[0]
-#            self.actuateCavityOffset(self.cavity_offset - self.parameters['Slow']['Gain'] * self.pzt_output)
-#            
-#            if self.pzt_output < self.parameters['Slow']['Center threshold']:
-#                break
-#            
-#            elif len(t) >= 5 and np.mean(t) < self.parameters['Acquisition']['Transmission threshold']/2:
-#                msg = 'Recentering failed with %f V transmission...'%self.cavityTransmission
-#                self.message(op='done', parameters = msg, destination = 'PC')
-#                return
-#        print('Engaging second integrator!')
-#        while True:
-#            if self.abort:
-#                print('Second integrator aborted by user.')
-#                return
-#            self.cavity_offset = optimize.line_search(x0 = self.cavity_offset, cost = self.get_pzt_output, actuate = self.actuateCavityOffset, step = self.parameters['Slow']['Gain']/10, threshold = self.parameters['Slow']['Center threshold']/100, gradient = False, failure_threshold = 100, min_step = self.parameters['Slow']['Gain']/10)        
 
-#        self.daq.out(13,0)      # engage slow lock
-#        
-#        time.sleep(3)
-#        print('Re-testing lock status')
-#        while True:
-#            time.sleep(0.5)
-#            msg = "{'V':%f, 'Transmission':%f, 'Output':%f}"%(self.cavity_offset, self.cavityTransmission, self.pzt_output)
-#            self.message(op='request', parameters = msg, destination = 'PC')
-#            reply = self.connection.recv(1024).decode()
-#            reply = reply.split('}}}')[0] + '}}}'    # make sure we only take the first json if multiple are sent
-#            self.cavityTransmission = json.loads(reply)['message']['parameters']['transmission']
-#            self.pzt_output = json.loads(reply)['message']['parameters']['output']
-#                        
-#            if self.pzt_output < self.parameters['Slow']['Center threshold']:
-#                msg = 'Lock acquired!'
-#                self.message(op='done', parameters = msg, destination = 'PC')
-#                return
-#            
-#            elif self.cavityTransmission < self.parameters['Acquisition']['Transmission threshold']:
-#                msg = 'Slow lock failed...'
-#                self.message(op='done', parameters = msg, destination = 'PC')
-#                return
-            
     def check_etalon_lock(self):
         reply = self.message(op='etalon_lock_status', parameters = {}, destination = 'laser')
         return {'on':1, 'off':0}[reply['message']['parameters']['condition']]
@@ -347,6 +230,11 @@ class MSquared():
             v.append(self.wavemeter.frequency()*1000)
         return np.mean(v)
     
+    def servo_etalon(self, parameters):
+        self.parameters = parameters
+        while True:
+            self.tune_etalon()
+            
     def lock(self, parameters):
         self.abort = 0
         self.parameters = parameters
@@ -364,10 +252,8 @@ class MSquared():
             return
         print('Tuning PZT near target frequency...')
         ''' Tune near magic '''
-#        self.tune_cavity()    
         msg = 'Applying gain and tuning to target frequency.'
 
-#        msg = 'PZT tuned to f=%f GHz. Applying gain...'%self.get_frequency()
         self.message(op='update', parameters = msg, destination = 'PC')
         self.daq.out(0, 0)        # restore gain
         self.tune_cavity(quit_function = self.resonant)           # reset again in case adding gain shifted the frequency
@@ -386,9 +272,9 @@ class MSquared():
         print('Engaging second integrator.')
         while self.resonant():
             self.center_cavity_lock(relative_gain = 0.1)
-        if self.unresonant():
-            print('Lost lock... reacquiring now.')
-            self.lock(self.parameters)
+        
+        print('Lost lock... reacquiring now.')
+        self.lock(self.parameters)
             
     def message(self, op, parameters, destination):
         ''' Sends a command to the destination, either "laser" or "PC" '''
@@ -404,7 +290,8 @@ class MSquared():
     def ping(self, parameters):
         self.latency = (astropy.time.Time.now().unix-parameters['time'])*1000
         self.message(op='update', parameters = 'Ping: %.0f ms latency'%self.latency, destination = 'PC')
-              
+
+ 
     def receive(self):
         reply = json.loads(self.sock.recv(1024).decode())
         print(reply)
@@ -462,7 +349,7 @@ class MSquared():
         self.etalon = optimize.line_search(x0 = self.etalon, cost = self.cost, actuate = self.actuateEtalon, step = -zoom * self.parameters['Etalon']['Tuning step'], threshold = self.parameters['Etalon']['Tuning threshold'], gradient = False, min_step = 0.01)
         
     def tune_cavity(self, quit_function = None):
-        self.cavity_offset = optimize.line_search(x0 = self.cavity_offset, cost = self.cost, actuate = self.actuateCavityOffset, step = -self.parameters['PZT']['Tuning step'], threshold = self.parameters['PZT']['Tuning threshold'], gradient = False, min_step = 0.01, failure_threshold = 2*self.parameters['Etalon']['Lock threshold'], quit_function = quit_function)
+        self.cavity_offset = optimize.line_search(x0 = self.cavity_offset, cost = self.cost, actuate = self.actuateCavityOffset, step = -self.parameters['PZT']['Tuning step'], threshold = self.parameters['PZT']['Tuning threshold'], gradient = False, min_step = 0.01, failure_threshold = 2*self.parameters['Etalon']['Lock threshold'], quit_function = quit_function, x_max = 10, x_min = -10)
         time.sleep(self.parameters['PZT']['Tuning delay']*5)
         if np.abs(self.cost()) > self.parameters['Etalon']['Lock threshold']:
             print('Etalon unlocked while tuning PZT; reacquiring etalon lock...')
@@ -480,7 +367,5 @@ if __name__ == '__main__':
     m.daq.out(0,0)
     m.daq.out(6,0)
     m.daq.out(13,0)
-    # 5V: 797.8
-    # 10V: 790.8 -> 10V = 14 GHz -> divide by 5 to allow 2.8 GHz tuning range
 #    m.lock()
     m.server()

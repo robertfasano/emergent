@@ -48,12 +48,12 @@ def TTL(params):
    
     
 class MCDAQ(mcdaq.MCDAQ):
-    def __init__(self, params, function = 'input'):
+    def __init__(self, params, function = 'input', arange = "BIP20VOLTS"):
         super().__init__(params['device'].encode(), params['id'].encode())
-        
+        self.arange = {"BIP20VOLTS":mcdaq.Range.BIP20VOLTS, "BIP10VOLTS":mcdaq.Range.BIP10VOLTS}[arange]
         if function == 'input':
             self.AInputMode(mcdaq.Mode.DIFFERENTIAL)
-            self.arange = mcdaq.Range.BIP10VOLTS
+            
         elif function == 'output':
 #            self.arange = mcdaq.Range.BIP5VOLTS
             self.arange = mcdaq.Range.BIP10VOLTS
