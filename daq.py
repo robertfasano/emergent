@@ -53,7 +53,7 @@ class MCDAQ(mcdaq.MCDAQ):
         
         if function == 'input':
             self.AInputMode(mcdaq.Mode.DIFFERENTIAL)
-            self.arange = mcdaq.Range.BIP20VOLTS
+            self.arange = mcdaq.Range.BIP10VOLTS
         elif function == 'output':
 #            self.arange = mcdaq.Range.BIP5VOLTS
             self.arange = mcdaq.Range.BIP10VOLTS
@@ -75,8 +75,10 @@ def connect(adc):
         return None
     
 if __name__ == '__main__':
-    params = {'device':'USB-3105', 'id':'111696'}
-    m = MCDAQ(params, function = 'output')
+    params = {'device':'USB-2408', 'id':'1C96FD5'}
+    adc = MCDAQ(params, function = 'input')
+#    params = {'device':'USB-3105', 'id':'111696'}
+#    m = MCDAQ(params, function = 'output')
     
     rng = 10
 #    time.sleep(5)
@@ -84,6 +86,6 @@ if __name__ == '__main__':
 #        p = m.out(6,x)
 #        time.sleep(1)
 #    m.out(0, 0)
-    m.out(6,1)
+#    m.out(6,1)
     
         

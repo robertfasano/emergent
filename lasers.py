@@ -18,13 +18,13 @@ class LasersTab(gui.Tab):
         self.adc = self.panel.monitorTab.ADCs[adc_id]
         
         self.client = lattice_client.Client(adc = self.adc)
-        self.client.connect()
+#        self.client.connect()
             
         self.parameters = {}
-        self.parameters['Etalon'] = {'Tuning step':.1, 'Tuning delay': .5, 'Tuning threshold':.5, 'Lock threshold':1.5}
-        self.parameters['PZT'] = {'Tuning step': .5, 'Tuning delay': .5, 'Tuning threshold': 0.01}
-        self.parameters['Acquisition'] = {'Transmission threshold': 0.6, 'Sweep steps':60, 'Sweep range': 0.15}
-        self.parameters['Slow'] = {'Gain': 0.001, 'Center threshold': .4}
+        self.parameters['Etalon'] = {'Tuning step':.1, 'Tuning delay': .5, 'Tuning threshold':.5, 'Lock threshold':1}
+        self.parameters['PZT'] = {'Tuning step': .75, 'Tuning delay': .05, 'Tuning threshold': 0.005}
+        self.parameters['Acquisition'] = {'Transmission threshold': 0.3, 'Sweep step size':.006, 'Sweep range': 0.4}
+        self.parameters['Slow'] = {'Gain': 0.0075, 'Center threshold': .1}
         
         self.setpoints = {}
         self.setpoints['Etalon'] = {}

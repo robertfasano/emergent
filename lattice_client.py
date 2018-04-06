@@ -6,7 +6,7 @@ import astropy.time
 class Client():
     def __init__(self, adc = None):
         # Create a TCP/IP socket
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+#        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.connected = False
         # connect to mcdaq
 #        params = {'device':'USB-2416', 'id':'1C2678C'}
@@ -19,10 +19,13 @@ class Client():
         self.abort = 0
         self.transmission_id = 0
     def connect(self):
+#        if not self.connected:
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         server_address = ('132.163.82.22', 6666)
-        print('Connecting to %s port %s' % server_address)
         self.sock.connect(server_address)
         self.connected = True
+        print('Connected to %s port %s' % server_address)
+
         
     def message(self, op, parameters = {}):
         ''' Sends a command to the server '''
@@ -48,11 +51,15 @@ class Client():
         self.message(op='set_cavity', parameters = value)
         
     def receive(self):
-        reply = json.loads(self.sock.recv(1024).decode())
-        if reply['message']['op'] != 'request':
-            print('Received: ', reply['message']['parameters'])
-        self.transmission_id += 1
-        return reply
+        try:
+            reply = json.loads(self.sock.recv(1024).decode())
+            if reply['message']['op'] != 'request':
+                print('Received: ', reply['message']['parameters'])
+            self.transmission_id += 1
+            return reply
+        except ConnectionResetError:
+            self.connected = False
+            return -1
     
     def tune_etalon(self):
         reply = self.message(op='tune_etalon')
@@ -72,18 +79,26 @@ class Client():
             ''' Begin listening mode for status updates during the etalon lock process '''
             while True:
                 reply = self.receive()
+                if reply == -1:
+                    print('Connection closed by server.')
+                    return
                 if reply['message']['op'] == 'done':
                     break
             
             ''' When the etalon lock process is done, the server will send a 'done' message. Now start streaming data from the ADC. This is done by first requesting status from the server and responding with a voltage if needed. '''
             reply = self.receive()
             while True:
+                if reply == -1:
+                    print('Connection closed by server.')
+                    return
                 if reply['message']['op'] == 'request':
 #                    V = self.daq.read(3)
                     transmission = self.daq.read(5)
                     output = self.daq.read(15)
                     reply = self.message(op='data', parameters = {'transmission':transmission, 'output':output})
-
+                if reply == -1:
+                    print('Connection closed by server.')
+                    return
                 if reply['message']['op'] == 'done':
                     break
         except KeyboardInterrupt:
@@ -99,8 +114,7 @@ if __name__ == '__main__':
         c
     except NameError:    
         c = Client()
-    c.connect()
-    parameters = {'pzt_center_gain':.0002, 'cavity_tune_delay':.5, 'sweep_steps':60, 'cavity_tune_threshold':.02, 'cavity_transmission_threshold':0.1, 'pzt_center_threshold':.3}
+#    c.connect()
 #    c.lock(parameters)
     
             

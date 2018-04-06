@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import time
 
 
-def line_search(x0, cost, actuate, step, threshold, full_output = False, test = False, gradient = False, min_step = None, failure_threshold = None):
+def line_search(x0, cost, actuate, step, threshold, full_output = False, test = False, gradient = False, min_step = None, failure_threshold = None, quit_function = None):
     ''' Requires an odd cost function '''
     x = [x0]
     
@@ -26,6 +26,10 @@ def line_search(x0, cost, actuate, step, threshold, full_output = False, test = 
         x.append(x_new)
         actuate(x_new)
         
+        if quit_function != None:
+            if quit_function():
+                print('Line search terminated!')
+                return x[-1]
         if test:
             c.append(cost(x[-1]))
             print('x = ', x[-1], ' cost(x) = ', c[-1])
@@ -46,7 +50,7 @@ def line_search(x0, cost, actuate, step, threshold, full_output = False, test = 
             ''' Now correct the sign in case we're either moving in the wrong direction or overshot the minimum '''
             if (np.sign(c[-1]) != np.sign(c[-2])):          # this signals that we've crossed the minimum
                 eta *= -0.5
-                print('Overshot minimum, decreasing step size')
+#                print('Overshot minimum, decreasing step size')
 #            elif np.abs(c[-1]) > np.abs(c[-2]):               # this signals that we're moving in the wrong direction
 #                eta *= -.75
 #                print('Correcting direction')
@@ -125,7 +129,7 @@ def peak_search(x0, signal, actuate, step, threshold, full_output = False, test 
         eta = gradient * step / s[-1]
 
         if failure_threshold != None:
-            if np.abs(c[-1]) > failure_threshold:
+            if np.abs(s[-1]) > failure_threshold:
                 return -999
         x_new = x[-1] - eta
         x.append(x_new)
