@@ -25,8 +25,9 @@ def line_search(x0, cost, actuate, step, threshold, full_output = False, test = 
         x_new = x[-1] - eta
         x.append(x_new)
         actuate(x_new)
-        if x_new > x_max or x_new < x_min:
-            print('Target actuation out of range!')
+        if x_max != None and x_min != None:
+            if x_new > x_max or x_new < x_min:
+                print('Target actuation out of range!')
         if quit_function != None:
             if quit_function():
                 print('Line search terminated!')
@@ -36,7 +37,7 @@ def line_search(x0, cost, actuate, step, threshold, full_output = False, test = 
             print('x = ', x[-1], ' cost(x) = ', c[-1])
             time.sleep(.1)
         else:
-            print('x = ', x[-1], ' cost(x) = ', c[-1])
+#            print('x = ', x[-1], ' cost(x) = ', c[-1])
             c.append(cost())
         if np.abs(c[-1]) < threshold:
             if full_output:

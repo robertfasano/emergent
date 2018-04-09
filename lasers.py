@@ -22,8 +22,8 @@ class LasersTab(gui.Tab):
             
         self.parameters = {}
         self.parameters['Etalon'] = {'Tuning step':.1, 'Tuning delay': .5, 'Tuning threshold':.5, 'Lock threshold':1}
-        self.parameters['PZT'] = {'Tuning step': .75, 'Tuning delay': .05, 'Tuning threshold': 0.005}
-        self.parameters['Acquisition'] = {'Transmission threshold': 0.3, 'Sweep step size':.006, 'Sweep range': 0.4}
+        self.parameters['PZT'] = {'Tuning step': .75, 'Tuning delay': 0, 'Tuning threshold': 0.01}
+        self.parameters['Acquisition'] = {'Transmission threshold': 0.3, 'Sweep step size':.008, 'Sweep range': 0.5}
         self.parameters['Slow'] = {'Gain': 0.0075, 'Center threshold': .1}
         
         self.setpoints = {}

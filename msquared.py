@@ -96,53 +96,42 @@ class MSquared():
         ''' At this point, the etalon should be locked and the PZT should be tuned to magic. We now start sweeping the PZT
             in another thread while monitoring the transmission in this thread. Note that the one-way latency between computers
             is about 300 ms, so the sweep must be sufficiently slow to allow locking at the right frequency.'''
-#        bestT = 0
-#        for i in range(sweeps):
+
+        threshold = 3
         while True:
             X = self.oscillator(self.cavity_offset, span, step)
             t = []
             v = []
-            o = []
-            f = []
-            left_points = []
-            right_points = []
             peak_found = False
-            count = 0
+#            count = 0
             for x in X:
                 self.cavityTransmission = self.get_cavity_transmission()
-                self.pzt_output = self.get_servo_output()
-                
-                f.append(self.cost())
                 t.append(self.cavityTransmission)
                 v.append(x)
-                o.append(self.pzt_output)
-                if count > span/step:
-                    slope, intercept, r_value, p_value, std_err = stats.linregress(v,t)
-                    z0 = 5
-                    if np.abs(slope/std_err) > z0:
-                        print('Slope detected! %f +/- %f'%(slope, std_err))
-                        self.actuateCavityOffset(v[np.argmax(t)])
-                        break
+#                if count > span/step:
+#                    slope, intercept, r_value, p_value, std_err = stats.linregress(v,t)
+#                    z0 = 5
+#                    if np.abs(slope/std_err) > z0:
+#                        print('Slope detected! %f +/- %f'%(slope, std_err))
+#                        self.actuateCavityOffset(v[np.argmax(t)])
+#                        break
 
                 ''' If an outlier is detected, take a closer look '''
                 if self.cavityTransmission > self.parameters['Acquisition']['Transmission threshold']:
                     print('Cavity transmission exceeds threshold; lock is engaged.')
                     return
-                
-                if np.std(t) != 0:
-                    z = (np.max(t) - np.mean(t))/np.std(t)
-                    threshold = 5
-                    if z>threshold: #and count > steps/2:
-                        fmax = f[np.argmax(t)]
-                        ''' We have just stepped onto a peak '''
-                        print('%f-sigma peak detected at  %f (sigma = %f).'%(z, fmax, np.std(t)))
+                sigma = np.std(t)
+                if sigma != 0:
+                    z = (np.max(t) - np.mean(t))/sigma
+                    if z>threshold: 
+                        print('%f-sigma peak detected (sigma = %f).'%(z, sigma))
                         peak_found = True
                         factor = 2/np.abs(z)
                         span *= factor
-                        print('Recentering at ', fmax, ' with span decreased by a factor of ', z/2.5)
+                        print('Recentering with span decreased by a factor of ', z/2)
                         self.actuateCavityOffset(v[np.argmax(t)])
                         break
-                count += 1
+#                count += 1
 
                 self.actuateCavityOffset(x)
             if not peak_found:
@@ -157,7 +146,7 @@ class MSquared():
             plt.xlabel('Voltage')
             plt.ylabel('Transmission')
 
-            time.sleep(.5)
+            time.sleep(.05)
             plt.show()
                     
     def acquire_etalon_lock(self, zoom = 1):
@@ -195,17 +184,17 @@ class MSquared():
         time.sleep(self.parameters['Etalon']['Tuning delay'])
         return self.get_frequency()
     
-    def get_pzt_output(self):
-        msg = "{'V':%f, 'Transmission':%f, 'Output':%f}"%(self.cavity_offset, self.cavityTransmission, self.pzt_output)
-        self.message(op='request', parameters = msg, destination = 'PC')
-        reply = self.connection.recv(1024).decode()
-        reply = json.loads(reply.split('}}}')[0] + '}}}')    # make sure we only take the first json if multiple are sent
-        if reply['message']['op'] == 'abort':
-            self.abort = 1
-            return 999
-        self.cavityTransmission = reply['message']['parameters']['transmission']
-        self.pzt_output = reply['message']['parameters']['output']
-        return self.pzt_output
+#    def get_pzt_output(self):
+#        msg = "{'V':%f, 'Transmission':%f, 'Output':%f}"%(self.cavity_offset, self.cavityTransmission, self.pzt_output)
+#        self.message(op='request', parameters = msg, destination = 'PC')
+#        reply = self.connection.recv(1024).decode()
+#        reply = json.loads(reply.split('}}}')[0] + '}}}')    # make sure we only take the first json if multiple are sent
+#        if reply['message']['op'] == 'abort':
+#            self.abort = 1
+#            return 999
+#        self.cavityTransmission = reply['message']['parameters']['transmission']
+#        self.pzt_output = reply['message']['parameters']['output']
+#        return self.pzt_output
 
         
     def center_cavity_lock(self, relative_gain = 1):
