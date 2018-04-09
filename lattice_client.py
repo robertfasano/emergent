@@ -73,36 +73,36 @@ class Client():
         self.abort = 0
         if not self.connected:
             self.connect()
-        try:
-            self.message(op='lock', parameters = parameters)
-            
-            ''' Begin listening mode for status updates during the etalon lock process '''
-            while True:
-                reply = self.receive()
-                if reply == -1:
-                    print('Connection closed by server.')
-                    return
-                if reply['message']['op'] == 'done':
-                    break
-            
-            ''' When the etalon lock process is done, the server will send a 'done' message. Now start streaming data from the ADC. This is done by first requesting status from the server and responding with a voltage if needed. '''
-            reply = self.receive()
-            while True:
-                if reply == -1:
-                    print('Connection closed by server.')
-                    return
-                if reply['message']['op'] == 'request':
-#                    V = self.daq.read(3)
-                    transmission = self.daq.read(5)
-                    output = self.daq.read(15)
-                    reply = self.message(op='data', parameters = {'transmission':transmission, 'output':output})
-                if reply == -1:
-                    print('Connection closed by server.')
-                    return
-                if reply['message']['op'] == 'done':
-                    break
-        except KeyboardInterrupt:
-            print('Locking routine aborted by user.')
+#        try:
+        self.message(op='lock', parameters = parameters)
+#            
+#            ''' Begin listening mode for status updates during the etalon lock process '''
+#            while True:
+#                reply = self.receive()
+#                if reply == -1:
+#                    print('Connection closed by server.')
+#                    return
+#                if reply['message']['op'] == 'done':
+#                    break
+#            
+#            ''' When the etalon lock process is done, the server will send a 'done' message. Now start streaming data from the ADC. This is done by first requesting status from the server and responding with a voltage if needed. '''
+#            reply = self.receive()
+#            while True:
+#                if reply == -1:
+#                    print('Connection closed by server.')
+#                    return
+#                if reply['message']['op'] == 'request':
+##                    V = self.daq.read(3)
+#                    transmission = self.daq.read(5)
+#                    output = self.daq.read(15)
+#                    reply = self.message(op='data', parameters = {'transmission':transmission, 'output':output})
+#                if reply == -1:
+#                    print('Connection closed by server.')
+#                    return
+#                if reply['message']['op'] == 'done':
+#                    break
+#        except KeyboardInterrupt:
+#            print('Locking routine aborted by user.')
 #        self.sock.close()
         
     def send(self, cmd):

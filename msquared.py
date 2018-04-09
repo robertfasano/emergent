@@ -57,7 +57,7 @@ class MSquared():
             with open('lattice_frequency.txt', 'r') as file:
                 self.f0 = float(file.readlines()[0])
         except FileNotFoundError:
-            self.f0 = 394798.23
+            self.f0 = 394798.24
         self.threads = {}
         self.etalon_lock = 0
         self.cavity_lock = 0
@@ -80,24 +80,12 @@ class MSquared():
             j += 1
         return array
             
-    def acquisition_cost(self):
-        msg = {}
-        self.message(op='request', parameters = msg, destination = 'PC')
-        reply = self.connection.recv(1024).decode()
-        reply = json.loads(reply.split('}}}')[0] + '}}}')    # make sure we only take the first json if multiple are sent
-        print('Received reply ', reply)            
-        if reply['message']['op'] == 'abort':
-            return
-        self.cavityTransmission = reply['message']['parameters']['transmission']
-        self.pzt_output = reply['message']['parameters']['output']
-        return self.parameters['Acquisition']['Transmission threshold'] - self.cavityTransmission
-    
     def acquire_cavity_lock(self, span = 0.05, step = .001, sweeps = 5):
         ''' At this point, the etalon should be locked and the PZT should be tuned to magic. We now start sweeping the PZT
             in another thread while monitoring the transmission in this thread. Note that the one-way latency between computers
             is about 300 ms, so the sweep must be sufficiently slow to allow locking at the right frequency.'''
 
-        threshold = 3
+        threshold = 5
         while True:
             X = self.oscillator(self.cavity_offset, span, step)
             t = []
@@ -157,7 +145,8 @@ class MSquared():
         f = self.get_frequency()
         if np.abs(f-self.f0) > self.parameters['Etalon']['Lock threshold'] and self.etalon_fail_count < self.max_etalon_fails:
             msg = 'Lock outside threshold at %f GHz, reacquiring...'%f
-            self.message(op='update', parameters = msg, destination = 'PC')
+#            self.message(op='update', parameters = msg, destination = 'PC')
+            print(msg)
             self.acquire_etalon_lock(zoom = 0.5)
             self.etalon_fail_count += 1
 #        elif np.abs(f-self.f0) > self.parameters['Etalon']['Lock threshold'] and self.etalon_fail_count >= self.max_etalon_fails:
@@ -169,7 +158,8 @@ class MSquared():
             msg = 'Etalon locked at f=%f GHz.'%f
             with open('etalon_settings.txt', 'w') as file:
                 file.write(str(self.etalon))
-            self.message(op='update', parameters = msg, destination = 'PC')
+#            self.message(op='update', parameters = msg, destination = 'PC')
+            print(msg)
             self.etalon_fail_count = 0
 
     def actuateCavityOffset(self, value):
@@ -183,19 +173,6 @@ class MSquared():
         self.message(op = 'tune_etalon', parameters = {'setting': [self.etalon]}, destination = 'laser')
         time.sleep(self.parameters['Etalon']['Tuning delay'])
         return self.get_frequency()
-    
-#    def get_pzt_output(self):
-#        msg = "{'V':%f, 'Transmission':%f, 'Output':%f}"%(self.cavity_offset, self.cavityTransmission, self.pzt_output)
-#        self.message(op='request', parameters = msg, destination = 'PC')
-#        reply = self.connection.recv(1024).decode()
-#        reply = json.loads(reply.split('}}}')[0] + '}}}')    # make sure we only take the first json if multiple are sent
-#        if reply['message']['op'] == 'abort':
-#            self.abort = 1
-#            return 999
-#        self.cavityTransmission = reply['message']['parameters']['transmission']
-#        self.pzt_output = reply['message']['parameters']['output']
-#        return self.pzt_output
-
         
     def center_cavity_lock(self, relative_gain = 1):
         self.cavity_offset = optimize.line_search(x0 = self.cavity_offset, cost = self.get_servo_output, actuate = self.actuateCavityOffset, step = self.parameters['Slow']['Gain'] * relative_gain, threshold = self.parameters['Slow']['Center threshold'], gradient = False, quit_function = self.unresonant) 
@@ -239,21 +216,22 @@ class MSquared():
         if self.abort:
             print('Aborted by client after etalon lock')
             return
-        print('Tuning PZT near target frequency...')
         ''' Tune near magic '''
         msg = 'Applying gain and tuning to target frequency.'
-
-        self.message(op='update', parameters = msg, destination = 'PC')
+        print(msg)
+#        self.message(op='update', parameters = msg, destination = 'PC')
         self.daq.out(0, 0)        # restore gain
         self.tune_cavity(quit_function = self.resonant)           # reset again in case adding gain shifted the frequency
         
         msg = 'PZT tuned to f=%f GHz. Ramping PZT to lock...'%self.get_frequency()
-        self.message(op='done', parameters = msg, destination = 'PC')
+        print(msg)
+#        self.message(op='done', parameters = msg, destination = 'PC')
         
         ''' Apply slow ramp until cavity is locked '''
         self.acquire_cavity_lock(span = self.parameters['Acquisition']['Sweep range'], step = self.parameters['Acquisition']['Sweep step size'], sweeps = self.sweeps)
         msg = 'Lock engaged with %f V transmission. Centering output...'%self.cavityTransmission
-        self.message(op='request', parameters = msg, destination = 'PC')
+#        self.message(op='request', parameters = msg, destination = 'PC')
+        print(msg)
         with open('lattice_frequency.txt', 'w') as file:
             file.write(str(self.get_frequency()))
         self.center_cavity_lock()
@@ -280,7 +258,6 @@ class MSquared():
         self.latency = (astropy.time.Time.now().unix-parameters['time'])*1000
         self.message(op='update', parameters = 'Ping: %.0f ms latency'%self.latency, destination = 'PC')
 
- 
     def receive(self):
         reply = json.loads(self.sock.recv(1024).decode())
         print(reply)
