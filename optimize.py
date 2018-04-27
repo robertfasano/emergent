@@ -1,9 +1,13 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import time
+from scipy import stats
 
-
-def line_search(x0, cost, actuate, step, threshold, full_output = False, test = False, gradient = False, min_step = None, failure_threshold = None, quit_function = None, x_max = None, x_min = None):
+def line_search(x0, cost, actuate, step, threshold, full_output = False, test = False, gradient = False, min_step = None, failure_threshold = None, quit_function = None, x_max = None, x_min = None, output = False, fitting = False):
+    ''' If the fitting parameter is enabled, this function assumes a linear cost function
+        and takes steps to minimize it '''
+    if output:
+        print('Beginning line search with initial guess %f.'%x0)
     ''' Requires an odd cost function '''
     x = [x0]
     
@@ -16,22 +20,51 @@ def line_search(x0, cost, actuate, step, threshold, full_output = False, test = 
         c = [cost()]
         sign = np.sign(c[-1])
         
-
     eta = sign * step
     while True:
+        if output:
+            print(x[-1],c[-1])
+            
+        if np.abs(c[-1]) < threshold:
+            if full_output:
+                return x, c
+            else:
+                return x[-1]
+            
         if failure_threshold != None:
             if np.abs(c[-1]) > failure_threshold:
-                return -999
-        x_new = x[-1] - eta
+                if full_output:
+                    return x,c
+                else:
+                    return -999
+        if fitting and len(x) > 10:
+            inds = np.where(np.abs(x-np.mean(x)) < 5*np.std(x))[0].tolist()
+            slope, intercept, r, p, std_err = stats.linregress(np.array(x)[inds], np.array(c)[inds])
+#            z = np.abs(slope) / std_err
+            if p < .16:
+                x_new = -intercept/slope
+                print('cost %f, moving %f->%f'%(c[-1], x[-1], x_new))
+                print('Moving towards zero; intercept = %f, slope = %f'%(intercept, slope))
+            else:
+                x_new = x[-1] - eta
+                print('No slope detected, taking fixed step')
+                print('%f->%f'%(x[-1], x_new))
+        else:
+            x_new = x[-1] - eta
+#            print('%f->%f'%(x[-1], x_new))
         x.append(x_new)
         actuate(x_new)
-        if x_max != None and x_min != None:
-            if x_new > x_max or x_new < x_min:
-                print('Target actuation out of range!')
         if quit_function != None:
             if quit_function():
                 print('Line search terminated!')
-                return x[-1]
+                if full_output:
+                    return x,c
+                else:
+                    return x[-1]
+        if x_max != None and x_min != None:
+            if x_new > x_max or x_new < x_min:
+                print('Target actuation out of range (x=%f)!'%x_new)
+
         if test:
             c.append(cost(x[-1]))
             print('x = ', x[-1], ' cost(x) = ', c[-1])
@@ -39,11 +72,7 @@ def line_search(x0, cost, actuate, step, threshold, full_output = False, test = 
         else:
 #            print('x = ', x[-1], ' cost(x) = ', c[-1])
             c.append(cost())
-        if np.abs(c[-1]) < threshold:
-            if full_output:
-                return x, c
-            else:
-                return x[-1]
+
         
         if gradient:
             eta = (np.abs(c[-1]) - np.abs(c[-2]))/(x[-1]-x[-2]) * step
@@ -58,10 +87,6 @@ def line_search(x0, cost, actuate, step, threshold, full_output = False, test = 
 #                print('Correcting direction')
         if min_step != None and np.abs(eta) < min_step:
             eta = min_step * np.sign(eta)
-            
-        
-        
-    return
 
 def oscillator(center, span, steps):
     step_size = span/steps
