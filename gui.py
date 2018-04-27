@@ -4,6 +4,7 @@ from PyQt5.QtCore import QSize, Qt
 import datetime
 import functools
 import os
+from threading import Thread
 
 class SubMenu(QMenuBar):
     def __init__(self, parent=None):
@@ -17,11 +18,13 @@ class SubMenu(QMenuBar):
      }""")
         self.resize(320, 240)
        
+
 class Popup(QWidget):
-    ''' A popup for managing less-used options not displayed on the front panel of a Tab. '''
-    def __init__(self, name, params):
+    ''' A popup for managing less-used options not displayed on the front panel of a Tab. If a function is passed, a button appears to start this function in a new thread.'''
+    def __init__(self, name, params, function = None):
         super().__init__()
         self.params = params
+        self.function = function
         self.setWindowTitle('%s options'%name)
         grid = QGridLayout()
         grid.setSpacing(10)
@@ -38,12 +41,29 @@ class Popup(QWidget):
         for key in self.params:
             label = QLabel(key)    
             self.layout.addWidget(label, row, 0)
-            edit = QLineEdit(self.params[key])    
+            edit = QLineEdit(str(self.params[key]))   
             self.layout.addWidget(edit, row, 1)
             self.widgets[key] = edit
             row += 1
         self.setLayout(self.layout)
         
+        if self.function != None:
+            self.button = QPushButton('Start')
+            self.button.clicked.connect(self.start)
+            self.layout.addWidget(self.button)
+            
+    def start(self):
+        self.update_parameters()
+        thread = Thread(target = self.function, args = (self.params.values()))
+        thread.start()
+
+    def update_parameters(self):    
+        for key in self.params:
+            x = self.widgets[key].text()
+            if key != 'filename':
+                x = float(x)
+            self.params[key] = x
+            
 class LED(QLabel):
     ''' A simple on/off LED whose state can be toggled with the set_state() function '''
     def __init__(self, scale=1):
