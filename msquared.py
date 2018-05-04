@@ -58,7 +58,7 @@ class MSquared():
         self.sweeps = 5
         self.calibrated = 1
         self.load_setpoint()
-        
+        self.polynomial_order = 3
         self.etalon_lock = self.check_etalon_lock()
         self.etalon = self.parameters['Etalon']['Setpoint']
         if not self.etalon_lock or np.abs(self.cost()) > self.parameters['Etalon']['Lock threshold']:
@@ -281,7 +281,11 @@ class MSquared():
         plt.ylabel('Detuning (GHz)')
         self.parameters['Etalon']['Slope'], self.parameters['Etalon']['Intercept'], r_value, p_value, std_err = stats.linregress(X, f)
         char = {1:'+', -1:'-'}[np.sign(self.parameters['Etalon']['Slope'])]
-        string = 'f = %f %s %f/%%'%(self.parameters['Etalon']['Intercept'], char, np.abs(self.parameters['Etalon']['Slope']))
+        fit = np.polyfit(X, f, self.polynomial_order)
+        string = r'f = '
+        for i in range(len(fit)):
+            string += r'%.1fx^%i'%(fit[i], i)
+#        string = 'f = %f %s %f/%%'%(self.parameters['Etalon']['Intercept'], char, np.abs(self.parameters['Etalon']['Slope']))
         plt.title(string)
         time.sleep(0.05)
         plt.show()
@@ -334,7 +338,11 @@ class MSquared():
         plt.xlabel('DAC voltage (V)')
         plt.ylabel('Detuning (GHz)')
         self.parameters['PZT']['Slope'], self.parameters['PZT']['Intercept'], r_value, p_value, std_err = stats.linregress(V, f)
-        string = 'f = %f + %fV'%(self.parameters['PZT']['Intercept'], self.parameters['PZT']['Slope'])
+        fit = np.polyfit(V, f, self.polynomial_order)
+        string = r'f = '
+        for i in range(len(fit)):
+            string += r'%.1fV^%i'%(fit[i], i)
+#        string = 'f = %f + %fV'%(self.parameters['PZT']['Intercept'], self.parameters['PZT']['Slope'])
         plt.title(string)
         time.sleep(0.05)
         plt.show()
@@ -753,11 +761,11 @@ class LatticeTab(gui.Tab):
         self.abort_button = self._addButton('Abort', self.abort, row+3, 2, style = self.panel.styleUnlock)
         self.status_button = self._addButton('Status', self.laser.get_system_status, row+3, 3, style = self.panel.styleUnlock)
 
-        self.calibrate_etalon_button = self._addButton('Calibrate etalon', self.calibrate_etalon, row+4, 0, style = self.panel.styleUnlock)
-        self.calibrate_pzt_button = self._addButton('Calibrate PZT', self.calibrate_pzt, row+4, 1, style = self.panel.styleUnlock)
-        self.map_button = self._addButton('Map', self.map_transmission, row+4, 2, style = self.panel.styleUnlock)
+#        self.calibrate_etalon_button = self._addButton('Calibrate etalon', self.calibrate_etalon, row+4, 0, style = self.panel.styleUnlock)
+#        self.calibrate_pzt_button = self._addButton('Calibrate PZT', self.calibrate_pzt, row+4, 1, style = self.panel.styleUnlock)
+        self.map_button = self._addButton('Map', self.map_transmission, row+3, 5, style = self.panel.styleUnlock)
 #        self.center_button = self._addButton('Center PZT', self.laser.center_pzt, row+4, 2, style = self.panel.styleUnlock)
-        self.calibrate_button = self._addButton('Calibrate', self.calibrate, row+4, 3, style = self.panel.styleUnlock)
+        self.calibrate_button = self._addButton('Calibrate', self.calibrate, row+3, 4, style = self.panel.styleUnlock)
         self.prepare_filepath()
         
     def update_setpoints(self, parameters):
