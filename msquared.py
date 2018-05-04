@@ -27,8 +27,9 @@ import matplotlib.pyplot as plt
 plt.ion()
         
 class MSquared():
-    def __init__(self, parameters):
+    def __init__(self, parameters, tab):
         self.parameters = parameters
+        self.tab = tab
         
         ''' Open socket connection '''
         server = "192.168.1.207"
@@ -136,6 +137,7 @@ class MSquared():
             In this case, rather than naively tuning back to the target frequency and
             repeating, we should start a new optimization problem where we try to optimize
             the post-lock cost as a function of pre-lock frequency '''
+        self.actuate_pzt(0)
         step = 0.01
         span = .1
         X = np.arange(self.etalon-span/2, self.etalon+span/2, step)
@@ -194,7 +196,7 @@ class MSquared():
         else:
             msg = 'Etalon locked at f=%f GHz.'%f
             self.parameters['Etalon']['Setpoint'] = self.etalon
-            self.save_setpoint()
+#            self.save_setpoint()
             with open('etalon_settings.txt', 'w') as file:
                 file.write(str(self.etalon))
             print(msg)
@@ -286,7 +288,7 @@ class MSquared():
         if filename != None:
             plt.savefig(filename.replace('txt', 'png'))
         self.calibrated_etalon = 1
-        self.save_setpoint()
+#        self.save_setpoint()
         
         if filename != None:
             with open(filename, 'w') as file:
@@ -340,7 +342,7 @@ class MSquared():
             plt.savefig(filename.replace('txt', 'png'))
         self.calibrated_pzt = 1
 
-        self.save_setpoint()
+#        self.save_setpoint()
         
         if filename != None:
             with open(filename, 'w') as file:
@@ -588,7 +590,8 @@ class MSquared():
         print('Saving settings to file.')
         with open('lattice_settings.txt', 'w') as file:
             json.dump(self.parameters, file)
-            
+        self.tab.update_setpoints(self.parameters)
+        
     def server(self):
         self.cmds = {'stream_frequency':self.stream_frequency, 'lock':self.lock, 'tune_etalon':self.tune_etalon, 'tune_cavity':self.tune_cavity, 'ping':self.ping, 'set_cavity':self.actuate_pzt, 'acquire_etalon_lock':self.acquire_etalon_lock, 'acquire_cavity_lock':self.acquire_cavity_lock}
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -640,8 +643,8 @@ class MSquared():
             threshold = self.parameters['Etalon']['Tuning threshold']
         if quit_function == None:
             quit_function = self.stop
-#        X0 = self.etalon
-        X0 = self.convert_frequency_to_etalon(self.parameters['Lock']['Frequency'])
+        X0 = self.etalon
+#        X0 = self.convert_frequency_to_etalon(self.parameters['Lock']['Frequency'])
         x,c = optimize.line_search(x0 = X0, cost = self.cost, actuate = self.actuate_etalon, step = -zoom * self.parameters['Etalon']['Tuning step'], threshold = threshold, gradient = False, min_step = 0.01, full_output = True, quit_function = quit_function, fitting = False)
         self.etalon = x[-1]
         
@@ -654,8 +657,8 @@ class MSquared():
 
     def tune_cavity(self, quit_function = None, output = False):
         ''' Estimate correct PZT position based on calibrated slope '''
-#        V0 = self.pzt
-        V0 = self.convert_frequency_to_voltage(self.parameters['Lock']['Frequency'])
+        V0 = self.pzt
+#        V0 = self.convert_frequency_to_voltage(self.parameters['Lock']['Frequency'])
         if quit_function == None:
             quit_function = self.stop
         x,c = optimize.line_search(x0 = V0, cost = self.cost, actuate = self.actuate_pzt, step = -self.parameters['PZT']['Tuning step'], threshold = self.parameters['PZT']['Tuning threshold'], gradient = False, min_step = 0.01, failure_threshold = self.parameters['Etalon']['Lock threshold'], quit_function = quit_function, x_max = 10, x_min = -10, full_output = True, output = output, fitting = False)
@@ -694,6 +697,8 @@ class Setpoint():
         self.label = self.tab._addLabel(self.name, row, col, width = width, style = self.tab.panel.styleUnlock, fontsize = 'S')
         self.value = self.tab._addEdit('%.3f'%value, row,col+1 + width-1)
         
+    
+        
 class LatticeTab(gui.Tab):
     def __init__(self, panel, clock, folder, subfolder):
         super().__init__('Lattice', panel)
@@ -711,7 +716,7 @@ class LatticeTab(gui.Tab):
 #        
         with open('lattice_settings.txt', 'r') as file:
             self.parameters = json.load(file)
-        self.laser = MSquared(parameters = self.parameters)
+        self.laser = MSquared(parameters = self.parameters, tab = self)
         
         self.setpoints = {}
         self.setpoints['Etalon'] = {}
@@ -755,6 +760,12 @@ class LatticeTab(gui.Tab):
         self.calibrate_button = self._addButton('Calibrate', self.calibrate, row+4, 3, style = self.panel.styleUnlock)
         self.prepare_filepath()
         
+    def update_setpoints(self, parameters):
+        for x in parameters:
+            for p in parameters[x]:
+                self.setpoints[x][p].value.setText(str(parameters[x][p]))
+        self.setLayout(self.layout)
+
     def abort(self):
         self.laser.abort = 1
         
