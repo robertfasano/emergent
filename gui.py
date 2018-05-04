@@ -194,7 +194,7 @@ class Tab(QWidget):
             box.addItem(item)
         if currentText == None:
             currentText = items[0]
-        box.setCurrentText(currentText)
+        box.setCurrentText(str(currentText))
         self.layout.addWidget(box, row, col)
         self.setLayout(self.layout)
         box.setFont(self.panel.font['S'])
