@@ -2,9 +2,8 @@ import os
 import sys
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from PyQt5.QtWidgets import QComboBox, QPushButton, QFileDialog
+from PyQt5.QtWidgets import QFileDialog
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
-import time
 from threading import Thread
 if os.name == 'posix':        # if using OS X, open a special testing version of the program
     sys.path.append('/Users/rjf2/Documents/GitHub')
@@ -13,7 +12,8 @@ else:
     sys.path.append('C:\\Users\\Robbie\\Documents\\GitHub')
 
 from scipy.optimize import curve_fit
-from labAPI import gui, IO
+from labAPI import IO
+from labAPI.gui import gui
 import pandas as pd
 import numpy as np
 import allantools

@@ -26,11 +26,6 @@ class Serial():
         reply = self.ser.readline()
         
         return reply.decode()
-#        if query == True:
-#            reply = reply.decode()
-#            return reply
     
-
-        
-
-
+    def close(self):
+        self.ser.close()   

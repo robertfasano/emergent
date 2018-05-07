@@ -10,7 +10,6 @@ import sys
 import os
 char = {'nt': '\\', 'posix': '/'}[os.name]
 sys.path.append(char.join(os.getcwd().split(char)[0:-2]))     
-from labAPI import gui
 #from scipy.optimize import curve_fit
 
 #from simplex import Simplex

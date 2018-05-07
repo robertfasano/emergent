@@ -21,7 +21,9 @@ else:
     sys.path.insert(0, 'C:\\Users\\yblab\\Python\\mcdaq')
     sys.path.insert(0, 'O:\\Public\\Yb clock')
 #    import mcdaq
-from labAPI import daq, optimize, gui
+from labAPI import optimize
+from labAPI.devices import daq
+from labAPI.gui import gui
 import bristol671     # note: this MUST be after mcdaq import, since bristol imports a different version
 import matplotlib.pyplot as plt
 plt.ion()
