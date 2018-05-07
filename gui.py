@@ -154,12 +154,43 @@ class Tab(QWidget):
         button.setFixedSize(size.scaled(size.width()*width, size.height()*height, 0))
 
         return button
-    
-    def _addToggleButton(self, row, col, width = 1, height = 1):
-        button = ToggleButton(self.panel)
-        self.layout.addWidget(button, row, col, height, width)
+
+    def _addCheckbox(self, row, col, name = None):
+        if name == None:
+            checkbox = QCheckBox()
+        else:
+            checkbox = QCheckBox(name)
+        self.layout.addWidget(checkbox, row, col)
         self.setLayout(self.layout)
         
+        return checkbox
+    
+    def _addComboBox(self,items, row, col, currentText = None, width=1, height=1):
+        box = QComboBox()
+        for item in items:
+            box.addItem(item)
+        if currentText == None:
+            currentText = items[0]
+        box.setCurrentText(str(currentText))
+        self.layout.addWidget(box, row, col)
+        self.setLayout(self.layout)
+        box.setFont(self.panel.font['S'])
+        
+        size = self.panel.gridSize
+        box.setFixedSize(size.scaled(size.width()*width, size.height()*height, 0))
+
+        return box
+
+    def _addEdit(self, label, row, col, width=1, height=1):          
+        edit = QLineEdit(label)
+        self.layout.addWidget(edit, row, col, height, width)
+        self.setLayout(self.layout)
+        edit.setFont(self.panel.font['S'])
+        
+        size = self.panel.gridSize
+        edit.setFixedSize(size.scaled(size.width()*width, size.height()*height, 0))
+        return edit
+    
     def _addLabel(self, label, row, col, width=1, height=1, style = 0, size = 'default', fontsize = 'M', centered = False):
         label = QLabel(label)
         self.layout.addWidget(label, row, col, height, width)
@@ -178,48 +209,37 @@ class Tab(QWidget):
             
         return label
     
-    def _addEdit(self, label, row, col, width=1, height=1):          
-        edit = QLineEdit(label)
-        self.layout.addWidget(edit, row, col, height, width)
-        self.setLayout(self.layout)
-        edit.setFont(self.panel.font['S'])
-        
-        size = self.panel.gridSize
-        edit.setFixedSize(size.scaled(size.width()*width, size.height()*height, 0))
-        return edit
-    
-    def _addComboBox(self,items, row, col, currentText = None, width=1, height=1):
-        box = QComboBox()
-        for item in items:
-            box.addItem(item)
-        if currentText == None:
-            currentText = items[0]
-        box.setCurrentText(str(currentText))
-        self.layout.addWidget(box, row, col)
-        self.setLayout(self.layout)
-        box.setFont(self.panel.font['S'])
-        
-        size = self.panel.gridSize
-        box.setFixedSize(size.scaled(size.width()*width, size.height()*height, 0))
-
-        return box
-        
     def _addLED(self, row, col, scale=1):
         led = LED(scale=scale)
         self.layout.addWidget(led, row, col)
         self.setLayout(self.layout)
         
         return led
-    
-    def _addCheckbox(self, row, col, name = None):
-        if name == None:
-            checkbox = QCheckBox()
-        else:
-            checkbox = QCheckBox(name)
-        self.layout.addWidget(checkbox, row, col)
+
+    def _addToggleButton(self, row, col, width = 1, height = 1):
+        button = ToggleButton(self.panel)
+        self.layout.addWidget(button, row, col, height, width)
         self.setLayout(self.layout)
         
-        return checkbox
+#    def _addUpdate(self, title, items, row, col):
+#        ''' A multi-widget consisting of a row of items, each containing a QLabel name, QLineEdit value, QComboBox units; after all items, add a QPushButton '''
+#        
+    def _addUpdate(self, title, func, row, col, items = [], values = [], channels = [], units = [[]]):
+        widgets = []
+        widgets.append(self._addLabel(title, row, col))
+        widgets.append(self._addComboBox(channels, row, col+1))
+        j = 2
+        for i in range(len(items)):
+            widgets.append(self._addEdit(str(values[i]), row, col+j))
+            widgets.append(self._addComboBox(units[i], row, col+j+1))
+            j += 3
+#        button = self.addButton('Update', 'Update%s'%title, self.updateAOM, row, col+j+2, args=['%sEdit'%title, '%sCombo'%title])
+        widgets.append(self._addButton('Update', self.updateAOM, row, col+j+2, args=widgets))
+
+        return widgets
+        
+        
+
 
 class Panel(QWidget):
     ''' The Panel class is the central GUI element hosting multiple Tabs for different tasks. '''
