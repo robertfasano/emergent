@@ -2,8 +2,7 @@ import numpy as np
 import serial
 import datetime
 import time
-import os
-
+from labAPI import protocols
 class Sprout():
     def __init__(self):
         self.responseTime = 0
@@ -14,50 +13,12 @@ class Sprout():
         
     def connect(self):
         try:
-            self.ser = serial.Serial(
-                port='COM7',
-                baudrate=19200,
-                parity=serial.PARITY_NONE,
-                stopbits=serial.STOPBITS_ONE,
-                bytesize=serial.EIGHTBITS,
-                timeout = 1
-            )
-#        except serial.serialutil.SerialException:
-#            self.ser = serial.Serial(
-#                port='COM10',
-#                baudrate=19200,
-#                parity=serial.PARITY_NONE,
-#                stopbits=serial.STOPBITS_ONE,
-#                bytesize=serial.EIGHTBITS,
-#                timeout = 1
-#            )
+            self.serial = protocols.serial.Serial(port = 'COM7')
+
         except serial.serialutil.SerialException:
-            self.ser.close()
-            self.ser = serial.Serial(
-                port='COM7',
-                baudrate=19200,
-                parity=serial.PARITY_NONE,
-                stopbits=serial.STOPBITS_ONE,
-                bytesize=serial.EIGHTBITS,
-                timeout = 1
-            )
-        
-        if self.ser.isOpen() != 1:
-            self.ser.open()
-        
-    def command(self, cmd, query = False):
-        if cmd[-1] == '?':
-            query = True
-        cmd += '\r'
-        self.ser.write(cmd.encode('ascii'))
-        time.sleep(self.responseTime)
-        reply = self.ser.readline()
-        if query == True:
-            reply = reply.decode('ascii').split('=')[1][0:-1]
-            return reply
-            
-        
-        
+            self.serial.close()
+            self.serial = protocols.serial.Serial(port = 'COM7')           
+           
     def warmup(self):
         # determine which mode laser is in
         self.mode = self.askMode()
@@ -90,11 +51,11 @@ class Sprout():
                 outfile.flush()
         
     def askPower(self):
-        power = self.command('POWER?')
+        power = self.serial.command('POWER?')
         return float(power)
     
     def askMode(self):
-        self.mode = self.command('OPMODE?')
+        self.mode = self.serial.command('OPMODE?')
         return self.mode
         
     def setMode(self, mode):
@@ -102,7 +63,7 @@ class Sprout():
             Arguments:
                 mode (str): either 'OFF', 'ON', or 'IDLE'
         '''
-        self.command('OPMODE=%s'%mode)
+        self.serial.command('OPMODE=%s'%mode)
     
     def setPower(self, power):
         ''' Sets the power of the Sprout.
@@ -111,7 +72,7 @@ class Sprout():
         '''
         if power < 0.1:
             power = 0.1          # minimum power of the Sprout is 0.1 W
-        self.command('POWER SET=%.2f'%power)
+        self.serial.command('POWER SET=%.2f'%power)
         print('Set power to %f'%power)
         
         
