@@ -182,7 +182,7 @@ class Tab(QWidget):
         return box
 
     def _addEdit(self, label, row, col, width=1, height=1):          
-        edit = QLineEdit(label)
+        edit = QLineEdit(str(label))
         self.layout.addWidget(edit, row, col, height, width)
         self.setLayout(self.layout)
         edit.setFont(self.panel.font['S'])
@@ -192,7 +192,7 @@ class Tab(QWidget):
         return edit
     
     def _addLabel(self, label, row, col, width=1, height=1, style = 0, size = 'default', fontsize = 'M', centered = False):
-        label = QLabel(label)
+        label = QLabel(str(label))
         self.layout.addWidget(label, row, col, height, width)
         self.setLayout(self.layout)
         
