@@ -52,6 +52,9 @@ class MSquared():
         self.adc = daq.MCDAQ({'device':'USB-2408', 'id':'1C96FD5'}, function = 'input', arange = 'BIP10VOLTS')
         
         ''' Configure lock process settings '''
+        self.calibrated_pzt = 0
+        self.pzt_change_on_unlock = 0.13
+        self.previously_locked = 0
         self.threads = {}
         self.cavity_lock = 0
         self.etalon_fail_count = 0
@@ -66,8 +69,8 @@ class MSquared():
         if not self.etalon_lock or np.abs(self.cost()) > self.parameters['Etalon']['Lock threshold']:
             self.disengage_etalon_lock()
             self.actuate_etalon(self.parameters['Etalon']['Setpoint'])
-#        self.actuate_pzt(self.parameters['PZT']['Setpoint'])
-        self.actuate_pzt(0)
+        self.actuate_pzt(self.parameters['PZT']['Setpoint'])
+#        self.actuate_pzt(0)
         self.locked = 0
         
     def acquire_cavity_lock(self, span = 0.05, step = .001, sweeps = 5):
@@ -80,7 +83,9 @@ class MSquared():
         while True:
 #            X = self.oscillator(self.pzt, span, step)
             ''' We want to search around a center point with increasing amplitude. '''
-            
+            if self.abort:
+                print('Cavity lock acquisition aborted.')
+                return
             X = np.arange(center-span/2, center+span/2, step)
             Y = np.abs(X-np.mean(X))
             X = X[Y.argsort()]
@@ -120,8 +125,8 @@ class MSquared():
 #                self.actuate_pzt(v[np.argmax(t)])
                 span *= 1.25
                 step /= 1.25
-            if np.abs(self.cost()) > .015:
-#                print('Retuning cavity to prevent drift.')
+            if np.abs(self.cost()) > .02:
+                print('Retuning cavity to prevent drift.')
                 self.tune_cavity(quit_function = self.resonant)
 
 #            plt.figure()
@@ -325,6 +330,7 @@ class MSquared():
             else:
                 V = np.append(V, X[1::])
         f = []
+        T = []
         for v in V:
             if self.abort:
                 print('Calibration process aborted.')
@@ -332,20 +338,36 @@ class MSquared():
             self.actuate_pzt(v)
             time.sleep(delay)
             f.append(self.get_frequency())
+            T.append(self.get_cavity_transmission())
     #            print(v, f[-1])
         V = np.delete(V,0)
         del f[0]
+        del T[0]
         plt.figure()
-        plt.plot(V, np.array(f)-self.parameters['Lock']['Frequency'])
+        plt.plot(V, np.array(f)-self.parameters['Lock']['Frequency'], '.')
         plt.xlabel('DAC voltage (V)')
         plt.ylabel('Detuning (GHz)')
         self.parameters['PZT']['Slope'], self.parameters['PZT']['Intercept'], r_value, p_value, std_err = stats.linregress(V, f)
-        fit = np.polyfit(V, f, self.polynomial_order)
+        self.pzt_fit = np.real(np.polyfit(V, f, self.polynomial_order)[::-1])
+
+        y = np.zeros(len(V))
+        for i in range(len(self.pzt_fit)):
+            y += self.pzt_fit[i] * V**i
+        V0 = self.calculate_pzt_root()
+        plt.plot(V,y-self.parameters['Lock']['Frequency'])
         string = r'f = '
-        for i in range(len(fit)):
-            string += r'%.1fV^%i'%(fit[i], i)
+        for i in range(len(self.pzt_fit)):
+            string += r'%.1fV^%i+'%(self.pzt_fit[i], i)
+        string = string[:-1]
+        string += '\n Root = %.2f'%V0
 #        string = 'f = %f + %fV'%(self.parameters['PZT']['Intercept'], self.parameters['PZT']['Slope'])
         plt.title(string)
+        
+        ''' Plot transmitted intensity '''
+        ax2 = plt.gca().twinx()
+        ax2.plot(V, np.array(T))
+        ax2.set_yscale('symlog')
+        ax2.set_ylabel('Cavity transmission (V)')
         time.sleep(0.05)
         plt.show()
         if filename != None:
@@ -361,20 +383,31 @@ class MSquared():
                 for i in range(len(f)):
                     file.write('%f\t%f\n'%(V[i], f[i]))
                     
-        V0 = self.convert_frequency_to_voltage(self.parameters['Lock']['Frequency'])
+#        V0 = self.convert_frequency_to_voltage(self.parameters['Lock']['Frequency'])
         if V0 > -10 and V0 < 10:
             self.actuate_pzt(V0)
             print('PZT set to %f.'%V0)
         
+    def calculate_pzt_root(self):
+        root_f = np.zeros(len(self.pzt_fit))
+        root_f[self.polynomial_order] = self.parameters['Lock']['Frequency']
+        V0 = np.roots(self.pzt_fit[::-1] - root_f)
+        V0 = V0[np.argmin(np.abs(V0))]
+        
+        return np.real(V0)
+    
     def center_cavity_lock(self, relative_gain = 1):
-        self.pzt = optimize.line_search(x0 = self.pzt, cost = self.get_servo_output, actuate = self.actuate_pzt, step = self.parameters['Lock']['Slow gain'] * relative_gain, threshold = self.parameters['Lock']['Center threshold'], gradient = False, quit_function = self.unresonant) 
+#        print('Centering loop filter output...')
+        self.pzt = optimize.line_search(x0 = self.pzt, cost = self.get_servo_output, actuate = self.actuate_pzt, step = self.parameters['Lock']['Slow gain'] * relative_gain, threshold = self.parameters['Lock']['Center threshold'], gradient = False, quit_function = self.unresonant, output = False) 
 
     def center_pzt(self):
         ''' Resets the PZT to 0 and re-engages the etalon lock. Should be done once in a while
             to avoid drifting out of DAC range. '''
         self.abort = 0
         self.actuate_pzt(0)
-        self.acquire_etalon_lock()
+        self.parameters['PZT']['Setpoint'] = self.pzt
+        self.save_setpoint()
+#        self.acquire_etalon_lock()
         
     def check_etalon_lock(self):
         reply = self.message(op='etalon_lock_status', parameters = {}, destination = 'laser')
@@ -449,28 +482,38 @@ class MSquared():
             self.parameters = json.load(file)
             
     def lock(self, hold = True, relock = False):
+        ''' If relock is true, then assume that the etalon is still locked. This will be checked later anyway, but is usually a good guess '''
 #        print('Beginning lock routine.')
 #        self.load_parameters()
-        self.actuate_pzt(0)
         time0 = time.time()
         self.abort = 0
 #        self.parameters = parameters    # an artifact of the two-PC architecture
 #        self.actuate_pzt(self.pzt) 
 
-        ''' Etalon locking '''
-        self.etalon_lock = self.check_etalon_lock()
+        ''' Etalon locking - if relock is passed, assume etalon is good '''
+
+                
+        if not relock:
+            self.actuate_pzt(0)
+            self.etalon_lock = self.check_etalon_lock()
+            if np.abs(self.cost()) > self.parameters['Etalon']['Lock threshold'] or not self.etalon_lock:
+                self.disengage_gain() 
+    #            print('Etalon unlocked; acquiring lock now... ')
+                self.acquire_etalon_lock()
+                self.engage_gain('fast')
+            if self.abort:
+                print('Locking process aborted.')
+                return
+            
+        self.actuate_pzt(self.parameters['PZT']['Setpoint'])
         
-        if np.abs(self.cost()) > self.parameters['Etalon']['Lock threshold'] or not self.etalon_lock:
-            self.disengage_gain() 
-#            print('Etalon unlocked; acquiring lock now... ')
-            self.acquire_etalon_lock()
-        if self.abort:
-            print('Locking process aborted.')
-            return
-        
+        cost = np.abs(self.cost())
+        if relock:
+            if cost > self.parameters['Etalon']['Lock threshold']:
+                self.lock(relock = False)
+                
         ''' Tune near magic '''
-        self.engage_gain('fast')
-        if np.abs(self.cost()) > self.parameters['PZT']['Tuning threshold']:
+        if cost > self.parameters['PZT']['Tuning threshold']:
             msg = 'Applying gain and tuning to target frequency.'
             print(msg)
             self.tune_cavity(quit_function = self.resonance_search)           # reset again in case adding gain shifted the frequency
@@ -478,14 +521,15 @@ class MSquared():
             print('Locking process aborted.')
             return
         
-        ''' Apply slow ramp until cavity is locked '''
+        ''' Apply ramp until cavity is locked '''
         if not self.resonant():
             msg = 'PZT tuned within threshold. Ramping PZT to lock...'
 #            print(msg)
             self.acquire_cavity_lock(span = self.parameters['Lock']['Sweep range'], step = self.parameters['Lock']['Sweep step size'], sweeps = self.sweeps)
         msg = 'Lock engaged with %f V transmission. Time to lock: %.1fs'%(self.cavity_transmission, time.time()-time0)
         print(msg)
-
+#        msg = 'PZT change since last lock: %.4f'%(self.pzt - self.parameters['PZT']['Setpoint'] + self.pzt_change_on_unlock)
+#        print(msg)
         if self.abort:
             print('Locking process aborted.')
             return
@@ -495,6 +539,7 @@ class MSquared():
             print('Locking process aborted.')
             self.locked = 0
             return
+        self.previously_locked = 1
         self.parameters['Lock']['Frequency'] = self.get_frequency()
         self.parameters['PZT']['Setpoint'] = self.pzt
         self.save_setpoint()
@@ -509,8 +554,9 @@ class MSquared():
                     self.locked = 0
                     return
             print('Lost lock... reacquiring now.')
+            self.parameters['PZT']['Setpoint'] += self.pzt_change_on_unlock
             self.locked = 0
-            self.lock()
+            self.lock(relock = True)
         
     def measure_linewidth(self):
         return
@@ -598,7 +644,7 @@ class MSquared():
         return check
     
     def save_setpoint(self):
-        print('Saving settings to file.')
+#        print('Saving settings to file.')
         with open('lattice_settings.txt', 'w') as file:
             json.dump(self.parameters, file)
         self.tab.update_setpoints(self.parameters)
@@ -668,14 +714,19 @@ class MSquared():
 
     def tune_cavity(self, quit_function = None, output = False):
         ''' Estimate correct PZT position based on calibrated slope '''
-        V0 = self.pzt
+        if self.previously_locked:
+            V0 = self.pzt
+        elif self.calibrated_pzt:
+            V0 = self.calculate_pzt_root()
+        else:
+            V0 = self.pzt
 #        V0 = self.convert_frequency_to_voltage(self.parameters['Lock']['Frequency'])
         if quit_function == None:
             quit_function = self.stop
         x,c = optimize.line_search(x0 = V0, cost = self.cost, actuate = self.actuate_pzt, step = -self.parameters['PZT']['Tuning step'], threshold = self.parameters['PZT']['Tuning threshold'], gradient = False, min_step = 0.01, failure_threshold = self.parameters['Etalon']['Lock threshold'], quit_function = quit_function, x_max = 10, x_min = -10, full_output = True, output = output, fitting = False)
         self.pzt = x[-1]
         if self.abort:
-            print('Cavity tuning process aborted.')
+            print('Cavity tuning process aborted. Returning control to calling function.')
             return
         time.sleep(self.parameters['PZT']['Tuning delay']*5)
         if np.abs(self.cost()) > self.parameters['Etalon']['Lock threshold']:
@@ -707,6 +758,12 @@ class MSquared():
 
         print('Warmup procedure aborted.')
         
+    def zoom_search(self, steps = 20, sweeps = 1):
+        self.pzt = 0
+        for span in [15, 5, 1, 0.25]:
+            self.calibrate_pzt(V0 = self.pzt, span = span, steps = steps, sweeps = sweeps, delay = 0, filename = None)
+            
+            
 class Setpoint():
     def __init__(self, name, tab, value, row, col, width = 1):
         self.tab = tab
@@ -769,12 +826,12 @@ class LatticeTab(gui.Tab):
         self.lock_button = self._addButton('Lock', self.lock, row+3, 1, style = self.panel.styleUnlock)
         self.abort_button = self._addButton('Abort', self.abort, row+3, 2, style = self.panel.styleUnlock)
         self.status_button = self._addButton('Status', self.laser.get_system_status, row+3, 3, style = self.panel.styleUnlock)
-
+        self.zoom_search_button = self._addButton('Zoom search', self.zoom_search, row+3, 4, style = self.panel.styleUnlock)
 #        self.calibrate_etalon_button = self._addButton('Calibrate etalon', self.calibrate_etalon, row+4, 0, style = self.panel.styleUnlock)
-#        self.calibrate_pzt_button = self._addButton('Calibrate PZT', self.calibrate_pzt, row+4, 1, style = self.panel.styleUnlock)
-        self.map_button = self._addButton('Map', self.map_transmission, row+3, 5, style = self.panel.styleUnlock)
-#        self.center_button = self._addButton('Center PZT', self.laser.center_pzt, row+4, 2, style = self.panel.styleUnlock)
-        self.calibrate_button = self._addButton('Calibrate', self.calibrate, row+3, 4, style = self.panel.styleUnlock)
+#        self.calibrate_pzt_button = self._addButton('Calibrate PZT', self.calibrate_pzt, row+3, 4, style = self.panel.styleUnlock)
+#        self.map_button = self._addButton('Map', self.map_transmission, row+3, 5, style = self.panel.styleUnlock)
+        self.center_button = self._addButton('Center PZT', self.laser.center_pzt, row+3, 5, style = self.panel.styleUnlock)
+#        self.calibrate_button = self._addButton('Calibrate', self.calibrate, row+3, 4, style = self.panel.styleUnlock)
         self.prepare_filepath()
         
     def update_setpoints(self, parameters):
@@ -794,7 +851,7 @@ class LatticeTab(gui.Tab):
         files = os.listdir(self.filepath['Calibration'])
         files = [x for x in files if 'pzt_calibration' in x]
         filename = self.filepath['Calibration'] + 'pzt_calibration_%i.txt'%(int(len(files)/2)+1)
-        params = {"V0": self.laser.pzt, "span": 2, "steps": 30, "sweeps": 1, "delay": 0, "filename": filename}
+        params = {"V0": self.laser.pzt, "span": 15, "steps": 30, "sweeps": 2, "delay": 0, "filename": filename}
         self.pzt_popup = gui.Popup('Calibrate PZT', params, function = self.laser.calibrate_pzt)
         self.pzt_popup.show()
         
@@ -844,6 +901,10 @@ class LatticeTab(gui.Tab):
         self.thread = Thread(target = self.laser.warmup, args = (threshold,))
         self.thread.start()
         
+    def zoom_search(self):
+        params = {"steps": 30, "sweeps":1}
+        self.pzt_popup = gui.Popup('Zoom search', params, function = self.laser.zoom_search)
+        self.pzt_popup.show()
         
 if __name__ == '__main__':
     ''' Connect to MSquared laser '''
