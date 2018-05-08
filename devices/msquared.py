@@ -53,6 +53,7 @@ class MSquared():
         
         ''' Configure lock process settings '''
         self.calibrated_pzt = 0
+        self.unlock_time = None
         self.pzt_change_on_unlock = 0.13
         self.previously_locked = 0
         self.threads = {}
@@ -543,8 +544,10 @@ class MSquared():
         self.parameters['Lock']['Frequency'] = self.get_frequency()
         self.parameters['PZT']['Setpoint'] = self.pzt
         self.save_setpoint()
-#        with open('lattice_frequency.txt', 'w') as file:
-#            file.write(str(self.get_frequency()))
+        if self.unlock_time != None:
+            self.relock_time = astropy.time.Time.now().unix + 2082844800-3437602072 # relock time in Yb time
+            with open(self.tab.day_directory + 'lattice_unlocks.txt', 'a') as file:
+                file.write('%f\t%f\n'%(self.unlock_time, self.relock_time))
         if hold:
 #            print('Loop filter output centered. Engaging second integrator.')
             while self.resonant():
@@ -553,11 +556,14 @@ class MSquared():
                     print('Locking process aborted.')
                     self.locked = 0
                     return
+            self.unlock_time = astropy.time.Time.now().unix + 2082844800-3437602072 # unlock time in Yb time
+          
             print('Lost lock... reacquiring now.')
             self.parameters['PZT']['Setpoint'] += self.pzt_change_on_unlock
             self.locked = 0
+            
             self.lock(relock = True)
-        
+                
     def measure_linewidth(self):
         return
     
@@ -883,6 +889,7 @@ class LatticeTab(gui.Tab):
     def prepare_filepath(self):
         ''' Create file directory for the current day'''
         today = datetime.datetime.today().strftime('%y%m%d')
+        self.day_directory = self.folder + today + '/'
         self.directory = self.folder + today + '/' + self.subfolder
 
         for d in [self.folder + today, self.directory]:
