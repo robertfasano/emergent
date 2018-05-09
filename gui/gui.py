@@ -1,10 +1,11 @@
-from PyQt5.QtWidgets import QCheckBox, QWidget, QPushButton, QGridLayout, QLineEdit, QLabel, QComboBox, QTabWidget, QVBoxLayout, QMenuBar, QAction
+from PyQt5.QtWidgets import QCheckBox, QWidget, QPushButton, QGridLayout, QLineEdit, QLabel, QComboBox, QTabWidget, QVBoxLayout, QMenuBar, QAction, QDial
 from PyQt5.QtGui import QFontDatabase, QFont, QPixmap, QIcon
 from PyQt5.QtCore import QSize, Qt
 import datetime
 import functools
 import os
 from threading import Thread
+from functools import partial
 
 class SubMenu(QMenuBar):
     def __init__(self, parent=None):
@@ -181,6 +182,19 @@ class Tab(QWidget):
 
         return box
 
+    def _addDial(self, row, col, func = None, args = [], value = 0, minimum = 0, maximum = 99, step = 1):
+        dial = QDial()
+        if func != None:
+            dial.valueChanged.connect(partial(func, args))
+        dial.setSliderPosition(value)
+        dial.setMinimum(minimum)
+        dial.setMaximum(maximum)
+        dial.setSingleStep(step)
+        self.layout.addWidget(dial, row, col)
+        self.setLayout(self.layout)
+        
+        return dial
+    
     def _addEdit(self, label, row, col, width=1, height=1):          
         edit = QLineEdit(str(label))
         self.layout.addWidget(edit, row, col, height, width)
