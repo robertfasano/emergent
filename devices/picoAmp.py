@@ -1,5 +1,6 @@
 import os
 import time
+from labjackT7 import LabJack
 #from Adafruit_BBIO.SPI import SPI
 #import Adafruit_BBIO.ADC as ADC
 #import Adafruit_BBIO.GPIO as GPIO
@@ -25,14 +26,18 @@ class PicoAmp():
         self.addr['ALL'] = '111'
         self.position = [0, 0, 0, 0]
         self.waitTime = 0.01            # time to sleep between moving and measuring
+        self.labjack = LabJack()
+        self.labjack.spi_initialize(mode=0)
         self.connect()
         
 
     def connect(self):
         ''' Initializes the DAC and sets the bias voltage on all four channels to 80 V. '''
+        
         self.state = 1
-        for pin in [17,18,21,22, 28, 29, 30, 31]:
-            os.system('config-pin p9.%i spi'%pin)
+        self.labjack.PWM(4, 49000, 50)
+#        for pin in [17,18,21,22, 28, 29, 30, 31]:
+#            os.system('config-pin p9.%i spi'%pin)
         FULL_RESET = '001010000000000000000001'    #2621441
         ENABLE_INTERNAL_REFERENCE =  '001110000000000000000001'     #3670017
         ENABLE_ALL_DAC_CHANNELS = '001000000000000000001111'      #2097167
@@ -41,7 +46,7 @@ class PicoAmp():
         biasString = self.digital(self.Vbias)
         
         # initialize board 0
-        self.spi0 = SPI(0,0)
+#        self.spi0 = SPI(0,0)
 #        spi.lsbfirst = False
         for cmd in [FULL_RESET, ENABLE_INTERNAL_REFERENCE, ENABLE_ALL_DAC_CHANNELS, ENABLE_SOFTWARE_LDAC]:
             self.command(cmd, 0)
@@ -57,9 +62,20 @@ class PicoAmp():
 #        self.command(cmd, 1)
         
         # initialize the ADC
-        ADC.setup()
-        self.state = 0
+#        ADC.setup()
+#        self.state = 1
         
+    def circle(self, radius=80):
+        x = []
+        y = []
+        while True:
+            for theta in np.linspace(0,2*np.pi,100):
+                x = radius*np.cos(theta)
+                y = radius*np.sin(theta)
+                
+                self.setDifferential(x, 'X', 0)
+                self.setDifferential(y, 'Y', 0)
+            
     def command(self, cmd, board, output = False):
         ''' Separates the bitstring cmd into a series of bytes and sends them through the SPI. '''
         if self.state:
@@ -68,7 +84,8 @@ class PicoAmp():
             for i in [0, 8, 16]:
                 lst.append(int(cmd[i:8+i],2))
             if board == 0:
-                r = self.spi0.xfer2(lst)
+#                r = self.spi0.xfer2(lst)
+                r = self.labjack.spi_write(lst, verbose = False)
             elif board == 1:
                 r = self.spi1.xfer2(lst)
             if output == True: 
@@ -112,7 +129,7 @@ class PicoAmp():
                 self.moveTo(passivePosition)
                 print('Passive: %f     Active: %f'%(passivePower,activePower))
 
-    def explore(self, board, lim = 10, steps = 100):
+    def explore(self, board, span = 10, steps = 100):
         x0 = self.position[0]
         y0 = self.position[1]
         x = []
@@ -120,25 +137,39 @@ class PicoAmp():
         Vx = []
         Vy = []
         
-        xrange = lim
-        yrange = lim
-        
-        for point in np.linspace(x0-xrange, x0+xrange, steps):
+        for point in np.linspace(x0-span/2, x0+span/2, steps):
             self.moveTo([point,y0])
             x.append(point)
-            time.sleep(1/1000)
-            Vx.append(self.readADC(num=10))
+#            time.sleep(1/1000)
+            Vx.append(self.readADC(num=1))
         bestX = x[np.argmax(Vx)]
         
-        for point in np.linspace(y0-yrange, y0+yrange, steps):
+        for point in np.linspace(y0-span/2, y0+span/2, steps):
             self.moveTo([bestX,point])
             y.append(point)
-            time.sleep(1/1000)
-            Vy.append(self.readADC(num=10))
+#            time.sleep(1/1000)
+            Vy.append(self.readADC(num=1))
         bestY = y[np.argmax(Vy)]
         
         self.moveTo([bestX, bestY])
-        
+       
+    def first_light(self, board, span = 40, steps = 1000):
+        print('Beginning first light algorithm')
+        vmax = 0
+        x0 = self.position[0]
+        y0 = self.position[1]
+        V = []
+        X = np.linspace(x0-span/2, x0+span/2, steps)
+        Y = np.linspace(y0-span/2, y0+span/2, steps)
+        for x in X:
+            for y in Y:
+                self.moveTo([x,y])
+                V.append(self.readADC(num=1))
+                if V[-1] > vmax:
+                    vmax = V[-1]
+                    print('New best value:', vmax)
+        return x, y, V
+    
     def maximize(self, axis, board):
         power = []
         self.averagingTime = 5
@@ -211,7 +242,9 @@ class PicoAmp():
         ''' Analog input 0 on the BeagleBone is pin 39 on the P9 header. GNDA_ADC is pin 34.'''
         vals = []
         for i in range(num):
-            vals.append(ADC.read("P9_%i"%pin) * 1.8)
+#            vals.append(ADC.read("P9_%i"%pin) * 1.8)
+            vals.append(self.labjack.AIn(0))
+
         return np.mean(vals)
 
     def setDifferential(self, V, axis, board):
@@ -229,6 +262,7 @@ class PicoAmp():
         elif axis == 'Y':
             cmdPlus = '00' + '011' + self.addr['C'] + stringPlus
             cmdMinus = '00' + '011' + self.addr['C'] + stringMinus
+        
         self.command(cmdPlus, board)
         self.command(cmdMinus, board)
         
@@ -259,6 +293,7 @@ class PicoAmp():
         ''' Generates a square wave with specified amplitude and frequency. '''
 #        x = np.linspace(0,2*np.pi,1000)
 #        y = np.sin(x)
+        print('Generating square wave.')
         steps = 2
         period = 1.0/float(frequency)
         dt = float(period) / float(steps)
@@ -298,10 +333,13 @@ def binary(string):
 
 if __name__ == '__main__':
     pico = PicoAmp()
-#    mems.squareWave(80,5)     # aligned for differential amplitude of 80 V
-    pico.moveTo([-80,0,0,0])
-    pico.pwm(channel="P9_14")       # starts PWM on pins 12 and 14
-#    mems.explore(0)
+#    pico.squareWave(80,2)     # aligned for differential amplitude of 80 V
+#    pico.circle()
+    pico.moveTo([19.94,23.5,0,0])
+#    pico.pwm(channel="P9_14")       # starts PWM on pins 12 and 14
+#    x, y, V = pico.first_light(0, span=40, steps = 50)
+    pico.explore(0, span=1, steps = 10)
+
 #    print(mems.readADC())
 #    mems.thermalTesting()
 #    mems.dither(0)
