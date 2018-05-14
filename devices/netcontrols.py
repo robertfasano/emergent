@@ -1,18 +1,27 @@
-from labAPI import protocols
+import sys
+sys.path.append('O:\\Public\\Yb clock')
+from labAPI.protocols.serial import Serial
 import serial
 
 
 class NetControls():
-    def __init__(self):
-        self.serial = protocols.serial(port = 'COM1', baudrate = 19200, parity = serial.PARITY_NONE, stopbits = serial.STOPBITS_ONE, bytesize = serial.EIGHTBITS, timeout = 1, encoding = 'ascii')
+    def __init__(self, port = 'COM1'):
+        self.serial = Serial(port = port, baudrate = 38400, encoding = 'ascii', parity = serial.PARITY_NONE, stopbits = serial.STOPBITS_ONE, bytesize = serial.EIGHTBITS, timeout = 1)
         self.position = 0
         self.velocity = 0
         self.acceleration = 0
         self.axis = 1
         
-    def command(self, cmd, val = None):
+        self.initialize()
+        self.set_load_error(1)
+        self.set_velocity(20000)
+        self.set_position(0)
+        
+    def command(self, cmd, val = None, axis = None):
         if val == None:
             val = ''
+        if axis == None:
+            axis = self.axis
         msg = ':%s%s%s'%(str(self.axis), cmd, val)        
         reply = self.serial.command(msg)
         return reply
@@ -23,6 +32,9 @@ class NetControls():
     def get_acceleration(self):
         return self.command('a')
 
+    def get_address(self):
+        return self.command(cmd='D', axis = 0)
+    
     def get_position(self):
         return self.command('p')
 
@@ -33,7 +45,7 @@ class NetControls():
         return self.command(cmd = 'h', val = {'hard':1, 'soft':2}[kind])
     
     def initialize(self):
-        return self.command('i')
+        return self.command('i', val = 1)
     
     def jog(self, steps):
         return self.command(cmd = 'j', val = steps)
@@ -43,6 +55,9 @@ class NetControls():
     
     def set_baudrate(self, baud):
         return self.command(cmd = '%B', val = baud)
+    
+    def set_load_error(self, error = 32):
+        return self.command(cmd = 'L', val = error)
     
     def set_position(self, pos):
         return self.command(cmd = 'p', val = pos)
@@ -65,6 +80,6 @@ class NetControls():
     def set_zero(self):
         return self.command('F')
     
-feedthrough = NetControls()
+nc = NetControls(port = 'COM5')
 
 
