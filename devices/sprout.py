@@ -2,7 +2,9 @@ import numpy as np
 import serial
 import datetime
 import time
-from labAPI import protocols
+import sys
+sys.path.append('O:\\Public\\Yb clock')
+from labAPI.protocols.serial import Serial
 class Sprout():
     def __init__(self):
         self.responseTime = 0
@@ -13,11 +15,11 @@ class Sprout():
         
     def connect(self):
         try:
-            self.serial = protocols.serial.Serial(port = 'COM7')
+            self.serial = Serial(port = 'COM7')
 
         except serial.serialutil.SerialException:
-            self.serial.close()
-            self.serial = protocols.serial.Serial(port = 'COM7')           
+            self.serial.ser.close()
+            self.serial = Serial(port = 'COM7')           
            
     def warmup(self):
         # determine which mode laser is in
@@ -77,7 +79,7 @@ class Sprout():
         
         
 sprout = Sprout()
-if sprout.ser.isOpen():
+if sprout.serial.ser.isOpen():
     with open('C:\\Users\\yblab\\Desktop\\warmup_logfile.txt', 'a') as outfile:
         now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         outfile.write('%s\tCONNECTED\n'%now)
@@ -90,8 +92,8 @@ except Exception as e:
         now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         outfile.write('%s\tEXCEPTION: %s\n'%(now,e))
 sprout.warmup()
-sprout.ser.close()
-if not sprout.ser.isOpen():
+sprout.serial.ser.close()
+if not sprout.serial.ser.isOpen():
     with open('C:\\Users\\yblab\\Desktop\\warmup_logfile.txt', 'a') as outfile:
         now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         outfile.write('%s\tSERIAL CONNECTION CLOSED\n'%now)

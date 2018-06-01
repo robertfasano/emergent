@@ -126,7 +126,7 @@ class MSquared():
 #                self.actuate_pzt(v[np.argmax(t)])
                 span *= 1.25
                 step /= 1.25
-            if np.abs(self.cost()) > .02:
+            if np.abs(self.cost()) > .075:
                 print('Retuning cavity to prevent drift.')
                 self.tune_cavity(quit_function = self.resonant)
 
@@ -157,7 +157,7 @@ class MSquared():
                 self.actuate_etalon(x)
                 self.engage_etalon_lock()
                 c.append(self.cost())
-                time.sleep(1)
+                time.sleep(2)
                 if np.abs(c[-1]) < self.parameters['Etalon']['Lock threshold']:
                     print('Etalon lock engaged at %f GHz.'%(c[-1]+self.parameters['Lock']['Frequency']))
                     return
@@ -175,7 +175,7 @@ class MSquared():
 #            self.calibrate_etalon(self.etalon, 5, 25, delay = 0)
 #        else:
 #            self.calibrate_etalon(self.etalon, 1, 25, delay = 0)
-        x0, c0 = self.tune_etalon(zoom = zoom)
+        x0, c0, t0 = self.tune_etalon(zoom = zoom)
         x.append(x0)
         c.append(c0)
 #        try:
@@ -529,8 +529,8 @@ class MSquared():
             self.acquire_cavity_lock(span = self.parameters['Lock']['Sweep range'], step = self.parameters['Lock']['Sweep step size'], sweeps = self.sweeps)
         msg = 'Lock engaged with %f V transmission. Time to lock: %.1fs'%(self.cavity_transmission, time.time()-time0)
         print(msg)
-#        msg = 'PZT change since last lock: %.4f'%(self.pzt - self.parameters['PZT']['Setpoint'] + self.pzt_change_on_unlock)
-#        print(msg)
+        msg = 'PZT change since last lock: %.4f'%(self.pzt - self.parameters['PZT']['Setpoint'] + self.pzt_change_on_unlock)
+        print(msg)
         if self.abort:
             print('Locking process aborted.')
             return
@@ -708,7 +708,7 @@ class MSquared():
             quit_function = self.stop
         X0 = self.etalon
 #        X0 = self.convert_frequency_to_etalon(self.parameters['Lock']['Frequency'])
-        x,c = optimize.line_search(x0 = X0, cost = self.cost, actuate = self.actuate_etalon, step = -zoom * self.parameters['Etalon']['Tuning step'], threshold = threshold, gradient = False, min_step = 0.01, full_output = True, quit_function = quit_function, fitting = False)
+        x,c,t = optimize.line_search(x0 = X0, cost = self.cost, actuate = self.actuate_etalon, step = -zoom * self.parameters['Etalon']['Tuning step'], threshold = threshold, gradient = False, min_step = 0.01, full_output = True, quit_function = quit_function, fitting = False)
         self.etalon = x[-1]
         
 #        ''' Automatic calibration step '''
@@ -716,7 +716,7 @@ class MSquared():
 #        x = np.array(x)
 #        self.parameters['Etalon']['Slope'], self.parameters['Etalon']['Intercept'], r_value, p_value, std_err = stats.linregress(x, f)
 
-        return x,c
+        return x,c,t
 
     def tune_cavity(self, quit_function = None, output = False):
         ''' Estimate correct PZT position based on calibrated slope '''
@@ -729,14 +729,15 @@ class MSquared():
 #        V0 = self.convert_frequency_to_voltage(self.parameters['Lock']['Frequency'])
         if quit_function == None:
             quit_function = self.stop
-        x,c = optimize.line_search(x0 = V0, cost = self.cost, actuate = self.actuate_pzt, step = -self.parameters['PZT']['Tuning step'], threshold = self.parameters['PZT']['Tuning threshold'], gradient = False, min_step = 0.01, failure_threshold = self.parameters['Etalon']['Lock threshold'], quit_function = quit_function, x_max = 10, x_min = -10, full_output = True, output = output, fitting = False)
+        x,c,t = optimize.line_search(x0 = V0, cost = self.cost, actuate = self.actuate_pzt, step = -self.parameters['PZT']['Tuning step'], threshold = self.parameters['PZT']['Tuning threshold'], gradient = False, min_step = 0.01, failure_threshold = self.parameters['Etalon']['Lock threshold'], quit_function = quit_function, x_max = 10, x_min = -10, full_output = True, output = output, fitting = False)
         self.pzt = x[-1]
         if self.abort:
             print('Cavity tuning process aborted. Returning control to calling function.')
             return
         time.sleep(self.parameters['PZT']['Tuning delay']*5)
-        if np.abs(self.cost()) > self.parameters['Etalon']['Lock threshold']:
-            print('Etalon unlocked while tuning PZT; reacquiring etalon lock...')
+        cost = np.abs(self.cost())
+        if cost > self.parameters['Etalon']['Lock threshold']:
+            print('Detuning exceeds etalon threshold at %.2f GHz; reacquiring etalon lock...'%cost)
             self.acquire_etalon_lock()
             self.tune_cavity()
         elif np.abs(self.cost()) > self.parameters['PZT']['Tuning threshold']:
@@ -754,10 +755,22 @@ class MSquared():
         if self.check_etalon_lock():
             self.disengage_etalon_lock()
         self.disengage_gain()
-        print('Beginning warmup procedure, threshold = %.0f GHz.'%threshold)
+        print('Beginning warmup procedure, threshold = %.1f GHz.'%threshold)
+        x = []
+        c = []
+        t = []
         while not self.abort:
             if np.abs(self.cost()) > threshold:
-                self.tune_etalon(threshold = threshold)
+                x0, c0, t0 = self.tune_etalon(threshold = threshold)
+                x.extend(x0)
+                c.extend(c0)
+                t.extend(t0)
+                
+                plt.plot(np.array(t)- t[0], x)
+                plt.xlabel('Warmup time (s)')
+                plt.ylabel('Etalon setpoint (%)')
+                time.sleep(0.05)
+                plt.show()
                 
         self.parameters['Etalon']['Setpoint'] = self.etalon
         self.tab.update_setpoints(self.parameters)
@@ -903,7 +916,7 @@ class LatticeTab(gui.Tab):
         for x in self.parameters:
             for p in self.parameters[x]:
                 self.parameters[x][p] = float(self.setpoints[x][p].value.text())
-        threshold = self.parameters['Etalon']['Lock threshold']
+        threshold = self.parameters['Etalon']['Lock threshold'] / 10
         self.laser.parameters = self.parameters
         self.thread = Thread(target = self.laser.warmup, args = (threshold,))
         self.thread.start()

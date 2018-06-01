@@ -6,6 +6,8 @@ from scipy import stats
 def line_search(x0, cost, actuate, step, threshold, full_output = False, test = False, gradient = False, min_step = None, failure_threshold = None, quit_function = None, x_max = None, x_min = None, output = False, fitting = False):
     ''' If the fitting parameter is enabled, this function assumes a linear cost function
         and takes steps to minimize it '''
+    if full_output:
+        t = [time.time()]
     if output:
         print('Beginning line search with initial guess %f.'%x0)
     ''' Requires an odd cost function '''
@@ -27,14 +29,14 @@ def line_search(x0, cost, actuate, step, threshold, full_output = False, test = 
             
         if np.abs(c[-1]) < threshold:
             if full_output:
-                return x, c
+                return x, c,t
             else:
                 return x[-1]
             
         if failure_threshold != None:
             if np.abs(c[-1]) > failure_threshold:
                 if full_output:
-                    return x,c
+                    return x,c,t
                 else:
                     return -999
         if fitting and len(x) > 10:
@@ -54,11 +56,13 @@ def line_search(x0, cost, actuate, step, threshold, full_output = False, test = 
 #            print('%f->%f'%(x[-1], x_new))
         x.append(x_new)
         actuate(x_new)
+        if full_output:
+            t.append(time.time())
         if quit_function != None:
             if quit_function():
                 print('Line search terminated!')
                 if full_output:
-                    return x,c
+                    return x,c,t
                 else:
                     return x[-1]
         if x_max != None and x_min != None:
