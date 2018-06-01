@@ -2,8 +2,10 @@ from labjack import ljm
 from random import randrange
 
 class LabJack():
-    def __init__(self, device = "ANY", connection = "ANY", devid = "ANY"):
+    def __init__(self, device = "ANY", connection = "ANY", devid = "ANY", orange = 10, arange = 10):
         self.handle = ljm.openS(device, connection, devid)
+        ljm.eWriteName(self.handle, 'AIN_ALL_RANGE', arange)
+
         info = ljm.getHandleInfo(self.handle)
         print("Opened a LabJack with Device type: %i, Connection type: %i,\n"
               "Serial number: %i, IP address: %s, Port: %i,\nMax bytes per MB: %i" %
@@ -15,6 +17,9 @@ class LabJack():
          
     def AIn(self, channel):
         return ljm.eReadName(self.handle, 'AIN%i'%channel)
+    
+    def AOut(self, channel, value):
+        return ljm.eWriteName(self.handle, 'DAC%i'%channel, value)
     
     def spi_initialize(self, mode = 3):  #, CS, CLK, MISO, MOSI):
         ''' Args:
