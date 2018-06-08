@@ -1,11 +1,13 @@
 import sys
 import os
+import numpy as np
+
 char = {'nt': '\\', 'posix': '/'}[os.name]
 sys.path.append(char.join(os.getcwd().split(char)[0:-2]))  
-from protocols import serial
+from labAPI.protocols import serial
 import serial as ser
 import msvcrt
-from algorithms import Aligner
+from labAPI.algorithms.align import Aligner
 
 class NewportPiezo(Aligner):
     def __init__(self, port):
@@ -15,6 +17,7 @@ class NewportPiezo(Aligner):
         self.saved_positions = {}
         self.mirrors = [1,2]
         self.mirror = 1
+        self.position = np.zeros(len(2*self.mirrors))
         
     def actuate(self, pos):
         ''' Software-based absolute positioning, achieved by moving relative to a known last position '''
