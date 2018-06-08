@@ -20,15 +20,16 @@ class Serial():
 #        if self.ser.isOpen() != 1:
         self.ser.open()
             
-    def command(self, cmd, output = False):
+    def command(self, cmd, output = False, reply = True):
         cmd += '\r'
         self.ser.write(cmd.encode(self.encoding))
-        reply = self.ser.readline()
-        if output:
-            print('Sent: %s'%cmd.encode(self.encoding))
-            print('Received: %s'%reply.decode())
-
-        return reply.decode()
+        if reply:
+            reply = self.ser.readline()
+            if output:
+                print('Sent: %s'%cmd.encode(self.encoding))
+                print('Received: %s'%reply.decode())
+    
+            return reply.decode()
     
     def close(self):
         self.ser.close()   
