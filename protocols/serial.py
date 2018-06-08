@@ -20,8 +20,8 @@ class Serial():
 #        if self.ser.isOpen() != 1:
         self.ser.open()
             
-    def command(self, cmd, output = False, reply = True):
-        cmd += '\r'
+    def command(self, cmd, output = False, reply = True, suffix = '\r'):
+        cmd += suffix
         self.ser.write(cmd.encode(self.encoding))
         if reply:
             reply = self.ser.readline()
