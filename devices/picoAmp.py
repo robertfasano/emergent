@@ -1,21 +1,16 @@
-import os
 import time
 from labjackT7 import LabJack
-#from Adafruit_BBIO.SPI import SPI
-#import Adafruit_BBIO.ADC as ADC
-#import Adafruit_BBIO.GPIO as GPIO
-#import Adafruit_BBIO.PWM as PWM
 import numpy as np
-import datetime
 import sys
 import os
 char = {'nt': '\\', 'posix': '/'}[os.name]
-sys.path.append(char.join(os.getcwd().split(char)[0:-2]))     
+sys.path.append(char.join(os.getcwd().split(char)[0:-2]))   
+from algorithms import Aligner  
 #from scipy.optimize import curve_fit
 
 #from simplex import Simplex
 #
-class PicoAmp():
+class PicoAmp(Aligner):
     def __init__(self):
         self.state = 0
         self.addr = {}
@@ -65,6 +60,12 @@ class PicoAmp():
 #        ADC.setup()
 #        self.state = 1
         
+    def actuate(self, pos):
+        self.moveTo(pos)
+        
+    def cost(self):
+        self.readADC()
+        
     def circle(self, radius=80):
         x = []
         y = []
@@ -97,61 +98,30 @@ class PicoAmp():
         Vdigital = V/Range * 65535
     
         return format(int(Vdigital), '016b')
-    
-    def thermalTesting(self):
-        board = 0
-        start = datetime.datetime.today()
-        now = start
-        hours = 20
-        minutes = 60*hours
-        for i in range(10):
-            self.dither(board)
-            time.sleep(1)
-        alignCounter = 1
-        passivePosition = self.position
-        activePosition = passivePosition
-        
-        with open('%s.txt'%'corrections2','w') as outfile:
-            outfile.write('Time\tPassive position\tPassive output\tActive position\tActive output')
-        while (now-start).seconds < minutes*60:
-            tAlign = alignCounter * 10
-            now = datetime.datetime.today()
-            if (now-start).seconds > tAlign:
-                passivePosition = self.position
-                passivePower = self.readADC(num=10)
-                self.dither(board)
-                alignCounter += 1
-                activePosition = self.position
-                time.sleep(1)
-                activePower = self.readADC(num=10)
-                with open('%s.txt'%'corrections2','a') as outfile:
-                    outfile.write('\n%s\t%s\t%f\t%s\t%f'%(now, passivePosition, passivePower, activePosition, activePower))
-                self.moveTo(passivePosition)
-                print('Passive: %f     Active: %f'%(passivePower,activePower))
 
-    def explore(self, board, span = 10, steps = 100):
-        x0 = self.position[0]
-        y0 = self.position[1]
-        x = []
-        y = []
-        Vx = []
-        Vy = []
-        
-        for point in np.linspace(x0-span/2, x0+span/2, steps):
-            self.moveTo([point,y0])
-            x.append(point)
-#            time.sleep(1/1000)
-            Vx.append(self.readADC(num=1))
-        bestX = x[np.argmax(Vx)]
-        
-        for point in np.linspace(y0-span/2, y0+span/2, steps):
-            self.moveTo([bestX,point])
-            y.append(point)
-#            time.sleep(1/1000)
-            Vy.append(self.readADC(num=1))
-        bestY = y[np.argmax(Vy)]
-        
-        self.moveTo([bestX, bestY])
+#    def explore(self, board, span = 10, steps = 100):
+#        x0 = self.position[0]
+#        y0 = self.position[1]
+#        x = []
+#        y = []
+#        Vx = []
+#        Vy = []
+#        
+#        for point in np.linspace(x0-span/2, x0+span/2, steps):
+#            self.moveTo([point,y0])
+#            x.append(point)
+##            time.sleep(1/1000)
+#            Vx.append(self.readADC(num=1))
+#        bestX = x[np.argmax(Vx)]
+#        
+#        for point in np.linspace(y0-span/2, y0+span/2, steps):
+#            self.moveTo([bestX,point])
+#            y.append(point)
+##            time.sleep(1/1000)
+#            Vy.append(self.readADC(num=1))
+#        bestY = y[np.argmax(Vy)]
+#        
+#        self.moveTo([bestX, bestY])
        
     def first_light(self, board, span = 40, steps = 1000):
         print('Beginning first light algorithm')
@@ -223,20 +193,12 @@ class PicoAmp():
                     power.append(val)
                     
     def moveTo(self, pos):
-        ''' Sets four-axis beam alignment according to differential voltages in the list pos. The first two elements
+        ''' Sets two-axis beam alignment according to differential voltages in the list pos. The first two elements
             correspond to board zero, the second two to board 1. '''
         self.setDifferential(pos[0], 'X', 0)
         self.setDifferential(pos[1], 'Y', 0)
-#        self.setDifferential(pos[2], 'X', 1)
-#        self.setDifferential(pos[3], 'Y', 1)
         
         self.position = pos
-     
-    def pwm(self, channel, duty = 50, freq = 49000, polarity = 0):
-        GPIO.setup("P9_12", GPIO.OUT)
-        GPIO.output("P9_12", GPIO.LOW)
-        print(channel)
-        PWM.start(channel, duty, freq, polarity)
         
     def readADC(self, pin=40, num = 1):
         ''' Analog input 0 on the BeagleBone is pin 39 on the P9 header. GNDA_ADC is pin 34.'''

@@ -1,22 +1,37 @@
 import sys
-sys.path.append('O:/Public/Yb clock/labAPI')
+import os
+char = {'nt': '\\', 'posix': '/'}[os.name]
+sys.path.append(char.join(os.getcwd().split(char)[0:-2]))  
 from protocols import serial
 import serial as ser
 import msvcrt
-class NewportPiezo():
+from algorithms import Aligner
+
+class NewportPiezo(Aligner):
     def __init__(self, port):
         self.serial = serial.Serial(port = port, baudrate = 921600, parity = ser.PARITY_NONE, stopbits = ser.STOPBITS_ONE, bytesize = ser.EIGHTBITS, timeout = 1, encoding = 'ascii')
         self.command('MR')
         
         self.saved_positions = {}
+        self.mirrors = [1,2]
         self.mirror = 1
         
+    def actuate(self, pos):
+        ''' Software-based absolute positioning, achieved by moving relative to a known last position '''
+        for mirror in self.mirrors:
+            self.set_channel(mirror)
+            for axis in [1,2]:
+                step = pos[mirror+axis-1]-self.position[mirror+axis-1]
+                if step != 0:
+                    self.relative_move(mirror, axis, step)
+                
     def command(self, cmd):
         self.serial.command(cmd, suffix = '\r\n')
         
     def relative_move(self, mirror, axis, step=100):
         self.set_channel(mirror)
         self.command('%iPR%i'%(axis, step))
+        self.position[mirror+axis-1] += step
         
     def set_channel(self, mirror):
         if self.mirror != mirror:
@@ -31,18 +46,19 @@ class NewportPiezo():
             return self.command('%iMA'%axis)
         elif mirror == 'all':
             pos = []
-            for mirror in [1, 2, 3, 4]:
+            for mirror in self.mirrors:
                 for axis in [1, 2]:
                     pos.append(self.get_position(mirror, axis))
             return pos
                 
     def set_position(self, mirror, axis, position):
+        self.position = position
         if type(position) == int:
             self.set_channel(mirror)
             self.command('%iPA%i'%(axis, position))
         elif type(position) == list:
             i = 0
-            for mirror in [1,2,3,4]:
+            for mirror in self.mirrors:
                 self.set_channel(mirror)
                 for axis in [1,2]:
                     self.set_position(mirror, axis, position[i])
@@ -75,8 +91,10 @@ class NewportPiezo():
             elif command == 'b':
                 step *= 2
                 print('Increasing step')
+                
             elif command == 'v':
                 step /= 2
+                
             elif command == 'a':
                 self.relative_move(1, 1, step = step)
             elif command == 'd':
