@@ -2,13 +2,13 @@ import sys
 sys.path.append('O:\\Public\\Yb clock')
 from labAPI.protocols.serial import Serial
 import serial
-
+import numpy as np
 
 class NetControls():
     def __init__(self, port = 'COM11'):
         self.serial = Serial(port = port, baudrate = 38400, encoding = 'ascii', parity = serial.PARITY_NONE, stopbits = serial.STOPBITS_ONE, bytesize = serial.EIGHTBITS, timeout = 1)
         self.read_position()
-    #        self.velocity = 0
+        #        self.velocity = 0
 #        self.acceleration = 0
         self.axis = 1
         
@@ -35,7 +35,7 @@ class NetControls():
         return self.command(cmd='D', axis = 0)
     
     def get_position(self):
-        return self.command('p')
+        return float(self.command('p').split('p')[1].split('\r')[0])/1e4
 
     def get_velocity(self):
         return self.command('v')
@@ -51,11 +51,12 @@ class NetControls():
     
     def read_position(self):
         with open('netcontrols_position.txt', 'r') as file:
-            self.zero = int(file.readline())
+            pos = float(file.readline())
+        self.zero = pos
             
     def save_position(self, pos):
         with open('netcontrols_position.txt', 'w') as file:
-            file.write(pos)
+            file.write(str(pos+self.zero))
             
     def set_acceleration(self, acc):
         return self.command(cmd = 'a', val = acc)
@@ -68,7 +69,12 @@ class NetControls():
     
     def set_position(self, pos):
         pos -= self.zero
+        pos = np.min([pos, 75])
+        np.max([pos, 0])
+        pos *= 10**4
+
         self.command(cmd = 'p', val = pos)
+        self.wait_until_stopped()
         self.position = self.get_position()
         self.save_position(self.position)
         
@@ -92,6 +98,12 @@ class NetControls():
     def set_zero(self):
         return self.command('F')
     
+    def wait_until_stopped(self):
+        while True:
+            status = self.command('g').split('g')[1].split('\r')[0][1]
+            if status == '0':
+                return
+            
 if __name__ == '__main__':
     nc = NetControls(port = 'COM11')
 
