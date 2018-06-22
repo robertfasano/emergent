@@ -1,19 +1,20 @@
 import sys
 import os
 import numpy as np
-
+#"piezos... singing the song of their people" - Wes
 char = {'nt': '\\', 'posix': '/'}[os.name]
 sys.path.append(char.join(os.getcwd().split(char)[0:-2]))  
 from labAPI.protocols import serial
 import serial as ser
 import msvcrt
 from labAPI.algorithms.align import Aligner
+from labAPI.devices.labjackT7 import LabJack
 
 class NewportPiezo(Aligner):
     def __init__(self, port):
         self.serial = serial.Serial(port = port, baudrate = 921600, parity = ser.PARITY_NONE, stopbits = ser.STOPBITS_ONE, bytesize = ser.EIGHTBITS, timeout = 1, encoding = 'ascii')
         self.command('MR')
-        
+        self.labjack = LabJack(devid='470016973')
         self.saved_positions = {}
         self.mirrors = [1,2]
         self.mirror = 1
@@ -31,6 +32,12 @@ class NewportPiezo(Aligner):
     def command(self, cmd, reply = True):
         self.serial.command(cmd, suffix = '\r\n', reply = reply)
         
+    def cost(self, num = 1):
+        vals = []
+        for i in range(num):
+            vals.append(self.labjack.AIn(0))
+        return np.mean(vals)
+    
     def relative_move(self, mirror, axis, step=100):
         self.set_channel(mirror)
         self.command('%iPR%i'%(axis, step), reply = False)
@@ -97,6 +104,8 @@ class NewportPiezo(Aligner):
                 
             elif command == 'v':
                 step /= 2
+                print('Decreasing step')
+
                 
             elif command == 'a':
                 self.relative_move(1, 1, step = step)
@@ -118,5 +127,5 @@ class NewportPiezo(Aligner):
 
 if __name__ == '__main__':
     m = NewportPiezo(port='COM15')
-    m.walk()
+#    m.walk()
         
