@@ -1,3 +1,5 @@
+'''if the amplifiers are not working, then first unplug and reinsert the #1 +5V HV the pin once it is connected
+and initialized; otherwise, ensure that 5 volts of power are being delivered to the board'''
 import time
 from labjackT7 import LabJack
 import numpy as np
@@ -5,9 +7,7 @@ import sys
 import os
 char = {'nt': '\\', 'posix': '/'}[os.name]
 sys.path.append(char.join(os.getcwd().split(char)[0:-2]))   
-from algorithms import Aligner  
-#from scipy.optimize import curve_fit
-
+from labAPI.algorithms.align import Aligner  
 #from simplex import Simplex
 #
 class PicoAmp(Aligner):
@@ -19,18 +19,19 @@ class PicoAmp(Aligner):
         self.addr['C'] = '010'
         self.addr['D'] = '011'
         self.addr['ALL'] = '111'
-        self.position = [0, 0, 0, 0]
+        self.position = [0, 0]
         self.waitTime = 0.01            # time to sleep between moving and measuring
-        self.labjack = LabJack()
+        self.labjack = LabJack(devid='470016970')
         self.labjack.spi_initialize(mode=0)
         self.connect()
+        self.mode = []
         
 
     def connect(self):
         ''' Initializes the DAC and sets the bias voltage on all four channels to 80 V. '''
         
         self.state = 1
-        self.labjack.PWM(4, 49000, 50)
+        self.labjack.PWM(3, 49000, 50)
 #        for pin in [17,18,21,22, 28, 29, 30, 31]:
 #            os.system('config-pin p9.%i spi'%pin)
         FULL_RESET = '001010000000000000000001'    #2621441
@@ -64,7 +65,7 @@ class PicoAmp(Aligner):
         self.moveTo(pos)
         
     def cost(self):
-        self.readADC()
+        return self.readADC()
         
     def circle(self, radius=80):
         x = []
@@ -98,47 +99,6 @@ class PicoAmp(Aligner):
         Vdigital = V/Range * 65535
     
         return format(int(Vdigital), '016b')
-
-#    def explore(self, board, span = 10, steps = 100):
-#        x0 = self.position[0]
-#        y0 = self.position[1]
-#        x = []
-#        y = []
-#        Vx = []
-#        Vy = []
-#        
-#        for point in np.linspace(x0-span/2, x0+span/2, steps):
-#            self.moveTo([point,y0])
-#            x.append(point)
-##            time.sleep(1/1000)
-#            Vx.append(self.readADC(num=1))
-#        bestX = x[np.argmax(Vx)]
-#        
-#        for point in np.linspace(y0-span/2, y0+span/2, steps):
-#            self.moveTo([bestX,point])
-#            y.append(point)
-##            time.sleep(1/1000)
-#            Vy.append(self.readADC(num=1))
-#        bestY = y[np.argmax(Vy)]
-#        
-#        self.moveTo([bestX, bestY])
-       
-    def first_light(self, board, span = 40, steps = 1000):
-        print('Beginning first light algorithm')
-        vmax = 0
-        x0 = self.position[0]
-        y0 = self.position[1]
-        V = []
-        X = np.linspace(x0-span/2, x0+span/2, steps)
-        Y = np.linspace(y0-span/2, y0+span/2, steps)
-        for x in X:
-            for y in Y:
-                self.moveTo([x,y])
-                V.append(self.readADC(num=1))
-                if V[-1] > vmax:
-                    vmax = V[-1]
-                    print('New best value:', vmax)
-        return x, y, V
     
     def maximize(self, axis, board):
         power = []
@@ -206,16 +166,17 @@ class PicoAmp(Aligner):
         for i in range(num):
 #            vals.append(ADC.read("P9_%i"%pin) * 1.8)
             vals.append(self.labjack.AIn(0))
-
+#        print(np.mean(vals))
         return np.mean(vals)
 
     def setDifferential(self, V, axis, board):
         ''' Sets a target differential voltage V=HV_A-HV_B if axis is 'X' or V=HV_C-HV_D if axis is 'Y'.
-            For example, if V=2 and  axis is 'X', this sets HV_A=81 and HV_2=79. '''
+            For example, if V=2 and  axis is 'X', this sets HV_A=81 and HV_2=79. 
+            Allowed range of V is 0-160.'''
         V = float(V)
-        V = np.min([V, 100.0])
-        stringPlus = self.digital(self.Vbias+V/2)
-        stringMinus = self.digital(self.Vbias-V/2)
+        V = np.clip(V, -80, 80)
+        stringPlus = self.digital(self.Vbias+V)
+        stringMinus = self.digital(self.Vbias-V)
         cmdPlus = 0
         cmdMinus = 0
         if axis == 'X':
@@ -223,7 +184,7 @@ class PicoAmp(Aligner):
             cmdMinus = '00' + '011' + self.addr['B'] + stringMinus
         elif axis == 'Y':
             cmdPlus = '00' + '011' + self.addr['C'] + stringPlus
-            cmdMinus = '00' + '011' + self.addr['C'] + stringMinus
+            cmdMinus = '00' + '011' + self.addr['D'] + stringMinus
         
         self.command(cmdPlus, board)
         self.command(cmdMinus, board)
@@ -295,12 +256,13 @@ def binary(string):
 
 if __name__ == '__main__':
     pico = PicoAmp()
+    pico.actuate([-60, 0])
 #    pico.squareWave(80,2)     # aligned for differential amplitude of 80 V
 #    pico.circle()
-    pico.moveTo([19.94,23.5,0,0])
+#    pico.moveTo([19.94,23.5,0,0])
 #    pico.pwm(channel="P9_14")       # starts PWM on pins 12 and 14
 #    x, y, V = pico.first_light(0, span=40, steps = 50)
-    pico.explore(0, span=1, steps = 10)
+#    pico.explore(0, span=1, steps = 10)
 
 #    print(mems.readADC())
 #    mems.thermalTesting()
