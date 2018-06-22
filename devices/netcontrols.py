@@ -105,6 +105,6 @@ class NetControls():
                 return
             
 if __name__ == '__main__':
-    nc = NetControls(port = 'COM11')
+    nc = NetControls(port = 'COM29')
 
 
