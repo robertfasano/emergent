@@ -21,6 +21,25 @@ class LabJack():
     def AOut(self, channel, value):
         return ljm.eWriteName(self.handle, 'DAC%i'%channel, value)
     
+    def PWM(self, channel, frequency, duty_cycle):
+        ''' Args:
+                int channel: 0, 2-5 are valid for the LabJack T7
+                float frequency
+                float duty_cycle    '''
+        roll_value = self.clock / frequency
+        config_a = duty_cycle * roll_value / 100
+        ljm.eWriteName(self.handle, "DIO_EF_CLOCK0_ENABLE", 0);    # Disable the clock source
+        ljm.eWriteName(self.handle, "DIO_EF_CLOCK0_DIVISOR", 1); 	# Configure Clock0's divisor
+        ljm.eWriteName(self.handle, "DIO_EF_CLOCK0_ROLL_VALUE", roll_value); 	# Configure Clock0's roll value
+        ljm.eWriteName(self.handle, "DIO_EF_CLOCK0_ENABLE", 1); 	# Enable the clock source
+
+        # Configure EF Channel Registers:
+        ljm.eWriteName(self.handle, "DIO%i_EF_ENABLE"%channel, 0); 	# Disable the EF system for initial configuration
+        ljm.eWriteName(self.handle, "DIO%i_EF_INDEX"%channel, 0); 	# Configure EF system for PWM
+        ljm.eWriteName(self.handle, "DIO%i_EF_OPTIONS"%channel, 0); 	# Configure what clock source to use: Clock0
+        ljm.eWriteName(self.handle, "DIO%i_EF_CONFIG_A"%channel, config_a); 	# Configure duty cycle
+        ljm.eWriteName(self.handle, "DIO%i_EF_ENABLE"%channel, 1); 	# Enable the EF system, PWM wave is now being outputted
+            
     def spi_initialize(self, mode = 3):  #, CS, CLK, MISO, MOSI):
         ''' Args:
             int CS: the channel to use as chip select
@@ -100,27 +119,46 @@ class LabJack():
             for i in range(numBytes):
                 print("dataWrite[%i] = %0.0f" % (i, data[i]))
         
-        
-        
-    def PWM(self, channel, frequency, duty_cycle):
-        ''' Args:
-                int channel: 0, 2-5 are valid for the LabJack T7
-                float frequency
-                float duty_cycle    '''
-        roll_value = self.clock / frequency
-        config_a = duty_cycle * roll_value / 100
-        ljm.eWriteName(self.handle, "DIO_EF_CLOCK0_ENABLE", 0);    # Disable the clock source
-        ljm.eWriteName(self.handle, "DIO_EF_CLOCK0_DIVISOR", 1); 	# Configure Clock0's divisor
-        ljm.eWriteName(self.handle, "DIO_EF_CLOCK0_ROLL_VALUE", roll_value); 	# Configure Clock0's roll value
-        ljm.eWriteName(self.handle, "DIO_EF_CLOCK0_ENABLE", 1); 	# Enable the clock source
+    def stream_read(self):
+        return ljm.eStreamRead(self.handle)[0]
 
-        # Configure EF Channel Registers:
-        ljm.eWriteName(self.handle, "DIO%i_EF_ENABLE"%channel, 0); 	# Disable the EF system for initial configuration
-        ljm.eWriteName(self.handle, "DIO%i_EF_INDEX"%channel, 0); 	# Configure EF system for PWM
-        ljm.eWriteName(self.handle, "DIO%i_EF_OPTIONS"%channel, 0); 	# Configure what clock source to use: Clock0
-        ljm.eWriteName(self.handle, "DIO%i_EF_CONFIG_A"%channel, config_a); 	# Configure duty cycle
-        ljm.eWriteName(self.handle, "DIO%i_EF_ENABLE"%channel, 1); 	# Enable the EF system, PWM wave is now being outputted
+    def stream_start(self, channels, scanRate = 1000, clock = None):
+        ''' Currently supports only one channel, e.g. "AIN0" '''
+        ''' Streams in data from target channel(s), which is optionally externally clocked on CIO3. '''
+        ljm.eWriteName(self.handle, "LJM_STREAM_SCANS_RETURN", "LJM_STREAM_SCANS_ALL")     
+        ljm.eWriteName(self.handle, "LJM_STREAM_RECEIVE_TIMEOUT_MS", 0)
         
+        if clock != None:
+            ljm.eWriteName(self.handle, "STREAM_CLOCK_SOURCE", 2)
+            ljm.eWriteName(self.handle, "STREAM_EXTERNAL_CLOCK_DIVISOR", 1)
+        else:
+            ljm.eWriteName(self.handle, "STREAM_CLOCK_SOURCE", 0)
+
+        # Stream Configuration
+        if type(channels) == str:
+            aScanListNames = [channels]
+        elif type(channels) == list:
+            aScanListNames = channels
+        else:
+            print('Invalid channel specification.')
+            return
+        numAddresses = len(aScanListNames)
+        aScanList = ljm.namesToAddresses(numAddresses, aScanListNames)[0]
+        scansPerRead = int(scanRate / 2)
+                 
+        # Ensure triggered stream is disabled.
+        ljm.eWriteName(self.handle, "STREAM_TRIGGER_INDEX", 0)
+
+        # Write the inputs' negative channels, ranges, stream settling time, and resolution
+        aNames = ["AIN_ALL_NEGATIVE_CH", "%s_RANGE"%channels,
+                  "STREAM_SETTLING_US", "STREAM_RESOLUTION_INDEX"]
+        aValues = [ljm.constants.GND, 10.0, 0, 0]
+        ljm.eWriteNames(self.handle, len(aNames), aNames, aValues)
     
+        # Configure and start stream
+        scanRate = ljm.eStreamStart(self.handle, scansPerRead, numAddresses, aScanList, scanRate)
+        print("\nStream started with a scan rate of %0.0f Hz." % scanRate)
+
+            
 if __name__ == '__main__':
     t7 = LabJack()
