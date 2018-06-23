@@ -9,9 +9,11 @@ import serial as ser
 import msvcrt
 from labAPI.algorithms.align import Aligner
 from labAPI.devices.labjackT7 import LabJack
+from labAPI.archetypes.device import Device
 
-class NewportPiezo(Aligner):
-    def __init__(self, port):
+class NewportPiezo(Device, Aligner):
+    def __init__(self, name, port):
+        super().__init__(name)
         self.serial = serial.Serial(port = port, baudrate = 921600, parity = ser.PARITY_NONE, stopbits = ser.STOPBITS_ONE, bytesize = ser.EIGHTBITS, timeout = 1, encoding = 'ascii')
         self.command('MR')
         self.labjack = LabJack(devid='470016973')
