@@ -3,18 +3,34 @@ from random import randrange
 
 class LabJack():
     def __init__(self, device = "ANY", connection = "ANY", devid = "ANY", orange = 10, arange = 10):
-        self.handle = ljm.openS(device, connection, devid)
-        ljm.eWriteName(self.handle, 'AIN_ALL_RANGE', arange)
-
-        info = ljm.getHandleInfo(self.handle)
-        print("Opened a LabJack with Device type: %i, Connection type: %i,\n"
-              "Serial number: %i, IP address: %s, Port: %i,\nMax bytes per MB: %i" %
-              (info[0], info[1], info[2], ljm.numberToIP(info[3]), info[4], info[5]))
-        self.clock = 80e6       # internal clock frequency
-        deviceType = info[0]
-        if deviceType != ljm.constants.dtT7:
-            print('Only the LabJack T7 is supported.')
-         
+        self.device = device
+        self.connection = connection
+        self.devid = devid
+        self.arange = arange
+        self._connected = 0
+        
+        self._connect()
+    def _connect(self):
+        try:
+            self.handle = ljm.openS(self.device, self.connection, self.devid)
+            ljm.eWriteName(self.handle, 'AIN_ALL_RANGE', self.arange)
+    
+            info = ljm.getHandleInfo(self.handle)
+            print("Opened a LabJack with Device type: %i, Connection type: %i,\n"
+                  "Serial number: %i, IP address: %s, Port: %i,\nMax bytes per MB: %i" %
+                  (info[0], info[1], info[2], ljm.numberToIP(info[3]), info[4], info[5]))
+            self.clock = 80e6       # internal clock frequency
+            deviceType = info[0]
+            self._connected = 1
+            if deviceType != ljm.constants.dtT7:
+                print('Only the LabJack T7 is supported.')
+                self._connected = 0
+                
+        except:
+            print('Failed to connect to LabJack.')
+            
+        
+            
     def AIn(self, channel):
         return ljm.eReadName(self.handle, 'AIN%i'%channel)
     
