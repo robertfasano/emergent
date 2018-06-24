@@ -1,17 +1,20 @@
 '''if the amplifiers are not working, then first unplug and reinsert the #1 +5V HV the pin once it is connected
 and initialized; otherwise, ensure that 5 volts of power are being delivered to the board'''
 import time
-from labjackT7 import LabJack
+from labAPI.devices.labjackT7 import LabJack
 import numpy as np
 import sys
 import os
 char = {'nt': '\\', 'posix': '/'}[os.name]
 sys.path.append(char.join(os.getcwd().split(char)[0:-2]))   
-from labAPI.algorithms.align import Aligner  
+from labAPI.archetypes.Optimizer import Optimizer
+from labAPI.archetypes.device import Device
 #from simplex import Simplex
 #
-class PicoAmp(Aligner):
-    def __init__(self):
+class PicoAmp(Device, Optimizer):
+    def __init__(self, name = 'picoAmp', labjack = None):
+        Device.__init__(self, name)
+        Optimizer.__init__(self, None)
         self.state = 0
         self.addr = {}
         self.addr['A'] = '000'
@@ -19,13 +22,16 @@ class PicoAmp(Aligner):
         self.addr['C'] = '010'
         self.addr['D'] = '011'
         self.addr['ALL'] = '111'
-        self.position = [0, 0]
+        self.position = [self.params['X']['value'], self.params['Y']['value']]
         self.waitTime = 0.01            # time to sleep between moving and measuring
-        self.labjack = LabJack(devid='470016970')
-        self.labjack.spi_initialize(mode=0)
-        self.connect()
-        self.mode = []
-        
+        if labjack == None:
+            labjack = LabJack(devid='470016970')
+        self.labjack = labjack
+        if self.labjack._connected:
+            self.labjack.spi_initialize(mode=0)
+            self.connect()
+            self.actuate([])
+            
 
     def connect(self):
         ''' Initializes the DAC and sets the bias voltage on all four channels to 80 V. '''
