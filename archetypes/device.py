@@ -18,12 +18,13 @@ class Device():
     def __init__(self, name):
         self.name = name
         self.params = {}
-        self.filename = os.path.realpath('../..')+'/settings/%s.txt'%self.name
+        self.filename = os.path.realpath('..')+'/settings/%s.txt'%self.name
         
         with open(self.filename, 'r') as file:
             self.id = json.load(file)['id']
             
         self.load('default')
+        self.params_to_state()
         
     def actuate(self, state):
         ''' Change the internal state to a specified state and update self.params accordingly '''
@@ -66,7 +67,21 @@ class Device():
         for s in self.params.keys():
             if self.params[s]['type'] == 'state':
                 self.params[s]['value'] = self.state[self.params[s]['index']]
-                
+           
+    def get_param_by_index(self, index):
+        for s in self.params.keys():
+            try:
+                if self.params[s]['index'] == index:
+                    return s
+            except:
+                pass
+            
+    def get_index_by_param(self, param):
+        try:
+            return self.params[param]['index']
+        except KeyError:
+            return None
+            
 if __name__ == '__main__':
     d = Device('device')
     d.load('setpoint1')
