@@ -7,20 +7,19 @@ sys.path.append(char.join(os.getcwd().split(char)[0:-2]))
 from labAPI.protocols import serial
 import serial as ser
 import msvcrt
-from labAPI.algorithms.align import Aligner
-from labAPI.devices.labjackT7 import LabJack
+from labAPI.archetypes.Optimizer import Optimizer
 from labAPI.archetypes.device import Device
 
-class NewportPiezo(Device, Aligner):
-    def __init__(self, name, port):
-        super().__init__(name)
+class Agilis(Device, Optimizer):
+    def __init__(self, port, name = 'agilis'):
+        Device.__init__(self, name)
         self.serial = serial.Serial(port = port, baudrate = 921600, parity = ser.PARITY_NONE, stopbits = ser.STOPBITS_ONE, bytesize = ser.EIGHTBITS, timeout = 1, encoding = 'ascii')
-        self.command('MR')
-        self.labjack = LabJack(devid='470016973')
-        self.saved_positions = {}
-        self.mirrors = [1,2]
-        self.mirror = 1
-        self.position = np.zeros(len(2*self.mirrors))
+        if self.serial._connected:
+            self.command('MR')
+            self.saved_positions = {}
+            self.mirrors = [1,2]
+            self.mirror = 1
+            self.position = np.zeros(len(2*self.mirrors))
         
     def actuate(self, pos):
         ''' Software-based absolute positioning, achieved by moving relative to a known last position '''
@@ -128,6 +127,6 @@ class NewportPiezo(Device, Aligner):
 
 
 if __name__ == '__main__':
-    m = NewportPiezo(port='COM15')
+    m = Agilis(port='COM15')
 #    m.walk()
         
