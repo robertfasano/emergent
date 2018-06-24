@@ -13,17 +13,23 @@ char = {'nt': '\\', 'posix': '/'}[os.name]
 sys.path.append(char.join(os.getcwd().split(char)[0:-2]))
 import numpy as np
 import json
-
+import os
 class Device():
     def __init__(self, name):
         self.name = name
         self.params = {}
-        self.filename = '../settings/%s.txt'%self.name
+        self.filename = os.path.realpath('../..')+'/settings/%s.txt'%self.name
         
         with open(self.filename, 'r') as file:
             self.id = json.load(file)['id']
             
         self.load('default')
+        
+    def actuate(self, state):
+        ''' Change the internal state to a specified state and update self.params accordingly '''
+        self.state = state
+        self.state_to_params()
+        
     def save(self, setpoint):
         ''' Read in setpoints from file, append or update current setpoint, and write '''
         with open(self.filename, 'r') as file:
