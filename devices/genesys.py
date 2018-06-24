@@ -1,19 +1,21 @@
 import sys
 sys.path.append('O:\\Public\\Yb clock')
 sys.path.append('C:\\Users\yblab\Documents\GitHub')
-from labAPI.protocols.serial import Serial
-import serial
+from labAPI.protocols.serial import Serial, PARITY_NONE, STOPBITS_ONE, EIGHTBITS
+from labAPI.archetypes.device import Device
 
 
-class Genesys():
-    def __init__(self, port = 'COM13'):
+class Genesys(Device):
+    def __init__(self, port = 'COM13', name = 'genesys'):
+        super().__init__(name)
         self.addr = 6
-        self.serial = Serial(port = port, baudrate = 19200, encoding = 'ascii', parity = serial.PARITY_NONE, stopbits = serial.STOPBITS_ONE, bytesize = serial.EIGHTBITS, timeout = 1)
+        self.serial = Serial(port = port, baudrate = 19200, encoding = 'ascii', parity = PARITY_NONE, stopbits = STOPBITS_ONE, bytesize = EIGHTBITS, timeout = 1)
         
-        self.command('ADR %i'%self.addr)
-        self.command('RST')
-        self.command('OUT 1')
-        self.set_voltage(6)
+        if self.serial._connected:
+            self.command('ADR %i'%self.addr)
+            self.command('RST')
+            self.command('OUT 1')
+            self.set_voltage(6)
         
     def command(self, cmd):      
         reply = self.serial.command(cmd)
