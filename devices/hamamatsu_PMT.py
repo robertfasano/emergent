@@ -18,13 +18,17 @@ class PMT(Device):
         if self.labjack._connected:
             self.labjack.AOut(3,-5, HV=True)
             self.labjack.AOut(2,5, HV=True)
-            self.labjack.AOut(1,pmt.params['gain']['value'])
+            self.labjack.AOut(1,self.params['gain']['value'])
         
     def read(self, num):
         vals = []
         for i in range(num):
             vals.append(self.labjack.AIn(0))
         return np.mean(vals)
+    
+    def set_gain(self, value):
+        self.params['gain']['value'] = value
+        self.labjack.AOut(1,value)
     
     
 if __name__ == '__main__':

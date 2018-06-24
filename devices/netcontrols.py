@@ -1,20 +1,24 @@
 import sys
 sys.path.append('O:\\Public\\Yb clock')
-from labAPI.protocols.serial import Serial
-import serial
+from labAPI.protocols.serial import Serial, PARITY_NONE, STOPBITS_ONE, EIGHTBITS
 import numpy as np
+from labAPI.archetypes.device import Device
 
-class NetControls():
+class NetControls(Device):
     def __init__(self, port = 'COM11'):
-        self.serial = Serial(port = port, baudrate = 38400, encoding = 'ascii', parity = serial.PARITY_NONE, stopbits = serial.STOPBITS_ONE, bytesize = serial.EIGHTBITS, timeout = 1)
-        self.read_position()
+        Device.__init__(self, name = 'feedthrough')
+        self.load('default')
+
+        self.serial = Serial(port = port, baudrate = 38400, encoding = 'ascii', parity = PARITY_NONE, stopbits = STOPBITS_ONE, bytesize = EIGHTBITS, timeout = 1)
+#        self.read_position()
         #        self.velocity = 0
 #        self.acceleration = 0
-        self.axis = 1
-        
-        self.initialize()
-        self.set_load_error(5000)
-        self.set_velocity(10000)
+        if self.serial._connected:
+            self.axis = 1
+            self.initialize()
+            self.zero = self.params['position']         # controller thinks it's at zero when restarted, so move relative to last position
+            self.set_load_error(self.params['load_error'])
+            self.set_velocity(self.params['velocity'])
         
     def command(self, cmd, val = None, axis = None):
         if val == None:

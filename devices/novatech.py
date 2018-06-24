@@ -2,7 +2,6 @@ import serial
 import sys
 sys.path.append('O:/Public/Yb clock/')
 from labAPI.protocols.serial import Serial
-import serial
 
 
 class Novatech():
