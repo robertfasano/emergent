@@ -22,7 +22,7 @@ from scipy.optimize import curve_fit
 char = {'nt': '\\', 'posix': '/'}[os.name]
 sys.path.append(char.join(os.getcwd().split(char)[0:-2]))
 
-class Aligner():
+class Optimizer():
     def __init__(self, filename):
         self.filename = filename
         self.position = np.array([])
