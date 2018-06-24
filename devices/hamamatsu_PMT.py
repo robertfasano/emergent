@@ -2,9 +2,8 @@ import sys
 import os
 char = {'nt': '\\', 'posix': '/'}[os.name]
 sys.path.append(char.join(os.getcwd().split(char)[0:-2]))
-#from labAPI.devices.labjackT7 import LabJack
+from labAPI.devices.labjackT7 import LabJack
 import numpy as np
-#import labAPI.archetypes.device as device
 from labAPI.archetypes.device import Device
 
 class PMT(Device):
@@ -13,10 +12,13 @@ class PMT(Device):
         
         if labjack == None:
             labjack = LabJack(self.id)
+            
         self.labjack = labjack
-        self.labjack.AOut(3,-5, HV=True)
-        self.labjack.AOut(2,5, HV=True)
-        self.labjack.AOut(1,pmt.params['gain']['value'])
+        
+        if self.labjack._connected:
+            self.labjack.AOut(3,-5, HV=True)
+            self.labjack.AOut(2,5, HV=True)
+            self.labjack.AOut(1,pmt.params['gain']['value'])
         
     def read(self, num):
         vals = []
