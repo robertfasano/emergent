@@ -12,7 +12,7 @@ from labAPI.archetypes.device import Device
 #from simplex import Simplex
 #
 class PicoAmp(Device, Optimizer):
-    def __init__(self, name = 'picoAmp', labjack = None):
+    def __init__(self, name = 'picoAmp', labjack = None, connect = True):
         Device.__init__(self, name)
         Optimizer.__init__(self, None)
         self.state = 0
@@ -24,6 +24,9 @@ class PicoAmp(Device, Optimizer):
         self.addr['ALL'] = '111'
         self.position = [self.params['X']['value'], self.params['Y']['value']]
         self.waitTime = 0.01            # time to sleep between moving and measuring
+        if connect:
+            self._connect()
+    def _connect(self, labjack):
         if labjack == None:
             labjack = LabJack(devid='470016970')
         self.labjack = labjack

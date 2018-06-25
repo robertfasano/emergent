@@ -11,16 +11,22 @@ from labAPI.archetypes.Optimizer import Optimizer
 from labAPI.archetypes.device import Device
 
 class Agilis(Device, Optimizer):
-    def __init__(self, port, name = 'agilis'):
+    def __init__(self, port, name = 'agilis', connect = True):
         Device.__init__(self, name)
-        self.serial = serial.Serial(port = port, baudrate = 921600, parity = ser.PARITY_NONE, stopbits = ser.STOPBITS_ONE, bytesize = ser.EIGHTBITS, timeout = 1, encoding = 'ascii')
+        self.port = port
+        self._connected = 0
+        if connect:
+            self._connect()
+            
+    def _connect(self):
+        self.serial = serial.Serial(port = self.port, baudrate = 921600, parity = ser.PARITY_NONE, stopbits = ser.STOPBITS_ONE, bytesize = ser.EIGHTBITS, timeout = 1, encoding = 'ascii', name = 'Agilis')
         if self.serial._connected:
             self.command('MR')
             self.saved_positions = {}
             self.mirrors = [1,2]
             self.mirror = 1
             self.position = np.zeros(len(2*self.mirrors))
-        
+            self._connected = 1
     def actuate(self, pos):
         ''' Software-based absolute positioning, achieved by moving relative to a known last position '''
         for mirror in self.mirrors:

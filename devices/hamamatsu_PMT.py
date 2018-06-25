@@ -7,9 +7,14 @@ import numpy as np
 from labAPI.archetypes.device import Device
 
 class PMT(Device):
-    def __init__(self, labjack = None):
+    def __init__(self, connect = False):
         super().__init__(name='PMT')
-        
+        self._connected = 0
+        if connect:
+            self._connect()
+
+    
+    def _connect(self, labjack):
         if labjack == None:
             labjack = LabJack(self.id)
             
@@ -19,7 +24,8 @@ class PMT(Device):
             self.labjack.AOut(3,-5, HV=True)
             self.labjack.AOut(2,5, HV=True)
             self.labjack.AOut(1,self.params['gain']['value'])
-        
+            self._connected = 1
+            
     def read(self, num):
         vals = []
         for i in range(num):

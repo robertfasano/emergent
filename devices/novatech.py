@@ -5,16 +5,25 @@ from labAPI.protocols.serial import Serial
 
 
 class Novatech():
-    def __init__(self, port = 'COM7'):
+    def __init__(self, port = 'COM7', connect = True):
+        self.port = port
+        self._connected = 0
+        if connect:
+            self._connect()
+            
+    def _connect(self):
         self.serial = Serial(
-                port=port,
+                port=self.port,
                 baudrate=19200,
                 parity=serial.PARITY_NONE,
                 stopbits=serial.STOPBITS_ONE,
                 bytesize=serial.EIGHTBITS,
                 timeout = 1,
-                encoding = 'ascii'
+                encoding = 'ascii',
+                name = 'Novatech DDS'
             )
+        if self.serial._connected:
+            self._connected = 1
     
     def set_amplitude(self,ch, V):
         return self.serial.command('V%i %i'%(ch, V))

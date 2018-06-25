@@ -27,7 +27,7 @@ class LabJack():
                 self._connected = 0
                 
         except:
-            print('Failed to connect to LabJack.')
+            print('Failed to connect to LabJack (%s).'%self.devid)
             
         
             

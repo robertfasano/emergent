@@ -5,15 +5,18 @@ import numpy as np
 from labAPI.archetypes.device import Device
 
 class NetControls(Device):
-    def __init__(self, port = 'COM11'):
+    def __init__(self, port = 'COM11', connect = True):
         Device.__init__(self, name = 'feedthrough')
         self.load('default')
+        self.port = port
+        self._connected = 0
+        if connect:
+            self._connect()
+    def _connect(self):
+        self.serial = Serial(port = self.port, baudrate = 38400, encoding = 'ascii', parity = PARITY_NONE, stopbits = STOPBITS_ONE, bytesize = EIGHTBITS, timeout = 1, name = 'NetControls driver')
 
-        self.serial = Serial(port = port, baudrate = 38400, encoding = 'ascii', parity = PARITY_NONE, stopbits = STOPBITS_ONE, bytesize = EIGHTBITS, timeout = 1)
-#        self.read_position()
-        #        self.velocity = 0
-#        self.acceleration = 0
         if self.serial._connected:
+            self._connected = 1
             self.axis = 1
             self.initialize()
             self.zero = self.params['position']         # controller thinks it's at zero when restarted, so move relative to last position

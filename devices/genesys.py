@@ -6,16 +6,23 @@ from labAPI.archetypes.device import Device
 
 
 class Genesys(Device):
-    def __init__(self, port = 'COM13', name = 'genesys'):
+    def __init__(self, port = 'COM13', name = 'genesys', connect = True):
         super().__init__(name)
+        self.port = port
         self.addr = 6
-        self.serial = Serial(port = port, baudrate = 19200, encoding = 'ascii', parity = PARITY_NONE, stopbits = STOPBITS_ONE, bytesize = EIGHTBITS, timeout = 1)
+        self._connected = 0
+        if connect:
+            self._connect()
+            
+    def _connect(self):
+        self.serial = Serial(port = self.port, baudrate = 19200, encoding = 'ascii', parity = PARITY_NONE, stopbits = STOPBITS_ONE, bytesize = EIGHTBITS, timeout = 1, name = 'TDK Genesys')
         
         if self.serial._connected:
             self.command('ADR %i'%self.addr)
             self.command('RST')
             self.command('OUT 1')
             self.set_voltage(6)
+            self._connected = 1
         
     def command(self, cmd):      
         reply = self.serial.command(cmd)
