@@ -10,6 +10,7 @@ class LabJack():
         self._connected = 0
         
         self._connect()
+    
     def _connect(self):
         try:
             self.handle = ljm.openS(self.device, self.connection, self.devid)
@@ -34,8 +35,11 @@ class LabJack():
     def AIn(self, channel):
         return ljm.eReadName(self.handle, 'AIN%i'%channel)
     
-    def AOut(self, channel, value):
-        return ljm.eWriteName(self.handle, 'DAC%i'%channel, value)
+    def AOut(self, channel, value, prefix = 'DAC', HV=False):
+        if not HV:
+            ljm.eWriteName(self.handle, '%s%i'%(prefix, channel), value)
+        else:
+            ljm.eWriteName(self.handle, "TDAC%i"%channel, value)
     
     def PWM(self, channel, frequency, duty_cycle):
         ''' Args:
