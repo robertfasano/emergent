@@ -12,12 +12,14 @@
         - First implement GP optimization in Aligner
 '''
 import numpy as np
+import itertools
 import sys
 import os
 import time
 from scipy.interpolate import griddata
+from scipy.stats import norm
 import matplotlib.pyplot as plt
-from scipy.optimize import curve_fit
+from scipy.optimize import curve_fit, minimize
 char = {'nt': '\\', 'posix': '/'}[os.name]
 sys.path.append(char.join(os.getcwd().split(char)[0:-2]))
 from sklearn.gaussian_process import GaussianProcessRegressor
@@ -32,7 +34,8 @@ class Optimizer():
         self.position = np.array([])
         self.zero = np.array([])
         self.dim = len(self.position)
-        self.mode = []
+        self.mu = np.array([]) #gp routine best value
+        self.sigma = np.array([]) #gp routine uncertainty
         self.noise = 0
     ''' Base functions '''
     def actuate(self, point):
@@ -51,6 +54,8 @@ class Optimizer():
         point = np.array(X)
         for n in range(point.shape[1]):
             cost *= np.exp(-point[:,n]**2/(2*sigma**2))
+        for n in range(point.shape[1]):
+            cost *= 2*np.exp(-(point[:,n]-1)**2/(2*sigma**2/4))
 #        cost *= (1+np.random.normal(0,self.noise))
         cost += np.random.normal(0,self.noise)
 
@@ -258,15 +263,62 @@ class Optimizer():
         c_pred, sigma =  self.gp.predict(self.virtualX, return_std = True)
         return b*c_pred + (1-b)*sigma
     
-    def gaussian_process(self, iterations = 5, initial_step = .5, span = 10, steps = 100, plot = False):
+    def gaussian_process_next_sample(self, acquisition_func, gaussian_process, evaluated_loss, greater_is_better=False, 
+                                     restarts=25):
+        bounds = np.array(list(itertools.repeat([-10,10], len(self.position)))) #for normalized parameters, go from -1,1
+        best_x = None
+        best_acquisition_value = 1
+        n_params = len(self.position) #bounds.shape[0]
+
+        for starting_point in np.random.uniform(bounds[0][0], bounds[0][1], size=(restarts, n_params)):
+            res = minimize(fun=acquisition_func,
+                       x0=starting_point.reshape(1, -1),
+                       bounds=None,
+                       method='L-BFGS-B',
+                       args=(gaussian_process, evaluated_loss, greater_is_better, n_params))
+
+            if res.fun < best_acquisition_value:
+                best_acquisition_value = res.fun
+                best_x = res.x
+            
+            #THRESHOLD TO ENABLE AFTER LOTS OF EXPERIMENTATION
+            #if len(self.sigma) > 100 and np.std(self.sigma[-1:-100]) < 0.003:
+            #if len(self.mu) > 100 and np.std(self.mu[-1:-100]) < 0.003:   
+                #return best_x
+
+        return best_x
+
+    def expected_improvement(self, x, gaussian_process_regressor, evaluated_loss, greater_is_better=True, n_params=1):
+        x_to_predict = x.reshape(-1, len(self.position))
+    
+        mu, sigma = gaussian_process_regressor.predict(x_to_predict, return_std=True)
+        self.mu = np.append(self.mu, mu[0])
+        self.sigma = np.append(self.sigma, sigma[0])
+        
+        if greater_is_better:
+            loss_optimum = np.max(evaluated_loss)
+        else:
+            loss_optimum = np.min(evaluated_loss)
+        scaling_factor = (-1) ** (not greater_is_better)
+    
+        # In case sigma equals zero
+        with np.errstate(divide='ignore'):
+            Z = scaling_factor * (mu - loss_optimum) / sigma
+            expected_improvement = scaling_factor * (mu - loss_optimum) * norm.cdf(Z) + sigma * norm.pdf(Z)
+            expected_improvement[sigma == 0.0] == 0.0
+        
+        #return -1 * mu #maximize the value
+        return -1 * expected_improvement #maximize learning about model
+    
+    #see the following source for Gaussian Processing: https://github.com/thuijskens/bayesian-optimization/blob/master/python/gp.py
+    def gaussian_process(self, iterations = 5, initial_step = .5, span = 10, steps = 100, plot = False, random_search = False):
         X = np.array([self.position])
         N = X.shape[1]
         c = np.array([self.cost(X)])
-        
         kernel = C(1.0, (1e-3, 1e3)) * RBF(10, (1e-2, 1e2))
         self.gp = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=10)
-        x_pred = np.atleast_2d(np.linspace(0, 10, 1000)).T
-        x_pred, x_pred = np.meshgrid(x_pred, x_pred)
+#        x_pred = np.atleast_2d(np.linspace(0, 10, 1000)).T
+#        x_pred, x_pred = np.meshgrid(x_pred, x_pred)
         
         X_new = X + initial_step
         for i in range(iterations):
@@ -275,20 +327,26 @@ class Optimizer():
             c = self.cost(X)
             self.gp.fit(X,c)
             
-            # do grid search on prediction
-            N = X.shape[1]
-            grid = []
-            for n in range(N):
-                space = np.linspace(X[-1][n]-span/2, X[-1][n]+span/2, steps)
-                grid.append(space)
-            grid = np.array(grid)
-            points = np.transpose(np.meshgrid(*[grid[n] for n in range(N)])).reshape(-1,N)
+            # do grid search on prediction OR scipy.optimize's minimize
+            if random_search:
+                N = X.shape[1]
+                grid = []
+                for n in range(N):
+                    space = np.linspace(X[-1][n]-span/2, X[-1][n]+span/2, steps)
+                    grid.append(space)
+                grid = np.array(grid)
+                points = np.transpose(np.meshgrid(*[grid[n] for n in range(N)])).reshape(-1,N)
+                
+                c_pred, sigma = self.gp.predict(points, return_std = True)
+                b = 0.5
+                effective_cost = b*c_pred + (1-b)*sigma
+                X_new = points[np.argmax(effective_cost)]
+            else:
+                points = []
+                c_pred = []
+                X_new = self.gaussian_process_next_sample(self.expected_improvement, self.gp, c, greater_is_better=True, restarts=100)
+#           
             
-            c_pred, sigma = self.gp.predict(points, return_std = True)
-            b = 1
-            effective_cost = b*c_pred + (1-b)*sigma
-            X_new = points[np.argmax(effective_cost)]
-#            
             # do simplex optimization on prediction
 #            self.virtualX = X[-1]
 #            h,c = self.simplex(sampleRange = span, iterations = 35, actuate = self.gaussian_process_actuate, cost = self.gaussian_process_cost, X = self.virtualX)
@@ -300,22 +358,28 @@ class Optimizer():
             plt.ylabel('Optimization function')
             plt.xlabel('Iteration #')
             plt.legend()
+        
+#        plt.figure()
+#        plt.plot(self.mu)
+#        plt.ylabel('Max Val')
+#        plt.xlabel('Iteration #')
 
         return X, c, points, c_pred
 
 if __name__ == '__main__':
     a = Optimizer()
     d = 2
-    sigma = 2
-    SNR = 10
+    sigma = .5
+    SNR = 50
     a.noise = 1/SNR
     pos = np.ones(d)*sigma
+    pos = np.array([-1,-1])
     iterations = 30
 
     a.position = pos
     a.dim = len(a.position)
 
-    X, cost, points, c_pred = a.gaussian_process(iterations = iterations, span = 1, steps = 30, initial_step = -.5, plot = True)
+    X, cost, points, c_pred = a.gaussian_process(iterations = iterations, span = 2, steps = 30, initial_step = -.5, plot = True, random_search=True)
 
     a.position = pos
 #    c, h = a.gradient_descent(d=.1, eta=1, plot = True, iterations = iterations)
