@@ -14,7 +14,6 @@
 import numpy as np
 import sys
 import os
-import json
 import time
 from scipy.interpolate import griddata
 import matplotlib.pyplot as plt
@@ -22,34 +21,95 @@ from scipy.optimize import curve_fit
 char = {'nt': '\\', 'posix': '/'}[os.name]
 sys.path.append(char.join(os.getcwd().split(char)[0:-2]))
 from sklearn.gaussian_process import GaussianProcessRegressor
-from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
+from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C, WhiteKernel
 def warn(*args, **kwargs):
     pass
 import warnings
 warnings.warn = warn
 
 class Optimizer():
-    def __init__(self, filename):
-        self.filename = filename
+    def __init__(self):
         self.position = np.array([])
         self.zero = np.array([])
         self.dim = len(self.position)
         self.mode = []
-        
-    def load_position(self):
-        ''' Recalls the last saved position to ensure that alignment is persistent
-            across device restarts '''
-        with open(self.filename, 'r') as file:
-            self.parameters = json.load(file)
-        self.position = self.parameters['position']
-        
+        self.noise = 0
+    ''' Base functions '''
     def actuate(self, point):
         self.position = point
+    
+    def cost(self, X = None):
+        ''' A gaussian cost function in N dimensions. Overload in child classes with appropriate function '''
+        cost = 1
+        sigma = 1
         
+        full_cost = True
         
-    def explore(self, span, steps, axes = None, plot = False):
-        ''' An N-dimensional grid search routine '''
+        if X is None:
+            X = [self.position]
+            full_cost = False
+        point = np.array(X)
+        for n in range(point.shape[1]):
+            cost *= np.exp(-point[:,n]**2/(2*sigma**2))
+        cost *= (1+np.random.normal(0,self.noise))
+        
+        if full_cost:
+            return cost
+        else:
+            return cost[-1]
+    
+    def measure(self, point, delay = 0):
+        self.actuate(point)
+        time.sleep(delay) 
+        return self.cost()
+
+    ''' Algorithms '''
+    
+    def gradient_calculate(self, d):
+        ''' Compute the gradient and second-derivative (neglecting off-diagonal Hessian components) '''
+        gradient = []
+        hessian = []
+        for i in range(len(self.position)):
+            vec = np.zeros(len(self.position))
+            vec[i] = d/2
+            
+            c0 = self.cost()
+        
+            self.actuate(self.position + vec)
+            cp = self.cost()
+            
+            self.actuate(self.position-2*vec)
+            cm = self.cost()
+            
+            gradient.append((cp-cm) / d)
+            hessian.append((cp-2*c0+cm)/d**2)
+            
+            self.actuate(self.position + vec)
+        return np.array(gradient), np.array(hessian)
+        
+    
+    def gradient_descent(self, d, eta=1, iterations = 30, threshold = 0.01, plot = False):
         initial = time.time()
+        cost = [self.cost()]
+        history = [self.position]
+        
+        for i in range(iterations):
+            g, h = self.gradient_calculate(d)
+            
+            self.actuate(self.position + eta*g)
+            cost.append(self.cost())
+            history.append(self.position)
+            
+        if plot:
+            plt.plot(cost, label = 'Gradient descent')
+            plt.xlabel('Iteration #')
+            plt.ylabel('Optimization function')
+            plt.legend()
+        print(time.time() - initial)
+        return cost, history
+    
+    def grid_search(self, span, steps, axes = None, plot = False):
+        ''' An N-dimensional grid search routine '''
         position = self.position
         if axes != None:
             position = np.array(position)[axes]
@@ -85,39 +145,11 @@ class Optimizer():
         fit = curve_fit(self.gaussian, points, cost, p0 = guess)[0]
         A, x0, y0, sigma_x, sigma_y = fit
         self.actuate([x0,y0])
-#        A,x0,y0,sigma_x,sigma_y = curve_fit(self.gaussian, points, cost)[0]
-#        print(A,x0,y0,sigma_x,sigma_y)
-#        self.actuate([x0,y0])
-#        self.mode.append(sigma_x)
-#        print(time.time()-initial)
-#        best_point = points[np.argmax(cost)]
-#        self.actuate(best_point)
-        return points, cost, fit
 
-    def gaussian(self, X, A, x0, y0, sigma_x, sigma_y):
-        x = X[:,0]
-        y = X[:,1]
-        return A*np.exp(-(x-x0)**2/sigma_x**2)*np.exp(-(y-y0)**2/sigma_y**2)
-        
-    # then study the size of the mode
-        #through trig move the mirror back and see how ideal step size and range change
-        #calibrate it from how big the fiber mode is in terms of distance from the fiber angle
-        #measure how big it is - the characteristic size of the gaussian peak, use that as voltage units, converted to angle later
-        #look at cost threshhold to stop fitting after a certain point (above ~.1)
-       #prepare gradient descent with given eta to approach the peak of cost
-       #make a gradient descent function for eta, get there in the fewest steps, calls first one with varying eta (start at 1)
-       #compute the derivative of the number of steps with respect to eta - gradient descent on that to optimize eta
-       #visualize the motion, so plot the trajectories (plot in white during the gradient descent, save all points in the sample (plt.scatter))
-       #or single axes with x and y components to find different gains for both axes
-       #compute gradient
-       #could learn both what dither and eta is, use gain and max eta as parameters for limits
-       
-    def measure(self, point):
-        self.actuate(point)
-        time.sleep(0.01) #in case a delay is needed
-        return self.cost()
+        return points, cost, fit
     
-    def firstSimplex(self, sampleRange): 
+    
+    def simplex_initial(self, sampleRange): 
         # generate self.dim+1 test points near current location
         points = []
         self.dim = len(self.position)
@@ -126,7 +158,7 @@ class Optimizer():
             points[i] = np.array(self.position)+np.random.uniform(low = -sampleRange/2, high = sampleRange/2, size=self.dim)
         return points
     
-    def nextSimplex(self, simplex, alpha = 1, gamma = 2, rho = 0.5, sigma = 0.5):
+    def simplex_next(self, simplex, alpha = 1, gamma = 2, rho = 0.5, sigma = 0.5):
         measures = np.zeros(self.dim+1)
         for i in range(len(simplex)):
             measures[i] = self.measure(simplex[i])
@@ -177,26 +209,19 @@ class Optimizer():
         
         return newSimplex, bestMeasure, centroidCost
     
-    def run_simplex(self):
-        print('Starting simplex routine.')
+    def simplex(self, iterations = 30, plot = False):
         initial = time.time()
-        maxIterations = 30
         #restarts = 5
         sampleRange = 0.5
 
-        simplex = self.firstSimplex(sampleRange)
-        simplex, bestMeasure, centroidCost = self.nextSimplex(simplex)
+        simplex = self.simplex_initial(sampleRange)
+        simplex, bestMeasure, centroidCost = self.simplex_next(simplex)
         
-        runCount = 0
-        previousCentroidCost = 0
         cost = []
         history = []
-        #for iteration in range(iterations-1):
-        #until reaches gain difference at centroid (np.abs(centroidCost - previousCentroidCost) / centroidCost > 0.0001)
-        #or reaches certain percentage of the past volume of the simplex
-        for i in range(maxIterations):
-            previousCentroidCost = centroidCost
-            simplex, bestMeasure, centroidCost = self.nextSimplex(simplex)
+
+        for i in range(iterations):
+            simplex, bestMeasure, centroidCost = self.simplex_next(simplex)
             cost.append(bestMeasure)
             history.append(simplex)
         '''
@@ -208,115 +233,17 @@ class Optimizer():
             for iteration in range(iterations-1):
                 simplex, bestMeasure = self.nextSimplex(simplex)
                 #print('Simplex restart %i, iteration %i; best = %f V'%(restart+1,iteration+1, bestMeasure))
-                '''
-        plt.plot(np.array(cost)) 
-        #x = np.array(history)[:,0]
-        #y = np.array(history)[:,1]
-        #plt.plot(x, y,'.')
-        print(bestMeasure)
-        return time.time() - initial #return elapsed time for simplex to run  
-            
-    def gradient(self, d):
-        #yield n-dimensional gradient - optimize later to reuse previous costs
-        gradient = []
-        for i in range(len(self.position)):
-            c2 = self.cost()
-            vec = np.zeros(len(self.position))
-            vec[i] = d
-            self.actuate(self.position + vec)
-            c1 = self.cost()
-            self.actuate(self.position-vec)
-            gradient.append((c1-c2) / d)
-        return np.array(gradient)
-        
-    
-    def optimize_gradient(self, d, eta=1, threshold = 0.01, plot = False):
-        initial = time.time()
-        cost = [self.cost()]
-        while True:
-            g = self.gradient(d)
-            self.actuate(self.position + eta * g)
-
-            cost.append(self.cost())
-            if np.abs((cost[-1] - cost[-2]) / cost[-2]) < threshold:
-                break
-            
+                '''   
         if plot:
-            plt.plot(cost)
-            plt.xlabel('Iteration #')
+            plt.plot(cost, label = 'Simplex')
+            plt.yscale('log')
             plt.ylabel('Optimization function')
-        print(time.time() - initial)
-        return cost
-    
-    def optimize_eta(self, min_eta = 1, max_eta = 25, steps = 25):
-        costs = []
-        etas = np.linspace(min_eta,max_eta,steps)
-        for eta in etas:
-            self.actuate([3,3])
-            cost = self.optimize_cost(d=0.1, eta=eta)
-            costs.append(cost)
-        
-        steps_to_converge = []
-        etas_successful = []
-        max_cost = np.array(cost).max()
-        for i in range(len(costs)):
-            if costs[i][-1] > 0.9*max_cost:
-                steps_to_converge.append(len(costs[i]))
-                etas_successful.append(etas[i])
-        plt.plot(etas_successful, steps_to_converge)
-        plt.xlabel('Gradient gain')
-        plt.ylabel('Steps to converge')
+            plt.xlabel('Iteration #')
+            plt.legend()
             
-    def test_optimization(self, cost, algorithm, params):
-        # for many loops:
-            # create random start point (with signal)
-            # run optimization from random start point
-            # return number of steps for convergence
-        return
-
-#    def cost(self, noise=.02):
-#        ''' A gaussian cost function in N dimensions. Overload in child classes with appropriate function '''
-#        cost = 1
-#        sigma = 1
-#        point = self.position
-#        for n in range(len(point)):
-#            cost *= np.exp(-point[n]**2/(2*sigma**2))
-#        cost *= (1+np.random.normal(0,noise))
-#        return cost   
-        
-    def cost(self, X = None, noise=.1):
-        ''' A gaussian cost function in N dimensions. Overload in child classes with appropriate function '''
-        cost = 1
-        sigma = 1
-        
-        full_cost = True
-        
-        if X is None:
-            X = [self.position]
-            full_cost = False
-        point = np.array(X)
-        for n in range(point.shape[1]):
-            cost *= np.exp(-point[:,n]**2/(2*sigma**2))
-        cost *= (1+np.random.normal(0,noise))
-        
-        if full_cost:
-            return cost
-        else:
-            return cost[-1]
-    
-    def save_position(self):
-        with open(self.filename, 'w') as file:
-            file.write(str(self.position))
-        
-    def read_position(self):
-        with open(self.filename, 'r') as file:
-            pos = file.read(self.filename)
-        pos = pos.split('[')[1].split(']')[0]
-        self.position = []
-        for coord in pos.split(','):
-            self.position.append(float(coord))
-    
-    def gaussian_process(self, iterations = 5, initial_step = .5, span = 10, steps = 100):
+        return time.time() - initial #return elapsed time for simplex to run  
+             
+    def gaussian_process(self, iterations = 5, initial_step = .5, span = 10, steps = 100, plot = False):
         X = np.array([self.position])
         N = X.shape[1]
         c = np.array([self.cost(X)])
@@ -345,23 +272,42 @@ class Optimizer():
             
             c_pred, sigma = gp.predict(points, return_std = True)
             
-            b = .5
+            b = 1
             effective_cost = b*c_pred + (1-b)*sigma
             X_new = points[np.argmax(effective_cost)]
-
+            
+        if plot:
+            plt.plot(c, label = 'Gaussian process')
+            plt.yscale('log')
+            plt.ylabel('Optimization function')
+            plt.xlabel('Iteration #')
+            plt.legend()
 
         return X, c, points, c_pred
 
 if __name__ == '__main__':
-    a = Optimizer(None)
-    a.position = np.array([3,2,1,4,5])
+    a = Optimizer()
+    d = 3
+    sigma = 5
+    SNR = 10
+    a.noise = 1/SNR
+    pos = np.ones(d)*sigma
+    iterations = 30
+
+
+    a.position = pos
     a.dim = len(a.position)
 
-    X, cost, points, c_pred = a.gaussian_process(iterations = 20, span = 1, steps = 30, initial_step = .5)
-    plt.plot(cost)
-    plt.yscale('log')
+    X, cost, points, c_pred = a.gaussian_process(iterations = iterations, span = 1, steps = 30, initial_step = -.5, plot = True)
+
+    a.position = pos
+#    c, h = a.gradient_descent(d=.1, eta=1, plot = True, iterations = iterations)
     
-#    print(a.run_simplex())
+    a.position = pos
+    t = a.simplex(plot = True, iterations = iterations)
+    
+#    plt.yscale('linear')
+    plt.title(r'Gaussian function optimization from %i$\sigma$, d=%i, SNR=%i'%(sigma,d, SNR))
 #    c = a.explore(5,30, axes = [0,1], plot = True)
 
     
