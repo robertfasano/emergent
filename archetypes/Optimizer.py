@@ -21,6 +21,12 @@ import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 char = {'nt': '\\', 'posix': '/'}[os.name]
 sys.path.append(char.join(os.getcwd().split(char)[0:-2]))
+from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
+def warn(*args, **kwargs):
+    pass
+import warnings
+warnings.warn = warn
 
 class Optimizer():
     def __init__(self, filename):
@@ -268,16 +274,36 @@ class Optimizer():
             # return number of steps for convergence
         return
 
-    def cost(self, noise=.02):
+#    def cost(self, noise=.02):
+#        ''' A gaussian cost function in N dimensions. Overload in child classes with appropriate function '''
+#        cost = 1
+#        sigma = 1
+#        point = self.position
+#        for n in range(len(point)):
+#            cost *= np.exp(-point[n]**2/(2*sigma**2))
+#        cost *= (1+np.random.normal(0,noise))
+#        return cost   
+        
+    def cost(self, X = None, noise=.1):
         ''' A gaussian cost function in N dimensions. Overload in child classes with appropriate function '''
         cost = 1
         sigma = 1
-        point = self.position
-        for n in range(len(point)):
-            cost *= np.exp(-point[n]**2/(2*sigma**2))
-        cost *= (1+np.random.normal(0,noise))
-        return cost   
         
+        full_cost = True
+        
+        if X is None:
+            X = [self.position]
+            full_cost = False
+        point = np.array(X)
+        for n in range(point.shape[1]):
+            cost *= np.exp(-point[:,n]**2/(2*sigma**2))
+        cost *= (1+np.random.normal(0,noise))
+        
+        if full_cost:
+            return cost
+        else:
+            return cost[-1]
+    
     def save_position(self):
         with open(self.filename, 'w') as file:
             file.write(str(self.position))
@@ -289,12 +315,53 @@ class Optimizer():
         self.position = []
         for coord in pos.split(','):
             self.position.append(float(coord))
+    
+    def gaussian_process(self, iterations = 5, initial_step = .5, span = 10, steps = 100):
+        X = np.array([self.position])
+        N = X.shape[1]
+        c = np.array([self.cost(X)])
+        
+        kernel = C(1.0, (1e-3, 1e3)) * RBF(10, (1e-2, 1e2))
+        gp = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=10)
+        x_pred = np.atleast_2d(np.linspace(0, 10, 1000)).T
+        x_pred, x_pred = np.meshgrid(x_pred, x_pred)
+        
+        X_new = X + initial_step
+        
+        for i in range(iterations):
+            X = np.atleast_2d(np.append(X, X_new)).T
+            X = X.reshape(-1,N)
+            c = self.cost(X)
+            gp.fit(X,c)
             
+            # do grid search on prediction
+            N = X.shape[1]
+            grid = []
+            for n in range(N):
+                space = np.linspace(X[-1][n]-span/2, X[-1][n]+span/2, steps)
+                grid.append(space)
+            grid = np.array(grid)
+            points = np.transpose(np.meshgrid(*[grid[n] for n in range(N)])).reshape(-1,N)
+            
+            c_pred, sigma = gp.predict(points, return_std = True)
+            
+            b = .5
+            effective_cost = b*c_pred + (1-b)*sigma
+            X_new = points[np.argmax(effective_cost)]
+
+
+        return X, c, points, c_pred
+
 if __name__ == '__main__':
-    a = Aligner(None)
-    a.position = np.array([0,0,5])
+    a = Optimizer(None)
+    a.position = np.array([3,2,1,4,5])
     a.dim = len(a.position)
-    print(a.run_simplex())
-    #c = a.explore(5,30, axes = [0,1], plot = True)
+
+    X, cost, points, c_pred = a.gaussian_process(iterations = 20, span = 1, steps = 30, initial_step = .5)
+    plt.plot(cost)
+    plt.yscale('log')
+    
+#    print(a.run_simplex())
+#    c = a.explore(5,30, axes = [0,1], plot = True)
 
     
