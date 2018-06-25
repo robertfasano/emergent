@@ -1,5 +1,9 @@
 from labjack import ljm
 from random import randrange
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+import time
+import numpy as np
 
 class LabJack():
     def __init__(self, device = "ANY", connection = "ANY", devid = "ANY", orange = 10, arange = 10):
@@ -29,9 +33,7 @@ class LabJack():
                 
         except:
             print('Failed to connect to LabJack (%s).'%self.devid)
-            
-        
-            
+
     def AIn(self, channel):
         return ljm.eReadName(self.handle, 'AIN%i'%channel)
     
@@ -142,11 +144,11 @@ class LabJack():
     def stream_read(self):
         return ljm.eStreamRead(self.handle)[0]
 
-    def stream_start(self, channels, scanRate = 1000, clock = None):
+    def stream_start(self, channels, scanRate = 1000, target_rate = 100, clock = None, subtract_DC = False):
         ''' Currently supports only one channel, e.g. "AIN0" '''
         ''' Streams in data from target channel(s), which is optionally externally clocked on CIO3. '''
-        ljm.eWriteName(self.handle, "LJM_STREAM_SCANS_RETURN", "LJM_STREAM_SCANS_ALL")     
-        ljm.eWriteName(self.handle, "LJM_STREAM_RECEIVE_TIMEOUT_MS", 0)
+#        ljm.writeLibraryConfigS("STREAM_SCANS_RETURN",1)     
+#        ljm.writeLibraryConfigS("LJM_STREAM_RECEIVE_TIMEOUT", 0)
         
         if clock != None:
             ljm.eWriteName(self.handle, "STREAM_CLOCK_SOURCE", 2)
@@ -164,9 +166,9 @@ class LabJack():
             return
         numAddresses = len(aScanListNames)
         aScanList = ljm.namesToAddresses(numAddresses, aScanListNames)[0]
-        scansPerRead = int(scanRate / 2)
+        scansPerRead = int(scanRate / target_rate)
+#        scansPerRead = 1
                  
-        # Ensure triggered stream is disabled.
         ljm.eWriteName(self.handle, "STREAM_TRIGGER_INDEX", 0)
 
         # Write the inputs' negative channels, ranges, stream settling time, and resolution
@@ -178,7 +180,40 @@ class LabJack():
         # Configure and start stream
         scanRate = ljm.eStreamStart(self.handle, scansPerRead, numAddresses, aScanList, scanRate)
         print("\nStream started with a scan rate of %0.0f Hz." % scanRate)
+        
+#        plt.ion()
+        self.fig = plt.figure()
+        self.ax = plt.gca()
+#        plt.autoscale()
+#        time.sleep(1)
+        data = self.stream_read()
+        self.averaging_window = 10
+        data = self.stream_moving_average(data,n=self.averaging_window)
+        if subtract_DC:
+            data -= np.mean(data)
+        self.image, = self.ax.plot(data)
+        self.subtract_DC = subtract_DC
+        self.animation = animation.FuncAnimation(self.fig, self.stream_update, interval=0, blit=True)
 
             
+    def stream_update(self, *args):
+        data = self.stream_read()
+        if self.subtract_DC:
+            data -= np.mean(data)
+        data = self.stream_moving_average(data, n=self.averaging_window)
+        self.image.set_ydata(data)
+        return self.image,
+
+    def stream_moving_average(self, a, n=3) :
+        ret = np.cumsum(a, dtype=float)
+        ret[n:] = ret[n:] - ret[:-n]
+        return ret[n - 1:] / n
+            
 if __name__ == '__main__':
-    t7 = LabJack()
+    t7 = LabJack(devid='470016973')
+    try:
+        ljm.eStreamStop(t7.handle)
+    except:
+        pass
+#    t7.stream_start('AIN0', clock='CIO3', scanRate = 100)
+    t7.stream_start('AIN0', scanRate = 100000, subtract_DC = True)
