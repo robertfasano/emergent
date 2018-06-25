@@ -5,8 +5,9 @@ STOPBITS_ONE = serial.STOPBITS_ONE
 EIGHTBITS = serial.EIGHTBITS
 
 class Serial():
-    def __init__(self, port = 'COM1', baudrate = 19200, parity = serial.PARITY_NONE, stopbits = serial.STOPBITS_ONE, bytesize = serial.EIGHTBITS, timeout = 1, encoding = 'ascii'):
+    def __init__(self, port = 'COM1', baudrate = 19200, parity = serial.PARITY_NONE, stopbits = serial.STOPBITS_ONE, bytesize = serial.EIGHTBITS, timeout = 1, encoding = 'ascii', name = 'serial device'):
         self.port, self.baudrate, self.parity, self.stopbits, self.bytesize, self.timeout, self.encoding = port, baudrate, parity, stopbits, bytesize, timeout, encoding
+        self.name = name
         self._connected = 0
         self.connect()
         
@@ -27,7 +28,7 @@ class Serial():
             self.ser.open()
             self._connected = 1
         except serial.serialutil.SerialException:
-            print('Could not open port %s'%self.port)
+            print('Could not open %s on port %s.'%(self.name, self.port))
             
     def command(self, cmd, output = False, reply = True, suffix = '\r'):
         cmd += suffix
