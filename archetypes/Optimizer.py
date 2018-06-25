@@ -51,17 +51,18 @@ class Optimizer():
         point = np.array(X)
         for n in range(point.shape[1]):
             cost *= np.exp(-point[:,n]**2/(2*sigma**2))
-        cost *= (1+np.random.normal(0,self.noise))
-        
+#        cost *= (1+np.random.normal(0,self.noise))
+        cost += np.random.normal(0,self.noise)
+
         if full_cost:
             return cost
         else:
             return cost[-1]
     
-    def measure(self, point, delay = 0):
-        self.actuate(point)
+    def measure(self, point, actuate, cost, delay = 0):
+        actuate(point)
         time.sleep(delay) 
-        return self.cost()
+        return cost()
 
     ''' Algorithms '''
     
@@ -149,19 +150,21 @@ class Optimizer():
         return points, cost, fit
     
     
-    def simplex_initial(self, sampleRange): 
+    def simplex_initial(self, sampleRange, X = None): 
         # generate self.dim+1 test points near current location
+        if X is None:
+            X = self.position
         points = []
-        self.dim = len(self.position)
-        points = np.zeros([self.dim+1, self.dim])
-        for i in range(self.dim+1):
-            points[i] = np.array(self.position)+np.random.uniform(low = -sampleRange/2, high = sampleRange/2, size=self.dim)
+        dim = len(X)
+        points = np.zeros([dim+1, dim])
+        for i in range(dim+1):
+            points[i] = np.array(X)+np.random.uniform(low = -sampleRange/2, high = sampleRange/2, size=dim)
         return points
     
-    def simplex_next(self, simplex, alpha = 1, gamma = 2, rho = 0.5, sigma = 0.5):
+    def simplex_next(self, simplex, alpha = 1, gamma = 2, rho = 0.5, sigma = 0.5, actuate = actuate, cost = cost):
         measures = np.zeros(self.dim+1)
         for i in range(len(simplex)):
-            measures[i] = self.measure(simplex[i])
+            measures[i] = self.measure(simplex[i], actuate = actuate, cost = cost)
 
         sortIndex = np.argsort(measures)
         sortedMeasures = measures[sortIndex]
@@ -177,13 +180,13 @@ class Optimizer():
         centroid = np.sum(bestPoints, axis = 0)/(self.dim)
         
         reflection = centroid + alpha * (centroid - worstPoint)
-        reflectionValue = self.measure(reflection)
+        reflectionValue = self.measure(reflection, actuate = actuate, cost = cost)
 
         if sortedMeasures[1] < reflectionValue < sortedMeasures[-1]:
             newSimplex[0] = reflection
         if reflectionValue > sortedMeasures[-1]:
             expansion = centroid + gamma*(reflection - centroid)
-            expansionValue = self.measure(expansion)
+            expansionValue = self.measure(expansion, actuate = actuate, cost = cost)
 
             if expansionValue > sortedMeasures[-1]:
                 newSimplex[0] = expansion
@@ -198,31 +201,35 @@ class Optimizer():
                 betterValue = sortedMeasures[0]
             contraction = rho*betterPoint +(1-rho)*centroid
 
-            if self.measure(contraction) > betterValue:             
+            if self.measure(contraction, actuate = actuate, cost = cost) > betterValue:             
                 newSimplex[0] = contraction
             else:
                 for i in range(self.dim):
                     newSimplex[i] = sigma*newSimplex[i]+(1-sigma)*bestPoint
      
         centroid = np.sum(newSimplex, axis = 0)/(self.dim)
-        centroidCost = self.measure(centroid)
+        centroidCost = self.measure(centroid, actuate = actuate, cost = cost)
         
         return newSimplex, bestMeasure, centroidCost
     
-    def simplex(self, iterations = 30, plot = False):
-        initial = time.time()
+    def simplex(self, iterations = 30, plot = False, actuate = None, cost = None, X = None, sampleRange = 0.5):
+        if actuate is None:
+            actuate = self.actuate
+        if cost is None:
+            cost = self.cost
+        if X is None: 
+            X = self.position
         #restarts = 5
-        sampleRange = 0.5
-
-        simplex = self.simplex_initial(sampleRange)
-        simplex, bestMeasure, centroidCost = self.simplex_next(simplex)
         
-        cost = []
+        simplex = self.simplex_initial(sampleRange, X = X)
+        simplex, bestMeasure, centroidCost = self.simplex_next(simplex, actuate = actuate, cost = cost)
+        
+        c = []
         history = []
 
         for i in range(iterations):
-            simplex, bestMeasure, centroidCost = self.simplex_next(simplex)
-            cost.append(bestMeasure)
+            simplex, bestMeasure, centroidCost = self.simplex_next(simplex, actuate = actuate, cost = cost)
+            c.append(bestMeasure)
             history.append(simplex)
         '''
         sampleReduction = 0.5
@@ -235,31 +242,38 @@ class Optimizer():
                 #print('Simplex restart %i, iteration %i; best = %f V'%(restart+1,iteration+1, bestMeasure))
                 '''   
         if plot:
-            plt.plot(cost, label = 'Simplex')
+            plt.plot(c, label = 'Simplex')
             plt.yscale('log')
             plt.ylabel('Optimization function')
             plt.xlabel('Iteration #')
             plt.legend()
             
-        return time.time() - initial #return elapsed time for simplex to run  
+        return history, c 
              
+
+    def gaussian_process_actuate(self, X):
+        self.virtualX = X
+        
+    def gaussian_process_cost(self, b = 0.5):
+        c_pred, sigma =  self.gp.predict(self.virtualX, return_std = True)
+        return b*c_pred + (1-b)*sigma
+    
     def gaussian_process(self, iterations = 5, initial_step = .5, span = 10, steps = 100, plot = False):
         X = np.array([self.position])
         N = X.shape[1]
         c = np.array([self.cost(X)])
         
         kernel = C(1.0, (1e-3, 1e3)) * RBF(10, (1e-2, 1e2))
-        gp = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=10)
+        self.gp = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=10)
         x_pred = np.atleast_2d(np.linspace(0, 10, 1000)).T
         x_pred, x_pred = np.meshgrid(x_pred, x_pred)
         
         X_new = X + initial_step
-        
         for i in range(iterations):
             X = np.atleast_2d(np.append(X, X_new)).T
             X = X.reshape(-1,N)
             c = self.cost(X)
-            gp.fit(X,c)
+            self.gp.fit(X,c)
             
             # do grid search on prediction
             N = X.shape[1]
@@ -270,11 +284,15 @@ class Optimizer():
             grid = np.array(grid)
             points = np.transpose(np.meshgrid(*[grid[n] for n in range(N)])).reshape(-1,N)
             
-            c_pred, sigma = gp.predict(points, return_std = True)
-            
+            c_pred, sigma = self.gp.predict(points, return_std = True)
             b = 1
             effective_cost = b*c_pred + (1-b)*sigma
             X_new = points[np.argmax(effective_cost)]
+#            
+            # do simplex optimization on prediction
+#            self.virtualX = X[-1]
+#            h,c = self.simplex(sampleRange = span, iterations = 35, actuate = self.gaussian_process_actuate, cost = self.gaussian_process_cost, X = self.virtualX)
+#            X_new = h[-1][0]
             
         if plot:
             plt.plot(c, label = 'Gaussian process')
@@ -287,13 +305,12 @@ class Optimizer():
 
 if __name__ == '__main__':
     a = Optimizer()
-    d = 3
-    sigma = 5
+    d = 2
+    sigma = 2
     SNR = 10
     a.noise = 1/SNR
     pos = np.ones(d)*sigma
     iterations = 30
-
 
     a.position = pos
     a.dim = len(a.position)
