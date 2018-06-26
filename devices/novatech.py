@@ -2,10 +2,11 @@ import serial
 import sys
 sys.path.append('O:/Public/Yb clock/')
 from labAPI.protocols.serial import Serial
+from labAPI.archetypes.device import Device
 
-
-class Novatech():
+class Novatech(Device):
     def __init__(self, port = 'COM7', connect = True):
+        super().__init__(name='novatech')
         self.port = port
         self._connected = 0
         if connect:

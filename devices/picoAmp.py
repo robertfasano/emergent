@@ -14,7 +14,7 @@ from labAPI.archetypes.device import Device
 class PicoAmp(Device, Optimizer):
     def __init__(self, name = 'picoAmp', labjack = None, connect = True):
         Device.__init__(self, name)
-        Optimizer.__init__(self, None)
+        Optimizer.__init__(self)
         self.state = 0
         self.addr = {}
         self.addr['A'] = '000'
