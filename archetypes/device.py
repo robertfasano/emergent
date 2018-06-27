@@ -15,10 +15,15 @@ import numpy as np
 import json
 import os
 
-from threading import Timer
-
 class Device():
-    def __init__(self, name, base_path = None, parent = 0):         # set parent to 0 instead of None just for the day
+    def __init__(self, name, base_path = None, lowlevel = True, parent = None):         # set parent to 0 instead of None just for the day
+        ''' Instantiate a Device. 
+        Args:
+            str name: a unique identifier for this device
+            str base_path: an optional filepath
+            bool lowlevel: if True, then this is a low-level device with its own params file
+            Device parent: a higher-level Device incorporating this one     '''
+
         self.parent = parent
         self.name = name
         
@@ -32,28 +37,30 @@ class Device():
                 self.id = json.load(file)['id']
         
         ''' Load a setpoint from parameter file '''
-        self.params = {}
+        self.params = {'default': {}}
         self.setpoint = 'default'
         
-        if parent is not None:
+        if lowlevel:
             self.load(self.setpoint)
             self.params_to_state()
+            
+        if parent is not None:
+            self.update_parent(self.setpoint)
+            if hasattr(self.parent, 'devices'):
+                self.parent.devices.append(self)
+            else:
+                self.parent.devices = [self]
 
-        with open(self.filename, 'r') as file:
-            self.id = json.load(file)['id']
+#        with open(self.filename, 'r') as file:
+#            self.id = json.load(file)['id']
         
-        self.setpoint = 'default'
-        self.load(self.setpoint)
-        self.params_to_state()
-        
-        self.toggle = 0
         
     def actuate(self, state):
         ''' Change the internal state to a specified state and update self.params accordingly '''
         self.state = state
         self.state_to_params()
         
-    def save(self, setpoint):           # need to integrate with parent
+    def save(self, setpoint):           
         ''' Read in setpoints from file, append or update current setpoint, and write '''
         with open(self.filename, 'r') as file:
             setpoints = json.load(file)
@@ -65,8 +72,8 @@ class Device():
         ''' Read in setpoints from file '''
         with open(self.filename, 'r') as file:
             self.params = json.load(file)[setpoint]
-#        if self.parent is not None:
-#            self.parent.params[setpoint][self.name] = self.params[setpoint]
+        if self.parent is not None:
+            self.parent.params[self.name] = self.params
             
     def delete(self, setpoint):         
         ''' Read in setpoints from file, delete target setpoint, and write '''
@@ -80,7 +87,7 @@ class Device():
             print('Only top-level devices can delete setpoints.')
             
     def params_to_state(self):
-        ''' Prepare the state vector of the Device by parsing all state variables '''
+        ''' Prepare the normalized state vector of the Device by parsing all state variables '''
         self.state = np.array([])
         self.min = np.array([])
         self.max = np.array([])
@@ -88,28 +95,30 @@ class Device():
         for s in self.params.keys():
             if self.params[s]['type'] == 'state':
                 self.state = np.append(self.state, self.params[s]['value'])
-                self.max = np.append(self.state, self.params[s]['max'])
-                self.min = np.append(self.state, self.params[s]['min'])
+                self.max = np.append(self.max, self.params[s]['max'])
+                self.min = np.append(self.min, self.params[s]['min'])
                 indices = np.append(indices, self.params[s]['index'])
                 
         self.state = self.state[np.argsort(indices)]
         self.min = self.min[np.argsort(indices)]
         self.max = self.max[np.argsort(indices)]
         
-        self.state = (self.state-self.min)/(self.max-self.min)      # normalize
+#        self.state = (self.state-self.min)/(self.max-self.min)      # normalize
         
     def state_to_params(self):
         ''' Update the params file with the current values of the state vector '''
         for s in self.params.keys():
             if self.params[s]['type'] == 'state':
-                self.params[s]['value'] = self.state[self.params[s]['index']]
-        self.save(self.setpoint)
-          
+                self.params[s]['value'] = self.state[self.params[s]['index']]          
                 state = self.state[self.params[s]['index']]
-                state = self.min + state(self.max-self.min)         # unnormalize
+#                state = self.min + state*(self.max-self.min)         # unnormalize
                 self.params[s]['value'] = state
         self.save(self.setpoint)
         
+    def update_parent(self, setpoint):
+        ''' Push current params upstream to parent '''
+        self.parent.params[self.name] = self.params
+
     def get_param_by_index(self, index):
         for s in self.params.keys():
             try:
