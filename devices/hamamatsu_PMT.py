@@ -7,8 +7,8 @@ import numpy as np
 from labAPI.archetypes.device import Device
 
 class PMT(Device):
-    def __init__(self, connect = False):
-        super().__init__(name='PMT')
+    def __init__(self, connect = False, parent = None):
+        super().__init__(name='PMT', parent = parent)
         self._connected = 0
         if connect:
             self._connect()

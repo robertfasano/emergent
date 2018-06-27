@@ -6,8 +6,8 @@ from labAPI.archetypes.device import Device
 
 
 class Genesys(Device):
-    def __init__(self, port = 'COM13', name = 'genesys', connect = True):
-        super().__init__(name)
+    def __init__(self, port = 'COM13', name = 'genesys', connect = True, parent = None):
+        super().__init__(name, parent = parent)
         self.port = port
         self.addr = 6
         self._connected = 0

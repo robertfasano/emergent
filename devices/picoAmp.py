@@ -12,8 +12,8 @@ from labAPI.archetypes.device import Device
 #from simplex import Simplex
 #
 class PicoAmp(Device, Optimizer):
-    def __init__(self, name = 'picoAmp', labjack = None, connect = True):
-        Device.__init__(self, name)
+    def __init__(self, name = 'picoAmp', labjack = None, connect = True, parent = None):
+        Device.__init__(self, name, parent = parent)
         Optimizer.__init__(self)
         self.state = 0
         self.addr = {}

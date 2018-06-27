@@ -11,8 +11,8 @@ from labAPI.archetypes.Optimizer import Optimizer
 from labAPI.archetypes.device import Device
 
 class Agilis(Device, Optimizer):
-    def __init__(self, port, name = 'agilis', connect = True):
-        Device.__init__(self, name)
+    def __init__(self, port, name = 'agilis', connect = True, parent = None):
+        Device.__init__(self, name, parent = parent)
         self.port = port
         self._connected = 0
         if connect:

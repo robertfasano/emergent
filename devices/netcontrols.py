@@ -5,8 +5,8 @@ import numpy as np
 from labAPI.archetypes.device import Device
 
 class NetControls(Device):
-    def __init__(self, port = 'COM11', connect = True, base_path = None):
-        Device.__init__(self, name = 'feedthrough', base_path = base_path)
+    def __init__(self, port = 'COM11', connect = True, base_path = None, parent = None):
+        Device.__init__(self, name = 'feedthrough', base_path = base_path, parent = parent)
         self.load('default')
         self.port = port
         self._connected = 0
@@ -88,6 +88,7 @@ class NetControls(Device):
         self.wait_until_stopped()
         self.position = self.get_position()
         self.save_position(self.position)
+        self.params['position']['value'] = (pos / 10**4)+self.zero
         self.save(self.setpoint)
         
         return self.position
