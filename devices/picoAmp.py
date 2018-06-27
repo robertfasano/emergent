@@ -14,7 +14,7 @@ from labAPI.archetypes.device import Device
 class PicoAmp(Device, Optimizer):
     def __init__(self, name = 'picoAmp', labjack = None, connect = True):
         Device.__init__(self, name)
-        Optimizer.__init__(self, None)
+        Optimizer.__init__(self)
         self.state = 0
         self.addr = {}
         self.addr['A'] = '000'
@@ -26,6 +26,7 @@ class PicoAmp(Device, Optimizer):
         self.waitTime = 0.01            # time to sleep between moving and measuring
         if connect:
             self._connect()
+            
     def _connect(self, labjack):
         if labjack == None:
             labjack = LabJack(devid='470016970')
@@ -33,7 +34,7 @@ class PicoAmp(Device, Optimizer):
         if self.labjack._connected:
             self.labjack.spi_initialize(mode=0)
             self.connect()
-            self.actuate([])
+            self.actuate(self.position)
             
 
     def connect(self):
