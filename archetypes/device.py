@@ -60,18 +60,29 @@ class Device():
     def params_to_state(self):
         ''' Prepare the state vector of the Device by parsing all state variables '''
         self.state = np.array([])
+        self.min = np.array([])
+        self.max = np.array([])
         indices = np.array([])
         for s in self.params.keys():
             if self.params[s]['type'] == 'state':
                 self.state = np.append(self.state, self.params[s]['value'])
+                self.max = np.append(self.state, self.params[s]['max'])
+                self.min = np.append(self.state, self.params[s]['min'])
                 indices = np.append(indices, self.params[s]['index'])
+                
         self.state = self.state[np.argsort(indices)]
+        self.min = self.min[np.argsort(indices)]
+        self.max = self.max[np.argsort(indices)]
+        
+        self.state = (self.state-self.min)/(self.max-self.min)      # normalize
         
     def state_to_params(self):
         ''' Update the params file with the current values of the state vector '''
         for s in self.params.keys():
             if self.params[s]['type'] == 'state':
-                self.params[s]['value'] = self.state[self.params[s]['index']]
+                state = self.state[self.params[s]['index']]
+                state = self.min + state(self.max-self.min)         # unnormalize
+                self.params[s]['value'] = state
         self.save(self.setpoint)
         
     def get_param_by_index(self, index):
