@@ -1,7 +1,26 @@
 import multiprocessing
+
+class ProcessHandler():
+    def __init__(self):
+        self.threads = []
         
+    def run_in_process(self, target, args = None):
+        ''' Allows a target function of the parent object to be run in a process '''
+        if type(target) == str:
+            target = getattr(self, target)
+        assert callable(target)
+        Process(target=target, args=args, parent = self)
+        
+    def quit_process(self, target):
+        if type(target) == str:
+            target = getattr(self, target)
+        assert callable(target)
+        for thread in self.threads:
+            if thread.target == target:
+                thread.stop()
+                
 class Process(multiprocessing.Process):
-    def __init__(self, target, args, parent, singular = True):
+    def __init__(self, target, args, parent):
         self.target = target
         if args is not None:
             super().__init__(target=target, args = args)
@@ -10,14 +29,6 @@ class Process(multiprocessing.Process):
             
         ''' Add process to parent '''
         self.parent = parent
-        ''' If singular = True, only one instance of this function can be running.
-            Check if any threads in the parent are running this yet. '''
-        if singular:
-            if hasattr(self.parent, 'threads'):
-                for thread in self.parent.threads:
-                    if thread.target == self.target:
-                        return 
-
         if not hasattr(self.parent, 'threads'):
             self.parent.threads = [self]
         else:
@@ -30,26 +41,21 @@ class Process(multiprocessing.Process):
             del self.parent.threads[self.parent.threads.index(self)]
         self.terminate()
         
-        
-''' Below is a test function demonstrating how singular processes can be implemented without requiring
-    additional functions to start the process in. Once the test_function.run() is started, it can be stopped
-    by calling test_function.threads[0].stop(), which deletes the Process from the threads list and terminates
-    the process.'''
-class test_function():
+
+class test_class(ProcessHandler):
+    def __init__(self):
+        super().__init__()
+                
     def test_function(self):
-        ''' Check if thread for this function is currently running; if not, start it '''
-        process = Process(target = self.test_function, args = None, parent = self, singular = True)
-        if not process.is_alive():
-            import time
-            i=0
-            while True:
-                i += 1
-                print(i)
-                time.sleep(0.25)
-    
+        import time
+        i=0
+        while True:
+            i += 1
+            print(i)
+            time.sleep(0.25)
+            
 if __name__ == '__main__':
-    t = test_function()
-    t.test_function()
-    
+    t = test_class()
+    t.run_in_process('test_function')    
     
     
