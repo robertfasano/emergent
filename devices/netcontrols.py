@@ -5,13 +5,14 @@ import numpy as np
 from labAPI.archetypes.device import Device
 
 class NetControls(Device):
-    def __init__(self, port = 'COM11', connect = True):
-        Device.__init__(self, name = 'feedthrough')
+    def __init__(self, port = 'COM11', connect = True, base_path = None):
+        Device.__init__(self, name = 'feedthrough', base_path = base_path)
         self.load('default')
         self.port = port
         self._connected = 0
         if connect:
             self._connect()
+            
     def _connect(self):
         self.serial = Serial(port = self.port, baudrate = 38400, encoding = 'ascii', parity = PARITY_NONE, stopbits = STOPBITS_ONE, bytesize = EIGHTBITS, timeout = 1, name = 'NetControls driver')
 
@@ -19,9 +20,10 @@ class NetControls(Device):
             self._connected = 1
             self.axis = 1
             self.initialize()
-            self.zero = self.params['position']         # controller thinks it's at zero when restarted, so move relative to last position
-            self.set_load_error(self.params['load_error'])
-            self.set_velocity(self.params['velocity'])
+            self.zero = self.params['position']['value']       # controller thinks it's at zero when restarted, so move relative to last position
+            self.position = self.zero
+            self.set_load_error(self.params['load_error']['value'])
+            self.set_velocity(self.params['velocity']['value'])
         
     def command(self, cmd, val = None, axis = None):
         if val == None:
@@ -75,15 +77,18 @@ class NetControls(Device):
         return self.command(cmd = 'L', val = error)
     
     def set_position(self, pos):
+        print('Current position:', self.position - self.zero)
         pos -= self.zero
         pos = np.min([pos, 75])
         np.max([pos, 0])
+        print('Moving to:', pos)
         pos *= 10**4
 
         self.command(cmd = 'p', val = pos)
         self.wait_until_stopped()
         self.position = self.get_position()
         self.save_position(self.position)
+        self.save(self.setpoint)
         
         return self.position
     
@@ -112,6 +117,6 @@ class NetControls(Device):
                 return
             
 if __name__ == '__main__':
-    nc = NetControls(port = 'COM29')
+    nc = NetControls(port = 'COM11', base_path = 'O:\\Public\\Yb clock\\portable')
 
 
