@@ -7,8 +7,11 @@ import scipy.signal as sig
 from scipy.stats import linregress
 import time
 from threading import Thread
-class LabJack():
+from labAPI.archetypes.Parallel import ProcessHandler
+
+class LabJack(ProcessHandler):
     def __init__(self, device = "ANY", connection = "ANY", devid = "ANY", orange = 10, arange = 10):
+        super().__init__()
         self.device = device
         self.connection = connection
         self.devid = devid
@@ -45,24 +48,29 @@ class LabJack():
         else:
             ljm.eWriteName(self.handle, "TDAC%i"%channel, value)
     
-    def PWM(self, channel, frequency, duty_cycle):
+    def PWM(self, channel, frequency, duty_cycle, handle = None):
         ''' Args:
                 int channel: 0, 2-5 are valid for the LabJack T7
                 float frequency
                 float duty_cycle    '''
-        roll_value = self.clock / frequency
-        config_a = duty_cycle * roll_value / 100
-        ljm.eWriteName(self.handle, "DIO_EF_CLOCK0_ENABLE", 0);    # Disable the clock source
-        ljm.eWriteName(self.handle, "DIO_EF_CLOCK0_DIVISOR", 1); 	# Configure Clock0's divisor
-        ljm.eWriteName(self.handle, "DIO_EF_CLOCK0_ROLL_VALUE", roll_value); 	# Configure Clock0's roll value
-        ljm.eWriteName(self.handle, "DIO_EF_CLOCK0_ENABLE", 1); 	# Enable the clock source
-
-        # Configure EF Channel Registers:
-        ljm.eWriteName(self.handle, "DIO%i_EF_ENABLE"%channel, 0); 	# Disable the EF system for initial configuration
-        ljm.eWriteName(self.handle, "DIO%i_EF_INDEX"%channel, 0); 	# Configure EF system for PWM
-        ljm.eWriteName(self.handle, "DIO%i_EF_OPTIONS"%channel, 0); 	# Configure what clock source to use: Clock0
-        ljm.eWriteName(self.handle, "DIO%i_EF_CONFIG_A"%channel, config_a); 	# Configure duty cycle
-        ljm.eWriteName(self.handle, "DIO%i_EF_ENABLE"%channel, 1); 	# Enable the EF system, PWM wave is now being outputted
+        try:
+            if handle == None:
+                handle = self.handle
+            roll_value = self.clock / frequency
+            config_a = duty_cycle * roll_value / 100
+            ljm.eWriteName(handle, "DIO_EF_CLOCK0_ENABLE", 0);    # Disable the clock source
+            ljm.eWriteName(handle, "DIO_EF_CLOCK0_DIVISOR", 1); 	# Configure Clock0's divisor
+            ljm.eWriteName(handle, "DIO_EF_CLOCK0_ROLL_VALUE", roll_value); 	# Configure Clock0's roll value
+            ljm.eWriteName(handle, "DIO_EF_CLOCK0_ENABLE", 1); 	# Enable the clock source
+    
+            # Configure EF Channel Registers:
+            ljm.eWriteName(handle, "DIO%i_EF_ENABLE"%channel, 0); 	# Disable the EF system for initial configuration
+            ljm.eWriteName(handle, "DIO%i_EF_INDEX"%channel, 0); 	# Configure EF system for PWM
+            ljm.eWriteName(handle, "DIO%i_EF_OPTIONS"%channel, 0); 	# Configure what clock source to use: Clock0
+            ljm.eWriteName(handle, "DIO%i_EF_CONFIG_A"%channel, config_a); 	# Configure duty cycle
+            ljm.eWriteName(handle, "DIO%i_EF_ENABLE"%channel, 1); 	# Enable the EF system, PWM wave is now being outputted
+        except Exception as e:
+            print(e)
             
     def spi_initialize(self, mode = 3):  #, CS, CLK, MISO, MOSI):
         ''' Args:
@@ -289,7 +297,7 @@ class LabJack():
             except KeyboardInterrupt:
                 return
             
-    def stream_in_out(self, input_channel, output_channel, scanRate, targetRate): 
+    def stream_in_out(self, input_channel, output_channel, scanRate, targetRate, stopped = False): 
         ''' Stream data in on input_channel and out on output_channel '''
         OUT_NAMES = [output_channel]
         NUM_OUT_CHANNELS = len(OUT_NAMES)
@@ -297,10 +305,10 @@ class LabJack():
         
         # Allocate memory for the stream-out buffer
         ljm.eWriteName(self.handle, "STREAM_OUT0_TARGET", outAddress)
-        ljm.eWriteName(self.handle, "STREAM_OUT0_BUFFER_SIZE", 512)
+        ljm.eWriteName(self.handle, "STREAM_OUT0_BUFFER_SIZE", 2**14)
         ljm.eWriteName(self.handle, "STREAM_OUT0_ENABLE", 1)
         
-        ljm.eWriteName(self.handle, "STREAM_OUT0_SET_LOOP", 1)
+        ljm.eWriteName(self.handle, "STREAM_OUT0_SET_LOOP", 0)
                 
         # Stream Configuration
         POS_IN_NAMES = [input_channel]
@@ -310,7 +318,8 @@ class LabJack():
         
         # Add positive channels to scan list
         aScanList = ljm.namesToAddresses(NUM_IN_CHANNELS, POS_IN_NAMES)[0]
-        scansPerRead = scanRate / targetRate
+        scansPerRead = int(scanRate / targetRate)
+        
         
         aScanList.extend([4800]) # Add the scan list outputs to the end of the scan list. 4800 = STREAM_OUT0
 
@@ -326,14 +335,22 @@ class LabJack():
         scanRate = ljm.eStreamStart(self.handle, scansPerRead, TOTAL_NUM_CHANNELS, aScanList, scanRate)
         print("\nStream started with a scan rate of %0.0f Hz." % scanRate)
     
-        while True:
-            ret = ljm.eStreamRead(self.handle)
-            data = ret[0][0:(scansPerRead * NUM_IN_CHANNELS)]
-            
-            # Write values to the stream-out buffer
-            target = ['STREAM_OUT0_BUFFER_F32'] * len(data)
-            ljm.eWriteNames(self.handle, len(data), target, data)
+        while not stopped():
+            try:
+                ret = ljm.eStreamRead(self.handle)
+                data = np.array(ret[0][0:(scansPerRead * NUM_IN_CHANNELS)])
+#                data = ret[0]
+                
+                data = self.process_data(data)
+                # Write values to the stream-out buffer
+                target = ['STREAM_OUT0_BUFFER_F32'] * len(data)
+                ljm.eWriteNames(self.handle, len(data), target, list(data))
+            except KeyboardInterrupt:
+                return
         
+    def process_data(self, data):
+        data = np.ones(len(data))*np.sum(data) / len(data)
+        return data
         
         
         
@@ -346,4 +363,6 @@ if __name__ == '__main__':
 #    t7.stream_start('AIN0', clock='CIO3', scanRate = 100)
 #    t7.stream_start('AIN0', scanRate = 100000, target_rate = 100, subtract_DC = True)
 #    t7.stream_start('AIN0', scanRate = 100000, subtract_DC = True)
-    t7.stream_in_out('AIN0', 'DAC0', scanRate = 100000, targetRate = 100)
+    t7.run_thread(target='stream_in_out',args=('AIN0', 'DAC0', 1000, 1))
+#    t7.run_thread('PWM', args=(0,1,50))
+#    t7.run_process('PWM', args=(0,1,50, t7.handle))
