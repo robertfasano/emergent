@@ -14,24 +14,35 @@ sys.path.append(char.join(os.getcwd().split(char)[0:-2]))
 import numpy as np
 import json
 import os
+
 class Device():
-    def __init__(self, name):
+    def __init__(self, name, base_path = None, parent = 0):         # set parent to 0 instead of None just for the day
+        self.parent = parent
         self.name = name
-        self.params = {}
-        self.filename = os.path.realpath('..')+'/settings/%s.txt'%self.name
         
-        with open(self.filename, 'r') as file:
-            self.id = json.load(file)['id']
+        ''' Prepare filepath for parameter file '''
+        if parent is not None:
+            if base_path == None:
+                base_path = os.path.realpath('..')
+            self.filename = base_path +'/settings/%s.txt'%self.name
             
-        self.load('default')
-        self.params_to_state()
+            with open(self.filename, 'r') as file:
+                self.id = json.load(file)['id']
+        
+        ''' Load a setpoint from parameter file '''
+        self.params = {}
+        self.setpoint = 'default'
+        
+        if parent is not None:
+            self.load(self.setpoint)
+            self.params_to_state()
         
     def actuate(self, state):
         ''' Change the internal state to a specified state and update self.params accordingly '''
         self.state = state
         self.state_to_params()
         
-    def save(self, setpoint):
+    def save(self, setpoint):           # need to integrate with parent
         ''' Read in setpoints from file, append or update current setpoint, and write '''
         with open(self.filename, 'r') as file:
             setpoints = json.load(file)
@@ -39,18 +50,23 @@ class Device():
         with open(self.filename, 'w') as file:
             json.dump(setpoints,file)
             
-    def load(self, setpoint):
+    def load(self, setpoint):   # need to uncomment when parent integration is complete
         ''' Read in setpoints from file '''
         with open(self.filename, 'r') as file:
             self.params = json.load(file)[setpoint]
-    
-    def delete(self, setpoint):
+#        if self.parent is not None:
+#            self.parent.params[setpoint][self.name] = self.params[setpoint]
+            
+    def delete(self, setpoint):         
         ''' Read in setpoints from file, delete target setpoint, and write '''
-        with open(self.filename, 'r') as file:
-            setpoints = json.load(file)
-        del setpoints[setpoint]
-        with open(self.filename, 'w') as file:
-            json.dump(setpoints,file)    
+        if self.parent is None:
+            with open(self.filename, 'r') as file:
+                setpoints = json.load(file)
+            del setpoints[setpoint]
+            with open(self.filename, 'w') as file:
+                json.dump(setpoints,file)    
+        else:
+            print('Only top-level devices can delete setpoints.')
             
     def params_to_state(self):
         ''' Prepare the state vector of the Device by parsing all state variables '''
@@ -67,7 +83,8 @@ class Device():
         for s in self.params.keys():
             if self.params[s]['type'] == 'state':
                 self.params[s]['value'] = self.state[self.params[s]['index']]
-           
+        self.save(self.setpoint)
+          
     def get_param_by_index(self, index):
         for s in self.params.keys():
             try:
