@@ -208,7 +208,71 @@ class LabJack():
         ret = np.cumsum(a, dtype=float)
         ret[n:] = ret[n:] - ret[:-n]
         return ret[n - 1:] / n
+    
+    def stream_DSP(self, input_channel, output_channel, dsp, scanRate = 100000, targetRate = 100):
+        ''' Streams in on input_channel, performs signal processing on the PC, then streams out on output_channel '''
+        
+        # Initialize input stream
+        self.stream_start(input_channel, scanRate = scanRate, target_rate = targetRate)
+        
+        # start threaded DSP
+        self.dsp_thread = Thread(target = self.stream_DSP_thread, args = (input_channel, output_channel, dsp, scanRate, targetRate))
+        self.dsp_thread.start()
+        
+    def stream_DSP_thread(self, input_channel, output_channel, dsp, scanRate, targetRate):
+        while True:
+            data = self.stream_read()
+            data = dsp(data)
             
+            
+    def stream_in_out(self, input_channel, output_channel, scanRate, targetRate): 
+        ''' Stream data in on input_channel and out on output_channel '''
+        OUT_NAMES = [output_channel]
+        NUM_OUT_CHANNELS = len(OUT_NAMES)
+        outAddress = ljm.nameToAddress(OUT_NAMES[0])[0]
+        
+        # Allocate memory for the stream-out buffer
+        ljm.eWriteName(self.handle, "STREAM_OUT0_TARGET", outAddress)
+        ljm.eWriteName(self.handle, "STREAM_OUT0_BUFFER_SIZE", 512)
+        ljm.eWriteName(self.handle, "STREAM_OUT0_ENABLE", 1)
+        
+        ljm.eWriteName(self.handle, "STREAM_OUT0_SET_LOOP", 1)
+                
+        # Stream Configuration
+        POS_IN_NAMES = [input_channel]
+        NUM_IN_CHANNELS = len(POS_IN_NAMES)
+        
+        TOTAL_NUM_CHANNELS = NUM_IN_CHANNELS + NUM_OUT_CHANNELS
+        
+        # Add positive channels to scan list
+        aScanList = ljm.namesToAddresses(NUM_IN_CHANNELS, POS_IN_NAMES)[0]
+        scansPerRead = scanRate / targetRate
+        
+        aScanList.extend([4800]) # Add the scan list outputs to the end of the scan list. 4800 = STREAM_OUT0
+
+        ljm.eWriteName(self.handle, "STREAM_TRIGGER_INDEX", 0)        # Ensure triggered stream is disabled.
+        ljm.eWriteName(self.handle, "STREAM_CLOCK_SOURCE", 0)       # Enabling internally-clocked stream.
+
+        aNames = ["AIN_ALL_NEGATIVE_CH", "%s_RANGE"%input_channel,
+                  "STREAM_SETTLING_US", "STREAM_RESOLUTION_INDEX"]
+        aValues = [ljm.constants.GND, 10.0, 0, 0]
+        numFrames = len(aNames)
+        ljm.eWriteNames(self.handle, numFrames, aNames, aValues)
+    
+        scanRate = ljm.eStreamStart(self.handle, scansPerRead, TOTAL_NUM_CHANNELS, aScanList, scanRate)
+        print("\nStream started with a scan rate of %0.0f Hz." % scanRate)
+    
+        while True:
+            ret = ljm.eStreamRead(self.handle)
+            data = ret[0][0:(scansPerRead * NUM_IN_CHANNELS)]
+            
+            # Write values to the stream-out buffer
+            target = ['STREAM_OUT0_BUFFER_F32'] * len(data)
+            ljm.eWriteNames(self.handle, len(data), target, data)
+        
+        
+        
+        
 if __name__ == '__main__':
     t7 = LabJack(devid='470016973')
     try:
@@ -216,4 +280,5 @@ if __name__ == '__main__':
     except:
         pass
 #    t7.stream_start('AIN0', clock='CIO3', scanRate = 100)
-    t7.stream_start('AIN0', scanRate = 100000, subtract_DC = True)
+#    t7.stream_start('AIN0', scanRate = 100000, subtract_DC = True)
+    t7.stream_in_out('AIN0', 'DAC0', scanRate = 100000, targetRate = 100)
