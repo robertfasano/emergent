@@ -2,9 +2,11 @@ from labjack import ljm
 from random import randrange
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-import time
 import numpy as np
-
+import scipy.signal as sig
+from scipy.stats import linregress
+import time
+from threading import Thread
 class LabJack():
     def __init__(self, device = "ANY", connection = "ANY", devid = "ANY", orange = 10, arange = 10):
         self.device = device
@@ -12,7 +14,7 @@ class LabJack():
         self.devid = devid
         self.arange = arange
         self._connected = 0
-        
+        self.averaging_array = []
         self._connect()
     
     def _connect(self):
@@ -147,6 +149,7 @@ class LabJack():
     def stream_start(self, channels, scanRate = 1000, target_rate = 100, clock = None, subtract_DC = False):
         ''' Currently supports only one channel, e.g. "AIN0" '''
         ''' Streams in data from target channel(s), which is optionally externally clocked on CIO3. '''
+        self.scanCount = 0
 #        ljm.writeLibraryConfigS("STREAM_SCANS_RETURN",1)     
 #        ljm.writeLibraryConfigS("LJM_STREAM_RECEIVE_TIMEOUT", 0)
         
@@ -166,7 +169,7 @@ class LabJack():
             return
         numAddresses = len(aScanListNames)
         aScanList = ljm.namesToAddresses(numAddresses, aScanListNames)[0]
-        scansPerRead = int(scanRate / target_rate)
+        scansPerRead = int(scanRate / target_rate / 1) 
 #        scansPerRead = 1
                  
         ljm.eWriteName(self.handle, "STREAM_TRIGGER_INDEX", 0)
@@ -184,23 +187,61 @@ class LabJack():
 #        plt.ion()
         self.fig = plt.figure()
         self.ax = plt.gca()
-#        plt.autoscale()
+        plt.autoscale()
 #        time.sleep(1)
         data = self.stream_read()
-        self.averaging_window = 10
+        self.averaging_window = 1
         data = self.stream_moving_average(data,n=self.averaging_window)
+#        if subtract_DC:
+#            data -= np.mean(data)
+        # initialize highpass
+        self.nyquist = scanRate / 2
+#        self.sos = self.highpass_create(f0=.01)
+#        data, self.zi = self.highpass_apply(self.sos, data, zi=None)
         if subtract_DC:
-            data -= np.mean(data)
+            data -= np.min(data)
+            
+            
         self.image, = self.ax.plot(data)
+        self.ax.set_ylim([0,.1])
         self.subtract_DC = subtract_DC
+        
+            
+        
+
         self.animation = animation.FuncAnimation(self.fig, self.stream_update, interval=0, blit=True)
 
             
     def stream_update(self, *args):
         data = self.stream_read()
-        if self.subtract_DC:
-            data -= np.mean(data)
+
         data = self.stream_moving_average(data, n=self.averaging_window)
+#        data, self.zi = self.highpass_apply(self.sos, data, zi=self.zi)
+
+        contrast = np.max(data) - np.min(data)
+        contrast *= 10000
+        contrast = int(contrast)
+        
+        self.scanCount += 1
+        if self.scanCount % 250:
+            with open('log.txt', 'a') as file:
+                file.write('%i\n'%contrast)
+            if self.subtract_DC:
+                data -= np.min(data)
+
+        N_avg = 1000
+        self.averaging_array.append(contrast)
+        if len(self.averaging_array) > N_avg:
+            del self.averaging_array[0]
+        print(int(np.mean(self.averaging_array)))
+            
+#        subset = data[data > np.mean(data)]
+#        subset = subset[subset-np.mean(subset) < 3*np.std(subset)]
+#        x = np.linspace(0,len(subset), len(subset))
+#        fit = linregress(x, subset)
+#        slope = fit[0]
+#        error = fit[4]
+#        print(slope/error)
         self.image.set_ydata(data)
         return self.image,
 
@@ -209,6 +250,29 @@ class LabJack():
         ret[n:] = ret[n:] - ret[:-n]
         return ret[n - 1:] / n
             
+    def highpass_apply(self, sos, data, zi = None):
+        if zi is None:
+            zi = np.zeros([np.shape(sos)[0],2])
+        data, zi = sig.sosfilt(sos, data, zi = zi)
+        return data, zi
+    
+    def highpass_create(self, f0):
+        z,p,k = sig.ellip(12, 0.01, 100, f0, 'low', output = 'zpk')
+        return sig.zpk2sos(z,p,k)
+        
+    def square_wave(self, channel, A, period, HV=False):
+        self.sq_wave_thread = Thread(target=self.square_wave_thread, args=(channel, A, period, HV))
+        self.sq_wave_thread.start()
+        
+    def square_wave_thread(self, channel, A, period, HV=False):
+        state = 0
+        while True:
+            try:
+                time.sleep(period/2)
+                state = (state+1) % 2
+                self.AOut(channel, A*state, HV=HV)
+            except KeyboardInterrupt:
+                return
 if __name__ == '__main__':
     t7 = LabJack(devid='470016973')
     try:
@@ -216,4 +280,4 @@ if __name__ == '__main__':
     except:
         pass
 #    t7.stream_start('AIN0', clock='CIO3', scanRate = 100)
-    t7.stream_start('AIN0', scanRate = 100000, subtract_DC = True)
+    t7.stream_start('AIN0', scanRate = 100000, target_rate = 100, subtract_DC = True)
