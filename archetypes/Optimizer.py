@@ -44,7 +44,7 @@ class Optimizer():
     def cost(self, X = None):
         ''' A gaussian cost function in N dimensions. Overload in child classes with appropriate function '''
         cost = 1
-        sigma = 1
+        sigma = 1/3
         
         full_cost = True
         
@@ -54,8 +54,8 @@ class Optimizer():
         point = np.array(X)
         for n in range(point.shape[1]):
             cost *= np.exp(-point[:,n]**2/(2*sigma**2))
-        for n in range(point.shape[1]):
-            cost *= 2*np.exp(-(point[:,n]-1)**2/(2*sigma**2/4))
+#        for n in range(point.shape[1]):
+#            cost *= 2*np.exp(-(point[:,n]-1)**2/(2*sigma**2/4))
 #        cost *= (1+np.random.normal(0,self.noise))
         cost += np.random.normal(0,self.noise)
 
@@ -255,29 +255,26 @@ class Optimizer():
             
         return history, c 
              
-
-    def gaussian_process_actuate(self, X):
-        self.virtualX = X
-        
-    def gaussian_process_cost(self, b = 0.5):
-        c_pred, sigma =  self.gp.predict(self.virtualX, return_std = True)
-        return b*c_pred + (1-b)*sigma
     
-    def gaussian_process_next_sample(self, acquisition_func, gaussian_process, evaluated_loss, greater_is_better=False, 
+    def gaussian_process_next_sample(self, b, acquisition_func, gaussian_process, evaluated_loss, greater_is_better=False, 
                                      restarts=25):
-        bounds = np.array(list(itertools.repeat([-10,10], len(self.position)))) #for normalized parameters, go from -1,1
+        bounds = np.array(list(itertools.repeat([0,1], len(self.position)))) #for normalized parameters, go from -1,1
         best_x = None
-        best_acquisition_value = 1
+        best_acquisition_value = 1          
         n_params = len(self.position) #bounds.shape[0]
 
         for starting_point in np.random.uniform(bounds[0][0], bounds[0][1], size=(restarts, n_params)):
+#            res = minimize(fun=acquisition_func,
+#                       x0=starting_point.reshape(1, -1),
+#                       bounds=bounds,
+#                       method='L-BFGS-B',
+#                       args=(gaussian_process, evaluated_loss, greater_is_better, n_params))
             res = minimize(fun=acquisition_func,
                        x0=starting_point.reshape(1, -1),
-                       bounds=None,
+                       bounds=bounds,
                        method='L-BFGS-B',
-                       args=(gaussian_process, evaluated_loss, greater_is_better, n_params))
-
-            if res.fun < best_acquisition_value:
+                       args=(b, gaussian_process))
+            if res.fun < best_acquisition_value:        #
                 best_acquisition_value = res.fun
                 best_x = res.x
             
@@ -285,9 +282,13 @@ class Optimizer():
             #if len(self.sigma) > 100 and np.std(self.sigma[-1:-100]) < 0.003:
             #if len(self.mu) > 100 and np.std(self.mu[-1:-100]) < 0.003:   
                 #return best_x
-
+#        print(best_x)
         return best_x
 
+    def effective_cost(self, x, b, gp):
+        mu, sigma = gp.predict(x, return_std = True)
+        return -(b*mu+np.sqrt(1-b**2)*sigma)
+    
     def expected_improvement(self, x, gaussian_process_regressor, evaluated_loss, greater_is_better=True, n_params=1):
         x_to_predict = x.reshape(-1, len(self.position))
     
@@ -307,8 +308,8 @@ class Optimizer():
             expected_improvement = scaling_factor * (mu - loss_optimum) * norm.cdf(Z) + sigma * norm.pdf(Z)
             expected_improvement[sigma == 0.0] == 0.0
         
-        #return -1 * mu #maximize the value
-        return -1 * expected_improvement #maximize learning about model
+        return -1 * mu #maximize the value
+#        return -1 * expected_improvement #maximize learning about model
     
     #see the following source for Gaussian Processing: https://github.com/thuijskens/bayesian-optimization/blob/master/python/gp.py
     def gaussian_process(self, iterations = 5, initial_step = .5, span = 10, steps = 100, plot = False, random_search = False):
@@ -317,8 +318,6 @@ class Optimizer():
         c = np.array([self.cost(X)])
         kernel = C(1.0, (1e-3, 1e3)) * RBF(10, (1e-2, 1e2))
         self.gp = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=10)
-#        x_pred = np.atleast_2d(np.linspace(0, 10, 1000)).T
-#        x_pred, x_pred = np.meshgrid(x_pred, x_pred)
         
         X_new = X + initial_step
         for i in range(iterations):
@@ -326,7 +325,6 @@ class Optimizer():
             X = X.reshape(-1,N)
             c = self.cost(X)
             self.gp.fit(X,c)
-            
             # do grid search on prediction OR scipy.optimize's minimize
             if random_search:
                 N = X.shape[1]
@@ -344,13 +342,10 @@ class Optimizer():
             else:
                 points = []
                 c_pred = []
-                X_new = self.gaussian_process_next_sample(self.expected_improvement, self.gp, c, greater_is_better=True, restarts=100)
-#           
+                b = np.cos(2*np.pi*i/(iterations-1))
+                X_new = self.gaussian_process_next_sample(b, self.effective_cost, self.gp, c, greater_is_better=True, restarts=10)
             
-            # do simplex optimization on prediction
-#            self.virtualX = X[-1]
-#            h,c = self.simplex(sampleRange = span, iterations = 35, actuate = self.gaussian_process_actuate, cost = self.gaussian_process_cost, X = self.virtualX)
-#            X_new = h[-1][0]
+
             
         if plot:
             plt.plot(c, label = 'Gaussian process')
@@ -368,27 +363,27 @@ class Optimizer():
 
 if __name__ == '__main__':
     a = Optimizer()
-    d = 2
-    sigma = .5
-    SNR = 50
+    d = 4
+    X0 = .2
+    SNR = 10
     a.noise = 1/SNR
-    pos = np.ones(d)*sigma
-    pos = np.array([-1,-1])
-    iterations = 30
+    pos = np.ones(d)*X0
+    pos = np.random.uniform(0, 1, size=(1,d))
+    iterations = 20
 
     a.position = pos
     a.dim = len(a.position)
 
-    X, cost, points, c_pred = a.gaussian_process(iterations = iterations, span = 2, steps = 30, initial_step = -.5, plot = True, random_search=True)
+    X, cost, points, c_pred = a.gaussian_process(iterations = iterations, span = 2, steps = 30, initial_step = -.05, plot = True, random_search=False)
 
     a.position = pos
 #    c, h = a.gradient_descent(d=.1, eta=1, plot = True, iterations = iterations)
     
-    a.position = pos
-    t = a.simplex(plot = True, iterations = iterations)
+#    a.position = pos
+#    t = a.simplex(plot = True, iterations = iterations)
     
 #    plt.yscale('linear')
-    plt.title(r'Gaussian function optimization from %i$\sigma$, d=%i, SNR=%i'%(sigma,d, SNR))
+    plt.title(r'Gaussian function optimization from %f, d=%i, SNR=%i'%(X0,d, SNR))
 #    c = a.explore(5,30, axes = [0,1], plot = True)
 
     
