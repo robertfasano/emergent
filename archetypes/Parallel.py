@@ -19,14 +19,14 @@ class ProcessHandler():
             if thread.target == target:
                 thread.stop()
                 
-    def run_thread(self, target, args = None):
+    def run_thread(self, target, args = None, stoppable = True):
         ''' Allows a target function of the parent object to be run in a thread '''
         if type(target) == str:
             target = getattr(self, target)
         assert callable(target)
-        Thread(target=target, args=args, parent = self)            
+        Thread(target=target, args=args, parent = self, stoppable = stoppable)            
         
-    def quit_thread(self, target, args = None):
+    def quit_thread(self, target):
         if type(target) == str:
             target = getattr(self, target)
         assert callable(target)
@@ -57,7 +57,7 @@ class Process(multiprocessing.Process):
         self.terminate()
 
 class Thread(threading.Thread):
-    def __init__(self, target, args, parent):
+    def __init__(self, target, args, parent, stoppable = True):
         self.target = target
         self._stopper = threading.Event()
 
@@ -67,8 +67,11 @@ class Thread(threading.Thread):
             args = tuple(args)
             super().__init__(target=target, args = args)
         else: 
-            args = (self.stopped)
-            super().__init__(target=target, args = args)
+            if stoppable:
+                args = (self.stopped,)
+                super().__init__(target=target, args = args)
+            else:   
+                super().__init__(target=target)
             
         ''' Add process to parent '''
         self.parent = parent
