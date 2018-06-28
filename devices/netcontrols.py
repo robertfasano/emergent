@@ -22,8 +22,8 @@ class NetControls(Device):
             self.initialize()
             self.zero = self.params['position']['value']       # controller thinks it's at zero when restarted, so move relative to last position
             self.position = self.zero
-            self.set_load_error(self.params['load_error']['value'])
-            self.set_velocity(self.params['velocity']['value'])
+            self.set_load_error(5000)
+            self.set_velocity(10000)
         
     def command(self, cmd, val = None, axis = None):
         if val == None:
