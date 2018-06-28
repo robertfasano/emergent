@@ -7,19 +7,16 @@ import numpy as np
 from labAPI.archetypes.device import Device
 
 class PMT(Device):
-    def __init__(self, connect = False, parent = None):
+    def __init__(self, connect = False, parent = None, labjack = None):
         super().__init__(name='PMT', parent = parent)
         self._connected = 0
+        if labjack == None:
+            labjack = LabJack('470016970')
+        self.labjack = labjack
         if connect:
             self._connect()
 
-    
-    def _connect(self, labjack):
-        if labjack == None:
-            labjack = LabJack(self.id)
-            
-        self.labjack = labjack
-        
+    def _connect(self):
         if self.labjack._connected:
             self.labjack.AOut(3,-5, HV=True)
             self.labjack.AOut(2,5, HV=True)

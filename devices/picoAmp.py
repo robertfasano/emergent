@@ -24,13 +24,14 @@ class PicoAmp(Device, Optimizer):
         self.addr['ALL'] = '111'
         self.position = [self.params['X']['value'], self.params['Y']['value']]
         self.waitTime = 0.01            # time to sleep between moving and measuring
-        if connect:
-            self._connect()
-            
-    def _connect(self, labjack):
         if labjack == None:
             labjack = LabJack(devid='470016970')
         self.labjack = labjack
+
+        if connect:
+            self._connect()
+            
+    def _connect(self):
         if self.labjack._connected:
             self.labjack.spi_initialize(mode=0)
             self.connect()
