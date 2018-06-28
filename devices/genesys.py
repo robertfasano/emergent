@@ -24,6 +24,9 @@ class Genesys(Device):
             self.set_voltage(6)
             self._connected = 1
         
+    def actuate(self, state):
+        self.set_current(state[0])
+        self.state = state
     def command(self, cmd):      
         reply = self.serial.command(cmd)
         return reply

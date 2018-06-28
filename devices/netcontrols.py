@@ -25,6 +25,9 @@ class NetControls(Device):
             self.set_load_error(5000)
             self.set_velocity(10000)
         
+    def actuate(self, state):
+        self.set_position(state[0])
+        self.state = state
     def command(self, cmd, val = None, axis = None):
         if val == None:
             val = ''
@@ -77,11 +80,11 @@ class NetControls(Device):
         return self.command(cmd = 'L', val = error)
     
     def set_position(self, pos):
-        print('Current position:', self.position - self.zero)
+#        print('Current position:', self.position - self.zero)
         pos -= self.zero
         pos = np.min([pos, 75])
         np.max([pos, 0])
-        print('Moving to:', pos)
+#        print('Moving to:', pos)
         pos *= 10**4
 
         self.command(cmd = 'p', val = pos)
