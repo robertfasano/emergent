@@ -92,17 +92,23 @@ class Device():
         self.state = np.array([])
         self.min = np.array([])
         self.max = np.array([])
-        indices = np.array([])
+        self.indices = np.array([])
         for s in self.params.keys():
             if self.params[s]['type'] == 'state':
                 self.state = np.append(self.state, self.params[s]['value'])
                 self.max = np.append(self.max, self.params[s]['max'])
                 self.min = np.append(self.min, self.params[s]['min'])
-                indices = np.append(indices, self.params[s]['index'])
-                
-        self.state = self.state[np.argsort(indices)]
-        self.min = self.min[np.argsort(indices)]
-        self.max = self.max[np.argsort(indices)]
+                self.indices = np.append(self.indices, self.params[s]['index'])
+        sorted_indices = np.argsort(self.indices)
+        for x in [self.indices, self.state, self.min, self.max]:
+            x = x[sorted_indices]
+        self.indices = self.indices.astype(int)
+        if len(self.indices) > 0:
+            self.start_index = np.min(self.indices)
+        
+#        self.state = self.state[np.argsort(indices)]
+#        self.min = self.min[np.argsort(indices)]
+#        self.max = self.max[np.argsort(indices)]
         
 #        self.state = (self.state-self.min)/(self.max-self.min)      # normalize
         
@@ -110,8 +116,8 @@ class Device():
         ''' Update the params file with the current values of the state vector '''
         for s in self.params.keys():
             if self.params[s]['type'] == 'state':
-                self.params[s]['value'] = self.state[self.params[s]['index']]          
-                state = self.state[self.params[s]['index']]
+                self.params[s]['value'] = self.state[self.params[s]['index']-self.start_index]          
+                state = self.state[self.params[s]['index']-self.start_index]
 #                state = self.min + state*(self.max-self.min)         # unnormalize
                 self.params[s]['value'] = state
         self.save(self.setpoint)
