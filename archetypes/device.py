@@ -37,7 +37,8 @@ class Device():
                 self.id = json.load(file)['id']
         
         ''' Load a setpoint from parameter file '''
-        self.params = {'default': {}}
+#        self.params = {'default': {}}
+        self.params = {}
         self.setpoint = 'default'
         
         if lowlevel:
@@ -45,7 +46,7 @@ class Device():
             self.params_to_state()
             
         if parent is not None:
-            self.update_parent(self.setpoint)
+            self.update_parent()
             if hasattr(self.parent, 'devices'):
                 self.parent.devices.append(self)
             else:
@@ -115,7 +116,7 @@ class Device():
                 self.params[s]['value'] = state
         self.save(self.setpoint)
         
-    def update_parent(self, setpoint):
+    def update_parent(self):
         ''' Push current params upstream to parent '''
         self.parent.params[self.name] = self.params
 
