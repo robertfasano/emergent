@@ -12,8 +12,8 @@ from labAPI.archetypes.device import Device
 #from simplex import Simplex
 #
 class PicoAmp(Device, Optimizer):
-    def __init__(self, name = 'picoAmp', labjack = None, connect = True, parent = None):
-        Device.__init__(self, name, parent = parent)
+    def __init__(self, name = 'picoAmp', labjack = None, connect = True, parent = None, block = 0, lowlevel = True):
+        Device.__init__(self, name, parent = parent, lowlevel = lowlevel)
         Optimizer.__init__(self)
         self.state = 0
         self.addr = {}
@@ -23,26 +23,34 @@ class PicoAmp(Device, Optimizer):
         self.addr['D'] = '011'
         self.addr['ALL'] = '111'
         self.position = [self.params['X']['value'], self.params['Y']['value']]
+#        self.position = [0, 0]
+
         self.waitTime = 0.01            # time to sleep between moving and measuring
         if labjack == None:
             labjack = LabJack(devid='470016970')
         self.labjack = labjack
+        self.block = block
 
         if connect:
             self._connect()
             
     def _connect(self):
         if self.labjack._connected:
-            self.labjack.spi_initialize(mode=0)
+            CLK = {0:0, 4:4}[self.block]
+            CS = {0:1, 4:7}[self.block]
+            MISO = {0:3, 4:5}[self.block]
+            MOSI = {0:2, 4:6}[self.block]
+            self.labjack.spi_initialize(mode=0, block = self.block, CLK = CLK, CS = CS, MISO = MISO, MOSI = MOSI)
             self.connect()
             self.actuate(self.position)
             
 
     def connect(self):
         ''' Initializes the DAC and sets the bias voltage on all four channels to 80 V. '''
-        
         self.state = 1
-        self.labjack.PWM(3, 49000, 50)
+        pwm_channel = {0:3, 4:5}[self.block]
+        self.labjack.PWM(pwm_channel, 49000, 50)
+
 #        for pin in [17,18,21,22, 28, 29, 30, 31]:
 #            os.system('config-pin p9.%i spi'%pin)
         FULL_RESET = '001010000000000000000001'    #2621441
@@ -266,9 +274,11 @@ def binary(string):
 
 
 if __name__ == '__main__':
-    pico = PicoAmp()
-    pico.actuate([-60, 0])
-#    pico.squareWave(80,2)     # aligned for differential amplitude of 80 V
+    import sys
+    sys.path.append('O:/Public/Yb clock')
+    pico = PicoAmp(lowlevel = False)
+#    pico.actuate([-60, 0])
+    pico.squareWave(80,2)     # aligned for differential amplitude of 80 V
 #    pico.circle()
 #    pico.moveTo([19.94,23.5,0,0])
 #    pico.pwm(channel="P9_14")       # starts PWM on pins 12 and 14
