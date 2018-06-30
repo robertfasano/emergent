@@ -40,8 +40,11 @@ class LabJack(ProcessHandler):
         except:
             print('Failed to connect to LabJack (%s).'%self.devid)
 
-    def AIn(self, channel):
-        return ljm.eReadName(self.handle, 'AIN%i'%channel)
+    def AIn(self, channel, num = 1):
+        vals = []
+        for i in range(num):
+            vals.append(ljm.eReadName(self.handle, 'AIN%i'%channel))
+        return np.mean(vals)
 
     def AOut(self, channel, value, prefix = 'DAC', HV=False):
         if not HV:
