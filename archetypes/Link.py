@@ -16,7 +16,10 @@ class Link(QObject):
 
         ''' Register the object in the context of QML '''
         self.engine.rootContext().setContextProperty(self.name, self)
-
+        if hasattr(self.engine, 'hubs'):
+            self.engine.hubs.append(self)
+        else:
+            self.engine.hubs = [self]
         ''' Define properties '''
         self._property1 = 0
 
