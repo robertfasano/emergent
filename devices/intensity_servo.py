@@ -21,11 +21,10 @@ class IntensityServo(Device):
             self.actuate([3,3])
             self._connected = 1
 
-    def actuate(self, state):
+    def _actuate(self, state):
         ''' state[0] corresponds to slowing, [1] to cooling '''
         self.set_setpoint('slowing', state[0])
         self.set_setpoint('cooling', state[1])
-        self.state = state
 
     def set_setpoint(self, target, value):
         self.labjack.AOut({'slowing':0, 'cooling':1}[target], value, prefix = 'FIO')

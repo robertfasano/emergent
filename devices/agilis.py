@@ -56,7 +56,7 @@ class Agilis(Device):
             self.position = np.zeros(len(2*self.mirrors))
             self._connected = 1
 
-    def actuate(self, pos):
+    def _actuate(self, pos):
         ''' Software-based absolute positioning, achieved by moving relative to a known last position '''
         for mirror in self.mirrors:
             self.set_channel(mirror)
@@ -64,8 +64,6 @@ class Agilis(Device):
                 step = pos[mirror+axis-1]-self.position[mirror+axis-1]
                 if step != 0:
                     self.relative_move(mirror, axis, step)
-        self._save(self.setpoint)
-        self._update_parent()
 
     def command(self, cmd, reply = True):
         self.serial.command(cmd, suffix = '\r\n', reply = reply)

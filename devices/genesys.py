@@ -13,31 +13,29 @@ class Genesys(Device):
         self._connected = 0
         if connect:
             self._connect()
-            
+
     def _connect(self):
         self.serial = Serial(port = self.port, baudrate = 19200, encoding = 'ascii', parity = PARITY_NONE, stopbits = STOPBITS_ONE, bytesize = EIGHTBITS, timeout = 1, name = 'TDK Genesys')
-        
+
         if self.serial._connected:
             self.command('ADR %i'%self.addr)
             self.command('RST')
             self.command('OUT 1')
             self.set_voltage(6)
             self._connected = 1
-        
-    def actuate(self, state):
+
+    def _actuate(self, state):
         self.set_current(state[0])
-        self.state = state
-    def command(self, cmd):      
+        
+    def command(self, cmd):
         reply = self.serial.command(cmd)
         return reply
-    
+
     def set_current(self, I):
         return self.command('PC %f'%I)
-    
+
     def set_voltage(self, V):
         return self.command('PV %f'%V)
-    
+
 if __name__ == '__main__':
     p = Genesys()
-
-

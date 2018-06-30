@@ -24,10 +24,9 @@ class NetControls(Device):
             self.set_load_error(5000)
             self.set_velocity(10000)
 
-    def actuate(self, state):
+    def _actuate(self, state):
         self.set_position(state[0])
-        self.state = state
-        
+
     def command(self, cmd, val = None, axis = None):
         if val == None:
             val = ''

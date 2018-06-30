@@ -47,7 +47,7 @@ class PicoAmp(Device):
         APPLY_BIAS_VOLTAGE = '00' + '011' + self.addr['ALL'] + biasString
         self.command(APPLY_BIAS_VOLTAGE)
 
-    def actuate(self, state):
+    def _actuate(self, state):
         ''' Sets two-axis beam alignment according to differential voltages in the list state.'''
         state = np.clip(state, self.min, self.max)
         self.setDifferential(state[0], 'X')
