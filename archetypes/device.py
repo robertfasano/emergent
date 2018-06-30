@@ -42,22 +42,22 @@ class Device():
         self.setpoint = 'default'
 
         if lowlevel:
-            self.load(self.setpoint)
-            self.params_to_state()
+            self._load(self.setpoint)
+            self._params_to_state()
 
         if parent is not None:
-            self.update_parent()
+            self._update_parent()
             if hasattr(self.parent, 'devices'):
                 self.parent.devices.append(self)
             else:
                 self.parent.devices = [self]
 
-    def actuate(self, state):
+    def _actuate(self, state):
         ''' Change the internal state to a specified state and update self.params accordingly '''
         self.state = state
-        self.state_to_params()
+        self._state_to_params()
 
-    def save(self, setpoint):
+    def _save(self, setpoint):
         ''' Read in setpoints from file, append or update current setpoint, and write '''
         with open(self.filename, 'r') as file:
             setpoints = json.load(file)
@@ -65,14 +65,14 @@ class Device():
         with open(self.filename, 'w') as file:
             json.dump(setpoints,file)
 
-    def load(self, setpoint):
+    def _load(self, setpoint):
         ''' Read in setpoints from file '''
         with open(self.filename, 'r') as file:
             self.params = json.load(file)[setpoint]
         if self.parent is not None:
             self.parent.params[self.name] = self.params
 
-    def delete(self, setpoint):
+    def _delete(self, setpoint):
         ''' Read in setpoints from file, delete target setpoint, and write '''
         if self.parent is None:
             with open(self.filename, 'r') as file:
@@ -83,7 +83,7 @@ class Device():
         else:
             print('Only top-level devices can delete setpoints.')
 
-    def params_to_state(self):
+    def _params_to_state(self):
         ''' Prepare the normalized state vector of the Device by parsing all state variables '''
         self.state = np.array([])
         self.min = np.array([])
@@ -102,22 +102,22 @@ class Device():
         if len(self.indices) > 0:
             self.start_index = np.min(self.indices)
 
-    def state_to_params(self):
+    def _state_to_params(self):
         ''' Update the params file with the current values of the state vector '''
         for s in self.params.keys():
             if self.params[s]['type'] == 'state':
                 self.params[s]['value'] = self.state[self.params[s]['index']-self.start_index]
                 state = self.state[self.params[s]['index']-self.start_index]
                 self.params[s]['value'] = state
-        self.save(self.setpoint)
+        self._save(self.setpoint)
         if self.parent is not None:
-            self.update_parent
+            self._update_parent
 
-    def update_parent(self):
+    def _update_parent(self):
         ''' Push current params upstream to parent '''
         self.parent.params[self.name] = self.params
 
-    def get_param_by_index(self, index):
+    def _get_param_by_index(self, index):
         for s in self.params.keys():
             try:
                 if self.params[s]['index'] == index:
@@ -125,22 +125,22 @@ class Device():
             except:
                 pass
 
-    def get_index_by_param(self, param):
+    def _get_index_by_param(self, param):
         try:
             return self.params[param]['index']
         except KeyError:
             return None
 
-    def list_methods(self):
+    def _list_methods(self):
         methods = [func for func in dir(self) if callable(getattr(self, func)) and not func.startswith("__")]
         print(methods)
-        
+
 if __name__ == '__main__':
     d = Device('device')
-    d.load('setpoint1')
-    d.save('setpoint2')
-    d.delete('setpoint2')
-    d.params_to_state()
-    d.state[0] = 137
-    d.state_to_params()
-    d.save('setpoint1')
+    d._load('setpoint1')
+    d._save('setpoint2')
+    d._delete('setpoint2')
+    d._params_to_state()
+    d._state[0] = 137
+    d._state_to_params()
+    d._save('setpoint1')

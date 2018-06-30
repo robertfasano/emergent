@@ -22,7 +22,7 @@ class Hub(Device, Optimizer,Link, ProcessHandler):
             self.run_thread(target=dev._connect, stoppable = False)
 #            dev._connect()
 
-        self.params_to_state()
+        self._params_to_state()
 
     def actuate(self, state):
         ''' Distribute state vector updates to appropriate devices '''
@@ -40,7 +40,7 @@ class Hub(Device, Optimizer,Link, ProcessHandler):
             will pass in states with only the target axes changed. '''
         self.run_optimization(cost, axes, method, bounds, params)
 
-    def params_to_state(self):
+    def _params_to_state(self):
         ''' Prepare the state vector of the Device by parsing all state variables '''
         self.state = np.array([])
         self.state_names = np.array([])

@@ -21,7 +21,7 @@ class Link(QObject):
         self._property1 = 0
 
 
-    def retrieve_handles(self, item = 'Sidebar'):
+    def _retrieve_handles(self, item = 'Sidebar'):
         ''' Retrieve handle for appropriate element. For example, the GUI element for the coils is called
             coilElement and is a child of the ApplicationWindow. '''
         self.element = self.engine.rootObjects()[0].findChildren(QObject, self.name+"Element")[0]
@@ -41,7 +41,7 @@ class Link(QObject):
         self.listModel = self.element.findChildren(QObject, 'Model')[0]
         self.listMetaObject = self.listModel.metaObject()
 
-    def append_listModel(self, name, value, device):
+    def _append_listModel(self, name, value, device):
         d = {"name": name, "value": value, "device": device}
         self.elementMetaObject.invokeMethod(self.element, "append", Q_ARG(QVariant, d))
 
@@ -62,7 +62,8 @@ class Link(QObject):
         setattr function. For example, in QML one can execute link.set_attr("property1", 0) to set the Python variable
         link._property1 to zero.'''
     @pyqtSlot(str, str)
-    def set_attr(self, string, value, update_device = True):
+
+    def _set_attr(self, string, value, update_device = True):
         setattr(self, '_'+string, value)
 #        print('Updating attribute to %s'%(getattr(self, '_'+string)))
 
@@ -72,15 +73,15 @@ class Link(QObject):
         value = float(value)
         self.metaObject.invokeMethod(self.sidebar, "change_value", Q_ARG(QVariant, target), Q_ARG(QVariant, value))
 
-    def populate_listModel(self):
+    def _populate_listModel(self):
         for device in self.params.keys():
-            self.append_listModel(device, 999, device)
+            self._append_listModel(device, 999, device)
             for param in self.params[device].keys():
                 if self.params[device][param]['gui']:
-                    self.append_listModel(param.replace('_', ' '), self.params[device][param]['value'], device)
+                    self._append_listModel(param.replace('_', ' '), self.params[device][param]['value'], device)
 
     @pyqtSlot(str, str, str)
-    def set_param(self, target, value, device, update_device = True):
+    def _set_param(self, target, value, device, update_device = True):
         value = float(value)
         target = target.replace(' ', '_')
         index = self.params[device][target]['index']
@@ -92,15 +93,18 @@ class Link(QObject):
             self.actuate(target_state)
 
     @pyqtSlot(str)
-    def refresh(self, target):
+    def _refresh(self, target):
         print('Refreshing %s'%target)
         for dev in self.devices:
             if dev.name == target:
                 dev._connect()
 
     @pyqtSlot(str)
-    def list_methods(self, name):
+    def _list_methods(self, name):
         for dev in self.devices:
             if dev.name == name:
-                methods = [func for func in dir(dev) if callable(getattr(dev, func)) and not func.startswith("__")]
-                print(methods)
+                print('Device:',dev.name)
+                print('Object:', dev)
+
+                methods = [func for func in dir(dev) if callable(getattr(dev, func)) and not func.startswith("_")]
+                print('Methods:',methods)

@@ -6,7 +6,6 @@ char = {'nt': '\\', 'posix': '/'}[os.name]
 sys.path.append(char.join(os.getcwd().split(char)[0:-2]))
 from labAPI.protocols import serial
 import serial as ser
-from labAPI.archetypes.Optimizer import Optimizer
 from labAPI.archetypes.device import Device
 
 def getChar():
@@ -39,7 +38,7 @@ def getChar():
 
     return getChar._func()
 
-class Agilis(Device, Optimizer):
+class Agilis(Device):
     def __init__(self, port, name = 'agilis', connect = True, parent = None):
         Device.__init__(self, name, parent = parent)
         self.port = port
@@ -56,6 +55,7 @@ class Agilis(Device, Optimizer):
             self.mirror = 1
             self.position = np.zeros(len(2*self.mirrors))
             self._connected = 1
+
     def actuate(self, pos):
         ''' Software-based absolute positioning, achieved by moving relative to a known last position '''
         for mirror in self.mirrors:
@@ -64,6 +64,8 @@ class Agilis(Device, Optimizer):
                 step = pos[mirror+axis-1]-self.position[mirror+axis-1]
                 if step != 0:
                     self.relative_move(mirror, axis, step)
+        self._save(self.setpoint)
+        self._update_parent()
 
     def command(self, cmd, reply = True):
         self.serial.command(cmd, suffix = '\r\n', reply = reply)
