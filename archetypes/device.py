@@ -33,8 +33,8 @@ class Device():
                 base_path = os.path.realpath('..')
             self.filename = base_path +'/settings/%s.txt'%self.name
 
-            with open(self.filename, 'r') as file:
-                self.id = json.load(file)['id']
+#            with open(self.filename, 'r') as file:
+#                self.id = json.load(file)['id']
 
         ''' Load a setpoint from parameter file '''
 #        self.params = {'default': {}}
@@ -131,6 +131,10 @@ class Device():
         except KeyError:
             return None
 
+    def list_methods(self):
+        methods = [func for func in dir(self) if callable(getattr(self, func)) and not func.startswith("__")]
+        print(methods)
+        
 if __name__ == '__main__':
     d = Device('device')
     d.load('setpoint1')

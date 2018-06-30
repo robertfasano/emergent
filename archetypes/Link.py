@@ -97,3 +97,10 @@ class Link(QObject):
         for dev in self.devices:
             if dev.name == target:
                 dev._connect()
+
+    @pyqtSlot(str)
+    def list_methods(self, name):
+        for dev in self.devices:
+            if dev.name == name:
+                methods = [func for func in dir(dev) if callable(getattr(dev, func)) and not func.startswith("__")]
+                print(methods)
