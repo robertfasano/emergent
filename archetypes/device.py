@@ -60,7 +60,7 @@ class Device():
             device-specific actuate() method to update the physical state.
             Finally, updates the internal state and params '''
         state = np.clip(state, self.min, self.max)
-        self._actuate()
+        self._actuate(state)
         self.state = state
         self._state_to_params()
 
