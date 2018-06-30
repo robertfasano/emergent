@@ -53,7 +53,14 @@ class Device():
                 self.parent.devices = [self]
 
     def _actuate(self, state):
-        ''' Change the internal state to a specified state and update self.params accordingly '''
+        return
+
+    def actuate(self, state):
+        ''' Ensures that the target state is within bounds, then calls the
+            device-specific actuate() method to update the physical state.
+            Finally, updates the internal state and params '''
+        state = np.clip(state, self.min, self.max)
+        self._actuate()
         self.state = state
         self._state_to_params()
 
