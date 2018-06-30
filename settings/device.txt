@@ -1,1 +1,0 @@
-{"setpoint1": {"setting1": {"value": 1, "type": "setting"}, "setting2": {"value": 2.0, "type": "state", "index": 1}, "setting3": {"value": 137.0, "type": "state", "index": 0}}}
