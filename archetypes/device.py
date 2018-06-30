@@ -30,7 +30,7 @@ class Device():
         ''' Prepare filepath for parameter file '''
         if parent is not None:
             if base_path == None:
-                base_path = os.path.realpath('..')
+                base_path = os.path.realpath('')
             self.filename = base_path +'/settings/%s.txt'%self.name
 
 #            with open(self.filename, 'r') as file:
