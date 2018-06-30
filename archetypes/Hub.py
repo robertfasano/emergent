@@ -32,6 +32,14 @@ class Hub(Device, Optimizer,Link, ProcessHandler):
                 dev.actuate(substate)
         self.state = state
 
+    def optimize(self, cost, axes, method, bounds, params):
+        ''' Calls an Optimizer method to optimize the given cost function by
+            actuating the given axes '''
+
+        ''' The Optimizer has access to the Hub's self.actuate() method, and it
+            will pass in states with only the target axes changed. '''
+        self.run_optimization(cost, axes, method, bounds, params)
+
     def params_to_state(self):
         ''' Prepare the state vector of the Device by parsing all state variables '''
         self.state = np.array([])
