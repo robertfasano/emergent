@@ -27,7 +27,7 @@ class Link(QObject):
     def _retrieve_handles(self, item = 'Sidebar'):
         ''' Retrieve handle for appropriate element. For example, the GUI element for the coils is called
             coilElement and is a child of the ApplicationWindow. '''
-        self.element = self.engine.rootObjects()[0].findChildren(QObject, self.name+"Element")[0]
+        self.element = self.engine.rootObjects()[0].findChildren(QObject, self.name+"Hub")[0]
         self.elementMetaObject = self.element.metaObject()
 
 #        print( self.element.findChildren(QObject, self.name+item))
