@@ -4,6 +4,7 @@ import os
 char = {'nt': '\\', 'posix': '/'}[os.name]
 sys.path.append(char.join(os.getcwd().split(char)[0:-1]))
 import json
+import inspect
 
 class Link(QObject):
     ''' This class bridges the gap between device-facing code (written in Python and independent of the GUI)
@@ -43,6 +44,15 @@ class Link(QObject):
         ''' Retrieve handle for the listModel, allowing dynamic updating '''
         self.listModel = self.element.findChildren(QObject, 'Model')[0]
         self.listMetaObject = self.listModel.metaObject()
+
+        ''' Retrieve handle for the popup, allowing function information '''
+        self.popup = self.sidebar.findChildren(QObject, 'Popup')[0]
+        self.popup_model = self.popup.findChildren(QObject, 'Model')[0]
+        self.popupModelMetaObject = self.popup_model.metaObject()
+
+        self.executor = self.sidebar.findChildren(QObject, 'Executor')[0]
+        self.executor_model = self.executor.findChildren(QObject, 'Model')[0]
+        self.executorModelMetaObject = self.executor_model.metaObject()
 
     def _append_listModel(self, name, value, device):
         d = {"name": name, "value": value, "device": device}
@@ -95,6 +105,12 @@ class Link(QObject):
             target_state[index] = value
             self.actuate(target_state)
 
+    @pyqtSlot(str, str)
+    def _call_device_function(self, device, func):
+        for dev in self.devices:
+            if dev.name == device:
+                getattr(dev, func)()
+
     @pyqtSlot(str)
     def _refresh(self, target):
         print('Refreshing %s'%target)
@@ -106,8 +122,30 @@ class Link(QObject):
     def _list_methods(self, name):
         for dev in self.devices:
             if dev.name == name:
-                print('Device:',dev.name)
-                print('Object:', dev)
-
                 methods = [func for func in dir(dev) if callable(getattr(dev, func)) and not func.startswith("_")]
-                print('Methods:',methods)
+                self.popupModelMetaObject.invokeMethod(self.popup, "clear")
+                for m in methods:
+                    d = {"name": m, "device": dev.name}
+                    self.popupModelMetaObject.invokeMethod(self.popup, "append", Q_ARG(QVariant, d))
+
+    @pyqtSlot(str, str)
+    def _list_args(self, device, function):
+        for dev in self.devices:
+            if dev.name == device:
+                f = getattr(dev, function)
+                args = inspect.signature(f).parameters
+                args = list(args.items())
+                names = []
+                defaults = []
+                self.executorModelMetaObject.invokeMethod(self.executor, "clear")
+
+                for a in args:
+                    name = a[0]
+                    default = str(a[1])
+                    if default == name:
+                        default = ''
+                    else:
+                        default = default.split('=')[1]
+                    d = {"name": name, "value": default}
+                    print(d)
+                    self.executorModelMetaObject.invokeMethod(self.executor, "append", Q_ARG(QVariant, d))
