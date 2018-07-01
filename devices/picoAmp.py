@@ -16,7 +16,7 @@ class PicoAmp(Device):
         Device.__init__(self, name, parent = parent, lowlevel = lowlevel)
         self.addr = {'A': '000', 'B': '001', 'C': '010', 'D': '011', 'ALL': '111'}
 #        self.state = [self.params['X']['value'], self.params['Y']['value']]
-
+        self.mirrors = True
         if labjack == None:
             labjack = LabJack(devid='470016970')
         self.labjack = labjack
