@@ -88,7 +88,14 @@ class Link(QObject):
 
     def _populate_listModel(self):
         for device in self.params.keys():
-            self._append_listModel(device, 999, device)
+            if hasattr(self._get_device(device), 'mirrors'):
+                code = -1113
+            elif hasattr(self._get_device(device), 'labjack'):
+                code = -1112
+            else:
+                code = -1111
+            self._append_listModel(device, code, device)
+
             for param in self.params[device].keys():
                 if self.params[device][param]['gui']:
                     self._append_listModel(param.replace('_', ' '), self.params[device][param]['value'], device)
@@ -147,5 +154,4 @@ class Link(QObject):
                     else:
                         default = default.split('=')[1]
                     d = {"name": name, "value": default}
-                    print(d)
                     self.executorModelMetaObject.invokeMethod(self.executor, "append", Q_ARG(QVariant, d))
