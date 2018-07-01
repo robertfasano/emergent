@@ -61,3 +61,9 @@ class Hub(Device, Optimizer,Link, ProcessHandler):
         self.state_names = self.state_names[sort_indices]
         self.min = self.min[sort_indices]
         self.max = self.max[sort_indices]
+
+    def _get_device(self, name):
+        ''' Return a device handle given a str name '''
+        for dev in self.devices:
+            if dev.name == name:
+                return dev
