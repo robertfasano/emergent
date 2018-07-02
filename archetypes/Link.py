@@ -52,9 +52,8 @@ class Link(QObject):
         self.executorModelMetaObject = self.executor_model.metaObject()
 
     def _append_listModel(self, name, value, device):
-        d = {"name": name, "value": value, "device": device}
+        d = {"name": name, "value": float(value), "device": device}
         self.elementMetaObject.invokeMethod(self.element, "append", Q_ARG(QVariant, d))
-
     ''' Here is an example of a getter method. When the child of the Link class is registered with QML, then
         QML can access the Python variable link._property1 via the QML property link.property1 '''
     @pyqtProperty(float)
