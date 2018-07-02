@@ -48,9 +48,9 @@ class Device():
         if parent is not None:
             self._update_parent()
             if hasattr(self.parent, 'devices'):
-                self.parent.devices.append(self)
+                self.parent.devices = np.append(self.parent.devices, self)
             else:
-                self.parent.devices = [self]
+                self.parent.devices = np.array([self])
 
     def _actuate(self, state):
         return
