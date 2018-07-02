@@ -81,7 +81,7 @@ class PicoAmp(Device):
             Allowed range of V is -80 to 80.'''
         V = np.clip(float(V), -80, 80)
         cmdPlus = '00' + '011' + {'X':self.addr['A'], 'Y': self.addr['C']}[axis] + self.digital(self.Vbias+V)
-        cmdMinus = '00' + '011' + {'X':self.addr['B'], 'Y': self.addr['D']}[axis] + self.digital(self.Vbias+V)
+        cmdMinus = '00' + '011' + {'X':self.addr['B'], 'Y': self.addr['D']}[axis] + self.digital(self.Vbias-V)
 
         self.command(cmdPlus)
         self.command(cmdMinus)
