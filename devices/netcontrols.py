@@ -3,10 +3,12 @@ sys.path.append('O:\\Public\\Yb clock')
 from labAPI.protocols.serial import Serial, PARITY_NONE, STOPBITS_ONE, EIGHTBITS
 import numpy as np
 from labAPI.archetypes.device import Device
+from labAPI.archetypes.Parallel import ProcessHandler
 
-class NetControls(Device):
+class NetControls(Device, ProcessHandler):
     def __init__(self, port = 'COM11', connect = True, base_path = None, parent = None):
         Device.__init__(self, name = 'feedthrough', base_path = base_path, parent = parent)
+        ProcessHandler.__init__(self)
         self.port = port
         self._connected = 0
         if connect:
@@ -16,27 +18,28 @@ class NetControls(Device):
         self.serial = Serial(port = self.port, baudrate = 38400, encoding = 'ascii', parity = PARITY_NONE, stopbits = STOPBITS_ONE, bytesize = EIGHTBITS, timeout = 1, name = 'NetControls driver')
 
         if self.serial._connected:
-            self._connected = 1
             self.axis = 1
             self._initialize()
             self.zero = self.params['position']['value']       # controller thinks it's at zero when restarted, so move relative to last position
             self.position = self.zero
             self._set_load_error(5000)
             self.set_velocity(10000)
+            self._connected = 1
 
     def _actuate(self, state):
-        pos = state[0]
-        pos -= self.zero
-        pos = np.min([pos, 75])
-        np.max([pos, 0])
-        pos *= 10**4
+        self.run_thread(self.set_position, args=state, stoppable = False)
+        #self.set_position(state)
+    def set_position(self, state):
+        if type(state) == list:
+            state = state[0]
+        state = np.clip(state, 0, 75)
 
-        self.command(cmd = 'p', val = pos)
+        state -= self.zero
+        state *= 10**4
+        r = self.command(cmd = 'p', val = int(state))
         self._wait_until_stopped()
         self.position = self.get_position()
-        self.params['position']['value'] = (pos / 10**4)+self.zero
-        self.save(self.setpoint)
-
+        self.params['position']['value'] = (state / 10**4)+self.zero
         return self.position
 
     def command(self, cmd, val = None, axis = None):
