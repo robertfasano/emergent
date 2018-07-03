@@ -70,10 +70,21 @@ class Optimizer():
         return cost()
 
     ''' Optimization Routines and Algorithms '''
-    def prepare_substate(self, state, param_axes = None):
-        if param_axes == None:
+    def prepare_substate(self, state, axes = None, normalize = True):
+        if axes == None and normalize:
+            return (state-self.min)/(self.max-self.min)
+        elif axes == None:
             return state
-        return np.array(state[[param_axes]])
+        elif normalize:
+            return (state[[axes]]-self.min[[axes]])/(self.max[[axes]]-self.min[[axes]])
+        else:
+            return np.array(state[[axes]])
+
+    def unnormalize(self, state, axes = None):
+        if axes == None:
+            return self.min + state * (self.max - self.min)
+        else:
+            return self.min[[axes]] + state * (self.max[[axes]]-self.min[[axes]])
 
     def initialize_optimizer(self, X = None, actuate = None, cost = None, bounds = None):
         if X.all() == None:
@@ -85,13 +96,15 @@ class Optimizer():
         if bounds == None:
             bounds = np.array(list(itertools.repeat([0,1], len(X)))) #for normalized parameters, go from -1,1
 
+        X = (X - self.min)/(self.max-self.min)
+
         return X, actuate, cost, bounds
 
-    def grid_search(self, X = None, param_axes = [0,1], actuate = None, cost = None,
+    def grid_search(self, X = None, axes = [0,1], actuate = None, cost = None,
                     plot = False, steps = 10):
         ''' An N-dimensional grid search routine '''
         X, actuate, cost, bounds = self.initialize_optimizer(X, actuate, cost)
-        X = self.prepare_substate(X, param_axes)
+        X = self.prepare_substate(X, axes)
 
         ''' Generate search grid '''
         N = len(X)
@@ -105,25 +118,25 @@ class Optimizer():
         ''' Actuate search '''
         costs = []
         for point in points:
-            actuate(point, param_axes)
+            actuate(self.unnormalize(point,axes), axes)
             costs.append(cost())
 
 
         ''' Plot result if desired '''
         if plot:
-            if len(X) == 2 and param_axes == None:
+            if len(X) == 2 and axes == None:
                 ordinate_index = 0
                 abscissa_index = 1
             else:
-                ordinate_index = param_axes[0]
-                abscissa_index = param_axes[1]
+                ordinate_index = axes[0]
+                abscissa_index = axes[1]
             ordinate_mesh, abscissa_mesh = np.meshgrid(points[:,ordinate_index], points[:, abscissa_index])
             cost_grid = griddata(points[:,[ordinate_index, abscissa_index]], cost, (ordinate_mesh,abscissa_mesh))
             plot = plt.pcolormesh(ordinate_mesh, abscissa_mesh, cost_grid, cmap='gist_rainbow')
             plt.colorbar(plot)
 
         best_point = points[np.argmax(costs)]
-        actuate(best_point, param_axes)
+        actuate(self.unnormalize(best_point, axes), axes)
 
         return points, costs
 
@@ -150,12 +163,12 @@ class Optimizer():
         print(gradient)
         return np.array(gradient), np.array(hessian)
 
-    def gradient_descent(self, X = None, param_axes = None, actuate = None, cost = None,
+    def gradient_descent(self, X = None, axes = None, actuate = None, cost = None,
                          iterations = 30, plot = False, d = 0.1, eta = 1, threshold = 0.01):
         ''' A gradient descent minimization routine '''
         ''' TODO: implement termination criterion (not iterations) '''
         X, actuate, cost, bounds = self.initialize_optimizer(X, actuate, cost)
-        X = self.prepare_substate(X, param_axes)
+        X = self.prepare_substate(X, axes)
 
         cost_history = [self.cost()]
         pos_history = [X]
@@ -231,11 +244,11 @@ class Optimizer():
 
         return newSimplex, bestMeasure, centroidCost
 
-    def rjf_simplex(self, X = None, param_axes = None, actuate = None, cost = None,
+    def rjf_simplex(self, X = None, axes = None, actuate = None, cost = None,
                     iterations = 30, plot = False, sampleRange = 0.5):
         ''' A simplex minimization algorithm brought to you by the one and only Robbie Fasano '''
         X, actuate, cost, bounds = self.initialize_optimizer(X, actuate, cost)
-        X = self.prepare_substate(X, param_axes)
+        X = self.prepare_substate(X, axes)
 
         simplex = self.simplex_initial(sampleRange, X = X)
         simplex, bestMeasure, centroidCost = self.simplex_next(simplex, actuate = actuate, cost = cost)
@@ -262,11 +275,11 @@ class Optimizer():
 
         return pos_history, cost_history
 
-    def skl_simplex(self, X = None, param_axes = None, actuate = None, cost = None,
+    def skl_simplex(self, X = None, axes = None, actuate = None, cost = None,
                     iterations = 30, plot = False, tolerance = 1e7):
         ''' A simplex minimization algorithm brought to you by the generic Scikit-Learn Library'''
         X, actuate, cost, bounds = self.initialize_optimizer(X, actuate, cost)
-        X = self.prepare_substate(X, param_axes)
+        X = self.prepare_substate(X, axes)
 
         self.cost_history = np.array([]) #use universal cost history since Scikit uses cost internally
         best_x = None
@@ -337,12 +350,12 @@ class Optimizer():
         return -1 * mu #maximize the value
 #        return -1 * expected_improvement #maximize learning about model
 
-    def gaussian_process(self, X = None, param_axes = None, actuate = None, cost = None,
+    def gaussian_process(self, X = None, axes = None, actuate = None, cost = None,
                     iterations = 10, plot = False, span = 10, steps = 100, random_search = False):
         ''' Guassian Processing from https://github.com/thuijskens/bayesian-optimization/blob/master/python/gp.py
             and https://www.nature.com/articles/srep25890.pdf '''
         X, actuate, cost, bounds = self.initialize_optimizer(X, actuate, cost)
-        X = self.prepare_substate(X, param_axes)
+        X = self.prepare_substate(X, axes)
 
         N = X.shape[1]
         c = np.array([self.cost(X)])
@@ -388,19 +401,19 @@ class Optimizer():
             plt.xlabel(xlbl)
             plt.legend()
 
-    def optimize(self, routines = ['gp'], X = None, param_axes = None, iterations = 20, plot = True,
+    def optimize(self, routines = ['gp'], X = None, axes = None, iterations = 20, plot = True,
                  actuate = None, cost = None, span = 1, steps = 100, dither = 0.1, eta = 1):
-#        if param_axes == None:   #set the indices that the user would like to specify for each optimization routine
-#            param_axes = [0, self.dim]
+#        if axes == None:   #set the indices that the user would like to specify for each optimization routine
+#            axes = [0, self.dim]
 
         for r in routines:
-            X = np.random.uniform(0, 1, size=(1,self.dim)) #change when param_axes is implemented
+            X = np.random.uniform(0, 1, size=(1,self.dim)) #change when axes is implemented
             self.cost_history = np.array([])
             if r == 'gp' or routines == ['all']:
-                X, cost, points, c_pred = self.gaussian_process(X, param_axes, iterations = iterations, plot = plot,
+                X, cost, points, c_pred = self.gaussian_process(X, axes, iterations = iterations, plot = plot,
                                                                 span = span, steps = steps)
                 print("Gau$$ian Proce$$ing=%s" % cost[-1])
-                '''unstable as of now - able to take a set of param_axes isolated from position
+                '''unstable as of now - able to take a set of axes isolated from position
                 standardized all parameter orders and names across all optimization functions
                 isolated local variables to X instead of self.state such that actuations can be unique to methods
                 plot optimization general method
@@ -408,16 +421,16 @@ class Optimizer():
                 POSSIBLE TO ADD a dictionary for these optimization methods and all possible scikit-learn optimize.minimize routines
                 '''
             if r == 'skl_splx' or routines == ['all']:
-                X2 = self.skl_simplex(X, param_axes, iterations = iterations, plot=plot)
+                X2 = self.skl_simplex(X, axes, iterations = iterations, plot=plot)
                 print("Scikit-Learn Simplex=%s" % X2[0])
             if r == 'rf_splx' or routines == ['all']:
-                h, c = self.rjf_simplex(X, param_axes, iterations = iterations, plot = plot)
+                h, c = self.rjf_simplex(X, axes, iterations = iterations, plot = plot)
                 print("RJF Simplex=%s" % c[-1])
             if r == 'gd' or routines == ['all']:
-                h, c = self.gradient_descent(X, param_axes, iterations = iterations, plot = plot, d = dither, eta = 1)
+                h, c = self.gradient_descent(X, axes, iterations = iterations, plot = plot, d = dither, eta = 1)
                 print("Gradient Descent=%s" % c[-1][-1])
             if r == 'gs':  #WARNING - plotting grid search does not work
-                c = self.grid_search(X, param_axes = [0,1] ,plot = plot,  span = span, steps = steps, axes = [0,1], )
+                c = self.grid_search(X, axes = [0,1] ,plot = plot,  span = span, steps = steps)
                 print("Grid Search=%s" % c[-1])
 
 if __name__ == '__main__':
