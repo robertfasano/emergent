@@ -53,7 +53,8 @@ class Device():
                 self.parent.devices = np.array([self])
 
     def _actuate(self, state):
-        return
+        if self.lowlevel == False:
+            self.actuate(state)
 
     def actuate(self, state):
         ''' Ensures that the target state is within bounds, then calls the
