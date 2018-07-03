@@ -30,9 +30,7 @@ warnings.warn = warn
 
 class Optimizer():
     def __init__(self):
-        self.position = np.array([])
-        self.zero = np.array([])
-        self.dim = len(self.position)
+        self.dim = len(self.state)
         self.mu = np.array([]) # gp routine best value
         self.sigma = np.array([]) # gp routine uncertainty
         self.cost_history = np.array([]) # any optimization routine cost history
@@ -41,7 +39,7 @@ class Optimizer():
 
     ''' Base functions '''
     def actuate(self, point):
-        self.position = point
+        self.state = point
 
     def cost(self, X = None):
         ''' A gaussian cost function in N dimensions. Overload in child classes with appropriate function '''
@@ -51,18 +49,15 @@ class Optimizer():
         full_cost = True
 
         if X is None:
-            X = [self.position]
+            X = [self.state]
             full_cost = False
         point = np.array(X)
         point = np.atleast_2d(point)
         for n in range(point.shape[1]):
             cost *= np.exp(-point[:,n]**2/(2*sigma**2))
-#        for n in range(point.shape[1]):
-#            cost *= 2*np.exp(-(point[:,n]-1)**2/(2*sigma**2/4))
-#        cost *= (1+np.random.normal(0,self.noise))
         cost += np.random.normal(0,self.noise)
 
-        self.cost_history = np.append(self.cost_history, cost[0])
+        #self.cost_history = np.append(self.cost_history, cost[0])
 
         if full_cost:
             return cost
@@ -80,35 +75,39 @@ class Optimizer():
             return state
         return np.array(state[[param_axes]])
 
-    def initialize_optimizer(self, X = None, actutate = None, cost = None):
+    def initialize_optimizer(self, X = None, actuate = None, cost = None, bounds = None):
         if X.all() == None:
-            X = self.position
-        if actutate == None:
+            X = self.state
+        if actuate == None:
             actuate = self.actuate
         if cost == None:
             cost = self.cost
-        return X, actuate, cost
+        if bounds == None:
+            bounds = np.array(list(itertools.repeat([0,1], len(X)))) #for normalized parameters, go from -1,1
+
+        return X, actuate, cost, bounds
 
     def grid_search(self, X = None, param_axes = [0,1], actuate = None, cost = None,
-                    plot = False, span = 1, steps = 10):
+                    plot = False, steps = 10):
         ''' An N-dimensional grid search routine '''
-        X, actuate, cost = self.initialize_optimizer(X, actuate, cost)
+        X, actuate, cost, bounds = self.initialize_optimizer(X, actuate, cost)
         X = self.prepare_substate(X, param_axes)
 
         ''' Generate search grid '''
-        N = X.shape[1]
+        N = len(X)
         grid = []
         for n in range(N):
-            space = np.linspace(X[-1][n]-span/2, X[-1][n]+span/2, steps) #np.linspace(position[n]-span/2, position[n]+span/2, steps)
+            space = np.linspace(bounds[n][0], bounds[n][1], steps) #np.linspace(position[n]-span/2, position[n]+span/2, steps)
             grid.append(space)
         grid = np.array(grid)
         points = np.transpose(np.meshgrid(*[grid[n] for n in range(N)])).reshape(-1,N)
 
         ''' Actuate search '''
-        cost = []
+        costs = []
         for point in points:
-            self.actuate(point)
-            cost.append(self.cost())
+            actuate(point, param_axes)
+            costs.append(cost())
+
 
         ''' Plot result if desired '''
         if plot:
@@ -122,14 +121,13 @@ class Optimizer():
             cost_grid = griddata(points[:,[ordinate_index, abscissa_index]], cost, (ordinate_mesh,abscissa_mesh))
             plot = plt.pcolormesh(ordinate_mesh, abscissa_mesh, cost_grid, cmap='gist_rainbow')
             plt.colorbar(plot)
-        guess = [1, self.position[0], self.position[1], 1, 1]
-        fit = curve_fit(self.gaussian, points, cost, p0 = guess)[0]
-        A, x0, y0, sigma_x, sigma_y = fit
-        self.actuate([x0,y0])
 
-        return points, cost, fit
+        best_point = points[np.argmax(costs)]
+        actuate(best_point, param_axes)
 
-    def gradient_calculate(self, X, d):
+        return points, costs
+
+    def gradient_calculate(self, X, d, actuate, cost):
         ''' Compute the gradient and second-derivative (neglecting off-diagonal Hessian components) '''
         gradient = []
         hessian = []
@@ -137,33 +135,35 @@ class Optimizer():
             vec = np.zeros(len(X))
             vec[i] = d/2
 
-            c0 = self.cost()
+            c0 = cost()
+            print(X+vec)
+            actuate(X + vec)
+            cp = cost()
 
-            self.actuate(X + vec)
-            cp = self.cost()
-
-            self.actuate(X-2*vec)
-            cm = self.cost()
+            actuate(X-2*vec)
+            cm = cost()
 
             gradient.append((cp-cm) / d)
             hessian.append((cp-2*c0+cm)/d**2)
 
-            self.actuate(X + vec)
+            actuate(X + vec)
+        print(gradient)
         return np.array(gradient), np.array(hessian)
 
     def gradient_descent(self, X = None, param_axes = None, actuate = None, cost = None,
                          iterations = 30, plot = False, d = 0.1, eta = 1, threshold = 0.01):
         ''' A gradient descent minimization routine '''
-        X, actuate, cost = self.initialize_optimizer(X, actuate, cost)
+        ''' TODO: implement termination criterion (not iterations) '''
+        X, actuate, cost, bounds = self.initialize_optimizer(X, actuate, cost)
         X = self.prepare_substate(X, param_axes)
 
         cost_history = [self.cost()]
         pos_history = [X]
 
         for i in range(iterations):
-            g, h = self.gradient_calculate(X, d)
-            self.actuate(X - eta*g)
-            cost_history.append(self.cost()) #dimensional error with cost as self.dim long instead of 1
+            g, h = self.gradient_calculate(X, d, actuate, cost)
+            actuate(X + eta*g)
+            cost_history.append(cost()) #dimensional error with cost as self.dim long instead of 1
             pos_history.append(X)
 
         if plot:
@@ -174,7 +174,7 @@ class Optimizer():
     def simplex_initial(self, sampleRange, X = None):
         # generate self.dim+1 test points near current location
         if X is None:
-            X = self.position
+            X = self.state
         points = np.zeros([self.dim+1, self.dim])
         for i in range(self.dim+1):
             points[i] = np.array(X)+np.random.uniform(low = -sampleRange/2, high = sampleRange/2, size=self.dim)
@@ -234,7 +234,7 @@ class Optimizer():
     def rjf_simplex(self, X = None, param_axes = None, actuate = None, cost = None,
                     iterations = 30, plot = False, sampleRange = 0.5):
         ''' A simplex minimization algorithm brought to you by the one and only Robbie Fasano '''
-        X, actuate, cost = self.initialize_optimizer(X, actuate, cost)
+        X, actuate, cost, bounds = self.initialize_optimizer(X, actuate, cost)
         X = self.prepare_substate(X, param_axes)
 
         simplex = self.simplex_initial(sampleRange, X = X)
@@ -265,7 +265,7 @@ class Optimizer():
     def skl_simplex(self, X = None, param_axes = None, actuate = None, cost = None,
                     iterations = 30, plot = False, tolerance = 1e7):
         ''' A simplex minimization algorithm brought to you by the generic Scikit-Learn Library'''
-        X, actuate, cost = self.initialize_optimizer(X, actuate, cost)
+        X, actuate, cost, bounds = self.initialize_optimizer(X, actuate, cost)
         X = self.prepare_substate(X, param_axes)
 
         self.cost_history = np.array([]) #use universal cost history since Scikit uses cost internally
@@ -275,7 +275,7 @@ class Optimizer():
         n_params = len(X)
 
         for X in np.random.uniform(bounds[0][0], bounds[0][1], size=(iterations, n_params)):
-            res = minimize(fun = cost,x0 = X.reshape(1, -1), method = 'Nelder-Mead', tol = tolerance)
+            res = minimize(fun = self.measure, args = (actuate,cost), x0 = X.reshape(1, -1), method = 'Nelder-Mead', tol = tolerance)
             if res.fun < best_acquisition_value:        #
                 best_acquisition_value = res.fun
                 best_x = res.x
@@ -316,7 +316,7 @@ class Optimizer():
         return -(b*mu+np.sqrt(1-b**2)*sigma)
 
     def expected_improvement(self, x, gp, evaluated_loss, greater_is_better=True, n_params=1):
-        x_to_predict = x.reshape(-1, len(self.position))
+        x_to_predict = x.reshape(-1, len(self.state))
 
         mu, sigma = gp.predict(x_to_predict, return_std=True)
         self.mu = np.append(self.mu, mu[0])
@@ -341,7 +341,7 @@ class Optimizer():
                     iterations = 10, plot = False, span = 10, steps = 100, random_search = False):
         ''' Guassian Processing from https://github.com/thuijskens/bayesian-optimization/blob/master/python/gp.py
             and https://www.nature.com/articles/srep25890.pdf '''
-        X, actuate, cost = self.initialize_optimizer(X, actuate, cost)
+        X, actuate, cost, bounds = self.initialize_optimizer(X, actuate, cost)
         X = self.prepare_substate(X, param_axes)
 
         N = X.shape[1]
@@ -402,7 +402,7 @@ class Optimizer():
                 print("Gau$$ian Proce$$ing=%s" % cost[-1])
                 '''unstable as of now - able to take a set of param_axes isolated from position
                 standardized all parameter orders and names across all optimization functions
-                isolated local variables to X instead of self.position such that actuations can be unique to methods
+                isolated local variables to X instead of self.state such that actuations can be unique to methods
                 plot optimization general method
                 optimize general method for iterative series optimization or flexible ensemble optimization routines
                 POSSIBLE TO ADD a dictionary for these optimization methods and all possible scikit-learn optimize.minimize routines
