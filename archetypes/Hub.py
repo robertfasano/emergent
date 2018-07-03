@@ -10,9 +10,11 @@ import numpy as np
 class Hub(Device, Optimizer,Link, ProcessHandler):
     def __init__(self, engine, name):
         Device.__init__(self, name=name, lowlevel = False)
-        Optimizer.__init__(self)
+        self._params_to_state()
+
         Link.__init__(self, name = name, engine = engine)
         ProcessHandler.__init__(self)
+        Optimizer.__init__(self)
 
         self.devices = []
         ''' Add devices here '''
@@ -24,13 +26,29 @@ class Hub(Device, Optimizer,Link, ProcessHandler):
 
         self._params_to_state()
 
-    def actuate(self, state):
+    def actuate(self, state, axes = None):
         ''' Distribute state vector updates to appropriate devices '''
+        if type(state) == list:
+            state = np.array(state)
+        assert type(state) == np.ndarray
+
+        ''' If axes is not None, then we only want the actuation to affect
+            certain axes. For each device dev, get the overlap of dev.indices
+            with axes. Then, retrieve the current state and apply the update
+            only along the overlap. '''
         for dev in self.devices:
-            if len(dev.indices) > 0:
-                substate = state[dev.indices]
-                dev.actuate(substate)
-        self.state = state
+            indices = dev.indices
+            if len(indices) > 0:
+                if axes != None:
+                    indices = [x for x in axes if x in indices]
+                target_state = dev.state
+                target_state[indices] = state
+                dev.actuate(target_state)
+        if axes == None:
+            self.state = state
+        else:
+            indices = [x for x in axes]
+            self.state[indices] = state
 
     def optimize(self, cost, axes, method, bounds, params):
         ''' Calls an Optimizer method to optimize the given cost function by
