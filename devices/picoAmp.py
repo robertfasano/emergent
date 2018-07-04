@@ -15,7 +15,6 @@ class PicoAmp(Device):
     def __init__(self, name = 'picoAmp', labjack = None, connect = True, parent = None, lowlevel = True):
         Device.__init__(self, name, parent = parent, lowlevel = lowlevel)
         self.addr = {'A': '000', 'B': '001', 'C': '010', 'D': '011', 'ALL': '111'}
-#        self.state = [self.params['X']['value'], self.params['Y']['value']]
         self.mirrors = True
         if labjack == None:
             labjack = LabJack(devid='470016970')
@@ -54,8 +53,10 @@ class PicoAmp(Device):
         self.setDifferential(state[1], 'Y')
         self.state = state
 
-    def cost(self):
-        return self.readADC()
+    def cost(self, X, axes = None):
+        ''' Takes a normalized state vector '''
+        self.actuate(self.unnormalize(X, axes), axes)
+        return -self.readADC()
 
     def command(self, cmd):
         ''' Separates the bitstring cmd into a series of bytes and sends them through the SPI. '''
@@ -71,6 +72,9 @@ class PicoAmp(Device):
         Vdigital = V/Range * 65535
 
         return format(int(Vdigital), '016b')
+
+    def optimize(self):
+        self.grid_search(cost = self.cost)
 
     def readADC(self, num = 1):
         return self.labjack.AIn(0, num=num)
