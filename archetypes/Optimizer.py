@@ -56,7 +56,7 @@ class Optimizer():
             cost *= np.exp(-X[:,n]**2/(2*sigma**2))
         cost += np.random.normal(0,self.noise)
 
-        return cost
+        return -cost
 
     ''' Optimization Routines and Algorithms '''
     def unnormalize(self, state, axes = None):
@@ -74,7 +74,7 @@ class Optimizer():
         else:
             X = (X - self.min)/(self.max-self.min)
 
-        bounds = np.array(list(itertools.repeat([0,1], len(X)))) #for normalized parameters, go from -1,1
+        bounds = np.array(list(itertools.repeat([0,1], len(X))))
 
         return X, bounds
 
@@ -110,7 +110,7 @@ class Optimizer():
             plot = plt.pcolormesh(ordinate_mesh, abscissa_mesh, cost_grid, cmap='gist_rainbow')
             plt.colorbar(plot)
 
-        best_point = points[np.argmax(costs)]
+        best_point = points[np.argmin(costs)]
         self.actuate(self.unnormalize(best_point, axes), axes)
 
         return points, costs
@@ -156,6 +156,7 @@ class Optimizer():
             self.plot_optimization(func = cost_history, lbl = 'Gradient Descent')
 
         return pos_history, cost_history
+
 
     def simplex_initial(self, sampleRange, X = None):
         # generate self.dim+1 test points near current location
@@ -320,7 +321,7 @@ class Optimizer():
             self.gp.fit(X,c)
 
             b = np.cos(2*np.pi*i/(iterations-1))
-            X_new = self.gaussian_process_next_sample(X, b, self.effective_cost, self.gp, greater_is_better=True, restarts=10)
+            X_new = self.gaussian_process_next_sample(X, b, self.effective_cost, self.gp, greater_is_better=False, restarts=10)
         self.actuate(self.unnormalize(X[-1], axes), axes)
         if plot:
             self.plot_optimization(func = c, lbl = 'Gaussian Processing')
@@ -334,6 +335,16 @@ class Optimizer():
             plt.ylabel(ylbl)
             plt.xlabel(xlbl)
             plt.legend()
+
+
+    def skl_minimize(self, cost, method = 'L-BFGS-B', X = None, axes = None):
+        X, bounds = self.initialize_optimizer(X, axes)
+        res = minimize(fun=cost,
+                   x0=X,
+                   bounds=bounds,
+                   method=method,
+                   args=(axes))
+        print(res)
 
     def optimize(self, routines = ['gp'], X = None, axes = None, iterations = 20, plot = True,
                  actuate = None, cost = None, span = 1, steps = 100, dither = 0.1, eta = 1):
