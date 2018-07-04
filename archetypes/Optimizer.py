@@ -8,7 +8,7 @@
                 mems.moveTo[point[3:6]]
                 agilis.actuate[point[6:9]]
         - MasterAligner.actuate should be threaded
-        - take a state vecotr, decompose it into substates, run optimizations in series of separate substates
+        - take a state vector, decompose it into substates, run optimizations in series of separate substates
 '''
 import numpy as np
 import itertools
@@ -30,12 +30,8 @@ warnings.warn = warn
 
 class Optimizer():
     def __init__(self):
-        self.dim = len(self.state)
-        self.mu = np.array([]) # gp routine best value
-        self.sigma = np.array([]) # gp routine uncertainty
-        self.cost_history = np.array([]) # any optimization routine cost history
-        self.noise = 0
         self.plot = plt.figure() # figure for all optimization routine graphing
+        self.noise = 0
 
     ''' Base functions '''
     def actuate(self, point):
@@ -43,15 +39,11 @@ class Optimizer():
 
     def cost(self, X = None, axes = None):
         ''' A gaussian cost function in N dimensions. Overload in child classes with appropriate function '''
+        self.actuate(self.unnormalize(X, axes), axes)
+        X = np.atleast_2d(X)
+
         cost = 1
         sigma = 1/3
-
-        if X is None:
-            X = self.state
-
-        self.actuate(self.unnormalize(X, axes), axes)
-
-        X = np.atleast_2d(X)
         for n in range(X.shape[1]):
             cost *= np.exp(-X[:,n]**2/(2*sigma**2))
         cost += np.random.normal(0,self.noise)
@@ -67,8 +59,6 @@ class Optimizer():
 
     def initialize_optimizer(self, X = None, axes = None):
         ''' Prepares a normalized substate and appropriate bounds '''
-        if X is None:
-            X = self.state
         if axes is not None:
             X = (X[[axes]] - self.min[[axes]])/(self.max[[axes]]-self.min[[axes]])
         else:
@@ -82,12 +72,11 @@ class Optimizer():
                     plot = False, steps = 10):
         ''' An N-dimensional grid search routine '''
         X, bounds = self.initialize_optimizer(X, axes)
-        #X = self.prepare_substate(X, axes)
         ''' Generate search grid '''
         N = len(X)
         grid = []
         for n in range(N):
-            space = np.linspace(bounds[n][0], bounds[n][1], steps) #np.linspace(position[n]-span/2, position[n]+span/2, steps)
+            space = np.linspace(bounds[n][0], bounds[n][1], steps)
             grid.append(space)
         grid = np.array(grid)
         points = np.transpose(np.meshgrid(*[grid[n] for n in range(N)])).reshape(-1,N)
@@ -115,19 +104,17 @@ class Optimizer():
 
         return points, costs
 
-    def gaussian_process_next_sample(self, X, b, acquisition_func, gaussian_process,
+    def gaussian_process_next_sample(self, X, bounds, b, acquisition_func, gaussian_process,
                                      greater_is_better=False, restarts=25):
-        n_params = X.shape[1]           # changed this from 0 to properly get dimension rather than # iterations so far
-        bounds = np.array(list(itertools.repeat([0,1], n_params))) #for normalized parameters, go from -1,1
         best_x = None
         best_acquisition_value = 1
 
-        for starting_point in np.random.uniform(bounds[0][0], bounds[0][1], size=(restarts, n_params)):
+        for starting_point in np.random.uniform(bounds[0][0], bounds[0][1], size=(restarts, X.shape[1])):
             res = minimize(fun=acquisition_func,
                        x0=starting_point.reshape(1, -1),
                        bounds=bounds,
                        method='L-BFGS-B',
-                       args=(b, gaussian_process)) #possibly args=(gaussian_process, evaluated_loss, greater_is_better, n_params))
+                       args=(b, gaussian_process))
             if res.fun < best_acquisition_value:
                 best_acquisition_value = res.fun
                 best_x = res.x
@@ -164,7 +151,7 @@ class Optimizer():
             self.gp.fit(X,c)
 
             b = np.cos(2*np.pi*i/(iterations-1))
-            X_new = self.gaussian_process_next_sample(X, b, self.effective_cost, self.gp, greater_is_better=False, restarts=10)
+            X_new = self.gaussian_process_next_sample(X, bounds, b, self.effective_cost, self.gp, greater_is_better=False, restarts=10)
         self.actuate(self.unnormalize(X[-1], axes), axes)
         if plot:
             self.plot_optimization(func = c, lbl = 'Gaussian Processing')
@@ -178,7 +165,6 @@ class Optimizer():
             plt.ylabel(ylbl)
             plt.xlabel(xlbl)
             plt.legend()
-
 
     def skl_minimize(self, cost, method = 'L-BFGS-B', X = None, axes = None):
         X, bounds = self.initialize_optimizer(X, axes)
@@ -196,7 +182,6 @@ class Optimizer():
 
         for r in routines:
             X = np.random.uniform(0, 1, size=(1,self.dim)) #change when axes is implemented
-            self.cost_history = np.array([])
             if r == 'gp' or routines == ['all']:
                 X, cost, points, c_pred = self.gaussian_process(X, axes, iterations = iterations, plot = plot,
                                                                 span = span, steps = steps)
