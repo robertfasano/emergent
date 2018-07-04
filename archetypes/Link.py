@@ -47,10 +47,6 @@ class Link(QObject):
         self.popup_model = self.popup.findChildren(QObject, 'Model')[0]
         self.popupModelMetaObject = self.popup_model.metaObject()
 
-        self.executor = self.sidebar.findChildren(QObject, 'Executor')[0]
-        self.executor_model = self.executor.findChildren(QObject, 'Model')[0]
-        self.executorModelMetaObject = self.executor_model.metaObject()
-
     def _append_listModel(self, name, value, device):
         d = {"name": name, "value": float(value), "device": device}
         self.elementMetaObject.invokeMethod(self.element, "append", Q_ARG(QVariant, d))
@@ -136,14 +132,17 @@ class Link(QObject):
         args = list(args.items())
         names = []
         defaults = []
-        self.executorModelMetaObject.invokeMethod(self.executor, "clear")
-
+        doc = {'text':inspect.getdoc(f)}
+        if doc['text'] is None:
+            doc['text'] = 'None'
+        self.popupModelMetaObject.invokeMethod(self.popup, "set_docs", Q_ARG(QVariant, doc))
+        self.popupModelMetaObject.invokeMethod(self.popup, "clear_args")
         for a in args:
             name = a[0]
             default = str(a[1])
             if default == name:
-                default = ''
+                default = 'Enter'
             else:
                 default = default.split('=')[1]
             d = {"name": name, "value": default}
-            self.executorModelMetaObject.invokeMethod(self.executor, "append", Q_ARG(QVariant, d))
+            self.popupModelMetaObject.invokeMethod(self.popup, "append_args", Q_ARG(QVariant, d))
