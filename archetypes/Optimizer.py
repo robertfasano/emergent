@@ -41,71 +41,48 @@ class Optimizer():
     def actuate(self, point):
         self.state = point
 
-    def cost(self, X = None):
+    def cost(self, X = None, axes = None):
         ''' A gaussian cost function in N dimensions. Overload in child classes with appropriate function '''
         cost = 1
         sigma = 1/3
 
-        full_cost = True
-
         if X is None:
-            X = [self.state]
-            full_cost = False
-        point = np.array(X)
-        point = np.atleast_2d(point)
-        for n in range(point.shape[1]):
-            cost *= np.exp(-point[:,n]**2/(2*sigma**2))
+            X = self.state
+
+        self.actuate(self.unnormalize(X, axes), axes)
+
+        X = np.atleast_2d(X)
+        for n in range(X.shape[1]):
+            cost *= np.exp(-X[:,n]**2/(2*sigma**2))
         cost += np.random.normal(0,self.noise)
 
-        #self.cost_history = np.append(self.cost_history, cost[0])
-
-        if full_cost:
-            return cost
-        else:
-            return cost[-1]
-
-    def measure(self, point, actuate, cost, delay = 0):
-        actuate(point)
-        time.sleep(delay)
-        return cost()
+        return cost
 
     ''' Optimization Routines and Algorithms '''
-    def prepare_substate(self, state, axes = None, normalize = True):
-        if axes == None and normalize:
-            return (state-self.min)/(self.max-self.min)
-        elif axes == None:
-            return state
-        elif normalize:
-            return (state[[axes]]-self.min[[axes]])/(self.max[[axes]]-self.min[[axes]])
-        else:
-            return np.array(state[[axes]])
-
     def unnormalize(self, state, axes = None):
         if axes == None:
             return self.min + state * (self.max - self.min)
         else:
             return self.min[[axes]] + state * (self.max[[axes]]-self.min[[axes]])
 
-    def initialize_optimizer(self, X = None, actuate = None, cost = None, bounds = None):
-        if X.all() == None:
+    def initialize_optimizer(self, X = None, axes = None):
+        ''' Prepares a normalized substate and appropriate bounds '''
+        if X is None:
             X = self.state
-        if actuate == None:
-            actuate = self.actuate
-        if cost == None:
-            cost = self.cost
-        if bounds == None:
-            bounds = np.array(list(itertools.repeat([0,1], len(X)))) #for normalized parameters, go from -1,1
+        if axes is not None:
+            X = (X[[axes]] - self.min[[axes]])/(self.max[[axes]]-self.min[[axes]])
+        else:
+            X = (X - self.min)/(self.max-self.min)
 
-        X = (X - self.min)/(self.max-self.min)
+        bounds = np.array(list(itertools.repeat([0,1], len(X)))) #for normalized parameters, go from -1,1
 
-        return X, actuate, cost, bounds
+        return X, bounds
 
-    def grid_search(self, X = None, axes = [0,1], actuate = None, cost = None,
+    def grid_search(self, X = None, axes = None, actuate = None, cost = None,
                     plot = False, steps = 10):
         ''' An N-dimensional grid search routine '''
-        X, actuate, cost, bounds = self.initialize_optimizer(X, actuate, cost)
-        X = self.prepare_substate(X, axes)
-
+        X, bounds = self.initialize_optimizer(X, axes)
+        #X = self.prepare_substate(X, axes)
         ''' Generate search grid '''
         N = len(X)
         grid = []
@@ -118,9 +95,7 @@ class Optimizer():
         ''' Actuate search '''
         costs = []
         for point in points:
-            actuate(self.unnormalize(point,axes), axes)
-            costs.append(cost())
-
+            costs.append(cost(point, axes))
 
         ''' Plot result if desired '''
         if plot:
@@ -136,7 +111,7 @@ class Optimizer():
             plt.colorbar(plot)
 
         best_point = points[np.argmax(costs)]
-        actuate(self.unnormalize(best_point, axes), axes)
+        self.actuate(self.unnormalize(best_point, axes), axes)
 
         return points, costs
 
@@ -149,7 +124,6 @@ class Optimizer():
             vec[i] = d/2
 
             c0 = cost()
-            print(X+vec)
             actuate(X + vec)
             cp = cost()
 
@@ -160,7 +134,6 @@ class Optimizer():
             hessian.append((cp-2*c0+cm)/d**2)
 
             actuate(X + vec)
-        print(gradient)
         return np.array(gradient), np.array(hessian)
 
     def gradient_descent(self, X = None, axes = None, actuate = None, cost = None,
@@ -299,8 +272,8 @@ class Optimizer():
         return best_x
 
     def gaussian_process_next_sample(self, X, b, acquisition_func, gaussian_process,
-                                     evaluated_loss, greater_is_better=False, restarts=25):
-        n_params = X.shape[0]
+                                     greater_is_better=False, restarts=25):
+        n_params = X.shape[1]           # changed this from 0 to properly get dimension rather than # iterations so far
         bounds = np.array(list(itertools.repeat([0,1], n_params))) #for normalized parameters, go from -1,1
         best_x = None
         best_acquisition_value = 1
@@ -315,83 +288,44 @@ class Optimizer():
                 best_acquisition_value = res.fun
                 best_x = res.x
 
-            #THRESHOLD TO ENABLE AFTER LOTS OF EXPERIMENTATION
-            #if len(self.sigma) > 100 and np.std(self.sigma[-1:-100]) < 0.003:
-            #if len(self.mu) > 100 and np.std(self.mu[-1:-100]) < 0.003:
-                #return best_x
         return best_x
 
     def effective_cost(self, x, b, gp):
-        print(x)
-        print(x.reshape(-1,1))
-        print(x.reshape(1,-1))
-        mu, sigma = gp.predict(x.reshape(-1,1), return_std = True)
+        ''' The problem: even with a 3d state vector, this function was receiving
+            a 2d x, which disagreed with the internal dimension of the GP. '''
+        mu, sigma = gp.predict(np.atleast_2d(x), return_std = True)
         return -(b*mu+np.sqrt(1-b**2)*sigma)
-
-    def expected_improvement(self, x, gp, evaluated_loss, greater_is_better=True, n_params=1):
-        x_to_predict = x.reshape(-1, len(self.state))
-
-        mu, sigma = gp.predict(x_to_predict, return_std=True)
-        self.mu = np.append(self.mu, mu[0])
-        self.sigma = np.append(self.sigma, sigma[0])
-
-        if greater_is_better:
-            loss_optimum = np.max(evaluated_loss)
-        else:
-            loss_optimum = np.min(evaluated_loss)
-        scaling_factor = (-1) ** (not greater_is_better)
-
-        # In case sigma equals zero
-        with np.errstate(divide='ignore'):
-            Z = scaling_factor * (mu - loss_optimum) / sigma
-            expected_improvement = scaling_factor * (mu - loss_optimum) * norm.cdf(Z) + sigma * norm.pdf(Z)
-            expected_improvement[sigma == 0.0] == 0.0
-
-        return -1 * mu #maximize the value
-#        return -1 * expected_improvement #maximize learning about model
 
     def gaussian_process(self, X = None, axes = None, actuate = None, cost = None,
                     iterations = 10, plot = False, span = 10, steps = 100, random_search = False):
-        ''' Guassian Processing from https://github.com/thuijskens/bayesian-optimization/blob/master/python/gp.py
+        ''' Gaussian Processing from https://github.com/thuijskens/bayesian-optimization/blob/master/python/gp.py
             and https://www.nature.com/articles/srep25890.pdf '''
-        X, actuate, cost, bounds = self.initialize_optimizer(X, actuate, cost)
-        X = self.prepare_substate(X, axes)
-
-        N = X.shape[1]
-        c = np.array([self.cost(X)])
+        ''' Integrated with Lab of Things: method now uses actuate() to update the
+            actual state instead of just changing X. This is currently implemented
+            by making self.cost() measure at the current state if X is not specified,
+            and otherwise actuate to X then measure. '''
+        if cost is None:
+            cost = self.cost
+        X, bounds = self.initialize_optimizer(X, axes)
+        N = len(X)
+        c = np.array([cost(X, axes=axes)])
         kernel = C(1.0, (1e-3, 1e3)) * RBF(10, (1e-2, 1e2))
         self.gp = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=10)
-
-        initial_step = -0.05
-        X_new = X + initial_step
+        X_new = np.random.uniform(bounds[0][0], bounds[0][1], size=(1, len(X)))
         for i in range(iterations):
-            X = np.atleast_2d(np.append(X, X_new)).T
-            print('X')
-            print(X)
+            X = np.append(np.atleast_2d(X), np.atleast_2d(X_new), axis=0)
             X = X.reshape(-1,N)
-            c = self.cost(X)
-            self.gp.fit(X,c)
-            # do grid search on prediction OR scipy.optimize's minimize to select next sample
-            if random_search:
-                grid = []
-                for n in range(N):
-                    grid.append(np.linspace(X[-1][n]-span/2, X[-1][n]+span/2, steps))
-                grid = np.array(grid)
-                points = np.transpose(np.meshgrid(*[grid[n] for n in range(N)])).reshape(-1,N)
-                c_pred, sigma = self.gp.predict(points, return_std = True)
-                b = 0.5
-                effective_cost = b*c_pred + (1-b)*sigma
-                X_new = points[np.argmax(effective_cost)]
-            else:
-                points = []
-                c_pred = []
-                b = np.cos(2*np.pi*i/(iterations-1))
-                X_new = self.gaussian_process_next_sample(X, b, self.effective_cost, self.gp, c, greater_is_better=True, restarts=10)
+            c = np.append(c, self.cost(X[-1], axes = axes))
 
+            self.gp.fit(X,c)
+
+            b = np.cos(2*np.pi*i/(iterations-1))
+            X_new = self.gaussian_process_next_sample(X, b, self.effective_cost, self.gp, greater_is_better=True, restarts=10)
+        self.actuate(self.unnormalize(X[-1], axes), axes)
         if plot:
             self.plot_optimization(func = c, lbl = 'Gaussian Processing')
 
-        return X, c, points, c_pred
+        return X, c
 
     def plot_optimization(self, func, lbl = None, yscl = 'log',
                           ylbl = 'Optimization Function', xlbl = 'Iteration #'):
