@@ -4,14 +4,14 @@ class ProcessHandler():
     def __init__(self):
         self.threads = []
 
-    def run_process(self, target, args = None):
+    def _run_process(self, target, args = None):
         ''' Allows a target function of the parent object to be run in a process '''
         if type(target) == str:
             target = getattr(self, target)
         assert callable(target)
         Process(target=target, args=args, parent = self)
 
-    def quit_process(self, target):
+    def _quit_process(self, target):
         if type(target) == str:
             target = getattr(self, target)
         assert callable(target)
@@ -19,14 +19,14 @@ class ProcessHandler():
             if thread.target == target:
                 thread.stop()
 
-    def run_thread(self, target, args = None, stoppable = True):
+    def _run_thread(self, target, args = None, stoppable = True):
         ''' Allows a target function of the parent object to be run in a thread '''
         if type(target) == str:
             target = getattr(self, target)
         assert callable(target)
         Thread(target=target, args=args, parent = self, stoppable = stoppable)
 
-    def quit_thread(self, target):
+    def _quit_thread(self, target):
         if type(target) == str:
             target = getattr(self, target)
         assert callable(target)

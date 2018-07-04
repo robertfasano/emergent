@@ -21,7 +21,7 @@ class Hub(Device, Optimizer,Link, ProcessHandler):
 
     def _connect(self):
         for dev in self.devices:
-            self.run_thread(target=dev._connect, stoppable = False)
+            self._run_thread(target=dev._connect, stoppable = False)
 #            dev._connect()
 
         self._params_to_state()

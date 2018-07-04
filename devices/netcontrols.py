@@ -27,7 +27,7 @@ class NetControls(Device, ProcessHandler):
             self._connected = 1
 
     def _actuate(self, state):
-        self.run_thread(self.set_position, args=state, stoppable = False)
+        self._run_thread(self.set_position, args=state, stoppable = False)
         #self.set_position(state)
     def set_position(self, state):
         if type(state) == list:
