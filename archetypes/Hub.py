@@ -38,11 +38,22 @@ class Hub(Device, Optimizer,Link, ProcessHandler):
             only along the overlap. '''
         for dev in self.devices:
             indices = dev.indices
+            if axes != None:
+                indices = np.array([x for x in axes if x in indices])
             if len(indices) > 0:
-                if axes != None:
-                    indices = [x for x in axes if x in indices]
                 target_state = dev.state
-                target_state[indices] = state
+                if axes is None:
+                    target_state[indices-dev.start_index] = state[indices]
+                else:
+                    target_state[indices-dev.start_index] = state[indices-dev.start_index]
+
+                ''' Note: top line should be uncommented for Optimizer, but bottom line
+                    for Application! Need to fix this disagreement! '''
+                ''' The problem arises when we pass a state with no axes: I designed
+                    this function to work with Optimizer with the upper line, which
+                    assumes it will always receive substates. If the state is the total 
+                    state, it doesn't work. '''
+
                 dev.actuate(target_state)
         if axes == None:
             self.state = state

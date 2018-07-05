@@ -59,6 +59,10 @@ class Optimizer():
 
     def initialize_optimizer(self, X = None, axes = None):
         ''' Prepares a normalized substate and appropriate bounds '''
+        if X is None and axes is None:
+            X = self.state
+        elif X is None:
+            X = self.state[[axes]]
         if axes is not None:
             X = (X[[axes]] - self.min[[axes]])/(self.max[[axes]]-self.min[[axes]])
         else:
