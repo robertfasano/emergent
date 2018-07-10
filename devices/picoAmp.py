@@ -15,7 +15,6 @@ class PicoAmp(Device):
     def __init__(self, name = 'picoAmp', labjack = None, connect = True, parent = None, lowlevel = True):
         Device.__init__(self, name, parent = parent, lowlevel = lowlevel)
         self.addr = {'A': '000', 'B': '001', 'C': '010', 'D': '011', 'ALL': '111'}
-#        self.state = [self.params['X']['value'], self.params['Y']['value']]
         self.mirrors = True
         if labjack == None:
             labjack = LabJack(devid='470016970')
@@ -54,8 +53,7 @@ class PicoAmp(Device):
         self.setDifferential(state[1], 'Y')
         self.state = state
 
-    def cost(self):
-        return self.readADC()
+
 
     def command(self, cmd):
         ''' Separates the bitstring cmd into a series of bytes and sends them through the SPI. '''
@@ -72,6 +70,9 @@ class PicoAmp(Device):
 
         return format(int(Vdigital), '016b')
 
+    def optimize(self):
+        self.grid_search(cost = self.cost)
+
     def readADC(self, num = 1):
         return self.labjack.AIn(0, num=num)
 
@@ -81,23 +82,36 @@ class PicoAmp(Device):
             Allowed range of V is -80 to 80.'''
         V = np.clip(float(V), -80, 80)
         cmdPlus = '00' + '011' + {'X':self.addr['A'], 'Y': self.addr['C']}[axis] + self.digital(self.Vbias+V)
-        cmdMinus = '00' + '011' + {'X':self.addr['B'], 'Y': self.addr['D']}[axis] + self.digital(self.Vbias+V)
+        cmdMinus = '00' + '011' + {'X':self.addr['B'], 'Y': self.addr['D']}[axis] + self.digital(self.Vbias-V)
 
         self.command(cmdPlus)
         self.command(cmdMinus)
 
-    def wave(self, amplitude, frequency, shape = 'square', duty_cycle=0.5, axis='X'):
-        t = np.linspace(0, 1/frequency, 100)
-        if shape == 'square':
-            y = sig.square(t, duty=duty_cycle)
-        elif shape == 'sin':
-            y = np.sin(2*np.pi*frequency*t)
+    def wave(self, amplitude, frequency, stopped = None, shape = 'square', duty_cycle=0.5, axis='X'):
+        ''' Generates a square wave with one edge at the current position. '''
+        #        t = np.linspace(0, 1/frequency, 100)
+        pos = {'X': self.state[0], 'Y': self.state[1]}[axis]
+#        if shape == 'square':
+#            y = pos+sig.square(t, duty=duty_cycle)
+#        elif shape == 'sin':
+#            y = pos+np.sin(2*np.pi*frequency*t)
+#
+#        t0 = time.time()
+#        while True:
+#            ti = (time.time()-t0) % 1/frequency
+#            i = np.abs(t-ti).argmin()
+#            print('Time:',ti, 'Output:', y[i])
+#            self.setDifferential(y[i], axis)
+#            
+        i = 0
+        while not stopped():
+            i = (i+1) % 2
+            if i:
+                self.setDifferential(pos+amplitude, axis)
+            else:
+                self.setDifferential(pos, axis)
+            time.sleep(1/frequency)
 
-        t0 = time.time()
-        while True:
-            ti = (time.time()-t0) % 1/set_frequency
-            i = np.abs(t-ti).argmin()
-            self.setDifferential(y[i], axis)
 
 if __name__ == '__main__':
     import sys

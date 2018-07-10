@@ -31,10 +31,7 @@ class Link(QObject):
         self.element = self.engine.rootObjects()[0].findChildren(QObject, self.name+"Hub")[0]
         self.elementMetaObject = self.element.metaObject()
 
-#        print( self.element.findChildren(QObject, self.name+item))
-#        self.sidebar = self.element.findChildren(QObject, self.name+item)[0]
         self.sidebar = self.element.findChildren(QObject, 'Sidebar')[0]
-
         self.metaObject = self.sidebar.metaObject()
 
         ''' Retrieve handle for the clickable, allowing us to hide it if the device connection fails '''
@@ -50,14 +47,9 @@ class Link(QObject):
         self.popup_model = self.popup.findChildren(QObject, 'Model')[0]
         self.popupModelMetaObject = self.popup_model.metaObject()
 
-        self.executor = self.sidebar.findChildren(QObject, 'Executor')[0]
-        self.executor_model = self.executor.findChildren(QObject, 'Model')[0]
-        self.executorModelMetaObject = self.executor_model.metaObject()
-
     def _append_listModel(self, name, value, device):
-        d = {"name": name, "value": value, "device": device}
+        d = {"name": name, "value": float(value), "device": device}
         self.elementMetaObject.invokeMethod(self.element, "append", Q_ARG(QVariant, d))
-
     ''' Here is an example of a getter method. When the child of the Link class is registered with QML, then
         QML can access the Python variable link._property1 via the QML property link.property1 '''
     @pyqtProperty(float)
@@ -114,44 +106,43 @@ class Link(QObject):
 
     @pyqtSlot(str, str)
     def _call_device_function(self, device, func):
-        for dev in self.devices:
-            if dev.name == device:
-                getattr(dev, func)()
+        dev = self._get_device(device)
+        getattr(dev, func)()
 
     @pyqtSlot(str)
     def _refresh(self, target):
         print('Refreshing %s'%target)
-        for dev in self.devices:
-            if dev.name == target:
-                dev._connect()
+        dev = self._get_device(target)
+        dev._connect()
 
     @pyqtSlot(str)
     def _list_methods(self, name):
-        for dev in self.devices:
-            if dev.name == name:
-                methods = [func for func in dir(dev) if callable(getattr(dev, func)) and not func.startswith("_")]
-                self.popupModelMetaObject.invokeMethod(self.popup, "clear")
-                for m in methods:
-                    d = {"name": m, "device": dev.name}
-                    self.popupModelMetaObject.invokeMethod(self.popup, "append", Q_ARG(QVariant, d))
+        dev = self._get_device(name)
+        methods = [func for func in dir(dev) if callable(getattr(dev, func)) and not func.startswith("_")]
+        self.popupModelMetaObject.invokeMethod(self.popup, "clear")
+        for m in methods:
+            d = {"name": m, "device": dev.name}
+            self.popupModelMetaObject.invokeMethod(self.popup, "append", Q_ARG(QVariant, d))
 
     @pyqtSlot(str, str)
     def _list_args(self, device, function):
-        for dev in self.devices:
-            if dev.name == device:
-                f = getattr(dev, function)
-                args = inspect.signature(f).parameters
-                args = list(args.items())
-                names = []
-                defaults = []
-                self.executorModelMetaObject.invokeMethod(self.executor, "clear")
-
-                for a in args:
-                    name = a[0]
-                    default = str(a[1])
-                    if default == name:
-                        default = ''
-                    else:
-                        default = default.split('=')[1]
-                    d = {"name": name, "value": default}
-                    self.executorModelMetaObject.invokeMethod(self.executor, "append", Q_ARG(QVariant, d))
+        dev = self._get_device(device)
+        f = getattr(dev, function)
+        args = inspect.signature(f).parameters
+        args = list(args.items())
+        names = []
+        defaults = []
+        doc = {'text':inspect.getdoc(f)}
+        if doc['text'] is None:
+            doc['text'] = 'None'
+        self.popupModelMetaObject.invokeMethod(self.popup, "set_docs", Q_ARG(QVariant, doc))
+        self.popupModelMetaObject.invokeMethod(self.popup, "clear_args")
+        for a in args:
+            name = a[0]
+            default = str(a[1])
+            if default == name:
+                default = 'Enter'
+            else:
+                default = default.split('=')[1]
+            d = {"name": name, "value": default}
+            self.popupModelMetaObject.invokeMethod(self.popup, "append_args", Q_ARG(QVariant, d))
