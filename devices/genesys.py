@@ -3,7 +3,7 @@ sys.path.append('O:\\Public\\Yb clock')
 sys.path.append('C:\\Users\yblab\Documents\GitHub')
 from labAPI.protocols.serial import Serial, PARITY_NONE, STOPBITS_ONE, EIGHTBITS
 from labAPI.archetypes.device import Device
-
+import time
 
 class Genesys(Device):
     def __init__(self, port = 'COM13', name = 'genesys', connect = True, parent = None):
@@ -36,6 +36,16 @@ class Genesys(Device):
 
     def set_voltage(self, V):
         return self.command('PV %f'%V)
+
+    def wave(self, frequency, stopped = None):
+        I0 = self.state[0]
+        i = 0
+        while not stopped():
+            i = (i+1) % 2
+            self.set_current(I0*i)
+            time.sleep(1/frequency)
+        self.set_current(I0)
+        
 
 if __name__ == '__main__':
     p = Genesys()
