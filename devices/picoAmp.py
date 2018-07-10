@@ -111,6 +111,7 @@ class PicoAmp(Device):
             else:
                 self.setDifferential(pos, axis)
             time.sleep(1/frequency)
+        self.setDifferential(pos, axis)
 
 
 if __name__ == '__main__':
