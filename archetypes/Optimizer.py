@@ -8,7 +8,6 @@
                 mems.moveTo[point[3:6]]
                 agilis.actuate[point[6:9]]
         - MasterAligner.actuate should be threaded
-        - take a state vector, decompose it into substates, run optimizations in series of separate substates
 '''
 import numpy as np
 import itertools
@@ -29,9 +28,9 @@ import warnings
 warnings.warn = warn
 
 class Optimizer():
-    def __init__(self):
+    def __init__(self, noise):
         self.plot = plt.figure() # figure for all optimization routine graphing
-        self.noise = 0
+        self.noise = noise
 
     ''' Base functions '''
     def actuate(self, point):
@@ -126,8 +125,7 @@ class Optimizer():
         return best_x
 
     def effective_cost(self, x, b, gp):
-        ''' The problem: even with a 3d state vector, this function was receiving
-            a 2d x, which disagreed with the internal dimension of the GP. '''
+        ''' Watch for function recieveing a 2d x with higher dimensional state vectors (disagreement with internal GP dimension) '''
         mu, sigma = gp.predict(np.atleast_2d(x), return_std = True)
         return -(b*mu+np.sqrt(1-b**2)*sigma)
 
@@ -177,49 +175,33 @@ class Optimizer():
                    bounds=bounds,
                    method=method,
                    args=(axes))
-        print(res)
+        #simplex for SKL is res = minimize(fun = cost,x0 = X.reshape(1, -1), method = 'Nelder-Mead', tol = 1e7)
+        print("SKL:" + method + "=%s" % res)
 
+    #possible to make a dictionary for these optimization methods and all possibile SKL optimize.minimze routines
     def optimize(self, routines = ['gp'], X = None, axes = None, iterations = 20, plot = True,
-                 actuate = None, cost = None, span = 1, steps = 100, dither = 0.1, eta = 1):
-#        if axes == None:   #set the indices that the user would like to specify for each optimization routine
-#            axes = [0, self.dim]
-
+                 actuate = None, cost = None, span = 1, steps = 100, dither = 0.1, eta = 1, method = 'L-BFGS-B'):
         for r in routines:
             X = np.random.uniform(0, 1, size=(1,self.dim)) #change when axes is implemented
             if r == 'gp' or routines == ['all']:
                 X, cost, points, c_pred = self.gaussian_process(X, axes, iterations = iterations, plot = plot,
                                                                 span = span, steps = steps)
                 print("Gau$$ian Proce$$ing=%s" % cost[-1])
-                '''unstable as of now - able to take a set of axes isolated from position
-                standardized all parameter orders and names across all optimization functions
-                isolated local variables to X instead of self.state such that actuations can be unique to methods
-                plot optimization general method
-                optimize general method for iterative series optimization or flexible ensemble optimization routines
-                POSSIBLE TO ADD a dictionary for these optimization methods and all possible scikit-learn optimize.minimize routines
-                '''
-            if r == 'skl_splx' or routines == ['all']:
-                X2 = self.skl_simplex(X, axes, iterations = iterations, plot=plot)
-                print("Scikit-Learn Simplex=%s" % X2[0])
-            if r == 'rf_splx' or routines == ['all']:
-                h, c = self.rjf_simplex(X, axes, iterations = iterations, plot = plot)
-                print("RJF Simplex=%s" % c[-1])
-            if r == 'gd' or routines == ['all']:
-                h, c = self.gradient_descent(X, axes, iterations = iterations, plot = plot, d = dither, eta = 1)
-                print("Gradient Descent=%s" % c[-1][-1])
-            if r == 'gs':  #WARNING - plotting grid search does not work
-                c = self.grid_search(X, axes = [0,1] ,plot = plot,  span = span, steps = steps)
+            if r == 'sklm' or routines == ['all']:
+                self.skl_minimize(cost = cost, method = method)
+            if r == 'gs' and routines == ['all']:
+                c = self.grid_search(plot = plot)
                 print("Grid Search=%s" % c[-1])
 
 if __name__ == '__main__':
-    a = Optimizer()
-    a.dim = 4
     X0 = .2
-    SNR = 100
-    a.noise = 1/SNR
-    pos = np.ones(a.dim)*X0
-    pos = np.random.uniform(0, 1, size=(1,a.dim))
-    a.position = pos
+    SNR = 100 
+    a = Optimizer(noise = 1/SNR)
+    a.dim = 4
+    pos = np.random.uniform(0, 1, size=(1, a.dim)) #np.ones(dim)*X0
+    a.actuate(pos)
+    
     #plt.title(r'Function optimization from %f, d=%i, SNR=%i'%(X0,a.dim, SNR))
 
     print('Optimization Results')
-    a.optimize(routines = ['all'])
+    a.optimize(routines = ['gs'])
