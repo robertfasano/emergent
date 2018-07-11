@@ -57,12 +57,9 @@ class Optimizer():
         else:
             return self.min[[axes]] + state * (self.max[[axes]]-self.min[[axes]])
 
-    def initialize_optimizer(self, X = None, axes = None):
+    def initialize_optimizer(self, axes = None):
         ''' Prepares a normalized substate and appropriate bounds '''
-        if X is None and axes is None:
-            X = self.state
-        elif X is None:
-            X = self.state[[axes]]
+        X = self.state
         if axes is not None:
             X = (X[[axes]] - self.min[[axes]])/(self.max[[axes]]-self.min[[axes]])
         else:
@@ -75,7 +72,7 @@ class Optimizer():
     def grid_search(self, X = None, axes = None, actuate = None, cost = None,
                     plot = False, steps = 10):
         ''' An N-dimensional grid search routine '''
-        X, bounds = self.initialize_optimizer(X, axes)
+        X, bounds = self.initialize_optimizer(axes)
         ''' Generate search grid '''
         N = len(X)
         grid = []
@@ -141,7 +138,7 @@ class Optimizer():
             and otherwise actuate to X then measure. '''
         if cost is None:
             cost = self.cost
-        X, bounds = self.initialize_optimizer(X, axes)
+        X, bounds = self.initialize_optimizer(axes)
         N = len(X)
         c = np.array([cost(X, axes=axes)])
         kernel = C(1.0, (1e-3, 1e3)) * RBF(10, (1e-2, 1e2))
@@ -170,8 +167,12 @@ class Optimizer():
             plt.xlabel(xlbl)
             plt.legend()
 
+    def random_sampling(self, cost, N, bounds):
+        ''' Performs a random sampling of the cost function at N points within the specified bounds '''
+        return
+    
     def skl_minimize(self, cost, method = 'L-BFGS-B', X = None, axes = None):
-        X, bounds = self.initialize_optimizer(X, axes)
+        X, bounds = self.initialize_optimizer(axes)
         res = minimize(fun=cost,
                    x0=X,
                    bounds=bounds,
