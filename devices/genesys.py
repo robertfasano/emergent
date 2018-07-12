@@ -6,8 +6,8 @@ from labAPI.archetypes.device import Device
 import time
 
 class Genesys(Device):
-    def __init__(self, port = 'COM13', name = 'genesys', connect = True, parent = None):
-        super().__init__(name, parent = parent)
+    def __init__(self, port = 'COM13', name = 'genesys', connect = True, parent = None, lowlevel = True):
+        super().__init__(name, parent = parent, lowlevel = lowlevel)
         self.port = port
         self.addr = 6
         self._connected = 0
@@ -26,7 +26,7 @@ class Genesys(Device):
 
     def _actuate(self, state):
         self.set_current(state[0])
-        
+
     def command(self, cmd):
         reply = self.serial.command(cmd)
         return reply
@@ -45,7 +45,7 @@ class Genesys(Device):
             self.set_current(I0*i)
             time.sleep(1/frequency)
         self.set_current(I0)
-        
+
 
 if __name__ == '__main__':
     p = Genesys()
