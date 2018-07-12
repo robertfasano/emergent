@@ -202,64 +202,44 @@ class Optimizer():
                 c = self.grid_search(plot = plot)
                 print("Grid Search=%s" % c[-1])
 
-    ''' Dimensionality Analytics and Reduction Algorithms '''
+    ''' Dimensionality Analytics and Reduction Algorithms (X always being the training data set) '''
+    #NOTE: might need to convert to something with COST and to the entire training database
+    #use differential evolution from skl to develop a dataset for the pca to determine reduction, caluclate covariance and perform pca on it
+    
     def extract_pcs(self, X = None):
         #Method to use numpy's svd() function to obtain the principal components of the training set
-        if X is None:
-            X = self.state
-        #take step to recenter data around the origin as necessary
+        #NOTE: must take step to recenter data around the origin as necessary here
         X_centered = X - X.mean(axis = 0) #NOTE: assumes that the dataset is centered around the origin
         U, s, Vt = np.linalg.svd(X_centered)
         #use the following to extract each pca given their index: c1 = Vt.T[:,0] where 0 is the index
         return Vt
         
-    def pca_reduction(self, X = None, pvariance = 0.95):
+    def pca_reduction(self, X = None, pvariance = 0.95, slvr = "auto"): #svd_solver can be ‘auto’, ‘full’, ‘arpack’, or ‘randomized’
         #Method to employ SKL's PCA to reduce dimensionality of the dataset based on a preserved variance threshold
-        if X is None:
-            X = self.state 
+        if pvariance is not int(pvariance):
+            pca = PCA()
+            pca.fit(X.copy) 
+            d = np.argmax(np.cumsum(pca.explained_variance_ratio_) >= pvariance) + 1
+            print("Minimum number of dimensions to preserve variance: ", d)
         
-        #first determine the number of dimensions required to preserve variance threshold
-        pca = PCA()
-        pca.fit(X.copy) 
-        d = np.argmax(np.cumsum(pca.explained_variance_ratio_) >= pvariance) + 1
-        
-        #now reduce the data set and find the breakdown of variance for each axis in the dataset
-        pca = PCA(n_components = pvariance) #define either as a number of components or percentage of varaiance to preserve (e.g. pvariance = 3 or 0.95)
+        #reduce the data set and find the breakdown of variance for each axis in the dataset
+        #define pvariance as a number of components or percentage of varaiance to preserve (e.g. pvariance = 3 or 0.95)
+        pca = PCA(n_components = pvariance, svd_solver = slvr) #use "randomized" for solver if desiring stochastic approximations
         X_reduced = pca.fit_tranform(X)
         variance_breakdown = pca.explained_variance_ratio_
-        
-        return X_reduced, variance_breakdown, d
-    
-    def pca_incremental(self, X = None, n_comps = 4, n_batches = 20):
-        #Method to incrementally perform PCA on mini-batches of a dataset to split up the training data
-        if X is None:
-            X = self.state 
-        
-        inc_pca = IncrementalPCA(n_components = n_comps)
-        for X_batch in np.array_split(X, n_batches):
-            inc_pca.partial_fit(X_batch)
-        X_reduced = inc_pca.transform(X)
-        return X_reduced
-        
-    def pca_randomized(self, X = None, n_comps = 4):
-        #Method employing PCA as a stochastic algorithm that efficiently finds approximations of the first d components
-        if X is None:
-            X = self.state
-            
-        rnd_pca = PCA(n_components = n_comps, svd_solver = "randomized") #svd_solver can be ‘auto’, ‘full’, ‘arpack’, or ‘randomized’
-        X_reduced = rnd_pca.fit_transform(X)
-        return X_reduced
+        return X_reduced, variance_breakdown
     
     def pca_kernal(self, X = None, n_comps = 4, krnl = "rbf", gma = 0.04):
         #Method to employ kernal techniques to PCA, allowing complex nonlinear projections for dimensionality reduction
-        if X is None:
-            X = self.state
-        
         rbf_pca = KernalPCA(n_components = n_comps, kernal = krnl, gamma = gma)
         X_reduced = rbf_pca.fit_transform(X)
         return X_reduced
-        
-
+    
+    '''with a 13 dimensional array, use covariance on the original data set, 
+    rows = number of features, columns = number of observations, covariance 
+    yields number of rows = number of columns, then feature extraction using 
+    PCA or clustering algorithm '''
+    
 if __name__ == '__main__':
     X0 = .2
     SNR = 100
