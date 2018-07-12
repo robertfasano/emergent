@@ -28,7 +28,7 @@ import warnings
 warnings.warn = warn
 
 class Optimizer():
-    def __init__(self, noise):
+    def __init__(self, noise=0):
         self.plot = plt.figure() # figure for all optimization routine graphing
         self.noise = noise
 
@@ -107,7 +107,7 @@ class Optimizer():
     def gaussian_process_next_sample(self, X, bounds, b, acquisition_func, gaussian_process,
                                      greater_is_better=False, restarts=25):
         best_x = None
-        best_acquisition_value = 1
+        best_acquisition_value = 999
 
         for starting_point in np.random.uniform(bounds[0][0], bounds[0][1], size=(restarts, X.shape[1])):
             res = minimize(fun=acquisition_func,
@@ -124,7 +124,7 @@ class Optimizer():
     def effective_cost(self, x, b, gp):
         ''' Watch for function recieveing a 2d x with higher dimensional state vectors (disagreement with internal GP dimension) '''
         mu, sigma = gp.predict(np.atleast_2d(x), return_std = True)
-        return -(b*mu+np.sqrt(1-b**2)*sigma)
+        return (b*mu+np.sqrt(1-b**2)*sigma)
 
     def gaussian_process(self, X = None, axes = None, actuate = None, cost = None,
                     iterations = 10, plot = False, span = 10, steps = 100, random_search = False):
@@ -137,21 +137,24 @@ class Optimizer():
         if cost is None:
             cost = self.cost
         X, bounds = self.initialize_optimizer(axes)
+
         N = len(X)
         c = np.array([cost(X, axes=axes)])
+
+        points, costs = self.random_sampling(cost, 15, bounds, axes=axes)
+        X = np.append(np.atleast_2d(X), points, axis=0)
+        c = np.append(c, costs)
         kernel = C(1.0, (1e-3, 1e3)) * RBF(10, (1e-2, 1e2))
         self.gp = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=10)
-        X_new = np.random.uniform(bounds[0][0], bounds[0][1], size=(1, len(X)))
         for i in range(iterations):
-            X = np.append(np.atleast_2d(X), np.atleast_2d(X_new), axis=0)
-            X = X.reshape(-1,N)
-            c = np.append(c, self.cost(X[-1], axes = axes))
-
             self.gp.fit(X,c)
-
-            b = np.cos(2*np.pi*i/(iterations-1))
+            b = 1
+            #b = np.cos(2*np.pi*i/(iterations-1))
             X_new = self.gaussian_process_next_sample(X, bounds, b, self.effective_cost, self.gp, greater_is_better=False, restarts=10)
-        self.actuate(self.unnormalize(X[-1], axes), axes)
+            X_new = np.atleast_2d(X_new)
+            X = np.append(X, X_new, axis=0)
+            c = np.append(c, self.cost(X[-1], axes = axes))
+        self.actuate(self.unnormalize(X[np.argmin(c)], axes), axes)
         if plot:
             self.plot_optimization(func = c, lbl = 'Gaussian Processing')
 
@@ -165,10 +168,15 @@ class Optimizer():
             plt.xlabel(xlbl)
             plt.legend()
 
-    def random_sampling(self, cost, N, bounds):
+    def random_sampling(self, cost, N, bounds, axes=None):
         ''' Performs a random sampling of the cost function at N points within the specified bounds '''
-        return
-    
+        points = np.random.uniform(size=(N,bounds.shape[0]))
+        c = []
+        for point in points:
+            c.append(cost(point,axes=axes))
+
+        return points, c
+
     def skl_minimize(self, cost, method = 'L-BFGS-B', X = None, axes = None):
         X, bounds = self.initialize_optimizer(axes)
         res = minimize(fun=cost,
@@ -196,12 +204,12 @@ class Optimizer():
 
 if __name__ == '__main__':
     X0 = .2
-    SNR = 100 
+    SNR = 100
     a = Optimizer(noise = 1/SNR)
     a.dim = 4
     pos = np.random.uniform(0, 1, size=(1, a.dim)) #np.ones(dim)*X0
     a.actuate(pos)
-    
+
     #plt.title(r'Function optimization from %f, d=%i, SNR=%i'%(X0,a.dim, SNR))
 
     print('Optimization Results')
