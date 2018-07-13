@@ -22,6 +22,7 @@ sys.path.append(char.join(os.getcwd().split(char)[0:-2]))
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C, WhiteKernel
 from sklearn.decomposition import PCA, IncrementalPCA, KernalPCA
+from sklerarn.cluster import KMeans
 def warn(*args, **kwargs):
     pass
 import warnings
@@ -68,6 +69,51 @@ class Optimizer():
 
         return X, bounds
     
+    def line_search(self, X = None, axis = 0, actuate = None, cost = None, step = 0.1):
+        ''' Searches a single axis/dimension for a minima using a moving derivative '''
+        X, bounds = self.initialize_optimizer(axis)
+
+        #first compute the gradient to check which direction to move
+        init_step = 5 * step
+        init_points = []
+        
+        X[axis] -= init_step
+        init_points.append(self.cost(X, axis))
+        
+        for i in range(2):
+            X[axis] += init_step
+            init_points.append(self.cost(X, axis))     
+
+        dir = -1*np.sign(np.mean(np.diff(init_points))) #determine direction from differences towards mininum
+        
+        if dir is -1: #undo move in wrong direction
+            X[axis] -= init_step
+            self.actuate(X) 
+
+        #now, perform the line search
+        num_points = 5 #for moving derivative and to keep track of historically
+        costs = []
+        lastNPoints = np.array([])
+        movingDeriv = 0
+        maximizing = True
+        
+        while maximizing:
+            X[axis] += dir*step
+            val = self.cost(X, axis)
+            costs.append(val)
+            lastNPoints = np.append(lastNPoints, val)
+            if len(lastNPoints) > num_points:
+                lastNPoints = np.delete(lastNPoints,0)
+            if len(lastNPoints) > 1:
+                movingDeriv = np.mean(np.diff(lastNPoints))
+            if movingDeriv > 0 and len(lastNPoints) == num_points:
+                maximizing = False
+                numSteps = len(lastNPoints) - np.argmin(lastNPoints) - 1
+                X[axis] -= dir*step*numSteps
+                costs.append(self.cost(X, axis))
+ 
+        return X, costs
+    
     def grid_search(self, X = None, axes = None, actuate = None, cost = None,
                     plot = False, steps = 10):
         ''' An N-dimensional grid search routine '''
@@ -101,7 +147,7 @@ class Optimizer():
 
         best_point = points[np.argmin(costs)]
         self.actuate(self.unnormalize(best_point, axes), axes)
-
+        
         return points, costs
 
     def gaussian_process_next_sample(self, X, bounds, b, acquisition_func, gaussian_process,
@@ -235,7 +281,14 @@ class Optimizer():
         X_reduced = rbf_pca.fit_transform(X)
         return X_reduced
     
-    '''with a 13 dimensional array, use covariance on the original data set, 
+    
+    def cluster(self, X = none, n_clusters):
+        kmeans = KMeans(n_clusters=4).fit(X)
+        cluster_labels = kmeans.labels_
+        return kmeans, cluster_labels
+        
+    def covariance_reduction(self, X = none):
+        '''with a 13 dimensional array, use covariance on the original data set, 
     rows = number of features, columns = number of observations, covariance 
     yields number of rows = number of columns, then feature extraction using 
     PCA or clustering algorithm '''
