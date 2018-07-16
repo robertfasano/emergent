@@ -1,13 +1,8 @@
 ''' This script implements an Aligner class from which many devices inherit methods such as:
     persistent positioning, first light acquisition, and realtime optimization
 '''
-''' TODO:
-        - sampleRange/dither etc should be arrays to allow multi-device alignment
-        - MasterAligner takes a number of aligners in __init__ and can access their individual actuate functions; store position indices for each device
-        - MasterAligner class should overload actuate to route signals to each device, e.g.:
-                mems.moveTo[point[3:6]]
-                agilis.actuate[point[6:9]]
-        - MasterAligner.actuate should be threaded
+''' TODO: store position indices for each device, actuate functions should be threaded,
+    pca/dimensionality reduction/covariance/clustering, image convolution, drift record analysis
 '''
 import numpy as np
 import itertools
