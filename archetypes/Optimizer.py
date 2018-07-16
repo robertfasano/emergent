@@ -16,6 +16,7 @@ import os
 from scipy.interpolate import griddata
 from scipy.stats import norm
 import matplotlib.pyplot as plt
+plt.ion()
 from scipy.optimize import curve_fit, minimize
 char = {'nt': '\\', 'posix': '/'}[os.name]
 sys.path.append(char.join(os.getcwd().split(char)[0:-2]))
@@ -23,6 +24,8 @@ from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C, WhiteKernel
 from sklearn.decomposition import PCA, IncrementalPCA, KernelPCA
 from sklearn.cluster import KMeans
+import pandas as pd
+import time
 def warn(*args, **kwargs):
     pass
 import warnings
@@ -30,7 +33,6 @@ warnings.warn = warn
 
 class Optimizer():
     def __init__(self, noise=0):
-        self.plot = plt.figure() # figure for all optimization routine graphing
         self.noise = noise
 
     ''' Base Functions '''
@@ -45,10 +47,22 @@ class Optimizer():
         cost = 1
         sigma = 1/3
         for n in range(X.shape[1]):
-            cost *= np.exp(-X[:,n]**2/(2*sigma**2))
+            cost *= np.exp(-(X[:,n]-0.5)**2/(2*sigma**2))
         cost += np.random.normal(0,self.noise)
-
+        self.history.loc[time.time()] = -cost 
         return -cost
+    
+    def plot_optimization(self, func=None, lbl = None, yscl = 'linear',
+                          ylbl = 'Optimization Function', xlbl = 'Time (s)'):
+        if func is None:
+            func = self.history
+            func.index -= func.index[0]
+        plt.plot(func, label = lbl)
+        plt.yscale(yscl)
+        plt.ylabel(ylbl)
+        plt.xlabel(xlbl)
+        plt.legend()
+        plt.show()
 
     ''' Optimization Routines and Algorithms '''
     def unnormalize(self, state, axes = None):
@@ -59,6 +73,7 @@ class Optimizer():
 
     def initialize_optimizer(self, axes = None):
         ''' Prepares a normalized substate and appropriate bounds '''
+        self.history = pd.Series(index=[])
         X = self.state
         if axes is not None:
             X = (X[[axes]] - self.min[[axes]])/(self.max[[axes]]-self.min[[axes]])
@@ -133,6 +148,7 @@ class Optimizer():
             costs.append(cost(point, axes))
 
         ''' Plot result if desired '''
+        ax = None
         if plot:
             if len(X) == 2 and axes == None:
                 ordinate_index = 0
@@ -144,11 +160,12 @@ class Optimizer():
             cost_grid = griddata(points[:,[ordinate_index, abscissa_index]], cost, (ordinate_mesh,abscissa_mesh))
             plot = plt.pcolormesh(ordinate_mesh, abscissa_mesh, cost_grid, cmap='gist_rainbow')
             plt.colorbar(plot)
+            ax = plt.gca()
 
         best_point = points[np.argmin(costs)]
         self.actuate(self.unnormalize(best_point, axes), axes)
         
-        return points, costs
+        return points, costs, ax
 
     def gaussian_process_next_sample(self, X, bounds, b, acquisition_func, gaussian_process,
                                      greater_is_better=False, restarts=25):
@@ -170,21 +187,18 @@ class Optimizer():
     def effective_cost(self, x, b, gp):
         ''' Watch for function recieveing a 2d x with higher dimensional state vectors (disagreement with internal GP dimension) '''
         mu, sigma = gp.predict(np.atleast_2d(x), return_std = True)
-        return (b*mu+np.sqrt(1-b**2)*sigma)
+       # return (b*mu+np.sqrt(1-b**2)*sigma)
+        return b*mu-(1-b)*sigma
 
-    def gaussian_process(self, X = None, axes = None, actuate = None, cost = None,
-                    iterations = 10, plot = False, span = 10, steps = 100, random_search = False):
+    def gaussian_process(self, X = None, axes = None, actuate = None, cost = None, iterations = 10, plot = False):
         ''' Gaussian Processing from https://github.com/thuijskens/bayesian-optimization/blob/master/python/gp.py
             and https://www.nature.com/articles/srep25890.pdf '''
-        ''' Integrated with Lab of Things: method now uses actuate() to update the
-            actual state instead of just changing X. This is currently implemented
-            by making self.cost() measure at the current state if X is not specified,
-            and otherwise actuate to X then measure. '''
+        ''' Integrated with Lab of Thinmethod uses actuate() to update actual state instead of 
+            changing X; currently implemented with self.cost() measuring current state if X
+            not specified and otherwise actuate to X and measuring.'''
         if cost is None:
             cost = self.cost
         X, bounds = self.initialize_optimizer(axes)
-
-        N = len(X)
         c = np.array([cost(X, axes=axes)])
 
         points, costs = self.random_sampling(cost, 15, bounds, axes=axes)
@@ -194,8 +208,7 @@ class Optimizer():
         self.gp = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=10)
         for i in range(iterations):
             self.gp.fit(X,c)
-            b = 1
-            #b = np.cos(2*np.pi*i/(iterations-1))
+            b = i / (iterations-1) #= 0.5 + 0.5*np.cos(2*np.pi*i/(iterations-1)), =1
             X_new = self.gaussian_process_next_sample(X, bounds, b, self.effective_cost, self.gp, greater_is_better=False, restarts=10)
             X_new = np.atleast_2d(X_new)
             X = np.append(X, X_new, axis=0)
@@ -205,15 +218,7 @@ class Optimizer():
             self.plot_optimization(func = c, lbl = 'Gaussian Processing')
 
         return X, c
-
-    def plot_optimization(self, func, lbl = None, yscl = 'log',
-                          ylbl = 'Optimization Function', xlbl = 'Iteration #'):
-            plt.plot(func, label = lbl)
-            plt.yscale(yscl)
-            plt.ylabel(ylbl)
-            plt.xlabel(xlbl)
-            plt.legend()
-
+        
     def random_sampling(self, cost, N, bounds, axes=None):
         ''' Performs a random sampling of the cost function at N points within the specified bounds '''
         points = np.random.uniform(size=(N,bounds.shape[0]))
@@ -223,7 +228,7 @@ class Optimizer():
 
         return points, c
 
-    def skl_minimize(self, cost, method = 'L-BFGS-B', X = None, axes = None):
+    def skl_minimize(self, cost, method = 'L-BFGS-B', X = None, axes = None, plot = False):
         X, bounds = self.initialize_optimizer(axes)
         res = minimize(fun=cost,
                    x0=X,
@@ -232,6 +237,8 @@ class Optimizer():
                    args=(axes))
         #simplex for SKL is res = minimize(fun = cost,x0 = X.reshape(1, -1), method = 'Nelder-Mead', tol = 1e7)
         print("SKL:" + method + "=%s" % res)
+        if plot:
+            self.plot_optimization(lbl = method)
 
     #possible to make a dictionary for these optimization methods and all possibile SKL optimize.minimze routines
     def optimize(self, routines = ['gp'], X = None, axes = None, iterations = 20, plot = True,
@@ -239,9 +246,8 @@ class Optimizer():
         for r in routines:
             X = np.random.uniform(0, 1, size=(1,self.dim)) #change when axes is implemented
             if r == 'gp' or routines == ['all']:
-                X, cost, points, c_pred = self.gaussian_process(X, axes, iterations = iterations, plot = plot,
-                                                                span = span, steps = steps)
-                print("Gau$$ian Proce$$ing=%s" % cost[-1])
+                X, cost, points, c_pred = self.gaussian_process(X, axes, iterations = iterations, plot = plot)
+                print("Gaussian Processing=%s" % cost[-1])
             if r == 'sklm' or routines == ['all']:
                 self.skl_minimize(cost = cost, method = method)
             if r == 'gs' and routines == ['all']:
@@ -277,31 +283,25 @@ class Optimizer():
     
     def pca_kernel(self, X = None, n_comps = 4, krnl = "rbf", gma = 0.04):
         #Method to employ kernal techniques to PCA, allowing complex nonlinear projections for dimensionality reduction
-        rbf_pca = KernalPCA(n_components = n_comps, kernel = krnl, gamma = gma)
+        rbf_pca = KernelPCA(n_components = n_comps, kernel = krnl, gamma = gma)
         X_reduced = rbf_pca.fit_transform(X)
         return X_reduced
     
-    
-    def cluster(self, X = none, n_clusters):
-        kmeans = KMeans(n_clusters=4).fit(X)
-        cluster_labels = kmeans.labels_
-        return kmeans, cluster_labels
+#    def cluster(self, X = None, n_clusters):
+#        kmeans = KMeans(n_clusters=4).fit(X)
+#        cluster_labels = kmeans.labels_
+#        return kmeans, cluster_labels
         
-    def covariance_reduction(self, X = none):
+    def covariance_reduction(self, X = None):
         '''with a 13 dimensional array, use covariance on the original data set, 
     rows = number of features, columns = number of observations, covariance 
     yields number of rows = number of columns, then feature extraction using 
     PCA or clustering algorithm '''
     
 if __name__ == '__main__':
-    X0 = .2
     SNR = 100
     a = Optimizer(noise = 1/SNR)
     a.dim = 4
-    pos = np.random.uniform(0, 1, size=(1, a.dim)) #np.ones(dim)*X0
+    pos = np.random.uniform(0, 1, size=(1, a.dim)) #np.ones(dim)*X0, X0 = 0.2
     a.actuate(pos)
-
-    #plt.title(r'Function optimization from %f, d=%i, SNR=%i'%(X0,a.dim, SNR))
-
-    print('Optimization Results')
     a.optimize(routines = ['gs'])
