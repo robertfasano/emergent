@@ -73,7 +73,8 @@ class PicoAmp(Device):
     def optimize(self):
         self.grid_search(cost = self.cost)
 
-    def readADC(self, num = 1):
+    def readADC(self, num = 1, delay = 0):
+        time.sleep(delay)
         return self.labjack.AIn(0, num=num)
 
     def setDifferential(self, V, axis):
