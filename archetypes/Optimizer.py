@@ -22,6 +22,7 @@ sys.path.append(char.join(os.getcwd().split(char)[0:-2]))
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C, WhiteKernel
 from sklearn.decomposition import PCA, IncrementalPCA, KernelPCA
+from sklearn.cluster import KMeans
 def warn(*args, **kwargs):
     pass
 import warnings
@@ -67,7 +68,52 @@ class Optimizer():
         bounds = np.array(list(itertools.repeat([0,1], len(X))))
 
         return X, bounds
+    
+    def line_search(self, X = None, axis = 0, actuate = None, cost = None, step = 0.1):
+        ''' Searches a single axis/dimension for a minima using a moving derivative '''
+        X, bounds = self.initialize_optimizer(axis)
 
+        #first compute the gradient to check which direction to move
+        init_step = 5 * step
+        init_points = []
+        
+        X[axis] -= init_step
+        init_points.append(self.cost(X, axis))
+        
+        for i in range(2):
+            X[axis] += init_step
+            init_points.append(self.cost(X, axis))     
+
+        dir = -1*np.sign(np.mean(np.diff(init_points))) #determine direction from differences towards mininum
+        
+        if dir is -1: #undo move in wrong direction
+            X[axis] -= init_step
+            self.actuate(X) 
+
+        #now, perform the line search
+        num_points = 5 #for moving derivative and to keep track of historically
+        costs = []
+        lastNPoints = np.array([])
+        movingDeriv = 0
+        maximizing = True
+        
+        while maximizing:
+            X[axis] += dir*step
+            val = self.cost(X, axis)
+            costs.append(val)
+            lastNPoints = np.append(lastNPoints, val)
+            if len(lastNPoints) > num_points:
+                lastNPoints = np.delete(lastNPoints,0)
+            if len(lastNPoints) > 1:
+                movingDeriv = np.mean(np.diff(lastNPoints))
+            if movingDeriv > 0 and len(lastNPoints) == num_points:
+                maximizing = False
+                numSteps = len(lastNPoints) - np.argmin(lastNPoints) - 1
+                X[axis] -= dir*step*numSteps
+                costs.append(self.cost(X, axis))
+ 
+        return X, costs
+    
     def grid_search(self, X = None, axes = None, actuate = None, cost = None,
                     plot = False, steps = 10):
         ''' An N-dimensional grid search routine '''
@@ -101,7 +147,7 @@ class Optimizer():
 
         best_point = points[np.argmin(costs)]
         self.actuate(self.unnormalize(best_point, axes), axes)
-
+        
         return points, costs
 
     def gaussian_process_next_sample(self, X, bounds, b, acquisition_func, gaussian_process,
@@ -202,64 +248,51 @@ class Optimizer():
                 c = self.grid_search(plot = plot)
                 print("Grid Search=%s" % c[-1])
 
-    ''' Dimensionality Analytics and Reduction Algorithms '''
+    ''' Dimensionality Analytics and Reduction Algorithms (X always being the training data set) '''
+    #NOTE: might need to convert to something with COST and to the entire training database
+    #use differential evolution from skl to develop a dataset for the pca to determine reduction, caluclate covariance and perform pca on it
+    
     def extract_pcs(self, X = None):
         #Method to use numpy's svd() function to obtain the principal components of the training set
-        if X is None:
-            X = self.state
-        #take step to recenter data around the origin as necessary
+        #NOTE: must take step to recenter data around the origin as necessary here
         X_centered = X - X.mean(axis = 0) #NOTE: assumes that the dataset is centered around the origin
         U, s, Vt = np.linalg.svd(X_centered)
         #use the following to extract each pca given their index: c1 = Vt.T[:,0] where 0 is the index
         return Vt
-
-    def pca_reduction(self, X = None, pvariance = 0.95):
+        
+    def pca_reduction(self, X = None, pvariance = 0.95, slvr = "auto"): #svd_solver can be ‘auto’, ‘full’, ‘arpack’, or ‘randomized’
         #Method to employ SKL's PCA to reduce dimensionality of the dataset based on a preserved variance threshold
-        if X is None:
-            X = self.state
-
-        #first determine the number of dimensions required to preserve variance threshold
-        pca = PCA()
-        pca.fit(X.copy)
-        d = np.argmax(np.cumsum(pca.explained_variance_ratio_) >= pvariance) + 1
-
-        #now reduce the data set and find the breakdown of variance for each axis in the dataset
-        pca = PCA(n_components = pvariance) #define either as a number of components or percentage of varaiance to preserve (e.g. pvariance = 3 or 0.95)
+        if pvariance is not int(pvariance):
+            pca = PCA()
+            pca.fit(X.copy) 
+            d = np.argmax(np.cumsum(pca.explained_variance_ratio_) >= pvariance) + 1
+            print("Minimum number of dimensions to preserve variance: ", d)
+        
+        #reduce the data set and find the breakdown of variance for each axis in the dataset
+        #define pvariance as a number of components or percentage of varaiance to preserve (e.g. pvariance = 3 or 0.95)
+        pca = PCA(n_components = pvariance, svd_solver = slvr) #use "randomized" for solver if desiring stochastic approximations
         X_reduced = pca.fit_tranform(X)
         variance_breakdown = pca.explained_variance_ratio_
-
-        return X_reduced, variance_breakdown, d
-
-    def pca_incremental(self, X = None, n_comps = 4, n_batches = 20):
-        #Method to incrementally perform PCA on mini-batches of a dataset to split up the training data
-        if X is None:
-            X = self.state
-
-        inc_pca = IncrementalPCA(n_components = n_comps)
-        for X_batch in np.array_split(X, n_batches):
-            inc_pca.partial_fit(X_batch)
-        X_reduced = inc_pca.transform(X)
-        return X_reduced
-
-    def pca_randomized(self, X = None, n_comps = 4):
-        #Method employing PCA as a stochastic algorithm that efficiently finds approximations of the first d components
-        if X is None:
-            X = self.state
-
-        rnd_pca = PCA(n_components = n_comps, svd_solver = "randomized") #svd_solver can be ‘auto’, ‘full’, ‘arpack’, or ‘randomized’
-        X_reduced = rnd_pca.fit_transform(X)
-        return X_reduced
-
-    def pca_kernal(self, X = None, n_comps = 4, krnl = "rbf", gma = 0.04):
+        return X_reduced, variance_breakdown
+    
+    def pca_kernel(self, X = None, n_comps = 4, krnl = "rbf", gma = 0.04):
         #Method to employ kernal techniques to PCA, allowing complex nonlinear projections for dimensionality reduction
-        if X is None:
-            X = self.state
-
-        rbf_pca = KernalPCA(n_components = n_comps, kernal = krnl, gamma = gma)
+        rbf_pca = KernalPCA(n_components = n_comps, kernel = krnl, gamma = gma)
         X_reduced = rbf_pca.fit_transform(X)
         return X_reduced
-
-
+    
+    
+    def cluster(self, X = none, n_clusters):
+        kmeans = KMeans(n_clusters=4).fit(X)
+        cluster_labels = kmeans.labels_
+        return kmeans, cluster_labels
+        
+    def covariance_reduction(self, X = none):
+        '''with a 13 dimensional array, use covariance on the original data set, 
+    rows = number of features, columns = number of observations, covariance 
+    yields number of rows = number of columns, then feature extraction using 
+    PCA or clustering algorithm '''
+    
 if __name__ == '__main__':
     X0 = .2
     SNR = 100
