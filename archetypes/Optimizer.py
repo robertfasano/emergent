@@ -16,8 +16,8 @@ char = {'nt': '\\', 'posix': '/'}[os.name]
 sys.path.append(char.join(os.getcwd().split(char)[0:-2]))
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C, WhiteKernel
-from sklearn.decomposition import PCA, IncrementalPCA, KernalPCA
-from sklerarn.cluster import KMeans
+from sklearn.decomposition import PCA, IncrementalPCA, KernelPCA
+from sklearn.cluster import KMeans
 def warn(*args, **kwargs):
     pass
 import warnings
@@ -270,9 +270,9 @@ class Optimizer():
         variance_breakdown = pca.explained_variance_ratio_
         return X_reduced, variance_breakdown
     
-    def pca_kernal(self, X = None, n_comps = 4, krnl = "rbf", gma = 0.04):
+    def pca_kernel(self, X = None, n_comps = 4, krnl = "rbf", gma = 0.04):
         #Method to employ kernal techniques to PCA, allowing complex nonlinear projections for dimensionality reduction
-        rbf_pca = KernalPCA(n_components = n_comps, kernal = krnl, gamma = gma)
+        rbf_pca = KernalPCA(n_components = n_comps, kernel = krnl, gamma = gma)
         X_reduced = rbf_pca.fit_transform(X)
         return X_reduced
     

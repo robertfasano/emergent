@@ -16,33 +16,20 @@ import pint
 #camera = instrument('camera')
 #camera.start_live_video()
 
-def get_image(ax = None):
-    n_frames = 10
-    image = camera.grab_image(n_frames=n_frames)
-    if n_frames > 1:
-        img = image[0]
-        for i in range(1,n_frames):
-            img += image[i]
-    else:
-        img = image
-        
-    if ax == None:
-        fig = plt.figure()
-        ax = fig.gca()
-    ax.imshow(img)
-    plt.pause(0.05)
-    plt.show()
-    
-    return ax
 
 class ThorlabsCamera():
     def __init__(self):
         ureg = pint.UnitRegistry()
         self.camera = instrument('camera')
-        self.camera.start_live_video(gain=100, exposure_time = Q_('10 ms'))
+        self.camera.start_live_video(gain=100, exposure_time = Q_('90 ms'))
+#        self.camera.start_live_video()
+
         self.background = self.camera.latest_frame()
         self.num_points = 50
         self.fluorescence = []
+        
+        self.max = 250
+        self.min = 140
         
     def capture_video(self):
         self.fig = plt.figure()
@@ -54,7 +41,7 @@ class ThorlabsCamera():
         self.ax2.get_yaxis().set_visible(False)
         self.ax2.get_xaxis().set_visible(False)
 
-        self.video_image = self.ax1.imshow(self.camera.latest_frame(), animated=True, cmap='gray', norm=LogNorm(vmin=0.0001, vmax=255))
+        self.video_image = self.ax1.imshow(self.camera.latest_frame(), animated=True, cmap='rainbow')
         self.video_animation = animation.FuncAnimation(self.fig, self.update_video, interval=1, blit=True)
         self.video_fluorescence = animation.FuncAnimation(self.fig, self.update_fluorescence, interval=1, blit=True)
 
@@ -67,20 +54,14 @@ class ThorlabsCamera():
         return self.line
     
     def update_video(self, *args):
-        frame = self.camera.latest_frame() #- self.background
-#        frame = np.maximum(frame, 0)
-#        frame = frame * 2
-        min_pixel = np.min(frame)
-        max_pixel = np.max(frame)
-#        print(max_pixel)
+        frame = self.camera.latest_frame() 
+        frame[np.where(frame<self.min)] = 0
+        frame[np.where(frame>self.max)] = 0
         f = np.sum(frame)
         self.video_image.set_array(frame)
-#        print(f)
         self.fluorescence.append(f)
         if len(self.fluorescence) > self.num_points:
             del self.fluorescence[0]
-#        self.ax2.plot(self.fluorescence, 'k')
-#        plt.pause(0.001)
 
         return self.video_image,
 
