@@ -65,8 +65,10 @@ class Device():
         self.state = state
         self._state_to_params()
 
-    def _save(self, setpoint):
+    def _save(self, setpoint=None):
         ''' Read in setpoints from file, append or update current setpoint, and write '''
+        if setpoint = None:
+            setpoint = self.setpoint
         with open(self.filename, 'r') as file:
             setpoints = json.load(file)
         setpoints[setpoint] = self.params
