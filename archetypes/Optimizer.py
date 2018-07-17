@@ -68,7 +68,12 @@ class Optimizer():
 
     def initialize_optimizer(self, axes = None):
         ''' Prepares a normalized substate and appropriate bounds '''
-        self.history = pd.Series(index=[])
+        cols = []
+        for axis in axes:
+            cols.append('X' + str(axis))
+        cols.append('cost')
+        self.history = pd.DataFrame(index = [], columns = cols) #pd.Series(index=[])
+        
         X = self.state
         if axes is not None:
             X = (X[[axes]] - self.min[[axes]])/(self.max[[axes]]-self.min[[axes]])
