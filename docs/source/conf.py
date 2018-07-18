@@ -20,7 +20,8 @@
 import os
 import sys
 sys.path.insert(0, os.path.abspath('../../archetypes'))
-
+print(os.path.abspath('../../archetypes'))
+import Hub
 # -- General configuration ------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
