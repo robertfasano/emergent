@@ -1,7 +1,5 @@
 Hub module
 ==========
 
-.. automodule:: Hub
+.. autoclass:: Hub
     :members:
-    :undoc-members:
-    :show-inheritance:

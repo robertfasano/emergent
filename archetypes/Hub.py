@@ -8,6 +8,8 @@ from labAPI.archetypes.Parallel import ProcessHandler
 import numpy as np
 
 class Hub(Device, Optimizer,Link, ProcessHandler):
+    ''' A module controlling multiple Devices and offering optimization,
+        parallel process handling, and GUI communications '''
     def __init__(self, engine, name):
         Device.__init__(self, name=name, lowlevel = False)
         self._params_to_state()
@@ -51,7 +53,7 @@ class Hub(Device, Optimizer,Link, ProcessHandler):
                     for Application! Need to fix this disagreement! '''
                 ''' The problem arises when we pass a state with no axes: I designed
                     this function to work with Optimizer with the upper line, which
-                    assumes it will always receive substates. If the state is the total 
+                    assumes it will always receive substates. If the state is the total
                     state, it doesn't work. '''
 
                 dev.actuate(target_state)
