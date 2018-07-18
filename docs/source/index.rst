@@ -8,6 +8,6 @@ labAPI
 
 .. toctree::
    :maxdepth: 2
-   
-   lab_of_things
-   modules
+
+   archetypes
+   devices

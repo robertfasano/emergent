@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Hub module &mdash; labAPI 1.0 documentation</title>
+  <title>Hub &mdash; labAPI 1.0 documentation</title>
   
 
   
@@ -36,9 +36,9 @@
               href="genindex.html"/>
         <link rel="search" title="Search" href="search.html"/>
     <link rel="top" title="labAPI 1.0 documentation" href="index.html"/>
-        <link rel="up" title="archetypes" href="modules.html"/>
-        <link rel="next" title="Link module" href="Link.html"/>
-        <link rel="prev" title="archetypes" href="modules.html"/> 
+        <link rel="up" title="Archetypes" href="modules.html"/>
+        <link rel="next" title="Link" href="Link.html"/>
+        <link rel="prev" title="Archetypes" href="modules.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -93,12 +93,12 @@
             
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="lab_of_things.html">Lab of Things</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="modules.html">archetypes</a><ul class="current">
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Hub module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Link.html">Link module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Optimizer.html">Optimizer module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Parallel.html">Parallel module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="device.html">device module</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">Archetypes</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Hub</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Link.html">Link</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Optimizer.html">Optimizer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Parallel.html">Parallel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="device.html">Device</a></li>
 </ul>
 </li>
 </ul>
@@ -145,9 +145,9 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-          <li><a href="modules.html">archetypes</a> &raquo;</li>
+          <li><a href="modules.html">Archetypes</a> &raquo;</li>
         
-      <li>Hub module</li>
+      <li>Hub</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -167,30 +167,49 @@
            <div itemprop="articleBody">
             
   <div class="section" id="module-Hub">
-<span id="hub-module"></span><h1>Hub module<a class="headerlink" href="#module-Hub" title="Permalink to this headline">¶</a></h1>
+<span id="hub"></span><h1>Hub<a class="headerlink" href="#module-Hub" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="Hub.Hub">
 <em class="property">class </em><code class="descclassname">Hub.</code><code class="descname">Hub</code><span class="sig-paren">(</span><em>engine</em>, <em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#Hub.Hub" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">labAPI.archetypes.device.Device</span></code>, <code class="xref py py-class docutils literal"><span class="pre">labAPI.archetypes.Optimizer.Optimizer</span></code>, <code class="xref py py-class docutils literal"><span class="pre">labAPI.archetypes.Link.Link</span></code>, <code class="xref py py-class docutils literal"><span class="pre">labAPI.archetypes.Parallel.ProcessHandler</span></code></p>
 <p>A module controlling multiple Devices and offering optimization,
-parallel process handling, and GUI communications</p>
+parallel process handling, and GUI communications.</p>
+<dl class="method">
+<dt id="Hub.Hub.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>engine</em>, <em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#Hub.Hub.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes the Hub and registers with a given name inside the
+QML engine.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Hub.Hub._connect">
+<code class="descname">_connect</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Hub.Hub._connect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attempts to connect to all child devices.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Hub.Hub._get_device">
+<code class="descname">_get_device</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#Hub.Hub._get_device" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a device handle given a str name.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Hub.Hub._params_to_state">
+<code class="descname">_params_to_state</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Hub.Hub._params_to_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prepare the state vector of the Device by parsing all state variables.</p>
+</dd></dl>
+
 <dl class="method">
 <dt id="Hub.Hub.actuate">
 <code class="descname">actuate</code><span class="sig-paren">(</span><em>state</em>, <em>axes=None</em><span class="sig-paren">)</span><a class="headerlink" href="#Hub.Hub.actuate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Distribute state vector updates to appropriate devices</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="Hub.Hub.devices">
-<code class="descname">devices</code><em class="property"> = None</em><a class="headerlink" href="#Hub.Hub.devices" title="Permalink to this definition">¶</a></dt>
-<dd><p>Add devices here</p>
+<dd><p>Distribute state vector updates to appropriate devices.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="Hub.Hub.optimize">
 <code class="descname">optimize</code><span class="sig-paren">(</span><em>cost</em>, <em>axes</em>, <em>method</em>, <em>bounds</em>, <em>params</em><span class="sig-paren">)</span><a class="headerlink" href="#Hub.Hub.optimize" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calls an Optimizer method to optimize the given cost function by
-actuating the given axes</p>
+actuating the given axes.</p>
 </dd></dl>
 
 </dd></dl>
@@ -207,10 +226,10 @@ actuating the given axes</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="Link.html" class="btn btn-neutral float-right" title="Link module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="Link.html" class="btn btn-neutral float-right" title="Link" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="modules.html" class="btn btn-neutral" title="archetypes" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="modules.html" class="btn btn-neutral" title="Archetypes" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

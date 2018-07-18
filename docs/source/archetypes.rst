@@ -1,4 +1,4 @@
-archetypes
+Archetypes
 ==========
 
 .. toctree::

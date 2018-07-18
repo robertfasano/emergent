@@ -1,32 +1,43 @@
 import multiprocessing
 import threading
 class ProcessHandler():
+    ''' A task manager allowing functions to be started and stopped in processes or threads. '''
     def __init__(self):
+        ''' Initializes the ProcessHandler with no threads. '''
         self.threads = []
+        self.processes = []
 
-    def _run_process(self, target, args = None):
-        ''' Allows a target function of the parent object to be run in a process '''
-        if type(target) == str:
-            target = getattr(self, target)
-        assert callable(target)
-        Process(target=target, args=args, parent = self)
+    def _run_process(self, func, args = None):
+        ''' Instantiates and starts a process running a target function.
+            Process do not share memory with the rest of the code, so they
+            must be entirely self-contained. '''
+        if type(func) == str:
+            func = getattr(self, func)
+        assert callable(func)
+        Process(target=func, args=args, parent = self)
 
     def _quit_process(self, target):
+        ''' Terminates a process by looking for the first running process in
+            self.processes matching the target function and stopping it. '''
         if type(target) == str:
             target = getattr(self, target)
         assert callable(target)
-        for thread in self.threads:
+        for thread in self.processes:
             if thread.target == target:
                 thread.stop()
 
     def _run_thread(self, target, args = None, stoppable = True):
-        ''' Allows a target function of the parent object to be run in a thread '''
+        ''' Instantiates and starts a thread running a target function. Threads
+            can share memory freely with the rest of the code. '''
         if type(target) == str:
             target = getattr(self, target)
         assert callable(target)
         Thread(target=target, args=args, parent = self, stoppable = stoppable)
 
     def _quit_thread(self, target):
+        ''' Terminates a thread by looking for the first running thread in self.threads
+            matching the target function and stops it. Warning: stopping a thread can
+            have unintended consequences, as threads share memory with the rest of the code. '''
         if type(target) == str:
             target = getattr(self, target)
         assert callable(target)
@@ -35,7 +46,11 @@ class ProcessHandler():
                 thread.stop()
 
 class Process(multiprocessing.Process):
+    ''' Inherits from multiprocessing.Process to provide streamlined, intuitive
+        process instantiation and termination. '''
     def __init__(self, target, args, parent):
+        ''' Creates and starts a process running the target function and
+            registers it with the parent ProcessHandler. '''
         self.target = target
         if args is not None:
             super().__init__(target=target, args = args)
@@ -44,20 +59,25 @@ class Process(multiprocessing.Process):
 
         ''' Add process to parent '''
         self.parent = parent
-        if not hasattr(self.parent, 'threads'):
-            self.parent.threads = [self]
+        if not hasattr(self.parent, 'processes'):
+            self.parent.processes = [self]
         else:
-            self.parent.threads.append(self)
+            self.parent.processes.append(self)
 
         self.start()
 
     def stop(self):
-        if self in self.parent.threads:
-            del self.parent.threads[self.parent.threads.index(self)]
+        ''' Terminates the process. '''
+        if self in self.parent.processes:
+            del self.parent.processes[self.parent.processes.index(self)]
         self.terminate()
 
 class Thread(threading.Thread):
+    ''' Inherits from threading.Thread to provide streamlined, intuitive
+        thread instantiation and termination. '''
     def __init__(self, target, args, parent, stoppable = True):
+        ''' Creates and starts a thread running the target function and
+            registers it with the parent ProcessHandler. '''
         self.target = target
         self._stopper = threading.Event()
 
@@ -84,28 +104,12 @@ class Thread(threading.Thread):
         self.start()
 
     def stop(self):
+        ''' Sets self._stopper to True, such that self.stopped() will yield
+            True and trigger early termination within the target function. '''
         if self in self.parent.threads:
             del self.parent.threads[self.parent.threads.index(self)]
         self._stopper.set()
 
     def stopped(self):
+        ''' Returns a boolean check for stoppable Threads. '''
         return self._stopper.is_set()
-
-
-
-
-class test_class(ProcessHandler):
-    def __init__(self):
-        super().__init__()
-
-    def test_function(self):
-        import time
-        i=0
-        while True:
-            i += 1
-            print(i)
-            time.sleep(0.25)
-
-if __name__ == '__main__':
-    t = test_class()
-    t.run_in_process('test_function')

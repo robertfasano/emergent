@@ -1,12 +1,7 @@
 ''' The Device class handles persistent settings saved in json files in labAPI/settings. Settings are loaded into the
     Device.params dict and are handled differently based on their "type": "state" objects are loaded into a state vector
     to be made accessible by the Optimizer class, while "settings" objects (e.g. velocity of the a translation stage) are not.
-
-    The settings file always contains the following attributes:
-        id: the LabJack id, COM port, or similar address
-        default: the default setpoint
 '''
-''' TODO: Add default setpoint '''
 import sys
 import os
 char = {'nt': '\\', 'posix': '/'}[os.name]
@@ -17,17 +12,15 @@ import os
 
 class Device():
     def __init__(self, name, base_path = None, lowlevel = True, parent = None):         # set parent to 0 instead of None just for the day
-        ''' Instantiate a Device.
-        Args:
-            str name: a unique identifier for this device
-            str base_path: an optional filepath
-            bool lowlevel: if True, then this is a low-level device with its own params file
-            Device parent: a higher-level Device incorporating this one     '''
+        ''' Instantiate a Device with a given name. Setting base_path allows
+            nonstandard settings file locations. Settings files will only exist
+            if lowlevel=True. If parent is not None, the Device is added as a child
+            to the parent Hub. '''
 
         self.parent = parent
         self.name = name
 
-        ''' Prepare filepath for parameter file '''
+        # Prepare filepath for parameter file
         if parent is not None:
             if base_path == None:
                 base_path = os.path.realpath('')
@@ -53,12 +46,12 @@ class Device():
                 self.parent.devices = np.array([self])
 
     def _actuate(self, state):
-        if self.lowlevel == False:
-            self.actuate(state)
+        ''' Placeholder to be overwritten for a specific device '''
+        return
 
     def actuate(self, state):
         ''' Ensures that the target state is within bounds, then calls the
-            device-specific actuate() method to update the physical state.
+            device-specific _actuate() method to update the physical state.
             Finally, updates the internal state and params '''
         state = np.clip(state, self.min, self.max)
         self._actuate(state)
@@ -67,7 +60,6 @@ class Device():
 
     def _save(self, setpoint=None):
         ''' Read in setpoints from file, append or update current setpoint, and write '''
-
         if setpoint is None:
             setpoint = self.setpoint
         with open(self.filename, 'r') as file:
@@ -131,6 +123,7 @@ class Device():
         self.parent.params[self.name] = self.params
 
     def _get_param_by_index(self, index):
+        ''' Returns a params dict entry given a state index '''
         for s in self.params.keys():
             try:
                 if self.params[s]['index'] == index:
@@ -139,14 +132,11 @@ class Device():
                 pass
 
     def _get_index_by_param(self, param):
+        ''' Returns a state index given a parameter '''
         try:
             return self.params[param]['index']
         except KeyError:
             return None
-
-    def _list_methods(self):
-        methods = [func for func in dir(self) if callable(getattr(self, func)) and not func.startswith("__")]
-        print(methods)
 
 if __name__ == '__main__':
     d = Device('device')
