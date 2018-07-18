@@ -8,7 +8,5 @@ labAPI
 
 .. toctree::
    :maxdepth: 2
-
    lab_of_things
-   Hub
-   Device 
+   modules
