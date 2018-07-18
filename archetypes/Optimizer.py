@@ -140,18 +140,16 @@ class Optimizer():
         ''' Actuate search '''
         costs = []
         for point in points:
-            costs.append(cost(point, axes))
+            costs.append(self.cost(point, axes))
 
         ''' Plot result if desired '''
         ax = None
-        if plot:
-            if len(X) == 2 and axes == None:
-                ordinate_index = 0
-                abscissa_index = 1
-            else:
-                ordinate_index = axes[0]
-                abscissa_index = axes[1]
+        if plot and len(X) is 2:
+            ordinate_index = 0
+            abscissa_index = 1
             ordinate_mesh, abscissa_mesh = np.meshgrid(points[:,ordinate_index], points[:, abscissa_index])
+            print(ordinate_mesh.shape)
+            print(abscissa_mesh.shape)
             cost_grid = griddata(points[:,[ordinate_index, abscissa_index]], cost, (ordinate_mesh,abscissa_mesh))
             plot = plt.pcolormesh(ordinate_mesh, abscissa_mesh, cost_grid, cmap='gist_rainbow')
             plt.colorbar(plot)
