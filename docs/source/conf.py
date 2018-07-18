@@ -23,22 +23,6 @@ sys.path.insert(0, os.path.abspath('../../archetypes'))
 sys.path.insert(0, os.path.abspath('../../devices'))
 sys.path.insert(0, os.path.abspath('../../../'))
 
-# mock imports
-from unittest.mock import MagicMock
-
-class Mock(MagicMock):
-    @classmethod
-    def __getattr__(cls, name):
-        return MagicMock()
-
-MOCK_MODULES = ['numpy', 'pandas', 'PyQt5', 'scipy', 'scipy.interpolate', 'matplotlib',
-                'matplotlib.pyplot', 'scipy.optimize', 'sklearn', 'sklearn.gaussian_process',
-                'sklearn.gaussian_process.kernels', 'sklearn.decomposition', 'sklearn.cluster',
-                'time', 'warnings', 'os', 'sys', 'itertools']
-MOCK_MODULES = ['numpy', 'pandas', 'PyQt5', 'PyQt5.QtCore','scipy', 'matplotlib', 'sklearn']
-
-#sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
-
 # -- General configuration ------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
@@ -101,6 +85,7 @@ todo_include_todos = False
 # a list of builtin themes.
 #
 html_theme = 'sphinx_rtd_theme'
+html_show_sphinx = False
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the

@@ -7,7 +7,6 @@ labAPI
 ==================================
 
 .. toctree::
-   :glob:
    :maxdepth: 2
 
    archetypes
