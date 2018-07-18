@@ -5,4 +5,4 @@ Devices
    :glob:
    :maxdepth: 4
 
-   devices/*
+   ./devices/*
