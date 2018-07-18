@@ -9,7 +9,9 @@ import numpy as np
 
 class Hub(Device, Optimizer,Link, ProcessHandler):
     ''' A module controlling multiple Devices and offering optimization,
-        parallel process handling, and GUI communications. '''
+        parallel process handling, and GUI communications. Inheritance from
+        Device, Optimizer, Link, and ProcessHandler allows all methods of
+        these classes to be called from the Hub. '''
     def __init__(self, engine, name):
         ''' Initializes the Hub and registers with a given name inside the
             QML engine. '''
