@@ -378,6 +378,9 @@ This will automatically pass in a <code class="docutils literal"><span class="pr
 bool to allow early termination of the threaded function; the threaded function
 should include checks of stopped() in each loop pass if early termination is
 desired. In order to quit the threaded function, run</p>
+<div class="highlight-python3"><div class="highlight"><pre><span></span><span class="n">autoAlign</span><span class="o">.</span><span class="n">_quit_thread</span><span class="p">(</span><span class="n">autoAlign</span><span class="o">.</span><span class="n">MEMS_slowing</span><span class="o">.</span><span class="n">wave</span><span class="p">)</span>
+</pre></div>
+</div>
 <p>Note that, in the current implementation, the _quit_thread() method searches
 through the list of currently running threads in the Hub and terminates the first
 one matching the specified function (<code class="docutils literal"><span class="pre">autoAlign.MEMS_slowing.wave</span></code>).</p>

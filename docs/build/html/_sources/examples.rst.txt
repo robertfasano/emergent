@@ -234,7 +234,7 @@ bool to allow early termination of the threaded function; the threaded function
 should include checks of stopped() in each loop pass if early termination is
 desired. In order to quit the threaded function, run
 
-.. code-block: python3
+.. code-block:: python3
 
   autoAlign._quit_thread(autoAlign.MEMS_slowing.wave)
 
