@@ -8,7 +8,13 @@ from labAPI.archetypes.Parallel import ProcessHandler
 import numpy as np
 
 class Hub(Device, Optimizer,Link, ProcessHandler):
+    ''' A module controlling multiple Devices and offering optimization,
+        parallel process handling, and GUI communications. Inheritance from
+        Device, Optimizer, Link, and ProcessHandler allows all methods of
+        these classes to be called from the Hub. '''
     def __init__(self, engine, name):
+        ''' Initializes the Hub and registers with a given name inside the
+            QML engine. '''
         Device.__init__(self, name=name, lowlevel = False)
         self._params_to_state()
 
@@ -17,9 +23,9 @@ class Hub(Device, Optimizer,Link, ProcessHandler):
         Optimizer.__init__(self)
 
         self.devices = []
-        ''' Add devices here '''
 
     def _connect(self):
+        ''' Attempts to connect to all child devices. '''
         for dev in self.devices:
             self._run_thread(target=dev._connect, stoppable = False)
 #            dev._connect()
@@ -27,7 +33,7 @@ class Hub(Device, Optimizer,Link, ProcessHandler):
         self._params_to_state()
 
     def actuate(self, state, axes = None):
-        ''' Distribute state vector updates to appropriate devices '''
+        ''' Distribute state vector updates to appropriate devices. '''
         if type(state) == list:
             state = np.array(state)
         assert type(state) == np.ndarray
@@ -51,7 +57,7 @@ class Hub(Device, Optimizer,Link, ProcessHandler):
                     for Application! Need to fix this disagreement! '''
                 ''' The problem arises when we pass a state with no axes: I designed
                     this function to work with Optimizer with the upper line, which
-                    assumes it will always receive substates. If the state is the total 
+                    assumes it will always receive substates. If the state is the total
                     state, it doesn't work. '''
 
                 dev.actuate(target_state)
@@ -63,14 +69,14 @@ class Hub(Device, Optimizer,Link, ProcessHandler):
 
     def optimize(self, cost, axes, method, bounds, params):
         ''' Calls an Optimizer method to optimize the given cost function by
-            actuating the given axes '''
+            actuating the given axes. '''
 
         ''' The Optimizer has access to the Hub's self.actuate() method, and it
             will pass in states with only the target axes changed. '''
         self.run_optimization(cost, axes, method, bounds, params)
 
     def _params_to_state(self):
-        ''' Prepare the state vector of the Device by parsing all state variables '''
+        ''' Prepare the state vector of the Device by parsing all state variables. '''
         self.state = np.array([])
         self.state_names = np.array([])
         self.min = np.array([])
@@ -92,7 +98,7 @@ class Hub(Device, Optimizer,Link, ProcessHandler):
         self.max = self.max[sort_indices]
 
     def _get_device(self, name):
-        ''' Return a device handle given a str name '''
+        ''' Return a device handle given a str name. '''
         for dev in self.devices:
             if dev.name == name:
                 return dev

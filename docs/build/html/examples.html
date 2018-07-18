@@ -1,0 +1,461 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Examples &mdash; labAPI 1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="labAPI 1.0 documentation" href="index.html"/>
+        <link rel="next" title="Archetypes" href="archetypes.html"/>
+        <link rel="prev" title="labAPI" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> labAPI
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#file-structure">File structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-control">Version control</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#installation">Installation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pulling-from-the-remote-repository">Pulling from the remote repository</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pushing-to-the-remote-repository">Pushing to the remote repository</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#launching-the-code">Launching the code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#adding-a-new-hub">Adding a new Hub</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#creating-the-hub">Creating the Hub</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#linking-the-hub">Linking the Hub</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#adding-a-new-device">Adding a new Device</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#accessing-attributes-from-the-console">Accessing attributes from the console</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#running-functions">Running functions</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="archetypes.html">Archetypes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="devices.html">Devices</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">labAPI</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Examples</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/examples.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="examples">
+<h1>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h1>
+<p>The following examples should get you started with labAPI.</p>
+<div class="section" id="file-structure">
+<h2>File structure<a class="headerlink" href="#file-structure" title="Permalink to this headline">¶</a></h2>
+<p>labAPI is a library featuring device drivers and abstract classes allowing
+universal control of laboratory experiments. However, actual experimental control
+is not done in labAPI, but in a separate library implementing
+labAPI&#8217;s features for a specific use case.</p>
+<p>In this tutorial, we will specifically work with the library controlling the NIST ytterbium portable optical lattice
+clock experiment, which is called &#8220;portable&#8221;. This library resides in the same
+folder as labAPI, which is important for relative pathing.</p>
+</div>
+<div class="section" id="version-control">
+<h2>Version control<a class="headerlink" href="#version-control" title="Permalink to this headline">¶</a></h2>
+<p>Git is used to track changes throughout development of labAPI. The repository
+location is gitlab.nist.gov/rjf2/labAPI.</p>
+<div class="section" id="installation">
+<h3>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h3>
+<p>The library can be installed on a new computer by cloning from the repository.
+In the console, navigate to the folder which will contain labAPI and run</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">gitlab</span><span class="o">.</span><span class="n">nist</span><span class="o">.</span><span class="n">gov</span><span class="o">/</span><span class="n">rjf2</span><span class="o">/</span><span class="n">labAPI</span><span class="o">.</span><span class="n">git</span>
+</pre></div>
+</div>
+<p>You may be prompted for login credentials, after which the repository will
+be cloned to the local folder.</p>
+</div>
+<div class="section" id="pulling-from-the-remote-repository">
+<h3>Pulling from the remote repository<a class="headerlink" href="#pulling-from-the-remote-repository" title="Permalink to this headline">¶</a></h3>
+<p>To update a local repository with changes on the remote repository, just run
+<code class="docutils literal"><span class="pre">git</span> <span class="pre">pull</span></code>. In some cases, multiple remote repositories may coexist across Git platforms;
+currently, a &#8220;master&#8221; copy is stored on the NIST GitLab service, while a separate
+copy is stored on GitHub. To specifically pull changes from GitHub, run</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">pull</span> <span class="n">github</span> <span class="n">master</span>
+</pre></div>
+</div>
+<p>The first argument specifies the remote named &#8220;github&#8221;, while the second specifies
+the branch named &#8220;master&#8221;.</p>
+</div>
+<div class="section" id="pushing-to-the-remote-repository">
+<h3>Pushing to the remote repository<a class="headerlink" href="#pushing-to-the-remote-repository" title="Permalink to this headline">¶</a></h3>
+<p>If you want to update the remote repository with changes made on the local
+repository, first stage your changes with <code class="docutils literal"><span class="pre">git</span> <span class="pre">add</span> <span class="pre">filename</span></code>, where filename
+is specified relative to the current path. You can stage all current changes with
+<code class="docutils literal"><span class="pre">git</span> <span class="pre">add</span> <span class="pre">-A</span></code>. Next, commit changes to each file with a helpful message, e.g.</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">commit</span> <span class="o">-</span><span class="n">m</span> <span class="s2">&quot;Fixed bug in function bar()&quot;</span> <span class="n">foo</span><span class="o">.</span><span class="n">py</span>
+</pre></div>
+</div>
+<p>Once all changes are committed, you can push to the remote by running <code class="docutils literal"><span class="pre">git</span> <span class="pre">push</span></code>.</p>
+</div>
+</div>
+<div class="section" id="launching-the-code">
+<h2>Launching the code<a class="headerlink" href="#launching-the-code" title="Permalink to this headline">¶</a></h2>
+<p>To launch the control code, first navigate to the portable directory. Once there,
+we will launch the control code within an IPython console by calling</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">ipython</span>
+<span class="o">%</span><span class="n">run</span> <span class="n">main</span>
+</pre></div>
+</div>
+<p>There will be a short delay as the code initializes all Hubs and connects to
+their child Devices. Connection failures will be printed to the console. Afterwards,
+the GUI will open, and the user can control the experiment either through the
+graphical interface or directly from the command line.</p>
+</div>
+<div class="section" id="adding-a-new-hub">
+<h2>Adding a new Hub<a class="headerlink" href="#adding-a-new-hub" title="Permalink to this headline">¶</a></h2>
+<p>This example demonstrates how to add a new Hub to the portable project to control
+automated fiber alignment for the magneto-optical trap.</p>
+<div class="section" id="creating-the-hub">
+<h3>Creating the Hub<a class="headerlink" href="#creating-the-hub" title="Permalink to this headline">¶</a></h3>
+<p>We will first create a new file in portable/gui/hubs called autoAlignHub.py.
+We define a new class inheriting from the abstract Hub base class in labAPI/archetypes/Hub.py:</p>
+<div class="highlight-python3"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">labAPI.archetypes.Hub</span> <span class="k">import</span> <span class="n">Hub</span>
+
+<span class="k">class</span> <span class="nc">autoAlignHub</span><span class="p">(</span><span class="n">Hub</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="p">):</span>
+        <span class="n">Hub</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="o">=</span><span class="n">engine</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;autoAlign&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="linking-the-hub">
+<h3>Linking the Hub<a class="headerlink" href="#linking-the-hub" title="Permalink to this headline">¶</a></h3>
+<p>Now we need to add the Hub to the main control code in portable/gui/main.py,
+which ensures that both the Python backend and the QML frontend can access it.
+We simply import the new hub and define it in main.py; upon initialization,
+the hub will be automatically linked with the Application layer:</p>
+<div class="highlight-python3"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">PyQt5.QtQml</span> <span class="k">import</span> <span class="n">QQmlApplicationEngine</span>
+<span class="kn">from</span> <span class="nn">PyQt5.QtWidgets</span> <span class="k">import</span> <span class="n">QApplication</span>
+<span class="kn">from</span> <span class="nn">PyQt5.QtCore</span> <span class="k">import</span> <span class="n">QCoreApplication</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="n">char</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;nt&#39;</span><span class="p">:</span> <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;posix&#39;</span><span class="p">:</span> <span class="s1">&#39;/&#39;</span><span class="p">}[</span><span class="n">os</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">char</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">char</span><span class="p">)[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">]))</span>
+<span class="kn">from</span> <span class="nn">hubs.MOTHub</span> <span class="k">import</span> <span class="n">MOTHub</span>
+<span class="kn">from</span> <span class="nn">hubs.autoAlignHub</span> <span class="k">import</span> <span class="n">autoAlignHub</span>
+<span class="n">app</span> <span class="o">=</span> <span class="n">QCoreApplication</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span>
+<span class="k">if</span> <span class="n">app</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">app</span> <span class="o">=</span> <span class="n">QApplication</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>         <span class="c1"># Create an instance of the application</span>
+<span class="n">engine</span> <span class="o">=</span> <span class="n">QQmlApplicationEngine</span><span class="p">()</span>    <span class="c1"># Create QML engine</span>
+
+<span class="sd">&#39;&#39;&#39; Initialize device links &#39;&#39;&#39;</span>
+<span class="n">mot</span> <span class="o">=</span> <span class="n">MOTHub</span><span class="p">(</span><span class="n">engine</span><span class="p">)</span>
+<span class="n">autoAlign</span> <span class="o">=</span> <span class="n">autoAlignHub</span><span class="p">(</span><span class="n">engine</span><span class="p">)</span>
+
+<span class="n">engine</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;main.qml&quot;</span><span class="p">)</span>                     <span class="c1"># Load the qml file into the engine</span>
+<span class="n">window</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">rootObjects</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">window</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="sd">&#39;&#39;&#39; Retrieve hub handles from the engine and initialize default values &#39;&#39;&#39;</span>
+<span class="k">for</span> <span class="n">hub</span> <span class="ow">in</span> <span class="n">engine</span><span class="o">.</span><span class="n">hubs</span><span class="p">:</span>
+    <span class="n">hub</span><span class="o">.</span><span class="n">retrieve_handles</span><span class="p">()</span>
+    <span class="n">hub</span><span class="o">.</span><span class="n">populate_listModel</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>By passing in the engine when initializing the hub, one line of code is all it takes to register the Hub internally with both the Python and QML frameworks - all of the difficult stuff is done under the hood.</p>
+<p>We also need to create a new gui Element for the Hub. This only takes one added definition in portable/gui/main.qml:</p>
+<div class="highlight-python3"><div class="highlight"><pre><span></span><span class="n">Elements</span><span class="o">.</span><span class="n">Element</span><span class="p">{</span>
+    <span class="n">name</span><span class="p">:</span> <span class="s2">&quot;autoAlign&quot;</span>
+    <span class="n">objectName</span><span class="p">:</span> <span class="s2">&quot;autoAlignElement&quot;</span>
+    <span class="n">x_pos</span><span class="p">:</span> <span class="mf">0.2</span>
+    <span class="n">y_pos</span><span class="p">:</span> <span class="mf">0.2</span>
+    <span class="n">device</span><span class="p">:</span> <span class="n">autoAlign</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>In this definition, the &#8220;name&#8221; parameter is the display name that will be shown in the GUI,
+the &#8220;objectName&#8221; is an internal reference within the QML engine, &#8220;x_pos&#8221; and &#8220;y_pos&#8221;
+set where the clickable object will appear onscreen, and &#8220;device&#8221; corresponds to what
+we called the Hub object when we added it to main.py.</p>
+<p>Now if you run main.py, the Hub should appear onscreen wherever you chose to
+locate it, but there are no devices connected yet. Continue on to the next example
+to learn how to add devices.</p>
+</div>
+</div>
+<div class="section" id="adding-a-new-device">
+<h2>Adding a new Device<a class="headerlink" href="#adding-a-new-device" title="Permalink to this headline">¶</a></h2>
+<p>For this guide I assume that you already have control code for an experimental
+device inheriting from the Device archetype. In our case, we will add a PicoAmp
+MEMS driver to control the alignment of the slowing beam. In the Hub file created
+in the last example, autoAlignHub.py, we can simply add the device like this:</p>
+<div class="highlight-python3"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">labAPI.devices.labjackT7</span> <span class="k">import</span> <span class="n">LabJack</span>
+<span class="kn">from</span> <span class="nn">labAPI.archetypes.Hub</span> <span class="k">import</span> <span class="n">Hub</span>
+<span class="kn">from</span> <span class="nn">labAPI.devices.picoAmp</span> <span class="k">import</span> <span class="n">PicoAmp</span>
+
+<span class="k">class</span> <span class="nc">autoAlignHub</span><span class="p">(</span><span class="n">Hub</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="p">):</span>
+        <span class="n">Hub</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">engine</span><span class="o">=</span><span class="n">engine</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;autoAlign&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">labjackSlowing</span> <span class="o">=</span> <span class="n">LabJack</span><span class="p">(</span><span class="n">devid</span><span class="o">=</span><span class="s1">&#39;470016970&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">MEMS_slowing</span> <span class="o">=</span> <span class="n">PicoAmp</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;MEMS_slowing&#39;</span><span class="p">,</span> <span class="n">connect</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">parent</span> <span class="o">=</span> <span class="bp">self</span><span class="p">,</span> <span class="n">labjack</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">labjackSlowing</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_connect</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Adding Devices is as simple as instantiating them within the hub with the
+argument &#8220;parent=self&#8221;, which adds them as children to the Hub. Note that here
+the PicoAmp is a Device, whereas the LabJack doesn&#8217;t inherit from the Device class.
+When Devices are initialized, they automatically read in from a settings file
+linked to their name (e.g. portable/settings/MEMS_cooling.txt) to determine
+their initial state and set other important variables. We create this file below:</p>
+<div class="highlight-json"><div class="highlight"><pre><span></span><span class="p">{</span><span class="nt">&quot;default&quot;</span><span class="p">:</span> <span class="p">{</span><span class="nt">&quot;X&quot;</span><span class="p">:</span> <span class="p">{</span><span class="nt">&quot;value&quot;</span><span class="p">:</span> <span class="mi">-60</span><span class="p">,</span> <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;state&quot;</span><span class="p">,</span> <span class="nt">&quot;index&quot;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span> <span class="nt">&quot;min&quot;</span><span class="p">:</span><span class="mi">-80</span><span class="p">,</span> <span class="nt">&quot;max&quot;</span><span class="p">:</span><span class="mi">80</span><span class="p">,</span><span class="nt">&quot;gui&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
+             <span class="nt">&quot;Y&quot;</span><span class="p">:</span> <span class="p">{</span><span class="nt">&quot;value&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="nt">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;state&quot;</span><span class="p">,</span> <span class="nt">&quot;index&quot;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span> <span class="nt">&quot;min&quot;</span><span class="p">:</span><span class="mi">-80</span><span class="p">,</span> <span class="nt">&quot;max&quot;</span><span class="p">:</span><span class="mi">80</span><span class="p">,</span> <span class="nt">&quot;gui&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}}}</span>
+</pre></div>
+</div>
+<p>The first key given to the dict is the setpoint, of which the only one is currently
+&#8220;default&#8221; (more setpoints can be saved with the Device._save(setpoint) function).
+Here we have only two parameters, &#8220;X&#8221; and &#8220;Y&#8221;, which are state variables, which
+means they are loaded into the Device&#8217;s state vector and made accessible to the
+Optimizer. The &#8220;index&#8221; defines each state variable&#8217;s location within the overall
+state vector of the Hub: other Devices should use different indices. The &#8220;value&#8221;
+gives the last saved state of the Device, while the &#8220;min&#8221; and &#8220;max&#8221; provide
+thresholds limiting the actuation range. Lastly, the &#8220;gui&#8221; element is a bool
+determining whether or not the parameter will be shown on the GUI.</p>
+<p>That&#8217;s it! The new Devices should appear on the Hub and any parameters with
+&#8220;gui&#8221;:1 will be accessible through the control interface.</p>
+</div>
+<div class="section" id="accessing-attributes-from-the-console">
+<h2>Accessing attributes from the console<a class="headerlink" href="#accessing-attributes-from-the-console" title="Permalink to this headline">¶</a></h2>
+<p>The IPython console can be used simultaneously with the GUI, allowing more
+flexibility to the user. Any Hub can be accessed with its name defined in its
+<code class="docutils literal"><span class="pre">Hub.__init__()</span></code> function; for example, the autoAlign hub created above can
+be accessed through the variable <code class="docutils literal"><span class="pre">autoAlign</span></code>. Any attributes of the Hub can
+then be accessed in a straightforward manner; for example, the MEMS for slowing
+fiber alignment can be accessed through the variable <code class="docutils literal"><span class="pre">autoAlign.MEMS_slowing</span></code>.</p>
+</div>
+<div class="section" id="running-functions">
+<h2>Running functions<a class="headerlink" href="#running-functions" title="Permalink to this headline">¶</a></h2>
+<p>The built-in methods of a Device or Hub can be called through the console as well.
+For example, to create a square wave on the slowing MEMS, we can run</p>
+<div class="highlight-python3"><div class="highlight"><pre><span></span><span class="n">autoAlign</span><span class="o">.</span><span class="n">MEMS_slowing</span><span class="o">.</span><span class="n">wave</span><span class="p">(</span><span class="n">A</span><span class="p">,</span><span class="n">f</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>where <code class="docutils literal"><span class="pre">A</span></code> and <code class="docutils literal"><span class="pre">f</span></code> are the amplitude and frequency respectively. The ProcessHandler
+archetype makes it easy to run any function in parallel using either a thread or a process;
+for example, you can instead run</p>
+<div class="highlight-python3"><div class="highlight"><pre><span></span><span class="n">autoAlign</span><span class="o">.</span><span class="n">_run_thread</span><span class="p">(</span><span class="n">autoAlign</span><span class="o">.</span><span class="n">MEMS_slowing</span><span class="o">.</span><span class="n">wave</span><span class="p">,</span> <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">A</span><span class="p">,</span><span class="n">f</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>to run the square wave in parallel, allowing non-blocked access to the console.
+This will automatically pass in a <code class="docutils literal"><span class="pre">stopped()</span></code> function which will return a
+bool to allow early termination of the threaded function; the threaded function
+should include checks of stopped() in each loop pass if early termination is
+desired. In order to quit the threaded function, run</p>
+<div class="highlight-python3"><div class="highlight"><pre><span></span><span class="n">autoAlign</span><span class="o">.</span><span class="n">_quit_thread</span><span class="p">(</span><span class="n">autoAlign</span><span class="o">.</span><span class="n">MEMS_slowing</span><span class="o">.</span><span class="n">wave</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Note that, in the current implementation, the _quit_thread() method searches
+through the list of currently running threads in the Hub and terminates the first
+one matching the specified function (<code class="docutils literal"><span class="pre">autoAlign.MEMS_slowing.wave</span></code>).</p>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="archetypes.html" class="btn btn-neutral float-right" title="Archetypes" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral" title="labAPI" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Robert Fasano.
+
+    </p>
+  </div> 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

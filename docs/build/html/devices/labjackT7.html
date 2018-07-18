@@ -1,0 +1,391 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Labjack T7 &mdash; labAPI 1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../genindex.html"/>
+        <link rel="search" title="Search" href="../search.html"/>
+    <link rel="top" title="labAPI 1.0 documentation" href="../index.html"/>
+        <link rel="up" title="Devices" href="../devices.html"/>
+        <link rel="next" title="MSquared SolsTiS" href="msquared.html"/>
+        <link rel="prev" title="Digitel SPCe ion pump controller" href="ion_pump.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> labAPI
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../archetypes.html">Archetypes</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../devices.html">Devices</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="DLCPro.html">Toptica DLCPro</a></li>
+<li class="toctree-l2"><a class="reference internal" href="agilis.html">Newport Agilis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="daq.html">MCDAQ</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dummy.html">Dummy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="genesys.html">TDK Genesys</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hamamatsu_PMT.html">Hamamatsu PMT</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html">labAPI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="intensity_servo.html">Intensity Servo</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ion_pump.html">Digitel SPCe ion pump controller</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Labjack T7</a></li>
+<li class="toctree-l2"><a class="reference internal" href="msquared.html">MSquared SolsTiS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="netcontrols.html">NetControls 9x Series Motion Controller</a></li>
+<li class="toctree-l2"><a class="reference internal" href="novatech.html">Novatech DDS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="picoAmp.html">Mirrorcle PicoAmp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rga.html">Residual Gas Analyzer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sprout.html">Sprout Pump Laser</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thorlabs_camera.html">Thorlabs DCx Camera</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">labAPI</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../devices.html">Devices</a> &raquo;</li>
+        
+      <li>Labjack T7</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/devices/labjackT7.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-labjackT7">
+<span id="labjack-t7"></span><h1>Labjack T7<a class="headerlink" href="#module-labjackT7" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="labjackT7.LabJack">
+<em class="property">class </em><code class="descclassname">labjackT7.</code><code class="descname">LabJack</code><span class="sig-paren">(</span><em>device='ANY'</em>, <em>connection='ANY'</em>, <em>devid='ANY'</em>, <em>orange=10</em>, <em>arange=10</em><span class="sig-paren">)</span><a class="headerlink" href="#labjackT7.LabJack" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">labAPI.archetypes.Parallel.ProcessHandler</span></code></p>
+<dl class="method">
+<dt id="labjackT7.LabJack.AIn">
+<code class="descname">AIn</code><span class="sig-paren">(</span><em>channel</em>, <em>num=1</em><span class="sig-paren">)</span><a class="headerlink" href="#labjackT7.LabJack.AIn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="labjackT7.LabJack.AOut">
+<code class="descname">AOut</code><span class="sig-paren">(</span><em>channel</em>, <em>value</em>, <em>prefix='DAC'</em>, <em>HV=False</em><span class="sig-paren">)</span><a class="headerlink" href="#labjackT7.LabJack.AOut" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="labjackT7.LabJack.PWM">
+<code class="descname">PWM</code><span class="sig-paren">(</span><em>channel</em>, <em>frequency</em>, <em>duty_cycle</em>, <em>handle=None</em><span class="sig-paren">)</span><a class="headerlink" href="#labjackT7.LabJack.PWM" title="Permalink to this definition">¶</a></dt>
+<dd><p>Args:
+int channel: 0, 2-5 are valid for the LabJack T7
+float frequency
+float duty_cycle</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="labjackT7.LabJack.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>device='ANY'</em>, <em>connection='ANY'</em>, <em>devid='ANY'</em>, <em>orange=10</em>, <em>arange=10</em><span class="sig-paren">)</span><a class="headerlink" href="#labjackT7.LabJack.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="labjackT7.LabJack.__module__">
+<code class="descname">__module__</code><em class="property"> = 'labjackT7'</em><a class="headerlink" href="#labjackT7.LabJack.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="labjackT7.LabJack._connect">
+<code class="descname">_connect</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#labjackT7.LabJack._connect" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="labjackT7.LabJack.highpass_apply">
+<code class="descname">highpass_apply</code><span class="sig-paren">(</span><em>sos</em>, <em>data</em>, <em>zi=None</em><span class="sig-paren">)</span><a class="headerlink" href="#labjackT7.LabJack.highpass_apply" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="labjackT7.LabJack.highpass_create">
+<code class="descname">highpass_create</code><span class="sig-paren">(</span><em>f0</em><span class="sig-paren">)</span><a class="headerlink" href="#labjackT7.LabJack.highpass_create" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="labjackT7.LabJack.process_data">
+<code class="descname">process_data</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#labjackT7.LabJack.process_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="labjackT7.LabJack.spi_info">
+<code class="descname">spi_info</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#labjackT7.LabJack.spi_info" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="labjackT7.LabJack.spi_initialize">
+<code class="descname">spi_initialize</code><span class="sig-paren">(</span><em>mode=3</em>, <em>block=0</em>, <em>CLK=0</em>, <em>CS=1</em>, <em>MOSI=2</em>, <em>MISO=3</em><span class="sig-paren">)</span><a class="headerlink" href="#labjackT7.LabJack.spi_initialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Args:
+int CS: the channel to use as chip select
+int CLK: the channel to use as the clock
+int MISO: the channel to use for input
+int MOSI: the channel to use for output
+int block: the labjack terminal block to use. block=0 uses FIO0-3, block=4 uses FIO4-7, etc</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="labjackT7.LabJack.spi_loopback">
+<code class="descname">spi_loopback</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#labjackT7.LabJack.spi_loopback" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="labjackT7.LabJack.spi_read">
+<code class="descname">spi_read</code><span class="sig-paren">(</span><em>numBytes</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#labjackT7.LabJack.spi_read" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="labjackT7.LabJack.spi_write">
+<code class="descname">spi_write</code><span class="sig-paren">(</span><em>data</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#labjackT7.LabJack.spi_write" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="labjackT7.LabJack.square_wave">
+<code class="descname">square_wave</code><span class="sig-paren">(</span><em>channel</em>, <em>A</em>, <em>period</em>, <em>HV=False</em><span class="sig-paren">)</span><a class="headerlink" href="#labjackT7.LabJack.square_wave" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="labjackT7.LabJack.square_wave_thread">
+<code class="descname">square_wave_thread</code><span class="sig-paren">(</span><em>channel</em>, <em>A</em>, <em>period</em>, <em>HV=False</em><span class="sig-paren">)</span><a class="headerlink" href="#labjackT7.LabJack.square_wave_thread" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="labjackT7.LabJack.stream_DSP">
+<code class="descname">stream_DSP</code><span class="sig-paren">(</span><em>input_channel</em>, <em>output_channel</em>, <em>dsp</em>, <em>scanRate=100000</em>, <em>targetRate=100</em><span class="sig-paren">)</span><a class="headerlink" href="#labjackT7.LabJack.stream_DSP" title="Permalink to this definition">¶</a></dt>
+<dd><p>Streams in on input_channel, performs signal processing on the PC, then streams out on output_channel</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="labjackT7.LabJack.stream_DSP_thread">
+<code class="descname">stream_DSP_thread</code><span class="sig-paren">(</span><em>input_channel</em>, <em>output_channel</em>, <em>dsp</em>, <em>scanRate</em>, <em>targetRate</em><span class="sig-paren">)</span><a class="headerlink" href="#labjackT7.LabJack.stream_DSP_thread" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="labjackT7.LabJack.stream_in_out">
+<code class="descname">stream_in_out</code><span class="sig-paren">(</span><em>input_channels</em>, <em>output_channel</em>, <em>scanRate</em>, <em>targetRate</em>, <em>stopped=False</em><span class="sig-paren">)</span><a class="headerlink" href="#labjackT7.LabJack.stream_in_out" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stream data in on input_channel, apply processing, and stream out on output_channel</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="labjackT7.LabJack.stream_moving_average">
+<code class="descname">stream_moving_average</code><span class="sig-paren">(</span><em>a</em>, <em>n=3</em><span class="sig-paren">)</span><a class="headerlink" href="#labjackT7.LabJack.stream_moving_average" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="labjackT7.LabJack.stream_read">
+<code class="descname">stream_read</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#labjackT7.LabJack.stream_read" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="labjackT7.LabJack.stream_start">
+<code class="descname">stream_start</code><span class="sig-paren">(</span><em>channels</em>, <em>scanRate=1000</em>, <em>target_rate=100</em>, <em>clock=None</em>, <em>subtract_DC=False</em><span class="sig-paren">)</span><a class="headerlink" href="#labjackT7.LabJack.stream_start" title="Permalink to this definition">¶</a></dt>
+<dd><p>Currently supports only one channel, e.g. &#8220;AIN0&#8221;</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="labjackT7.LabJack.stream_update">
+<code class="descname">stream_update</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="headerlink" href="#labjackT7.LabJack.stream_update" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="msquared.html" class="btn btn-neutral float-right" title="MSquared SolsTiS" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="ion_pump.html" class="btn btn-neutral" title="Digitel SPCe ion pump controller" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Robert Fasano.
+
+    </p>
+  </div> 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
