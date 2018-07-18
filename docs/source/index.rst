@@ -10,8 +10,4 @@ labAPI
    :maxdepth: 2
 
    lab_of_things
-   Hub
-   Device
-   Parallel
-   Optimizer
-   Link
+   archetypes/*
