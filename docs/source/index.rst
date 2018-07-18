@@ -9,6 +9,7 @@ Welcome to labAPI's documentation!
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
+   lab_of_things
 
 
 
