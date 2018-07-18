@@ -5,4 +5,4 @@ labAPI is a Python library featuring device drivers and abstract classes seeking
 
 The ultimate goal of labAPI is to fully automate any physics experiment, not only providing standardized, scalable interfaces for control of large numbers of devices, but also allowing optimization and machine learning algorithms to be targeted at any devices in the experiment.
 
-For documentation, please read [manual.html](https://github.com/robertfasano/labAPI/blob/master/manual.html).
+For documentation, please open [manual.html](https://github.com/robertfasano/labAPI/blob/master/manual.html) in your local repository.
