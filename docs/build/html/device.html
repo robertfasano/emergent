@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Search &mdash; labAPI 1.0 documentation</title>
+  <title>device module &mdash; labAPI 1.0 documentation</title>
   
 
   
@@ -34,8 +34,10 @@
   
         <link rel="index" title="Index"
               href="genindex.html"/>
-        <link rel="search" title="Search" href="#"/>
-    <link rel="top" title="labAPI 1.0 documentation" href="index.html"/> 
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="labAPI 1.0 documentation" href="index.html"/>
+        <link rel="up" title="archetypes" href="modules.html"/>
+        <link rel="prev" title="Parallel module" href="Parallel.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -71,7 +73,7 @@
 
           
 <div role="search">
-  <form id="rtd-search-form" class="wy-form" action="#" method="get">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
@@ -88,9 +90,16 @@
               
             
             
-              <ul>
+              <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="lab_of_things.html">Lab of Things</a></li>
-<li class="toctree-l1"><a class="reference internal" href="modules.html">archetypes</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">archetypes</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Hub.html">Hub module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Link.html">Link module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Optimizer.html">Optimizer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Parallel.html">Parallel module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">device module</a></li>
+</ul>
+</li>
 </ul>
 
             
@@ -135,10 +144,16 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>Search</li>
+          <li><a href="modules.html">archetypes</a> &raquo;</li>
+        
+      <li>device module</li>
     
     
       <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/device.rst.txt" rel="nofollow"> View page source</a>
+          
         
       </li>
     
@@ -150,19 +165,38 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <noscript>
-  <div id="fallback" class="admonition warning">
-    <p class="last">
-      Please activate JavaScript to enable the search
-      functionality.
-    </p>
-  </div>
-  </noscript>
+  <div class="section" id="module-device">
+<span id="device-module"></span><h1>device module<a class="headerlink" href="#module-device" title="Permalink to this headline">¶</a></h1>
+<p>The Device class handles persistent settings saved in json files in labAPI/settings. Settings are loaded into the
+Device.params dict and are handled differently based on their &#8220;type&#8221;: &#8220;state&#8221; objects are loaded into a state vector
+to be made accessible by the Optimizer class, while &#8220;settings&#8221; objects (e.g. velocity of the a translation stage) are not.</p>
+<dl class="docutils">
+<dt>The settings file always contains the following attributes:</dt>
+<dd>id: the LabJack id, COM port, or similar address
+default: the default setpoint</dd>
+</dl>
+<dl class="class">
+<dt id="device.Device">
+<em class="property">class </em><code class="descclassname">device.</code><code class="descname">Device</code><span class="sig-paren">(</span><em>name</em>, <em>base_path=None</em>, <em>lowlevel=True</em>, <em>parent=None</em><span class="sig-paren">)</span><a class="headerlink" href="#device.Device" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="device.Device.actuate">
+<code class="descname">actuate</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#device.Device.actuate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ensures that the target state is within bounds, then calls the
+device-specific actuate() method to update the physical state.
+Finally, updates the internal state and params</p>
+</dd></dl>
 
-  
-  <div id="search-results">
-  
-  </div>
+<dl class="attribute">
+<dt id="device.Device.name">
+<code class="descname">name</code><em class="property"> = None</em><a class="headerlink" href="#device.Device.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prepare filepath for parameter file</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
 
            </div>
            <div class="articleComments">
@@ -170,6 +204,13 @@
            </div>
           </div>
           <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="Parallel.html" class="btn btn-neutral" title="Parallel module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
   
 
   <hr/>
@@ -208,7 +249,6 @@
       <script type="text/javascript" src="_static/jquery.js"></script>
       <script type="text/javascript" src="_static/underscore.js"></script>
       <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="_static/searchtools.js"></script>
 
   
 
@@ -224,14 +264,7 @@
           SphinxRtdTheme.StickyNav.enable();
       });
   </script>
-  
-  <script type="text/javascript">
-    jQuery(function() { Search.loadIndex("searchindex.js"); });
-  </script>
-  
-  <script type="text/javascript" id="searchindexloader"></script>
    
-
 
 </body>
 </html>

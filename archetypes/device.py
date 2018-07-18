@@ -67,7 +67,8 @@ class Device():
 
     def _save(self, setpoint=None):
         ''' Read in setpoints from file, append or update current setpoint, and write '''
-        if setpoint = None:
+
+        if setpoint is None:
             setpoint = self.setpoint
         with open(self.filename, 'r') as file:
             setpoints = json.load(file)
@@ -77,6 +78,8 @@ class Device():
 
     def _load(self, setpoint):
         ''' Read in setpoints from file '''
+        if setpoint is None:
+            setpoint = self.setpoint
         with open(self.filename, 'r') as file:
             self.params = json.load(file)[setpoint]
         if self.parent is not None:

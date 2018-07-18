@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Search &mdash; labAPI 1.0 documentation</title>
+  <title>Link module &mdash; labAPI 1.0 documentation</title>
   
 
   
@@ -34,8 +34,11 @@
   
         <link rel="index" title="Index"
               href="genindex.html"/>
-        <link rel="search" title="Search" href="#"/>
-    <link rel="top" title="labAPI 1.0 documentation" href="index.html"/> 
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="labAPI 1.0 documentation" href="index.html"/>
+        <link rel="up" title="archetypes" href="modules.html"/>
+        <link rel="next" title="Optimizer module" href="Optimizer.html"/>
+        <link rel="prev" title="Hub module" href="Hub.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -71,7 +74,7 @@
 
           
 <div role="search">
-  <form id="rtd-search-form" class="wy-form" action="#" method="get">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
@@ -88,9 +91,16 @@
               
             
             
-              <ul>
+              <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="lab_of_things.html">Lab of Things</a></li>
-<li class="toctree-l1"><a class="reference internal" href="modules.html">archetypes</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">archetypes</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Hub.html">Hub module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Link module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Optimizer.html">Optimizer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Parallel.html">Parallel module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="device.html">device module</a></li>
+</ul>
+</li>
 </ul>
 
             
@@ -135,10 +145,16 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>Search</li>
+          <li><a href="modules.html">archetypes</a> &raquo;</li>
+        
+      <li>Link module</li>
     
     
       <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/Link.rst.txt" rel="nofollow"> View page source</a>
+          
         
       </li>
     
@@ -150,19 +166,29 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <noscript>
-  <div id="fallback" class="admonition warning">
-    <p class="last">
-      Please activate JavaScript to enable the search
-      functionality.
-    </p>
-  </div>
-  </noscript>
+  <div class="section" id="module-Link">
+<span id="link-module"></span><h1>Link module<a class="headerlink" href="#module-Link" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="Link.Link">
+<em class="property">class </em><code class="descclassname">Link.</code><code class="descname">Link</code><span class="sig-paren">(</span><em>name</em>, <em>engine</em><span class="sig-paren">)</span><a class="headerlink" href="#Link.Link" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">PyQt5.QtCore.QObject</span></code></p>
+<p>This class bridges the gap between device-facing code (written in Python and independent of the GUI)
+and user-facing code (written in QML and independent of the device).</p>
+<dl class="attribute">
+<dt id="Link.Link.engine">
+<code class="descname">engine</code><em class="property"> = None</em><a class="headerlink" href="#Link.Link.engine" title="Permalink to this definition">¶</a></dt>
+<dd><p>Register the object in the context of QML</p>
+</dd></dl>
 
-  
-  <div id="search-results">
-  
-  </div>
+<dl class="attribute">
+<dt id="Link.Link.property1">
+<code class="descname">property1</code><a class="headerlink" href="#Link.Link.property1" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
 
            </div>
            <div class="articleComments">
@@ -170,6 +196,15 @@
            </div>
           </div>
           <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="Optimizer.html" class="btn btn-neutral float-right" title="Optimizer module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Hub.html" class="btn btn-neutral" title="Hub module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
   
 
   <hr/>
@@ -208,7 +243,6 @@
       <script type="text/javascript" src="_static/jquery.js"></script>
       <script type="text/javascript" src="_static/underscore.js"></script>
       <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="_static/searchtools.js"></script>
 
   
 
@@ -224,14 +258,7 @@
           SphinxRtdTheme.StickyNav.enable();
       });
   </script>
-  
-  <script type="text/javascript">
-    jQuery(function() { Search.loadIndex("searchindex.js"); });
-  </script>
-  
-  <script type="text/javascript" id="searchindexloader"></script>
    
-
 
 </body>
 </html>
