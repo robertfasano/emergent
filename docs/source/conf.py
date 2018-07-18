@@ -19,10 +19,7 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../..'))
-
-import archetypes.Hub
-import archetypes.Device
+sys.path.insert(0, os.path.abspath('../../archetypes'))
 
 # -- General configuration ------------------------------------------------
 
