@@ -34,7 +34,7 @@ MOCK_MODULES = ['numpy', 'pandas', 'PyQt5', 'scipy', 'scipy.interpolate', 'matpl
                 'matplotlib.pyplot', 'scipy.optimize', 'sklearn', 'sklearn.gaussian_process',
                 'sklearn.gaussian_process.kernels', 'sklearn.decomposition', 'sklearn.cluster',
                 'time', 'warnings', 'os', 'sys', 'itertools']
-MOCK_MODULES = ['numpy', 'pandas', 'PyQt5', 'scipy', 'matplotlib', 'sklearn', 'time']
+MOCK_MODULES = ['numpy', 'pandas', 'PyQt5', 'PyQt5.QtCore','scipy', 'matplotlib', 'sklearn', 'time']
 
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
