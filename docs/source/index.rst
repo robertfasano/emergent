@@ -10,5 +10,6 @@ labAPI
    :glob:
    :maxdepth: 2
 
+   examples
    archetypes
    devices
