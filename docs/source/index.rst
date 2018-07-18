@@ -10,4 +10,5 @@ labAPI
    :maxdepth: 2
 
    lab_of_things
-   archetypes/*
+   Hub
+   Device 
