@@ -1,0 +1,321 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Lab of Things &mdash; labAPI 1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="labAPI 1.0 documentation" href="index.html"/>
+        <link rel="next" title="archetypes" href="modules.html"/>
+        <link rel="prev" title="labAPI" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> labAPI
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Lab of Things</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#control-code">Control code</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#control-architecture">Control architecture</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#device">Device</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hub">Hub</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#processhandler">ProcessHandler</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#optimizer">Optimizer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#application">Application</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">archetypes</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">labAPI</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Lab of Things</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/lab_of_things.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="lab-of-things">
+<h1>Lab of Things<a class="headerlink" href="#lab-of-things" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="control-code">
+<h2>Control code<a class="headerlink" href="#control-code" title="Permalink to this headline">¶</a></h2>
+<p><strong>The Lab of Things</strong>
+The Internet of Things is &#8220;a dynamic global network infrastructure with self-configuring capabilities based on standard and interoperable communication protocols where physical and virtual &#8216;Things&#8217; have identities, physical attributes, and virtual personalities and use intelligent interfaces, and are seamlessly integrated into the information network&#8221; [Kranenburg, 2008].</p>
+<ul class="simple">
+<li>The <strong>physical Things</strong> in our network are devices with sensing and/or actuation capabilities.</li>
+<li>Physical Things are united into <strong>virtual Things</strong> which perform higher-level tasks. For example, the magneto-optical trap is controlled by a virtual Thing comprising many physical Things, such as mirror mount actuators, digital synthesizers, and photodetectors.</li>
+<li>The <strong>attributes</strong> of all physical Things, such as their positions or frequencies, are stored in a database alongside the attributes of virtual Things such as calibrated model parameters.</li>
+<li><strong>Standard and interoperable communication protocols</strong> are implemented between each layer of the code, allowing higher-level governing functions to interface with base devices without explicit hard-coded knowledge of their characteristics.</li>
+</ul>
+<div class="section" id="control-architecture">
+<h3>Control architecture<a class="headerlink" href="#control-architecture" title="Permalink to this headline">¶</a></h3>
+<p>We separate our control code into the following functional blocks:</p>
+<ul class="simple">
+<li><strong>Device</strong>: a physical apparatus with sensing and/or actuation capabilities. The Device also possesses an interface for communication with higher layers.</li>
+<li><strong>ProcessHandler</strong>: a class providing simple and standardized creation, termination, and analysis of threads and processes.</li>
+<li><strong>Optimizer</strong>: a class containing common optimization and machine learning algorithms, including grid search, gradient descent, and Bayesian optimization.</li>
+<li><strong>Hub</strong>: a virtual Thing comprising many base Devices to accomplish a macroscopic goal, such as magneto-optical trapping. Also contains an interface between the Python backend and QML frontend.</li>
+<li><strong>Database</strong>: The states of all connected Devices are stored in a Database (currently spread across settings files in portable/settings).</li>
+<li><strong>Application</strong>: the QML-based front-end allows simple access to important Device parameters. More sophisticated tasks can be executed through the IPython console.</li>
+</ul>
+<p>The event-driven control flow is as follows:</p>
+<ol class="arabic simple">
+<li><strong>Event</strong>: a Device parameter is changed either directly in the console or via the GUI</li>
+<li><strong>State vector decomposition</strong>: if the event is GUI-initiated, then the Hub overseeing the target lower-level device prepares a new target state vector, separates out the substate of the device, and passes it to the child Device.</li>
+<li><strong>Actuation</strong>: The Device.actuate(state) function is called to change the physical state of the device.</li>
+<li><strong>Device state updating</strong>: the state vector of the Device is updated. The appropriate params component is updated as well, and the params file is updated.</li>
+<li><strong>Hub update</strong>: the Device updates its parent Hub&#8217;s parameters</li>
+<li><strong>State vector preparation</strong>: the Hub computes a new state vector based on the updated parameters</li>
+<li><strong>Application update</strong>: the Hub updates the GUI</li>
+</ol>
+<p>Each functional block is described in detail as follows.</p>
+<div class="section" id="device">
+<h4>Device<a class="headerlink" href="#device" title="Permalink to this headline">¶</a></h4>
+<p>The Device class communicates with two other architectural layers.
+Upon instantiation, each Device&#8217;s settings are loaded into memory from the
+Database and stored in the Device.params dict; state variables are also stored
+in the Device.state vector. The latter exposes the Device to the Hub layer,
+which interacts with the Device via operations on its state vector. The Device
+class includes the following methods:</p>
+<ul class="simple">
+<li>actuate</li>
+<li>load</li>
+<li>params_to_state</li>
+<li>save</li>
+<li>state_to_params</li>
+</ul>
+</div>
+<div class="section" id="hub">
+<h4>Hub<a class="headerlink" href="#hub" title="Permalink to this headline">¶</a></h4>
+<p>The Hub class interacts with the Application layer via methods to retrieve
+handles of QML elements for Python-initiated GUI updates, as well as Qt slots
+for GUI-initiated commands; it also interacts with the Device layer with methods
+to push state changes to devices. The following methods are implemented in the Hub:</p>
+<ul class="simple">
+<li>actuate</li>
+<li>append_listModel</li>
+<li>populate_listModel</li>
+<li>retrieve_handles</li>
+<li>set_params</li>
+</ul>
+</div>
+<div class="section" id="processhandler">
+<h4>ProcessHandler<a class="headerlink" href="#processhandler" title="Permalink to this headline">¶</a></h4>
+</div>
+<div class="section" id="optimizer">
+<h4>Optimizer<a class="headerlink" href="#optimizer" title="Permalink to this headline">¶</a></h4>
+</div>
+<div class="section" id="application">
+<h4>Application<a class="headerlink" href="#application" title="Permalink to this headline">¶</a></h4>
+</div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="modules.html" class="btn btn-neutral float-right" title="archetypes" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral" title="labAPI" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Robert Fasano.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

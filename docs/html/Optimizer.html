@@ -1,0 +1,355 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Optimizer module &mdash; labAPI 1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="labAPI 1.0 documentation" href="index.html"/>
+        <link rel="up" title="archetypes" href="modules.html"/>
+        <link rel="next" title="Parallel module" href="Parallel.html"/>
+        <link rel="prev" title="Link module" href="Link.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> labAPI
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="lab_of_things.html">Lab of Things</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">archetypes</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Hub.html">Hub module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Link.html">Link module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Optimizer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Parallel.html">Parallel module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="device.html">device module</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">labAPI</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="modules.html">archetypes</a> &raquo;</li>
+        
+      <li>Optimizer module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/Optimizer.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-Optimizer">
+<span id="optimizer-module"></span><h1>Optimizer module<a class="headerlink" href="#module-Optimizer" title="Permalink to this headline">¶</a></h1>
+<p>This script implements an Aligner class from which many devices inherit methods such as:
+persistent positioning, first light acquisition, and realtime optimization</p>
+<dl class="class">
+<dt id="Optimizer.Optimizer">
+<em class="property">class </em><code class="descclassname">Optimizer.</code><code class="descname">Optimizer</code><span class="sig-paren">(</span><em>noise=0</em><span class="sig-paren">)</span><a class="headerlink" href="#Optimizer.Optimizer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="Optimizer.Optimizer.actuate">
+<code class="descname">actuate</code><span class="sig-paren">(</span><em>point</em><span class="sig-paren">)</span><a class="headerlink" href="#Optimizer.Optimizer.actuate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Optimizer.Optimizer.cost">
+<code class="descname">cost</code><span class="sig-paren">(</span><em>X=None</em>, <em>axes=None</em><span class="sig-paren">)</span><a class="headerlink" href="#Optimizer.Optimizer.cost" title="Permalink to this definition">¶</a></dt>
+<dd><p>A gaussian cost function in N dimensions. Overload in child classes with appropriate function</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Optimizer.Optimizer.covariance_reduction">
+<code class="descname">covariance_reduction</code><span class="sig-paren">(</span><em>X=None</em><span class="sig-paren">)</span><a class="headerlink" href="#Optimizer.Optimizer.covariance_reduction" title="Permalink to this definition">¶</a></dt>
+<dd><p>with a 13 dimensional array, use covariance on the original data set, 
+rows = number of features, columns = number of observations, covariance 
+yields number of rows = number of columns, then feature extraction using 
+PCA or clustering algorithm</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Optimizer.Optimizer.effective_cost">
+<code class="descname">effective_cost</code><span class="sig-paren">(</span><em>x</em>, <em>b</em>, <em>gp</em><span class="sig-paren">)</span><a class="headerlink" href="#Optimizer.Optimizer.effective_cost" title="Permalink to this definition">¶</a></dt>
+<dd><p>Watch for function recieveing a 2d x with higher dimensional state vectors (disagreement with internal GP dimension)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Optimizer.Optimizer.extract_pcs">
+<code class="descname">extract_pcs</code><span class="sig-paren">(</span><em>X=None</em><span class="sig-paren">)</span><a class="headerlink" href="#Optimizer.Optimizer.extract_pcs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Optimizer.Optimizer.gaussian_process">
+<code class="descname">gaussian_process</code><span class="sig-paren">(</span><em>X=None</em>, <em>axes=None</em>, <em>actuate=None</em>, <em>cost=None</em>, <em>iterations=10</em>, <em>plot=False</em><span class="sig-paren">)</span><a class="headerlink" href="#Optimizer.Optimizer.gaussian_process" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gaussian Processing from <a class="reference external" href="https://github.com/thuijskens/bayesian-optimization/blob/master/python/gp.py">https://github.com/thuijskens/bayesian-optimization/blob/master/python/gp.py</a>
+and <a class="reference external" href="https://www.nature.com/articles/srep25890.pdf">https://www.nature.com/articles/srep25890.pdf</a></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Optimizer.Optimizer.gaussian_process_next_sample">
+<code class="descname">gaussian_process_next_sample</code><span class="sig-paren">(</span><em>X</em>, <em>bounds</em>, <em>b</em>, <em>acquisition_func</em>, <em>gaussian_process</em>, <em>greater_is_better=False</em>, <em>restarts=25</em><span class="sig-paren">)</span><a class="headerlink" href="#Optimizer.Optimizer.gaussian_process_next_sample" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Optimizer.Optimizer.grid_search">
+<code class="descname">grid_search</code><span class="sig-paren">(</span><em>X=None</em>, <em>axes=None</em>, <em>actuate=None</em>, <em>cost=None</em>, <em>plot=False</em>, <em>steps=10</em><span class="sig-paren">)</span><a class="headerlink" href="#Optimizer.Optimizer.grid_search" title="Permalink to this definition">¶</a></dt>
+<dd><p>An N-dimensional grid search routine</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Optimizer.Optimizer.initialize_optimizer">
+<code class="descname">initialize_optimizer</code><span class="sig-paren">(</span><em>axes=None</em><span class="sig-paren">)</span><a class="headerlink" href="#Optimizer.Optimizer.initialize_optimizer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prepares a normalized substate and appropriate bounds</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Optimizer.Optimizer.line_search">
+<code class="descname">line_search</code><span class="sig-paren">(</span><em>X=None</em>, <em>axis=0</em>, <em>actuate=None</em>, <em>cost=None</em>, <em>step=0.1</em><span class="sig-paren">)</span><a class="headerlink" href="#Optimizer.Optimizer.line_search" title="Permalink to this definition">¶</a></dt>
+<dd><p>Searches a single axis/dimension for a minima using a moving derivative</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Optimizer.Optimizer.optimize">
+<code class="descname">optimize</code><span class="sig-paren">(</span><em>routines=['gp'], X=None, axes=None, iterations=20, plot=True, actuate=None, cost=None, span=1, steps=100, dither=0.1, eta=1, method='L-BFGS-B'</em><span class="sig-paren">)</span><a class="headerlink" href="#Optimizer.Optimizer.optimize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Optimizer.Optimizer.pca_kernel">
+<code class="descname">pca_kernel</code><span class="sig-paren">(</span><em>X=None</em>, <em>n_comps=4</em>, <em>krnl='rbf'</em>, <em>gma=0.04</em><span class="sig-paren">)</span><a class="headerlink" href="#Optimizer.Optimizer.pca_kernel" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Optimizer.Optimizer.pca_reduction">
+<code class="descname">pca_reduction</code><span class="sig-paren">(</span><em>X=None</em>, <em>pvariance=0.95</em>, <em>slvr='auto'</em><span class="sig-paren">)</span><a class="headerlink" href="#Optimizer.Optimizer.pca_reduction" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Optimizer.Optimizer.plot_optimization">
+<code class="descname">plot_optimization</code><span class="sig-paren">(</span><em>func=None</em>, <em>lbl=None</em>, <em>yscl='linear'</em>, <em>ylbl='Optimization Function'</em>, <em>xlbl='Time (s)'</em><span class="sig-paren">)</span><a class="headerlink" href="#Optimizer.Optimizer.plot_optimization" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Optimizer.Optimizer.random_sampling">
+<code class="descname">random_sampling</code><span class="sig-paren">(</span><em>cost</em>, <em>N</em>, <em>bounds</em>, <em>axes=None</em><span class="sig-paren">)</span><a class="headerlink" href="#Optimizer.Optimizer.random_sampling" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs a random sampling of the cost function at N points within the specified bounds</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Optimizer.Optimizer.skl_minimize">
+<code class="descname">skl_minimize</code><span class="sig-paren">(</span><em>cost</em>, <em>method='L-BFGS-B'</em>, <em>X=None</em>, <em>axes=None</em>, <em>plot=False</em><span class="sig-paren">)</span><a class="headerlink" href="#Optimizer.Optimizer.skl_minimize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="Optimizer.Optimizer.unnormalize">
+<code class="descname">unnormalize</code><span class="sig-paren">(</span><em>state</em>, <em>axes=None</em><span class="sig-paren">)</span><a class="headerlink" href="#Optimizer.Optimizer.unnormalize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="Optimizer.warn">
+<code class="descclassname">Optimizer.</code><code class="descname">warn</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#Optimizer.warn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="Parallel.html" class="btn btn-neutral float-right" title="Parallel module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Link.html" class="btn btn-neutral" title="Link module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Robert Fasano.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
