@@ -134,34 +134,42 @@ class Optimizer():
         return X, costs
 
     def grid_search(self, X = None, axes = None, actuate = None, cost = None,
-                    plot = False, steps = 10):
+                    plot = False, loadExisting = False, steps = 10):
         ''' An N-dimensional grid search routine with optional plotting. '''
         X, bounds = self.initialize_optimizer(axes)
-        ''' Generate search grid '''
-        N = len(X)
-        grid = []
-        for n in range(N):
-            space = np.linspace(bounds[n][0], bounds[n][1], steps)
-            grid.append(space)
-        grid = np.array(grid)
-        points = np.transpose(np.meshgrid(*[grid[n] for n in range(N)])).reshape(-1,N)
-
-        ''' Actuate search '''
-        costs = []
-        for point in points:
-            costs.append(self.cost(point, axes))
-
+        if loadExisting:
+            costs = np.loadtxt('costs.txt')
+            points = np.loadtxt('points.txt')
+        else:    
+            ''' Generate search grid '''
+            N = len(X)
+            grid = []
+            for n in range(N):
+                space = np.linspace(bounds[n][0], bounds[n][1], steps)
+                grid.append(space)
+            grid = np.array(grid)
+            points = np.transpose(np.meshgrid(*[grid[n] for n in range(N)])).reshape(-1,N)
+        
+            ''' Actuate search '''
+            costs = []
+            for point in points:
+                costs.append(self.cost(point, axes))
+            
+            np.savetxt('costs.txt', np.array(costs))
+            np.savetxt('points.txt', np.array(points))
+                
         ''' Plot result if desired '''
         ax = None
         if plot and len(X) is 2:
+            plt.figure()
             ordinate_index = 0
             abscissa_index = 1
             ordinate_mesh, abscissa_mesh = np.meshgrid(points[:,ordinate_index], points[:, abscissa_index])
-            print(ordinate_mesh.shape)
-            print(abscissa_mesh.shape)
-            cost_grid = griddata(points[:,[ordinate_index, abscissa_index]], cost, (ordinate_mesh,abscissa_mesh))
+            normalized_costs = -1*(costs - np.min(costs))/(np.max(costs)-np.min(costs)) + 1
+            cost_grid = griddata(points[:,[ordinate_index, abscissa_index]], normalized_costs, (ordinate_mesh,abscissa_mesh))
             plot = plt.pcolormesh(ordinate_mesh, abscissa_mesh, cost_grid, cmap='gist_rainbow')
             plt.colorbar(plot)
+            plt.savefig('driftmesh' + str(time.time()) + '.png')
             ax = plt.gca()
 
         best_point = points[np.argmin(costs)]
@@ -231,14 +239,15 @@ class Optimizer():
 
         return points, c
 
-    def skl_minimize(self, cost, method = 'L-BFGS-B', X = None, axes = None, plot = False):
+    def skl_minimize(self, cost, method = 'L-BFGS-B', X = None, axes = None, plot = False, tol = 1e-7):
         ''' Runs a specified scikit-learn minimization method on the target axes and cost. '''
         X, bounds = self.initialize_optimizer(axes)
         res = minimize(fun=cost,
                    x0=X,
                    bounds=bounds,
                    method=method,
-                   args=(axes))
+                   args=(axes),
+                   tol = tol)
         #simplex for SKL is res = minimize(fun = cost,x0 = X.reshape(1, -1), method = 'Nelder-Mead', tol = 1e7)
         print("SKL:" + method + "=%s" % res)
         if plot:
