@@ -1,8 +1,8 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<!--[if IE 8]><html class="no-js lt-ie9" lang="python" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="python" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
   
@@ -24,28 +24,19 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="../genindex.html"/>
-        <link rel="search" title="Search" href="../search.html"/>
-    <link rel="top" title="labAPI 1.0 documentation" href="../index.html"/>
-        <link rel="up" title="Devices" href="../devices.html"/>
-        <link rel="next" title="NetControls 9x Series Motion Controller" href="netcontrols.html"/>
-        <link rel="prev" title="Labjack T7" href="labjackT7.html"/> 
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="NetControls 9x Series Motion Controller" href="netcontrols.html" />
+    <link rel="prev" title="Labjack T7" href="labjackT7.html" /> 
 
   
   <script src="../_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
@@ -92,6 +83,7 @@
             
             
               <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../labAPI.html">labAPI</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../archetypes.html">Archetypes</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../devices.html">Devices</a><ul class="current">
@@ -125,7 +117,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">labAPI</a>
@@ -133,9 +125,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -181,13 +174,383 @@
             
   <div class="section" id="msquared-solstis">
 <h1>MSquared SolsTiS<a class="headerlink" href="#msquared-solstis" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-msquared"></span><dl class="class">
+<dt id="msquared.LatticeTab">
+<em class="property">class </em><code class="descclassname">msquared.</code><code class="descname">LatticeTab</code><span class="sig-paren">(</span><em>panel</em>, <em>clock</em>, <em>folder</em>, <em>subfolder</em><span class="sig-paren">)</span><a class="headerlink" href="#msquared.LatticeTab" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">labAPI.gui.gui.Tab</span></code></p>
+<dl class="method">
+<dt id="msquared.LatticeTab.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>panel</em>, <em>clock</em>, <em>folder</em>, <em>subfolder</em><span class="sig-paren">)</span><a class="headerlink" href="#msquared.LatticeTab.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="msquared.LatticeTab.__module__">
+<code class="descname">__module__</code><em class="property"> = 'msquared'</em><a class="headerlink" href="#msquared.LatticeTab.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="msquared.LatticeTab.abort">
+<code class="descname">abort</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#msquared.LatticeTab.abort" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="msquared.LatticeTab.calibrate">
+<code class="descname">calibrate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#msquared.LatticeTab.calibrate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="msquared.LatticeTab.calibrate_etalon">
+<code class="descname">calibrate_etalon</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#msquared.LatticeTab.calibrate_etalon" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="msquared.LatticeTab.calibrate_pzt">
+<code class="descname">calibrate_pzt</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#msquared.LatticeTab.calibrate_pzt" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="msquared.LatticeTab.lock">
+<code class="descname">lock</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#msquared.LatticeTab.lock" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="msquared.LatticeTab.map_transmission">
+<code class="descname">map_transmission</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#msquared.LatticeTab.map_transmission" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="msquared.LatticeTab.prepare_filepath">
+<code class="descname">prepare_filepath</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#msquared.LatticeTab.prepare_filepath" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create file directory for the current day</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="msquared.LatticeTab.update_setpoints">
+<code class="descname">update_setpoints</code><span class="sig-paren">(</span><em>parameters</em><span class="sig-paren">)</span><a class="headerlink" href="#msquared.LatticeTab.update_setpoints" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="msquared.LatticeTab.warmup">
+<code class="descname">warmup</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#msquared.LatticeTab.warmup" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="msquared.LatticeTab.zoom_search">
+<code class="descname">zoom_search</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#msquared.LatticeTab.zoom_search" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="msquared.MSquared">
+<em class="property">class </em><code class="descclassname">msquared.</code><code class="descname">MSquared</code><span class="sig-paren">(</span><em>parameters</em>, <em>tab</em><span class="sig-paren">)</span><a class="headerlink" href="#msquared.MSquared" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt id="msquared.MSquared.__dict__">
+<code class="descname">__dict__</code><em class="property"> = mappingproxy({'__module__': 'msquared', '__init__': &lt;function MSquared.__init__&gt;, 'acquire_cavity_lock': &lt;function MSquared.acquire_cavity_lock&gt;, 'acquire_etalon_lock_failsafe': &lt;function MSquared.acquire_etalon_lock_failsafe&gt;, 'acquire_etalon_lock': &lt;function MSquared.acquire_etalon_lock&gt;, 'actuate_pzt': &lt;function MSquared.actuate_pzt&gt;, 'actuate_etalon': &lt;function MSquared.actuate_etalon&gt;, 'calibrate': &lt;function MSquared.calibrate&gt;, 'calibrate_etalon': &lt;function MSquared.calibrate_etalon&gt;, 'calibrate_pzt': &lt;function MSquared.calibrate_pzt&gt;, 'calculate_pzt_root': &lt;function MSquared.calculate_pzt_root&gt;, 'center_cavity_lock': &lt;function MSquared.center_cavity_lock&gt;, 'center_pzt': &lt;function MSquared.center_pzt&gt;, 'check_etalon_lock': &lt;function MSquared.check_etalon_lock&gt;, 'convert_frequency_to_etalon': &lt;function MSquared.convert_frequency_to_etalon&gt;, 'convert_frequency_to_voltage': &lt;function MSquared.convert_frequency_to_voltage&gt;, 'convert_etalon_to_frequency': &lt;function MSquared.convert_etalon_to_frequency&gt;, 'convert_voltage_to_frequency': &lt;function MSquared.convert_voltage_to_frequency&gt;, 'cost': &lt;function MSquared.cost&gt;, 'disengage_etalon_lock': &lt;function MSquared.disengage_etalon_lock&gt;, 'disengage_gain': &lt;function MSquared.disengage_gain&gt;, 'engage_gain': &lt;function MSquared.engage_gain&gt;, 'engage_etalon_lock': &lt;function MSquared.engage_etalon_lock&gt;, 'get_cavity_transmission': &lt;function MSquared.get_cavity_transmission&gt;, 'get_servo_output': &lt;function MSquared.get_servo_output&gt;, 'get_frequency': &lt;function MSquared.get_frequency&gt;, 'get_system_status': &lt;function MSquared.get_system_status&gt;, 'load_setpoint': &lt;function MSquared.load_setpoint&gt;, 'lock': &lt;function MSquared.lock&gt;, 'measure_linewidth': &lt;function MSquared.measure_linewidth&gt;, 'map_transmission': &lt;function MSquared.map_transmission&gt;, 'message': &lt;function MSquared.message&gt;, 'oscillator': &lt;function MSquared.oscillator&gt;, 'receive': &lt;function MSquared.receive&gt;, 'resonance_search': &lt;function MSquared.resonance_search&gt;, 'unresonant': &lt;function MSquared.unresonant&gt;, 'resonant': &lt;function MSquared.resonant&gt;, 'save_setpoint': &lt;function MSquared.save_setpoint&gt;, 'server': &lt;function MSquared.server&gt;, 'stop': &lt;function MSquared.stop&gt;, 'stream_frequency': &lt;function MSquared.stream_frequency&gt;, 'tune_etalon': &lt;function MSquared.tune_etalon&gt;, 'tune_cavity': &lt;function MSquared.tune_cavity&gt;, 'warmup': &lt;function MSquared.warmup&gt;, 'zoom_search': &lt;function MSquared.zoom_search&gt;, '__dict__': &lt;attribute '__dict__' of 'MSquared' objects&gt;, '__weakref__': &lt;attribute '__weakref__' of 'MSquared' objects&gt;, '__doc__': None})</em><a class="headerlink" href="#msquared.MSquared.__dict__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="msquared.MSquared.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>parameters</em>, <em>tab</em><span class="sig-paren">)</span><a class="headerlink" href="#msquared.MSquared.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="msquared.MSquared.__module__">
+<code class="descname">__module__</code><em class="property"> = 'msquared'</em><a class="headerlink" href="#msquared.MSquared.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="msquared.MSquared.__weakref__">
+<code class="descname">__weakref__</code><a class="headerlink" href="#msquared.MSquared.__weakref__" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of weak references to the object (if defined)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="msquared.MSquared.acquire_cavity_lock">
+<code class="descname">acquire_cavity_lock</code><span class="sig-paren">(</span><em>span=0.05</em>, <em>step=0.001</em>, <em>sweeps=5</em><span class="sig-paren">)</span><a class="headerlink" href="#msquared.MSquared.acquire_cavity_lock" title="Permalink to this definition">¶</a></dt>
+<dd><p>At this point, the etalon should be locked and the PZT should be tuned to magic. We now start sweeping the PZT
+in another thread while monitoring the transmission in this thread. Note that the one-way latency between computers
+is about 300 ms, so the sweep must be sufficiently slow to allow locking at the right frequency.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="msquared.MSquared.acquire_etalon_lock">
+<code class="descname">acquire_etalon_lock</code><span class="sig-paren">(</span><em>zoom=1</em>, <em>x=[]</em>, <em>c=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#msquared.MSquared.acquire_etalon_lock" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="msquared.MSquared.acquire_etalon_lock_failsafe">
+<code class="descname">acquire_etalon_lock_failsafe</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#msquared.MSquared.acquire_etalon_lock_failsafe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Occasionally the etalon will repeatedly jump away from the lock point.
+In this case, rather than naively tuning back to the target frequency and
+repeating, we should start a new optimization problem where we try to optimize
+the post-lock cost as a function of pre-lock frequency</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="msquared.MSquared.actuate_etalon">
+<code class="descname">actuate_etalon</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#msquared.MSquared.actuate_etalon" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="msquared.MSquared.actuate_pzt">
+<code class="descname">actuate_pzt</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#msquared.MSquared.actuate_pzt" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="msquared.MSquared.adc">
+<code class="descname">adc</code><em class="property"> = None</em><a class="headerlink" href="#msquared.MSquared.adc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Configure lock process settings</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="msquared.MSquared.calculate_pzt_root">
+<code class="descname">calculate_pzt_root</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#msquared.MSquared.calculate_pzt_root" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="msquared.MSquared.calibrate">
+<code class="descname">calibrate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#msquared.MSquared.calibrate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="msquared.MSquared.calibrate_etalon">
+<code class="descname">calibrate_etalon</code><span class="sig-paren">(</span><em>x0</em>, <em>span</em>, <em>steps=30</em>, <em>sweeps=1</em>, <em>delay=0.01</em>, <em>filename=None</em><span class="sig-paren">)</span><a class="headerlink" href="#msquared.MSquared.calibrate_etalon" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calibrates the relationship between etalon tuning and frequency. If a filename is specified, the calibration curve is saved.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="msquared.MSquared.calibrate_pzt">
+<code class="descname">calibrate_pzt</code><span class="sig-paren">(</span><em>V0=None</em>, <em>span=2</em>, <em>steps=50</em>, <em>sweeps=1</em>, <em>delay=0</em>, <em>filename=None</em><span class="sig-paren">)</span><a class="headerlink" href="#msquared.MSquared.calibrate_pzt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calibrates the relationship between PZT voltage and frequency. If a filename is specified, the calibration curve is saved.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="msquared.MSquared.center_cavity_lock">
+<code class="descname">center_cavity_lock</code><span class="sig-paren">(</span><em>relative_gain=1</em><span class="sig-paren">)</span><a class="headerlink" href="#msquared.MSquared.center_cavity_lock" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="msquared.MSquared.center_pzt">
+<code class="descname">center_pzt</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#msquared.MSquared.center_pzt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resets the PZT to 0 and re-engages the etalon lock. Should be done once in a while
+to avoid drifting out of DAC range.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="msquared.MSquared.check_etalon_lock">
+<code class="descname">check_etalon_lock</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#msquared.MSquared.check_etalon_lock" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="msquared.MSquared.convert_etalon_to_frequency">
+<code class="descname">convert_etalon_to_frequency</code><span class="sig-paren">(</span><em>X</em><span class="sig-paren">)</span><a class="headerlink" href="#msquared.MSquared.convert_etalon_to_frequency" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a calibrated frequency f corresponding to an input etalon tuning X</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="msquared.MSquared.convert_frequency_to_etalon">
+<code class="descname">convert_frequency_to_etalon</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="headerlink" href="#msquared.MSquared.convert_frequency_to_etalon" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="msquared.MSquared.convert_frequency_to_voltage">
+<code class="descname">convert_frequency_to_voltage</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="headerlink" href="#msquared.MSquared.convert_frequency_to_voltage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a calibrated voltage V corresponding to a target frequency f</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="msquared.MSquared.convert_voltage_to_frequency">
+<code class="descname">convert_voltage_to_frequency</code><span class="sig-paren">(</span><em>V</em><span class="sig-paren">)</span><a class="headerlink" href="#msquared.MSquared.convert_voltage_to_frequency" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a calibrated frequency f corresponding to an input voltage V</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="msquared.MSquared.cost">
+<code class="descname">cost</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#msquared.MSquared.cost" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="msquared.MSquared.disengage_etalon_lock">
+<code class="descname">disengage_etalon_lock</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#msquared.MSquared.disengage_etalon_lock" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="msquared.MSquared.disengage_gain">
+<code class="descname">disengage_gain</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#msquared.MSquared.disengage_gain" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="msquared.MSquared.engage_etalon_lock">
+<code class="descname">engage_etalon_lock</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#msquared.MSquared.engage_etalon_lock" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="msquared.MSquared.engage_gain">
+<code class="descname">engage_gain</code><span class="sig-paren">(</span><em>target='both'</em><span class="sig-paren">)</span><a class="headerlink" href="#msquared.MSquared.engage_gain" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="msquared.MSquared.get_cavity_transmission">
+<code class="descname">get_cavity_transmission</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#msquared.MSquared.get_cavity_transmission" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="msquared.MSquared.get_frequency">
+<code class="descname">get_frequency</code><span class="sig-paren">(</span><em>window=1</em><span class="sig-paren">)</span><a class="headerlink" href="#msquared.MSquared.get_frequency" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="msquared.MSquared.get_servo_output">
+<code class="descname">get_servo_output</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#msquared.MSquared.get_servo_output" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="msquared.MSquared.get_system_status">
+<code class="descname">get_system_status</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#msquared.MSquared.get_system_status" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="msquared.MSquared.load_setpoint">
+<code class="descname">load_setpoint</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#msquared.MSquared.load_setpoint" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="msquared.MSquared.lock">
+<code class="descname">lock</code><span class="sig-paren">(</span><em>hold=True</em>, <em>relock=False</em><span class="sig-paren">)</span><a class="headerlink" href="#msquared.MSquared.lock" title="Permalink to this definition">¶</a></dt>
+<dd><p>If relock is true, then assume that the etalon is still locked. This will be checked later anyway, but is usually a good guess</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="msquared.MSquared.map_transmission">
+<code class="descname">map_transmission</code><span class="sig-paren">(</span><em>span</em>, <em>steps</em>, <em>f0=None</em>, <em>delay=0</em>, <em>filename=None</em>, <em>calibrate=True</em><span class="sig-paren">)</span><a class="headerlink" href="#msquared.MSquared.map_transmission" title="Permalink to this definition">¶</a></dt>
+<dd><p>Measures and plots the cavity transmission around a span of f0</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="msquared.MSquared.measure_linewidth">
+<code class="descname">measure_linewidth</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#msquared.MSquared.measure_linewidth" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="msquared.MSquared.message">
+<code class="descname">message</code><span class="sig-paren">(</span><em>op</em>, <em>parameters</em>, <em>destination</em><span class="sig-paren">)</span><a class="headerlink" href="#msquared.MSquared.message" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sends a command to the destination, either &#8220;laser&#8221; or &#8220;PC&#8221;</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="msquared.MSquared.oscillator">
+<code class="descname">oscillator</code><span class="sig-paren">(</span><em>center</em>, <em>span</em>, <em>step</em><span class="sig-paren">)</span><a class="headerlink" href="#msquared.MSquared.oscillator" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="msquared.MSquared.port">
+<code class="descname">port</code><em class="property"> = None</em><a class="headerlink" href="#msquared.MSquared.port" title="Permalink to this definition">¶</a></dt>
+<dd><p>Connect to DAC and ADC</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="msquared.MSquared.receive">
+<code class="descname">receive</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#msquared.MSquared.receive" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="msquared.MSquared.resonance_search">
+<code class="descname">resonance_search</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#msquared.MSquared.resonance_search" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="msquared.MSquared.resonant">
+<code class="descname">resonant</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#msquared.MSquared.resonant" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="msquared.MSquared.save_setpoint">
+<code class="descname">save_setpoint</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#msquared.MSquared.save_setpoint" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="msquared.MSquared.server">
+<code class="descname">server</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#msquared.MSquared.server" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="msquared.MSquared.stop">
+<code class="descname">stop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#msquared.MSquared.stop" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="msquared.MSquared.stream_frequency">
+<code class="descname">stream_frequency</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#msquared.MSquared.stream_frequency" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="msquared.MSquared.tab">
+<code class="descname">tab</code><em class="property"> = None</em><a class="headerlink" href="#msquared.MSquared.tab" title="Permalink to this definition">¶</a></dt>
+<dd><p>Open socket connection</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="msquared.MSquared.tune_cavity">
+<code class="descname">tune_cavity</code><span class="sig-paren">(</span><em>quit_function=None</em>, <em>output=False</em><span class="sig-paren">)</span><a class="headerlink" href="#msquared.MSquared.tune_cavity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Estimate correct PZT position based on calibrated slope</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="msquared.MSquared.tune_etalon">
+<code class="descname">tune_etalon</code><span class="sig-paren">(</span><em>zoom=1</em>, <em>threshold=None</em>, <em>quit_function=None</em><span class="sig-paren">)</span><a class="headerlink" href="#msquared.MSquared.tune_etalon" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="msquared.MSquared.unresonant">
+<code class="descname">unresonant</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#msquared.MSquared.unresonant" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="msquared.MSquared.warmup">
+<code class="descname">warmup</code><span class="sig-paren">(</span><em>threshold</em><span class="sig-paren">)</span><a class="headerlink" href="#msquared.MSquared.warmup" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="msquared.MSquared.zoom_search">
+<code class="descname">zoom_search</code><span class="sig-paren">(</span><em>steps=20</em>, <em>sweeps=1</em><span class="sig-paren">)</span><a class="headerlink" href="#msquared.MSquared.zoom_search" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="msquared.Setpoint">
+<em class="property">class </em><code class="descclassname">msquared.</code><code class="descname">Setpoint</code><span class="sig-paren">(</span><em>name</em>, <em>tab</em>, <em>value</em>, <em>row</em>, <em>col</em>, <em>width=1</em><span class="sig-paren">)</span><a class="headerlink" href="#msquared.Setpoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt id="msquared.Setpoint.__dict__">
+<code class="descname">__dict__</code><em class="property"> = mappingproxy({'__module__': 'msquared', '__init__': &lt;function Setpoint.__init__&gt;, '__dict__': &lt;attribute '__dict__' of 'Setpoint' objects&gt;, '__weakref__': &lt;attribute '__weakref__' of 'Setpoint' objects&gt;, '__doc__': None})</em><a class="headerlink" href="#msquared.Setpoint.__dict__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="msquared.Setpoint.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>name</em>, <em>tab</em>, <em>value</em>, <em>row</em>, <em>col</em>, <em>width=1</em><span class="sig-paren">)</span><a class="headerlink" href="#msquared.Setpoint.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="msquared.Setpoint.__module__">
+<code class="descname">__module__</code><em class="property"> = 'msquared'</em><a class="headerlink" href="#msquared.Setpoint.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="msquared.Setpoint.__weakref__">
+<code class="descname">__weakref__</code><a class="headerlink" href="#msquared.Setpoint.__weakref__" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of weak references to the object (if defined)</p>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -227,6 +590,7 @@
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
             VERSION:'1.0',
+            LANGUAGE:'python',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
@@ -239,19 +603,13 @@
 
   
 
-  
-  
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>
