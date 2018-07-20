@@ -18,7 +18,8 @@ sys.path.append(char.join(os.getcwd().split(char)[0:-2]))
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C, WhiteKernel
 from sklearn.decomposition import PCA, IncrementalPCA, KernelPCA
-from sklearn.cluster import KMeans
+import sklearn.cluster
+from sklearn import metrics
 import pandas as pd
 import time
 def warn(*args, **kwargs):
@@ -281,7 +282,7 @@ class Optimizer():
         return Vt
 
     def pca_reduction(self, X = None, pvariance = 0.95, slvr = "auto"): #svd_solver can be ‘auto’, ‘full’, ‘arpack’, or ‘randomized’
-        '''Employs SKL's PCA to reduce dimensionality of the dataset based on a preserved variance threshold. '''
+        ''' Employs SKL's PCA to reduce dimensionality of the dataset based on a preserved variance threshold. '''
         if pvariance is not int(pvariance):
             pca = PCA()
             pca.fit(X.copy)
@@ -296,15 +297,85 @@ class Optimizer():
         return X_reduced, variance_breakdown
 
     def pca_kernel(self, X = None, n_comps = 4, krnl = "rbf", gma = 0.04):
-        '''Employs kernel techniques to PCA, allowing complex nonlinear projections for dimensionality reduction. '''
+        ''' Employs kernel techniques to PCA, allowing complex nonlinear projections for dimensionality reduction. '''
         rbf_pca = KernelPCA(n_components = n_comps, kernel = krnl, gamma = gma)
         X_reduced = rbf_pca.fit_transform(X)
         return X_reduced
-
-#    def cluster(self, X = None, n_clusters):
-#        kmeans = KMeans(n_clusters=4).fit(X)
-#        cluster_labels = kmeans.labels_
-#        return kmeans, cluster_labels
+    
+    #NOTE: NOT TESTED AS OF YET 7.20.18
+    def cluster(self, name = 'k-means++', init = 'k-means++', n_clusters = 4, n_init = 10, 
+                X = None, axes = None):
+        ''' General Clustering from scikit-learn implementing various clustering techniques; 
+        implementation aided by http://scikit-learn.org/stable/modules/clustering'''
+        X, bounds = self.initialize_optimizer(X, axes)
+        labels = None
+        
+        ''' K-Means - very large n_samples and medium n_clusters scalability (Use MiniBatch code)
+         general-purose, even cluster size, flat geometry (distance between points), not too many clusters '''
+        if name is 'k-means++': #could be k-mean++ or random init
+                estimator = KMeans(init = init, n_clusters = n_clusters, n_init = n_init)
+        if name is 'PCA-based': #PCA modified k-means++
+            pca = PCA(n_components = n_clusters).fit(X)
+            estimator = KMeans(init = pca.components_, n_clusters = n_clusters, n_init = 1) #n_init 1 b/c PCA is deterministic
+        estimator.fit(X)
+        ''' Affinity propagation - not scalable with n_samples, uses many clusters,
+        uneven cluster sizes, non-flat geometry (graph distance - nearest neighbor graph), large computational complexity '''
+        if name is 'af':
+            # strange to test - must use sample data
+            estimator = AffinityPropagation(preference=-50).fit(X)
+            cluster_centers_indices = estimator.cluster_centers_indices_
+            labels = estimator.labels_
+            n_clusters_ = len(cluster_centers_indices) #estimated/determined n_clusters val
+        
+        ''' Mean-shift - not scalable with n_samples, uses many clusters, uneven cluster size,
+        non-flat geometry (distance between points) '''
+        if name is 'mean-shift':
+            bandwidth = estimate_bandwidth(X, quantile=0.2, n_samples=len(X) ** 2)
+            estimator = MeanShift(bandwidth=bandwidth, bin_seeding=True)
+            estimator.fit(X)
+            labels = estimator.labels_
+            cluster_centers = estimator.cluster_centers_
+            n_clusters_ = len(np.unique(labels))
+        
+        ''' DBSCAN - scalable with very large n_samples / medium n_clusters, uses of non-flat geometry,
+        uneven cluster sizes, geometry of distances between nearest points - watch out for memory consumption'''
+        if name is 'dbscan':
+            estimator= DBSCAN(eps=0.3, min_samples=10).fit(X)
+            core_samples_mask = np.zeros_like(estimator.labels_, dtype=bool)
+            core_samples_mask[estimator.core_sample_indices_] = True
+            labels = estimator.labels_
+            n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
+            
+         #to be implemented if needed later on
+        ''' Ward hierarchical clustering - scalable with large number of n_samples/n_clusters, uses
+        many clusters with possible connectivitiy constraints, geometry of distance between points '''
+        ''' Agglomerative clustering - scalable with large n_samples/n_clusters, uses of many clusters,
+        possible connectivity constraints, non-Euclidean distances (any pairwise distances for geometry) '''
+        ''' Birch - scalable with large n_clusters and n_samples, uses for large datasets, outlier removal,
+        data reduction, and geometry of Euclidean distances between points '''
+        ''' Gaussian mixtures - not scalable, uses flat geometry, good for density estimation,
+        geometry of Mahalanobis(?) distances to centers '''
+             
+        return estimator, labels, n_clusters
+        
+    def bench_clustering(self, estimator, names = ['k-means++'], 
+                         n_clusters = 4,n_init = 10, X = None, axes = None):
+        ''' Method to benchmark and compare each clustering algorithm provided in scikit-learn '''
+        n_samples = len(X) ** 2 #the number of points taken
+        n_features = len(X)
+        print("n_clusters: %d, \t n_samples %d, \t n_features %d"
+              % (n_clusters, n_samples, n_features))
+        print(82 * '_')
+        print('init\t\ttime\tinertia\thomo\tcompl\tv-meas\tARI\tAMI\tsilhouette')
+        for name in names:
+            estimator, labels, n_clusters = self.cluster(init = name, n_clusters = n_clusters, n_init = n_init, X = X, axes = axes)
+            print('%-9s\t%.2fs\t%i\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f'
+          % (name, (time() - t0), estimator.inertia_,
+             metrics.homogeneity_score(labels, estimator.labels_),
+             metrics.completeness_score(labels, estimator.labels_),
+             metrics.v_measure_score(labels, estimator.labels_),
+             metrics.adjusted_rand_score(labels, estimator.labels_),
+             metrics.adjusted_mutual_info_score(labels,  estimator.labels_))
 
     # def covariance_reduction(self, X = None):
     #     '''with a 13 dimensional array, use covariance on the original data set,
