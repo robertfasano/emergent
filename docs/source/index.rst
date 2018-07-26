@@ -164,6 +164,7 @@ Table of Contents
    :maxdepth: 2
 
    self
+   architecture
    examples
    archetypes
    devices
