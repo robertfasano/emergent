@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Intensity Servo &mdash; labAPI 1.0 documentation</title>
+  <title>Intensity Servo &mdash; EMERGENT 0.1alpha documentation</title>
   
 
   
@@ -48,7 +48,7 @@
           
 
           
-            <a href="../index.html" class="icon icon-home"> labAPI
+            <a href="../index.html" class="icon icon-home"> EMERGENT
           
 
           
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                1.0
+                0.1alpha
               </div>
             
           
@@ -83,7 +83,7 @@
             
             
               <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../index.html">labAPI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../index.html">EMERGENT</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../archetypes.html">Archetypes</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../devices.html">Devices</a><ul class="current">
@@ -120,7 +120,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../index.html">labAPI</a>
+          <a href="../index.html">EMERGENT</a>
         
       </nav>
 
@@ -172,8 +172,40 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="intensity-servo">
-<h1>Intensity Servo<a class="headerlink" href="#intensity-servo" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-intensity_servo">
+<span id="intensity-servo"></span><h1>Intensity Servo<a class="headerlink" href="#module-intensity_servo" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="intensity_servo.IntensityServo">
+<em class="property">class </em><code class="descclassname">intensity_servo.</code><code class="descname">IntensityServo</code><span class="sig-paren">(</span><em>connect=False</em>, <em>parent=None</em>, <em>labjack=None</em><span class="sig-paren">)</span><a class="headerlink" href="#intensity_servo.IntensityServo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">labAPI.archetypes.device.Device</span></code></p>
+<dl class="method">
+<dt id="intensity_servo.IntensityServo.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>connect=False</em>, <em>parent=None</em>, <em>labjack=None</em><span class="sig-paren">)</span><a class="headerlink" href="#intensity_servo.IntensityServo.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="intensity_servo.IntensityServo.__module__">
+<code class="descname">__module__</code><em class="property"> = 'intensity_servo'</em><a class="headerlink" href="#intensity_servo.IntensityServo.__module__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="intensity_servo.IntensityServo._actuate">
+<code class="descname">_actuate</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#intensity_servo.IntensityServo._actuate" title="Permalink to this definition">¶</a></dt>
+<dd><p>state[0] corresponds to slowing, [1] to cooling</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="intensity_servo.IntensityServo._connect">
+<code class="descname">_connect</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#intensity_servo.IntensityServo._connect" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="intensity_servo.IntensityServo.set_setpoint">
+<code class="descname">set_setpoint</code><span class="sig-paren">(</span><em>target</em>, <em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#intensity_servo.IntensityServo.set_setpoint" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 </div>
 
 
@@ -217,7 +249,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'1.0',
+            VERSION:'0.1alpha',
             LANGUAGE:'python',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
