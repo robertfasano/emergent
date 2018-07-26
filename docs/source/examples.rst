@@ -1,3 +1,7 @@
+##############
+Examples
+##############
+
 Fiber coupling
 ----------------
 
@@ -19,7 +23,7 @@ Building the experiment
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 Roughly five degrees of freedom are needed to optimize beam alignment into an optical fiber: tip/tilt controls for a pair of mirrors and z-translation of a lens to allow matching of the optical mode size to the fiber mode. The latter degree appears to be fairly robust and does not need to be frequently reoptimized; here we will implement control of a single MEMS mirror as a basic introduction to the EMERGENT workflow.
 
-Our actuator of choice is the bonded MEMS mirror from Mirrorcle, driven by their PicoAmp board. The board is controlled with SPI from a LabJack, which is fully implemented in the emergent/devices scripts labjackT7.py and picoAmp.py. The wiring scheme to connect the two boards can be found here. 
+Our actuator of choice is the bonded MEMS mirror from Mirrorcle, driven by their PicoAmp board. The board is controlled with SPI from a LabJack, which is fully implemented in the emergent/devices scripts labjackT7.py and picoAmp.py. The wiring scheme to connect the two boards can be found here.
 
 The other key ingredient is a photodiode to measure the fiber coupling efficiency, which will be the optimization signal that EMERGENT will try to optimize via automated tip/tilt control. Set up the photodiode on the other side of the fiber from the mirror and connect its output to the AIN0 channel of the LabJack.
 
@@ -66,7 +70,7 @@ With the network fully constructed, you can now start up EMERGENT from the comma
 As a last step, we will need to add a json file in emergent/settings.py to define important operational parameters for the MEMS mirror. To do this, run ``MEMS.setup()`` to start the setup wizard for the Device node. When prompted, enter the following parameters:
 
 .. code-block :: python
-   
+
    X: 0         # defines the initial X input value
    X_min: -3.   # defines the minimum value of X
    X_max: 3     # defines the maximum value of X
@@ -83,13 +87,13 @@ Manual operation
 With the experiment built and the network constructed, let's now take manual control to familiarize ourselves with the command format. First, let's move the mirror. There are two ways we can do this; first, we could call the actuate() method to move the X and Y to new values, say -1 and 1:
 
 .. code-block :: python
-   
+
    MEMS.actuate({'X':-1, 'Y':1}
 
 Alternately, we could have changed the state of the input nodes directly:
 
 .. code-block :: python
-   
+
    MEMS.input['X'].set(-1)
    MEMS.input['Y'].set(1)
 
@@ -105,7 +109,7 @@ Automated operation
 We are finally ready to unveil the holy grail of EMERGENT - automatic device optimization. By calling ``optimizer.optimize()``, the inputs will be tuned to maximize the fiber-coupled efficiency. Many different algorithms are implemented in EMERGENT and can be passed in through the ``method`` keyword argument; in general, the ideal algorithm will be chosen for a given application. We will first demonstrate the simplest possible algorithm, a two-dimensional grid-search.
 
 .. code-block :: python
-   
+
    optimizer.optimize(method='grid_search', args={'steps':20, 'plot':True})
 
 This call to grid_search will create a 20x20 grid in the XY plane, sample each point, and move to the best point. If the parameter 'plot' is True, the cost function evaluated over the grid will be plotted. This allows easy visualization of cost landscapes for lower-dimensional problems, but the aggressive complexity scaling of grid_search in the number of dimensions and steps prohibits its use for higher dimensions.
@@ -113,14 +117,14 @@ This call to grid_search will create a 20x20 grid in the XY plane, sample each p
 A more sophisticated algorithm is the Nelder-Mead method:
 
 .. code-block :: python
-   
+
    optimizer.optimize(method='Nelder-Mead')
 Rather than scanning the entire space, the Nelder-Mead method attempts to efficiently move a N+1 dimensional simplex through an N dimensional cost landscape towards a minimum.
 
 
 Subspace partitioning
 ----------------------
-A powerful feature of EMERGENT is the automatic identification of coupled variables, allowing high-dimensional optimization problems to be decomposed into separate lower-dimensional problems. For example, the idealized fiber coupling problem can be modeled as minimization in a Gaussian cost landscape, which contains no couplings between the X and Y degrees of freedom; therefore, we can run quick 1D line searches in each variable rather than a 2D simultaneous optimization, significantly reducing the size of the search space. 
+A powerful feature of EMERGENT is the automatic identification of coupled variables, allowing high-dimensional optimization problems to be decomposed into separate lower-dimensional problems. For example, the idealized fiber coupling problem can be modeled as minimization in a Gaussian cost landscape, which contains no couplings between the X and Y degrees of freedom; therefore, we can run quick 1D line searches in each variable rather than a 2D simultaneous optimization, significantly reducing the size of the search space.
 
 Rather than the physical fiber coupling example above, we will now switch to a virtual cost function to facilitate demonstration of EMERGENT's subspace identification features. The code for this tutorial can be found in emergent/examples/subspace_identification. Navigate to this directory and run main.py within an IPython console.
 

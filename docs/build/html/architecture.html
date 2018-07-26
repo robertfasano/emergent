@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Archetypes &mdash; EMERGENT 0.1alpha documentation</title>
+  <title>Architecture &mdash; EMERGENT 0.1alpha documentation</title>
   
 
   
@@ -28,8 +28,8 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Hub" href="archetypes/Hub.html" />
-    <link rel="prev" title="Examples" href="examples.html" /> 
+    <link rel="next" title="Fiber coupling" href="examples.html" />
+    <link rel="prev" title="EMERGENT" href="index.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -84,16 +84,10 @@
             
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="index.html">EMERGENT</a></li>
-<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
-<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Archetypes</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="archetypes/Hub.html">Hub</a></li>
-<li class="toctree-l2"><a class="reference internal" href="archetypes/Link.html">Link</a></li>
-<li class="toctree-l2"><a class="reference internal" href="archetypes/Optimizer.html">Optimizer</a></li>
-<li class="toctree-l2"><a class="reference internal" href="archetypes/Parallel.html">Parallel</a></li>
-<li class="toctree-l2"><a class="reference internal" href="archetypes/device.html">Device</a></li>
-</ul>
-</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Fiber coupling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html#subspace-partitioning">Subspace partitioning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="archetypes.html">Archetypes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="devices.html">Devices</a></li>
 </ul>
 
@@ -140,13 +134,13 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>Archetypes</li>
+      <li>Architecture</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="_sources/archetypes.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/architecture.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -159,17 +153,12 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="archetypes">
-<h1>Archetypes<a class="headerlink" href="#archetypes" title="Permalink to this headline">¶</a></h1>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="archetypes/Hub.html">Hub</a></li>
-<li class="toctree-l1"><a class="reference internal" href="archetypes/Link.html">Link</a></li>
-<li class="toctree-l1"><a class="reference internal" href="archetypes/Optimizer.html">Optimizer</a></li>
-<li class="toctree-l1"><a class="reference internal" href="archetypes/Parallel.html">Parallel</a></li>
-<li class="toctree-l1"><a class="reference internal" href="archetypes/device.html">Device</a></li>
-</ul>
-</div>
+  <div class="section" id="architecture">
+<h1>Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h1>
+<p>The architecture underlying EMERGENT's scalability is a network of Node objects which abstractly represent the experiment under study. A typical building block, shown in Figure 1, is the triplet consisting of an Input node representing a state variable such as laser frequency or translation stage position, a Device node interfacing with an apparatus to actuate the input, and a Control node which measures some optimization function and attempts to minimize it by actuating the Inputs through the Device interface.</p>
+<p>An experiment could be as simple as a single triplet, such as our MEMS-based fiber coupling example, or it could consist of many triplets combined in a layered network, as shown in Figure 2. Interdependencies between experimental components are described by their vertical position - for example, the second-stage MOT at 556 nm depends on the first-stage MOT at 399 nm, so it occupies a higher layer. Independence between components is shown by separating them horizontally - for example, the autoAlign modules for slowing and cooling do not depend on one another at all and can thus be simultaneously optimized, so they occupy the same layer side-by-side.</p>
+<p>In general, EMERGENT assumes initially that all variables of a single triplet are coupled, i.e. all off-diagonal elements of the covariance matrix of the cost function are nonzero. Therefore, if optimization is run within a layer containing N input nodes, the routine will be carried out in the fulll N-dimensional cost landscape. After the first optimization (or by manually specifying coupling strengths), EMERGENT will decompose the cost landscape into uncorrelated subspaces, for example decomposing an N-dimensional problem into two N/2 dimensional optimizations and thereby reducing the size of the search space.</p>
+<p>A typical optimization workflow involves specification of start and stop layers; the routine will traverse the network layer-by-layer, starting by</p>
 </div>
 
 
@@ -180,10 +169,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="archetypes/Hub.html" class="btn btn-neutral float-right" title="Hub" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="examples.html" class="btn btn-neutral float-right" title="Fiber coupling" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="examples.html" class="btn btn-neutral" title="Examples" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="index.html" class="btn btn-neutral" title="EMERGENT" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
