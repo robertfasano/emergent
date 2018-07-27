@@ -189,8 +189,8 @@ Note that when using virtual inputs, the ``optimize()`` method automatically tar
 
 
 Sequencing
-~~~~~~~~~~~
-The examples above have shown how to use EMERGENT with steady-state optimization schemes. However, experimental outputs often depend on time-dependent inputs; for example, cold atom experiments are frequently enhanced with a ramp of the laser frequency, magnetic field strength, or some other parameter. Such sequences can be parameterized as a list of tuples containing times `t` and setpoints `s`, such as 
+------------
+The examples above have shown how to use EMERGENT with steady-state optimization schemes. However, experimental outputs often depend on time-dependent inputs; for example, cold atom experiments are frequently enhanced with a ramp of the laser frequency, magnetic field strength, or some other parameter. Such sequences can be parameterized as a list of tuples containing times `t` and setpoints `s`, such as
 
 .. code-block :: python
    s = [(0,0), (0.5,3)]

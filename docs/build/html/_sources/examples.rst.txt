@@ -88,7 +88,8 @@ With the experiment built and the network constructed, let's now take manual con
 
 .. code-block :: python
 
-   MEMS.actuate({'X':-1, 'Y':1}
+   MEMS.actuate({'X':-1, 'Y':1})
+Note that we don't have to specify any values we don't want to change: passing in ``{'X':-1}`` will update ``X`` but leave ``Y`` unchanged.
 
 Alternately, we could have changed the state of the input nodes directly:
 
@@ -146,8 +147,8 @@ This will generate and return a covariance matrix through sampling on a uniform 
 
 .. code-block :: python
    control.actuate({'X':0, 'Y':0})
-   control.optimize(method='grid_search', inputs = ['X'], cost = control.cost_uncoupled)
-   control.optimize(method='grid_search', inputs = ['Y'], cost = control.cost_uncoupled)
+   control.optimize(method='grid_search', inputs = [MEMS.input['X']], cost = control.cost_uncoupled)
+   control.optimize(method='grid_search', inputs = [MEMS.input['Y']], cost = control.cost_uncoupled)
 
 Since the system is perfectly uncoupled, we converge to the local minimum after only 2N iterations for N steps, whereas a coupled system will require N^2 steps to tile the XY plane.
 
@@ -164,14 +165,40 @@ algorithm:
 We once again compute the covariance matrix:
 
 .. code-block :: python
-   control.covariance(cost = control.cost_coupled, method='grid_search')
+   cov = control.covariance(cost = control.cost_coupled, method='grid_search')
 
 Since we now observe nonzero off-diagonal elements, we know that separate 1D optimizations will not converge to the minimum. Instead, we must optimize in 2D:
 
 .. code-block :: python
    control.actuate({'X':0, 'Y':0})
-   control.optimize(method='grid_search', inputs = ['X'], cost = control.cost_coupled)
+   control.optimize(method='grid_search', inputs = [MEMS.input['X'], MEMS.input['Y']], cost = control.cost_coupled)
 
 Subspace decoupling
 ~~~~~~~~~~~~~~~~~~~~
-In the previous two sections, we have seen that uncoupled cost functions can be optimized much more efficiently than coupled functions; in d dimensions and N steps, grid_search will require N^d steps for fully-coupled functions and only Nd for uncoupled functions. EMERGENT contains built-in tools to decouple the cost function through principal component analysis (PCA), a process analogous to diagonalizing the covariance matrix.
+In the previous two sections, we have seen that uncoupled cost functions can be optimized much more efficiently than coupled functions; in d dimensions and N steps, grid_search will require N^d steps for fully-coupled functions and only Nd for uncoupled functions. EMERGENT contains built-in tools to decouple the cost function through principal component analysis (PCA), a process analogous to diagonalizing the covariance matrix. To use this feature, just run
+
+.. code-block :: python
+   control.diagonalize(cov = cov)
+
+The ``diagonalize()`` method produces new virtual Input nodes which are eigenvectors of the covariance matrix. Now the optimization can be run in the decoupled cost landscape with the ``input_type`` flag:
+
+.. code-block :: python
+   control.optimize(method='grid_search', input_type='virtual', cost=control.cost_coupled)
+
+Note that when using virtual inputs, the ``optimize()`` method automatically targets individual degrees of freedom sequentially.
+
+
+Sequencing
+------------
+The examples above have shown how to use EMERGENT with steady-state optimization schemes. However, experimental outputs often depend on time-dependent inputs; for example, cold atom experiments are frequently enhanced with a ramp of the laser frequency, magnetic field strength, or some other parameter. Such sequences can be parameterized as a list of tuples containing times `t` and setpoints `s`, such as
+
+.. code-block :: python
+   s = [(0,0), (0.5,3)]
+
+Now we add the sequence to the ``X`` variable and register it with the master clock, which synchronizes sequences across all devices:
+
+.. code-block :: python
+   MEMS.X.sequence = s
+   control.clock.add_input(MEMS.X)
+
+Adding the input to the clock lets EMERGENT know that we want to run ``X`` in sequenced, not steady-state, operation. The last step is to start the clock with ``control.clock.start(T=0.5)''. Note that the time values in the sequence definition correspond to fractions of the total cycle, so with this cycle of 0.5 s, the MEMS will move to a position of 3 after 250 ms, then back to 0 after each new cycle starts.

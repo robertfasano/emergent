@@ -101,6 +101,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#subspace-decoupling">Subspace decoupling</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#sequencing">Sequencing</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="archetypes.html">Archetypes</a></li>
@@ -234,9 +235,10 @@
 <div class="section" id="manual-operation">
 <h3>Manual operation<a class="headerlink" href="#manual-operation" title="Permalink to this headline">¶</a></h3>
 <p>With the experiment built and the network constructed, let's now take manual control to familiarize ourselves with the command format. First, let's move the mirror. There are two ways we can do this; first, we could call the actuate() method to move the X and Y to new values, say -1 and 1:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">MEMS</span><span class="o">.</span><span class="n">actuate</span><span class="p">({</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">:</span><span class="mi">1</span><span class="p">}</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">MEMS</span><span class="o">.</span><span class="n">actuate</span><span class="p">({</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">:</span><span class="mi">1</span><span class="p">})</span>
 </pre></div>
 </div>
+<p>Note that we don't have to specify any values we don't want to change: passing in <code class="docutils literal"><span class="pre">{'X':-1}</span></code> will update <code class="docutils literal"><span class="pre">X</span></code> but leave <code class="docutils literal"><span class="pre">Y</span></code> unchanged.</p>
 <p>Alternately, we could have changed the state of the input nodes directly:</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">MEMS</span><span class="o">.</span><span class="n">input</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
 <span class="n">MEMS</span><span class="o">.</span><span class="n">input</span><span class="p">[</span><span class="s1">&#39;Y&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
@@ -282,8 +284,16 @@ algorithm:</p>
 </div>
 <div class="section" id="subspace-decoupling">
 <h3>Subspace decoupling<a class="headerlink" href="#subspace-decoupling" title="Permalink to this headline">¶</a></h3>
-<p>In the previous two sections, we have seen that uncoupled cost functions can be optimized much more efficiently than coupled functions; in d dimensions and N steps, grid_search will require N^d steps for fully-coupled functions and only Nd for uncoupled functions. EMERGENT contains built-in tools to decouple the cost function through principal component analysis (PCA), a process analogous to diagonalizing the covariance matrix.</p>
+<p>In the previous two sections, we have seen that uncoupled cost functions can be optimized much more efficiently than coupled functions; in d dimensions and N steps, grid_search will require N^d steps for fully-coupled functions and only Nd for uncoupled functions. EMERGENT contains built-in tools to decouple the cost function through principal component analysis (PCA), a process analogous to diagonalizing the covariance matrix. To use this feature, just run</p>
+<p>The <code class="docutils literal"><span class="pre">diagonalize()</span></code> method produces new virtual Input nodes which are eigenvectors of the covariance matrix. Now the optimization can be run in the decoupled cost landscape with the <code class="docutils literal"><span class="pre">input_type</span></code> flag:</p>
+<p>Note that when using virtual inputs, the <code class="docutils literal"><span class="pre">optimize()</span></code> method automatically targets individual degrees of freedom sequentially.</p>
 </div>
+</div>
+<div class="section" id="sequencing">
+<h2>Sequencing<a class="headerlink" href="#sequencing" title="Permalink to this headline">¶</a></h2>
+<p>The examples above have shown how to use EMERGENT with steady-state optimization schemes. However, experimental outputs often depend on time-dependent inputs; for example, cold atom experiments are frequently enhanced with a ramp of the laser frequency, magnetic field strength, or some other parameter. Such sequences can be parameterized as a list of tuples containing times <cite>t</cite> and setpoints <cite>s</cite>, such as</p>
+<p>Now we add the sequence to the <code class="docutils literal"><span class="pre">X</span></code> variable and register it with the master clock, which synchronizes sequences across all devices:</p>
+<p>Adding the input to the clock lets EMERGENT know that we want to run <code class="docutils literal"><span class="pre">X</span></code> in sequenced, not steady-state, operation. The last step is to start the clock with <a href="#id1"><span class="problematic" id="id2">``</span></a>control.clock.start(T=0.5)''. Note that the time values in the sequence definition correspond to fractions of the total cycle, so with this cycle of 0.5 s, the MEMS will move to a position of 3 after 250 ms, then back to 0 after each new cycle starts.</p>
 </div>
 </div>
 
