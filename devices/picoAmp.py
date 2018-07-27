@@ -12,16 +12,11 @@ from labAPI.archetypes.device import Device
 import scipy.signal as sig
 
 class PicoAmp(Device):
-    def __init__(self, name = 'picoAmp', labjack = None, connect = True, parent = None, lowlevel = True):
+    def __init__(self, name = 'picoAmp', labjack = None, parent = None):
         Device.__init__(self, name, parent = parent, lowlevel = lowlevel)
         self.addr = {'A': '000', 'B': '001', 'C': '010', 'D': '011', 'ALL': '111'}
-        self.mirrors = True
-        if labjack == None:
-            labjack = LabJack(devid='470016970')
+        assert labjack is not None
         self.labjack = labjack
-
-        if connect:
-            self._connect()
 
     def _connect(self):
         if self.labjack._connected:
@@ -41,19 +36,12 @@ class PicoAmp(Device):
         for cmd in [FULL_RESET, ENABLE_INTERNAL_REFERENCE, ENABLE_ALL_DAC_CHANNELS, ENABLE_SOFTWARE_LDAC]:
             self.command(cmd)
 
-        self.Vbias = 80.0
-        biasString = self.digital(self.Vbias)
-        APPLY_BIAS_VOLTAGE = '00' + '011' + self.addr['ALL'] + biasString
-        self.command(APPLY_BIAS_VOLTAGE)
-
     def _actuate(self, state):
-        ''' Sets two-axis beam alignment according to differential voltages in the list state.'''
-        state = np.clip(state, self.min, self.max)
-        self.setDifferential(state[0], 'X')
-        self.setDifferential(state[1], 'Y')
+        ''' Updates MEMS to a target state. Axes not included in the state dict are unaffected.'''
+        for axis in state.keys():
+                state[axis] = np.clip(state[axis], self.min, self.max)
+                self.setDifferential(state[axis], axis)
         self.state = state
-
-
 
     def command(self, cmd):
         ''' Separates the bitstring cmd into a series of bytes and sends them through the SPI. '''
@@ -70,9 +58,6 @@ class PicoAmp(Device):
 
         return format(int(Vdigital), '016b')
 
-    def optimize(self):
-        self.grid_search(cost = self.cost)
-
     def readADC(self, num = 1, delay = 0):
         time.sleep(delay)
         return self.labjack.AIn(0, num=num)
@@ -87,33 +72,6 @@ class PicoAmp(Device):
 
         self.command(cmdPlus)
         self.command(cmdMinus)
-
-    def wave(self, amplitude, frequency, stopped = None, shape = 'square', duty_cycle=0.5, axis='X'):
-        ''' Generates a square wave with one edge at the current position. '''
-        #        t = np.linspace(0, 1/frequency, 100)
-        pos = {'X': self.state[0], 'Y': self.state[1]}[axis]
-#        if shape == 'square':
-#            y = pos+sig.square(t, duty=duty_cycle)
-#        elif shape == 'sin':
-#            y = pos+np.sin(2*np.pi*frequency*t)
-#
-#        t0 = time.time()
-#        while True:
-#            ti = (time.time()-t0) % 1/frequency
-#            i = np.abs(t-ti).argmin()
-#            print('Time:',ti, 'Output:', y[i])
-#            self.setDifferential(y[i], axis)
-#            
-        i = 0
-        while not stopped():
-            i = (i+1) % 2
-            if i:
-                self.setDifferential(pos+amplitude, axis)
-            else:
-                self.setDifferential(pos, axis)
-            time.sleep(1/frequency)
-        self.setDifferential(pos, axis)
-
 
 if __name__ == '__main__':
     import sys
