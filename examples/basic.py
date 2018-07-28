@@ -6,14 +6,19 @@ from emergent.archetypes.node import Control
 from emergent.devices.test import TestDevice
 import numpy as np
 
-def gaussian(state):
-        x0 = .3
-        cost = -1
-        for x in state.values():
-                cost *= np.exp(-x**2/x0**2)
-        return cost
+class TestControl(Control):
+        def __init__(self, name, parent=None):
+                super().__init__(name, parent)
+                
+        def cost(state):
+                self.actuate(state)
+                x0 = .3
+                cost = -1
+                for x in self.state.values():
+                        cost *= np.exp(-x**2/x0**2)
+                return cost
 
-control = Control('control', cost = gaussian)
+control = TestControl('control')
 
 deviceA = TestDevice('deviceA', parent=control)
 deviceA.add_input('X', 0, 0, 1)
