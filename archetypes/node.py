@@ -46,7 +46,10 @@ class Device(Node):
         def add_input(self, name, value, min, max):
                 ''' Attaches an Input node with the specified parameters '''
                 self.inputs[name] = Input(name, value, min, max, parent=self)
-
+                self.get_state()
+                self.parent.get_inputs()
+                self.parent.get_state()
+                
         def _actuate(self, state):
                 ''' Private placeholder, gets overwritten when adding a Device '''
                 return
