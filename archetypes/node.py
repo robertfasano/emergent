@@ -51,7 +51,7 @@ class Device(Node):
                 self.get_state()
                 self.parent.get_inputs()
                 self.parent.get_state()
-                
+
         def _actuate(self, state):
                 ''' Private placeholder, gets overwritten when adding a Device '''
                 return
@@ -86,17 +86,19 @@ class Control(Node):
                 self.devices = {}
                 self.inputs = {}
                 self.state = {}
-                
-                if not os.path.exists('./settings/'):
-                                os.makedirs('./settings/')
-                                
+
+                self.settings_path =  './settings/'
+
+                if not os.path.exists(self.settings_path):
+                                os.makedirs(self.settings_path)
+
 
         def add_device(self, name, device):
                 self.devices[name] = device
 
         def cost(state):
                 return
-                
+
         def get_inputs(self):
                 ''' Adds all connected Inputs of child Device nodes to self.inputs. An input is accessible through a key of the format 'Device.Input', e.g. 'MEMS.X' '''
                 for dev in list(self.devices.values()):
@@ -112,17 +114,17 @@ class Control(Node):
                 ''' Updates all Inputs in the given state to the given values. Argument should have keys of the form 'Device.Input', e.g. state={'MEMS.X':0} '''
                 for i in state.keys():
                                 self.inputs[i].set(state[i])
-                                
-                                
+
+
         def save(self):
                 ''' Saves the current state to a text file '''
-                filename = './settings/%s.txt'%self.name
+                filename = self.settings_path+self.name+'.txt'
                 with open(filename, 'w') as file:
-                                json.dumps(self.state)
-                                
+                                json.dump(self.state, file)
+
         def load(self):
                 ''' Loads a state from a text file'''
-                filename = './settings/%s.txt'%self.name
+                filename = self.settings_path+self.name+'.txt'
                 with open(filename, 'r') as file:
-                                self.state=json.loads(self.state)
-
+                	state=json.load(file)
+                self.actuate(state)
