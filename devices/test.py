@@ -3,6 +3,7 @@ import sys
 import os
 char = {'nt': '\\', 'posix': '/'}[os.name]
 sys.path.append(char.join(os.getcwd().split(char)[0:-2]))
+sys.path.append('C:\\Users\\Robbie\\Documents\\GitHub')
 from emergent.archetypes.node import Device, Control
 import numpy as np
 
