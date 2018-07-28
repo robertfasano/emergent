@@ -79,9 +79,8 @@ class Device(Node):
                 self.parent.add_device(self.name, self)
 
 class Control(Node):
-        def __init__(self, name, cost, parent = None):
+        def __init__(self, name, parent = None):
                 super().__init__(name, parent)
-                self.cost = cost
                 self.devices = {}
                 self.inputs = {}
                 self.state = {}
@@ -89,6 +88,9 @@ class Control(Node):
         def add_device(self, name, device):
                 self.devices[name] = device
 
+        def cost(state):
+                return
+                
         def get_inputs(self):
                 ''' Adds all connected Inputs of child Device nodes to self.inputs. An input is accessible through a key of the format 'Device.Input', e.g. 'MEMS.X' '''
                 for dev in list(self.devices.values()):
