@@ -2,6 +2,96 @@
 Examples
 ##############
 
+Simple network
+---------------
+A full example for a simple network can be found in emergent/examples/basic.py. In this example, a single Control node oversees two Device nodes, one with inputs 'X' and 'Y' and another with input 'Z'. Take a moment to look through the code required to initialize the network.
+
+You can start EMERGENT with this network by navigating to the emergent directory in the command line and running
+
+.. code-block :: python
+
+   ipython
+   %run examples/basic
+
+Accessing node attributes
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+In this example, all of the inputs are initialized to zero. We can check this in three different ways. First, we can check the value of an Input node directly:
+
+.. code-block :: python
+
+   print(deviceA.inputs['X'].value)
+
+.. code-block :: python
+
+   0
+
+Second, we can check the state of a device:
+
+.. code-block :: python
+
+   print(deviceA.state)
+
+.. code-block :: python
+
+   {'X':0, 'Y':0}
+
+Lastly, we can check the overall state of all devices connected to the Control node:
+
+.. code-block :: python
+
+   print(control.state)
+
+.. code-block :: python
+
+   {'deviceA.X':0, 'deviceA.Y':0, 'deviceB.Z':0}
+
+Note the slightly different syntax: state dicts for Device nodes have only the input names as keys, whereas for a Control node we must also pass in the device name; this is to allow multiple devices to share a parameter with the same name, for example ``X``.
+
+Actuation
+~~~~~~~~~~~
+There are three ways that the state of one or more inputs can be changed. First, we could act directly on the Input node:
+
+.. code-block :: python
+
+   deviceA.inputs['X'].set(3)
+   print(deviceA.state)
+   print(control.state)
+
+.. code-block :: python
+
+   {'X':3, 'Y':0}
+   {'deviceA.X':3, 'deviceA.Y':0, 'deviceB.Z':0}
+
+We can act on one or more inputs of a single device by passing in a target state to the ``Device.actuate()`` method:
+
+.. code-block :: python
+
+   deviceA.actuate({'X':2, 'Y':1})
+   print(deviceA.state)
+   print(control.state)
+
+.. code-block :: python
+
+   {'X':2, 'Y':1}
+   {'deviceA.X':2, 'deviceA.Y':1, 'deviceB.Z':0}
+
+We can also act on any number of inputs across any number of devices through the ``Control.actuate()`` method:
+
+.. code-block :: python
+
+   control.actuate({'deviceA.X':7, 'deviceA.Y':2, 'deviceB.Z':13})
+   print(deviceA.state)
+   print(deviceB.state)
+   print(control.state)
+
+.. code-block :: python
+
+   {'X':7, 'Y':2}
+   {'Z':13}
+   {'deviceA.X':7, 'deviceA.Y':2, 'deviceB.Z':13}
+
+No matter which method we use, the result is the same: the value of each targeted Input node is changed, and both ``device.state`` and ``control.state`` are updated.
+
 Fiber coupling
 ----------------
 
@@ -136,17 +226,20 @@ Uncoupled optimization
 Let's inspect the uncoupled landscape with the grid_search algorithm:
 
 .. code-block : python
+
    control.optimize(method='grid_search', cost=control.cost_uncoupled, args={'plot':True})
 
 To analyze couplings between degrees of freedom, run:
 
 .. code-block :: python
+
    control.covariance(cost = control.cost_uncoupled, method='grid_search')
 
 This will generate and return a covariance matrix through sampling on a uniform grid; couplings can be identified through nonzero off-diagonal elements. In this case, we see that the off-diagonal elements are zero (within an error threshold due to finite sampling), so we can move away from the minimum then optimize the cost through two separate 1D optimizations:
 
 .. code-block :: python
-   control.actuate({'X':0, 'Y':0})
+
+   control.actuate({MEMS.input['X']:0, MEMS.input['Y']:0})
    control.optimize(method='grid_search', inputs = [MEMS.input['X']], cost = control.cost_uncoupled)
    control.optimize(method='grid_search', inputs = [MEMS.input['Y']], cost = control.cost_uncoupled)
 
@@ -160,16 +253,19 @@ Now let's inspect the landscape of the coupled cost function:
 algorithm:
 
 .. code-block : python
+
    control.optimize(method='grid_search', cost=control.cost_coupled, args={'plot':True})
 
 We once again compute the covariance matrix:
 
 .. code-block :: python
+
    cov = control.covariance(cost = control.cost_coupled, method='grid_search')
 
 Since we now observe nonzero off-diagonal elements, we know that separate 1D optimizations will not converge to the minimum. Instead, we must optimize in 2D:
 
 .. code-block :: python
+
    control.actuate({'X':0, 'Y':0})
    control.optimize(method='grid_search', inputs = [MEMS.input['X'], MEMS.input['Y']], cost = control.cost_coupled)
 
@@ -178,11 +274,13 @@ Subspace decoupling
 In the previous two sections, we have seen that uncoupled cost functions can be optimized much more efficiently than coupled functions; in d dimensions and N steps, grid_search will require N^d steps for fully-coupled functions and only Nd for uncoupled functions. EMERGENT contains built-in tools to decouple the cost function through principal component analysis (PCA), a process analogous to diagonalizing the covariance matrix. To use this feature, just run
 
 .. code-block :: python
+
    control.diagonalize(cov = cov)
 
 The ``diagonalize()`` method produces new virtual Input nodes which are eigenvectors of the covariance matrix. Now the optimization can be run in the decoupled cost landscape with the ``input_type`` flag:
 
 .. code-block :: python
+
    control.optimize(method='grid_search', input_type='virtual', cost=control.cost_coupled)
 
 Note that when using virtual inputs, the ``optimize()`` method automatically targets individual degrees of freedom sequentially.
@@ -193,11 +291,13 @@ Sequencing
 The examples above have shown how to use EMERGENT with steady-state optimization schemes. However, experimental outputs often depend on time-dependent inputs; for example, cold atom experiments are frequently enhanced with a ramp of the laser frequency, magnetic field strength, or some other parameter. Such sequences can be parameterized as a list of tuples containing times `t` and setpoints `s`, such as
 
 .. code-block :: python
+
    s = [(0,0), (0.5,3)]
 
 Now we add the sequence to the ``X`` variable and register it with the master clock, which synchronizes sequences across all devices:
 
 .. code-block :: python
+
    MEMS.X.sequence = s
    control.clock.add_input(MEMS.X)
 
