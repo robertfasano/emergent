@@ -39,12 +39,9 @@ class Input(Node):
                 
                 
 class Device(Node):
-        def __init__(self, name, device, network, parent, id=None):
+        def __init__(self, name, parent, id=None):
                 super().__init__(name, parent=parent)
-                if id is None:
-                        self.id = network.generate_id()
-                self.device = open_device(device)
-                
+                self.id = id
                 self.state = {}
                 self.inputs = {}
                 
@@ -65,17 +62,21 @@ class Device(Node):
                 ''' Updates self.state to new variables stored in state dict '''
                 for key in state.keys():
                                 self.state[key] = state[key]
+                                
+        def register(self):
+                ''' Adds self to parent control '''
+                self.parent.add_device(self.name, self.device)
                         
 class Control(Node):
-        def __init__(self, name, parent, cost):
+        def __init__(self, name, cost, parent = None):
                 super().__init__(name, parent)
                 self.cost = cost
                 self.devices = {}
                 self.inputs = {}
                 self.state = {}
                 
-        def add_device(self, name, device, network, id=None):
-                self.devices[name] = Device(name, device, network, self, id)
+        def add_device(self, name, device):
+                self.devices[name] = device
                 
         def get_inputs(self):
                 ''' Adds all connected Inputs of child Device nodes to self.inputs. An input is accessible through a key of the format 'Device.Input', e.g. 'MEMS.X' '''
