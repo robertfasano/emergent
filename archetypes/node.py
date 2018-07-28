@@ -1,5 +1,3 @@
-import architecture.graph as graph
-from emergent.devices.manager import open_device
 
 class Node():
     def __init__(self, name, parent=None):
