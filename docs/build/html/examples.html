@@ -86,6 +86,11 @@
 <li class="toctree-l1"><a class="reference internal" href="index.html">EMERGENT</a></li>
 <li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#simple-network">Simple network</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#accessing-node-attributes">Accessing node attributes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#actuation">Actuation</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#fiber-coupling">Fiber coupling</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#first-steps">First steps</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#building-the-experiment">Building the experiment</a></li>
@@ -172,6 +177,76 @@
             
   <div class="section" id="examples">
 <h1>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="simple-network">
+<h2>Simple network<a class="headerlink" href="#simple-network" title="Permalink to this headline">¶</a></h2>
+<p>A full example for a simple network can be found in emergent/examples/basic.py. In this example, a single Control node oversees two Device nodes, one with inputs 'X' and 'Y' and another with input 'Z'. Take a moment to look through the code required to initialize the network.</p>
+<p>You can start EMERGENT with this network by navigating to the emergent directory in the command line and running</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">ipython</span>
+<span class="o">%</span><span class="n">run</span> <span class="n">examples</span><span class="o">/</span><span class="n">basic</span>
+</pre></div>
+</div>
+<div class="section" id="accessing-node-attributes">
+<h3>Accessing node attributes<a class="headerlink" href="#accessing-node-attributes" title="Permalink to this headline">¶</a></h3>
+<p>In this example, all of the inputs are initialized to zero. We can check this in three different ways. First, we can check the value of an Input node directly:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">print</span><span class="p">(</span><span class="n">deviceA</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="mi">0</span>
+</pre></div>
+</div>
+<p>Second, we can check the state of a device:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">print</span><span class="p">(</span><span class="n">deviceA</span><span class="o">.</span><span class="n">state</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>Lastly, we can check the overall state of all devices connected to the Control node:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">print</span><span class="p">(</span><span class="n">control</span><span class="o">.</span><span class="n">state</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;deviceA.X&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;deviceA.Y&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;deviceB.Z&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>Note the slightly different syntax: state dicts for Device nodes have only the input names as keys, whereas for a Control node we must also pass in the device name; this is to allow multiple devices to share a parameter with the same name, for example <code class="docutils literal"><span class="pre">X</span></code>.</p>
+</div>
+<div class="section" id="actuation">
+<h3>Actuation<a class="headerlink" href="#actuation" title="Permalink to this headline">¶</a></h3>
+<p>There are three ways that the state of one or more inputs can be changed. First, we could act directly on the Input node:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">deviceA</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">deviceA</span><span class="o">.</span><span class="n">state</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">control</span><span class="o">.</span><span class="n">state</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">}</span>
+<span class="p">{</span><span class="s1">&#39;deviceA.X&#39;</span><span class="p">:</span><span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;deviceA.Y&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;deviceB.Z&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>We can act on one or more inputs of a single device by passing in a target state to the <code class="docutils literal"><span class="pre">Device.actuate()</span></code> method:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">deviceA</span><span class="o">.</span><span class="n">actuate</span><span class="p">({</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">:</span><span class="mi">1</span><span class="p">})</span>
+<span class="k">print</span><span class="p">(</span><span class="n">deviceA</span><span class="o">.</span><span class="n">state</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">control</span><span class="o">.</span><span class="n">state</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">:</span><span class="mi">1</span><span class="p">}</span>
+<span class="p">{</span><span class="s1">&#39;deviceA.X&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;deviceA.Y&#39;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;deviceB.Z&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>We can also act on any number of inputs across any number of devices through the <code class="docutils literal"><span class="pre">Control.actuate()</span></code> method:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">control</span><span class="o">.</span><span class="n">actuate</span><span class="p">({</span><span class="s1">&#39;deviceA.X&#39;</span><span class="p">:</span><span class="mi">7</span><span class="p">,</span> <span class="s1">&#39;deviceA.Y&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;deviceB.Z&#39;</span><span class="p">:</span><span class="mi">13</span><span class="p">})</span>
+<span class="k">print</span><span class="p">(</span><span class="n">deviceA</span><span class="o">.</span><span class="n">state</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">deviceB</span><span class="o">.</span><span class="n">state</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">control</span><span class="o">.</span><span class="n">state</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="mi">7</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">}</span>
+<span class="p">{</span><span class="s1">&#39;Z&#39;</span><span class="p">:</span><span class="mi">13</span><span class="p">}</span>
+<span class="p">{</span><span class="s1">&#39;deviceA.X&#39;</span><span class="p">:</span><span class="mi">7</span><span class="p">,</span> <span class="s1">&#39;deviceA.Y&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;deviceB.Z&#39;</span><span class="p">:</span><span class="mi">13</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>No matter which method we use, the result is the same: the value of each targeted Input node is changed, and both <code class="docutils literal"><span class="pre">device.state</span></code> and <code class="docutils literal"><span class="pre">control.state</span></code> are updated.</p>
+</div>
+</div>
 <div class="section" id="fiber-coupling">
 <h2>Fiber coupling<a class="headerlink" href="#fiber-coupling" title="Permalink to this headline">¶</a></h2>
 <p>As a simple yet highly useful application of EMERGENT, we present here a complete walkthrough for setting up a new EMERGENT project implementing automated beam alignment into an optical fiber.</p>
@@ -271,7 +346,15 @@
 <h3>Uncoupled optimization<a class="headerlink" href="#uncoupled-optimization" title="Permalink to this headline">¶</a></h3>
 <p>Let's inspect the uncoupled landscape with the grid_search algorithm:</p>
 <p>To analyze couplings between degrees of freedom, run:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">control</span><span class="o">.</span><span class="n">covariance</span><span class="p">(</span><span class="n">cost</span> <span class="o">=</span> <span class="n">control</span><span class="o">.</span><span class="n">cost_uncoupled</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;grid_search&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
 <p>This will generate and return a covariance matrix through sampling on a uniform grid; couplings can be identified through nonzero off-diagonal elements. In this case, we see that the off-diagonal elements are zero (within an error threshold due to finite sampling), so we can move away from the minimum then optimize the cost through two separate 1D optimizations:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">control</span><span class="o">.</span><span class="n">actuate</span><span class="p">({</span><span class="n">MEMS</span><span class="o">.</span><span class="n">input</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">]:</span><span class="mi">0</span><span class="p">,</span> <span class="n">MEMS</span><span class="o">.</span><span class="n">input</span><span class="p">[</span><span class="s1">&#39;Y&#39;</span><span class="p">]:</span><span class="mi">0</span><span class="p">})</span>
+<span class="n">control</span><span class="o">.</span><span class="n">optimize</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s1">&#39;grid_search&#39;</span><span class="p">,</span> <span class="n">inputs</span> <span class="o">=</span> <span class="p">[</span><span class="n">MEMS</span><span class="o">.</span><span class="n">input</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">]],</span> <span class="n">cost</span> <span class="o">=</span> <span class="n">control</span><span class="o">.</span><span class="n">cost_uncoupled</span><span class="p">)</span>
+<span class="n">control</span><span class="o">.</span><span class="n">optimize</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s1">&#39;grid_search&#39;</span><span class="p">,</span> <span class="n">inputs</span> <span class="o">=</span> <span class="p">[</span><span class="n">MEMS</span><span class="o">.</span><span class="n">input</span><span class="p">[</span><span class="s1">&#39;Y&#39;</span><span class="p">]],</span> <span class="n">cost</span> <span class="o">=</span> <span class="n">control</span><span class="o">.</span><span class="n">cost_uncoupled</span><span class="p">)</span>
+</pre></div>
+</div>
 <p>Since the system is perfectly uncoupled, we converge to the local minimum after only 2N iterations for N steps, whereas a coupled system will require N^2 steps to tile the XY plane.</p>
 <p>Note that calling <code class="docutils literal"><span class="pre">control.optimize()</span></code> without specifying arguments will eventually automatically partition the system into subspaces as evaluated by the last call to <code class="docutils literal"><span class="pre">control.covariance()</span></code> (feature coming soon).</p>
 </div>
@@ -280,19 +363,39 @@
 <p>Now let's inspect the landscape of the coupled cost function:
 algorithm:</p>
 <p>We once again compute the covariance matrix:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">cov</span> <span class="o">=</span> <span class="n">control</span><span class="o">.</span><span class="n">covariance</span><span class="p">(</span><span class="n">cost</span> <span class="o">=</span> <span class="n">control</span><span class="o">.</span><span class="n">cost_coupled</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;grid_search&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
 <p>Since we now observe nonzero off-diagonal elements, we know that separate 1D optimizations will not converge to the minimum. Instead, we must optimize in 2D:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">control</span><span class="o">.</span><span class="n">actuate</span><span class="p">({</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">})</span>
+<span class="n">control</span><span class="o">.</span><span class="n">optimize</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s1">&#39;grid_search&#39;</span><span class="p">,</span> <span class="n">inputs</span> <span class="o">=</span> <span class="p">[</span><span class="n">MEMS</span><span class="o">.</span><span class="n">input</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">],</span> <span class="n">MEMS</span><span class="o">.</span><span class="n">input</span><span class="p">[</span><span class="s1">&#39;Y&#39;</span><span class="p">]],</span> <span class="n">cost</span> <span class="o">=</span> <span class="n">control</span><span class="o">.</span><span class="n">cost_coupled</span><span class="p">)</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="subspace-decoupling">
 <h3>Subspace decoupling<a class="headerlink" href="#subspace-decoupling" title="Permalink to this headline">¶</a></h3>
 <p>In the previous two sections, we have seen that uncoupled cost functions can be optimized much more efficiently than coupled functions; in d dimensions and N steps, grid_search will require N^d steps for fully-coupled functions and only Nd for uncoupled functions. EMERGENT contains built-in tools to decouple the cost function through principal component analysis (PCA), a process analogous to diagonalizing the covariance matrix. To use this feature, just run</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">control</span><span class="o">.</span><span class="n">diagonalize</span><span class="p">(</span><span class="n">cov</span> <span class="o">=</span> <span class="n">cov</span><span class="p">)</span>
+</pre></div>
+</div>
 <p>The <code class="docutils literal"><span class="pre">diagonalize()</span></code> method produces new virtual Input nodes which are eigenvectors of the covariance matrix. Now the optimization can be run in the decoupled cost landscape with the <code class="docutils literal"><span class="pre">input_type</span></code> flag:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">control</span><span class="o">.</span><span class="n">optimize</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s1">&#39;grid_search&#39;</span><span class="p">,</span> <span class="n">input_type</span><span class="o">=</span><span class="s1">&#39;virtual&#39;</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="n">control</span><span class="o">.</span><span class="n">cost_coupled</span><span class="p">)</span>
+</pre></div>
+</div>
 <p>Note that when using virtual inputs, the <code class="docutils literal"><span class="pre">optimize()</span></code> method automatically targets individual degrees of freedom sequentially.</p>
 </div>
 </div>
 <div class="section" id="sequencing">
 <h2>Sequencing<a class="headerlink" href="#sequencing" title="Permalink to this headline">¶</a></h2>
 <p>The examples above have shown how to use EMERGENT with steady-state optimization schemes. However, experimental outputs often depend on time-dependent inputs; for example, cold atom experiments are frequently enhanced with a ramp of the laser frequency, magnetic field strength, or some other parameter. Such sequences can be parameterized as a list of tuples containing times <cite>t</cite> and setpoints <cite>s</cite>, such as</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">s</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.5</span><span class="p">,</span><span class="mi">3</span><span class="p">)]</span>
+</pre></div>
+</div>
 <p>Now we add the sequence to the <code class="docutils literal"><span class="pre">X</span></code> variable and register it with the master clock, which synchronizes sequences across all devices:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">MEMS</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">sequence</span> <span class="o">=</span> <span class="n">s</span>
+<span class="n">control</span><span class="o">.</span><span class="n">clock</span><span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="n">MEMS</span><span class="o">.</span><span class="n">X</span><span class="p">)</span>
+</pre></div>
+</div>
 <p>Adding the input to the clock lets EMERGENT know that we want to run <code class="docutils literal"><span class="pre">X</span></code> in sequenced, not steady-state, operation. The last step is to start the clock with <a href="#id1"><span class="problematic" id="id2">``</span></a>control.clock.start(T=0.5)''. Note that the time values in the sequence definition correspond to fractions of the total cycle, so with this cycle of 0.5 s, the MEMS will move to a position of 3 after 250 ms, then back to 0 after each new cycle starts.</p>
 </div>
 </div>

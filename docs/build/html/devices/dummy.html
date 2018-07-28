@@ -28,8 +28,8 @@
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="TDK Genesys" href="genesys.html" />
-    <link rel="prev" title="MCDAQ" href="daq.html" /> 
+    <link rel="next" title="labAPI" href="index.html" />
+    <link rel="prev" title="Devices" href="../devices.html" /> 
 
   
   <script src="../_static/js/modernizr.min.js"></script>
@@ -84,26 +84,14 @@
             
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../index.html">EMERGENT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture.html">Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../archetypes.html">Archetypes</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../devices.html">Devices</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="DLCPro.html">Toptica DLCPro</a></li>
-<li class="toctree-l2"><a class="reference internal" href="agilis.html">Newport Agilis</a></li>
-<li class="toctree-l2"><a class="reference internal" href="daq.html">MCDAQ</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Dummy</a></li>
-<li class="toctree-l2"><a class="reference internal" href="genesys.html">TDK Genesys</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hamamatsu_PMT.html">Hamamatsu PMT</a></li>
 <li class="toctree-l2"><a class="reference internal" href="index.html">labAPI</a></li>
-<li class="toctree-l2"><a class="reference internal" href="intensity_servo.html">Intensity Servo</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ion_pump.html">Digitel SPCe ion pump controller</a></li>
 <li class="toctree-l2"><a class="reference internal" href="labjackT7.html">Labjack T7</a></li>
-<li class="toctree-l2"><a class="reference internal" href="msquared.html">MSquared SolsTiS</a></li>
-<li class="toctree-l2"><a class="reference internal" href="netcontrols.html">NetControls 9x Series Motion Controller</a></li>
-<li class="toctree-l2"><a class="reference internal" href="novatech.html">Novatech DDS</a></li>
 <li class="toctree-l2"><a class="reference internal" href="picoAmp.html">Mirrorcle PicoAmp</a></li>
-<li class="toctree-l2"><a class="reference internal" href="rga.html">Residual Gas Analyzer</a></li>
-<li class="toctree-l2"><a class="reference internal" href="sprout.html">Sprout Pump Laser</a></li>
-<li class="toctree-l2"><a class="reference internal" href="thorlabs_camera.html">Thorlabs DCx Camera</a></li>
 </ul>
 </li>
 </ul>
@@ -172,35 +160,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="module-dummy">
-<span id="dummy"></span><h1>Dummy<a class="headerlink" href="#module-dummy" title="Permalink to this headline">¶</a></h1>
-<p>A dummy device solely for testing the Lab of Things architecture.</p>
-<dl class="class">
-<dt id="dummy.Dummy">
-<em class="property">class </em><code class="descclassname">dummy.</code><code class="descname">Dummy</code><span class="sig-paren">(</span><em>name='dummy'</em>, <em>connect=False</em>, <em>parent=None</em><span class="sig-paren">)</span><a class="headerlink" href="#dummy.Dummy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">labAPI.archetypes.device.Device</span></code></p>
-<dl class="method">
-<dt id="dummy.Dummy.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>name='dummy'</em>, <em>connect=False</em>, <em>parent=None</em><span class="sig-paren">)</span><a class="headerlink" href="#dummy.Dummy.__init__" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="dummy.Dummy.__module__">
-<code class="descname">__module__</code><em class="property"> = 'dummy'</em><a class="headerlink" href="#dummy.Dummy.__module__" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="dummy.Dummy._actuate">
-<code class="descname">_actuate</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#dummy.Dummy._actuate" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="dummy.Dummy._connect">
-<code class="descname">_connect</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dummy.Dummy._connect" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
+  <div class="section" id="dummy">
+<h1>Dummy<a class="headerlink" href="#dummy" title="Permalink to this headline">¶</a></h1>
 </div>
 
 
@@ -211,10 +172,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="genesys.html" class="btn btn-neutral float-right" title="TDK Genesys" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="index.html" class="btn btn-neutral float-right" title="labAPI" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="daq.html" class="btn btn-neutral" title="MCDAQ" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="../devices.html" class="btn btn-neutral" title="Devices" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
