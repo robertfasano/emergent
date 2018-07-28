@@ -6,12 +6,12 @@ Simple network
 ---------------
 A full example for a simple network can be found in emergent/examples/basic.py. In this example, a single Control node oversees two Device nodes, one with inputs 'X' and 'Y' and another with input 'Z'. Take a moment to look through the code required to initialize the network.
 
-You can start EMERGENT with this network by navigating to the emergent directory in the command line and running
+You can start EMERGENT with this network by navigating to the emergent/examples/basic directory in the command line and running
 
 .. code-block :: python
 
    ipython
-   %run examples/basic
+   %run main
 
 Accessing node attributes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -92,6 +92,10 @@ We can also act on any number of inputs across any number of devices through the
 
 No matter which method we use, the result is the same: the value of each targeted Input node is changed, and both ``device.state`` and ``control.state`` are updated.
 
+State recall
+~~~~~~~~~~~~~
+The current state of our Control node can be saved by running ``control.save()``. This stores the state dict in ``basic/settings/control.txt``. The state can be recovered at a later time by running ``control.load()``, which will read the state dict into memory and update included Input nodes to the loaded state.
+
 Fiber coupling
 ----------------
 
@@ -123,12 +127,15 @@ Building the network
 ~~~~~~~~~~~~~~~~~~~~~~
 The network architecture for the fiber coupling problem is shown in Figure 2. The tip and tilt degrees of freedom comprise two Input nodes, labeled X and Y. The Device node takes these two nodes as inputs and physically actuates the mirror using the driver in ``emergent/devices/picoAmp.py``. The output of the Device node is connected to an Optimizer node, which measures the fiber-coupled power and sends commands to the Device node to optimize the efficiency.
 
-Construction of this network requires only a few lines of code in ``main.py``, which should be added under the Network Construction header. First, we define the Optimizer node:
+Construction of this network requires only a few lines of code in ``main.py``, which should be added under the Network Construction header. First, we initialize a LabJack to control the entire experiment, then pass it in to a Control node:
 
 .. code-block:: python
 
+   labjack = LabJack(devid=devid)
+   
    optimizer = Node(name='autoAlign', sensor='labjackT7', args=('490016934', 'AIN0'), layer=0)
 
+Note that devid should correspond to the serial number of your LabJack.
 We have constructed a node named 'autoAlign' in the bottom layer of the network. Passing in a sensor argument tells EMERGENT that this is an Optimizer node (as opposed to a Device or Input node). We also pass in the serial number and the input channel of the LabJack.
 
 Now let's add the Device node:
