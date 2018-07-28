@@ -2,17 +2,17 @@
 and initialized; otherwise, ensure that 5 volts of power are being delivered to the board'''
 import time
 from emergent.devices.labjackT7 import LabJack
+from emergent.archetypes.node import Device
 import numpy as np
 import sys
 import os
 char = {'nt': '\\', 'posix': '/'}[os.name]
 sys.path.append(char.join(os.getcwd().split(char)[0:-1]))
 
-class PicoAmp(Node):
-    def __init__(self, name = 'picoAmp', labjack = None, parent = None):
+class PicoAmp(Device):
+    def __init__(self, name, labjack, parent = None):
         super.__init__(self, name, parent = parent)
         self.addr = {'A': '000', 'B': '001', 'C': '010', 'D': '011', 'ALL': '111'}
-        assert labjack is not None
         self.labjack = labjack
         
         self.add_input('X',0,0,1)
