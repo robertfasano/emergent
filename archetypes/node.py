@@ -1,3 +1,5 @@
+import json
+import os
 
 class Node():
     def __init__(self, name, parent=None):
@@ -84,6 +86,10 @@ class Control(Node):
                 self.devices = {}
                 self.inputs = {}
                 self.state = {}
+                
+                if not os.path.exists('./settings/'):
+                                os.makedirs('./settings/')
+                                
 
         def add_device(self, name, device):
                 self.devices[name] = device
@@ -106,20 +112,17 @@ class Control(Node):
                 ''' Updates all Inputs in the given state to the given values. Argument should have keys of the form 'Device.Input', e.g. state={'MEMS.X':0} '''
                 for i in state.keys():
                                 self.inputs[i].set(state[i])
+                                
+                                
+        def save(self):
+                ''' Saves the current state to a text file '''
+                filename = './settings/%s.txt'%self.name
+                with open(filename, 'w') as file:
+                                json.dumps(self.state)
+                                
+        def load(self):
+                ''' Loads a state from a text file'''
+                filename = './settings/%s.txt'%self.name
+                with open(filename, 'r') as file:
+                                self.state=json.loads(self.state)
 
-if __name__ == '__main___':
-        from labAPI.devices.Node import Node
-        ''' Example network construction '''
-        # create a PicoAmp Device Node and add X and Y input nodes
-        args = ()
-        a = Node(name='MEMS', device = PicoAmp, args = args, layer = 0)
-        a.add_input(['X','Y'])
-
-        # create a NetControls Device Node and add Z input node
-        args = ()
-        b = Node(name='feedthrough', device = NetControls, args = args, layer=0)
-        b.add_input('Z')
-
-        # create a Process node and add a and b
-        c = Node(name='MOT', cost = cost, args = args)
-        c.add_child([a,b])
