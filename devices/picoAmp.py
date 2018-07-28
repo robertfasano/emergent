@@ -1,22 +1,22 @@
 '''if the amplifiers are not working, then first unplug and reinsert the #1 +5V HV the pin once it is connected
 and initialized; otherwise, ensure that 5 volts of power are being delivered to the board'''
 import time
-from labAPI.devices.labjackT7 import LabJack
+from emergent.devices.labjackT7 import LabJack
 import numpy as np
 import sys
 import os
 char = {'nt': '\\', 'posix': '/'}[os.name]
-sys.path.append(char.join(os.getcwd().split(char)[0:-2]))
-from labAPI.archetypes.Optimizer import Optimizer
-from labAPI.archetypes.device import Device
-import scipy.signal as sig
+sys.path.append(char.join(os.getcwd().split(char)[0:-1]))
 
-class PicoAmp(Device):
+class PicoAmp(Node):
     def __init__(self, name = 'picoAmp', labjack = None, parent = None):
-        Device.__init__(self, name, parent = parent, lowlevel = lowlevel)
+        super.__init__(self, name, parent = parent)
         self.addr = {'A': '000', 'B': '001', 'C': '010', 'D': '011', 'ALL': '111'}
         assert labjack is not None
         self.labjack = labjack
+        
+        self.add_input('X',0,0,1)
+        self.add_input('Y',0,0,1)
 
     def _connect(self):
         if self.labjack._connected:
