@@ -18,3 +18,6 @@ class AutoAlign(Control):
         time.sleep(delay)
         return self.labjack.AIn(0, num=num)
 
+    def cost(self, state):
+        self.actuate(state)
+        return self.readADC()
