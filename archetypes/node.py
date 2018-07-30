@@ -72,9 +72,15 @@ class Device(Node):
                     self.parent.state[parent_key] = state[key]
 
         def get_state(self):
+            self.state = {}
             for i in self.inputs.keys():
                 self.state[i] = self.inputs[i].value
 
+        def get_settings(self):
+            self.settings = {}
+            for i in self.inputs.keys():
+                self.settings[i] = {'min': self.inputs[i].min, 'max': self.inputs[i].max}
+                
         def register(self, parent):
                 ''' Adds self to parent control '''
                 self.parent = parent
@@ -87,11 +93,12 @@ class Control(Node):
                 self.inputs = {}
                 self.state = {}
 
-                self.settings_path =  './settings/'
+                self.settings_path ='./settings/'
+                self.state_path = '/state/'
 
-                if not os.path.exists(self.settings_path):
-                                os.makedirs(self.settings_path)
-
+                for p in [self.settings_path, self.state_path]:
+                    if not os.path.exists(p):
+                        os.makedirs(p)
 
         def add_device(self, name, device):
                 self.devices[name] = device
@@ -107,24 +114,39 @@ class Control(Node):
                                                 self.inputs[name] = i
         def get_state(self):
                 ''' Reads the state of all Inputs, and adds to a total state dict. '''
+                self.state = {}
                 for i in self.inputs.keys():
                                 self.state[i] = self.inputs[i].value
 
+
+        def get_settings(self):
+            self.settings = {}
+            for i in self.inputs.keys():
+                self.settings[i] = {'min': self.inputs[i].min, 'max': self.inputs[i].max}
+                
+  
         def actuate(self, state):
                 ''' Updates all Inputs in the given state to the given values. Argument should have keys of the form 'Device.Input', e.g. state={'MEMS.X':0} '''
                 for i in state.keys():
                                 self.inputs[i].set(state[i])
 
-
         def save(self):
                 ''' Saves the current state to a text file '''
-                filename = self.settings_path+self.name+'.txt'
-                with open(filename, 'w') as file:
-                                json.dump(self.state, file)
+                paths = [self.settings_path, self.state_path]
+                data = [self.settings, self.state]
+                
+                for i in range(len(paths)):
+                    filename = paths[i]+self.name+'.txt'
+                    with open(filename, 'w') as file:
+                        json.dump(data[i], file)
 
         def load(self):
                 ''' Loads a state from a text file'''
-                filename = self.settings_path+self.name+'.txt'
-                with open(filename, 'r') as file:
-                	state=json.load(file)
+                paths = [self.settings_path, self.state_path]
+                vars = [self.settings, state]
+                
+                for i in range(len(paths)):
+                    filename = paths[i]+self.name+'.txt'
+                    with open(filename, 'r') as file:
+                	    vars[i]=json.load(file)
                 self.actuate(state)
