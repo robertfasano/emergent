@@ -5,6 +5,7 @@ sys.path.append(char.join(os.getcwd().split(char)[0:-1]))
 from emergent.archetypes.node import Control
 from emergent.devices.picoAmp import PicoAmp
 from emergent.devices.labjackT7 import LabJack
+from emergent.controls.autoAlign import AutoAlign
 import numpy as np
 
 class AutoAlign(Control):
@@ -18,7 +19,7 @@ class AutoAlign(Control):
 
 devid = '160049734'
 labjack = LabJack(devid=devid)
-control = Control('control')
+control = AutoAlign(name='control', labjack=labjack)
 
 mems = PicoAmp('MEMS', labjack, parent=control)
 mems.add_input('X', 0, 0, 1)
