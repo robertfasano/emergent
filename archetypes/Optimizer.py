@@ -33,7 +33,26 @@ class Optimizer():
         ''' Initialize the optimizer and link to the parent Control node '''
         self.parent = control_node
         self.actuate = self.parent.actuate
+        
+    def array2dict(self, arr, keys):
+        ''' Converts a numpy array into a state dict '''
+        state = {}
+        for i in range(len(keys)):
+            state[keys[i]] = arr[i]
+        return state
+        
+    def dict2array(self, state):
+        ''' Converts a state dict into a numpy array '''
+        arr = np.array([])
+        for i in range(len(state.keys())):
+            arr.append(state[state.keys[i])
+        return arr, list(state.keys())
 
+    def cost_array(self, X, keys, cost):
+        ''' Converts an array into a state dict and evaluates cost '''
+        state = self.array2dict(X, keys)
+        return cost(state)
+        
     def initialize_optimizer(self, state):
         ''' Prepares a normalized substate and appropriate bounds. '''
         cols = list(state.keys()
@@ -106,8 +125,19 @@ class Optimizer():
 
         return points, costs
         
-    def line_search(self, state, cost, step = 0.1):
+    ''' Optimization routines '''
+    def optimize(self, state, cost, params, method, plot = True):
+        ''' Runs a targeted optimization routine on the cost function in the space spanned by the state dict. Fully implemented (untested) methods: line_search, grid_search'''
+        func = getattr(self, method)
+        points, cost = func(state, cost, params)
+
+                
+    def line_search(self, state, cost, params = None):
         ''' Searches a single axis/dimension for a minimum using a moving derivative. Argument should be a state dict with one or more components; if more than one component is present, they are done sequentially.'''
+        if params is None:
+            step = 0.1
+        else:
+            step = params['step']
         state, bounds = self.initialize_optimizer(state)
 
         for key in state.keys():
@@ -156,9 +186,16 @@ class Optimizer():
                 print('Final cost: %f (%s%.1f%%)'%(costs[-1], char, change)
                                 
 
-    def grid_search(self, state, cost,
-                    plot = False, loadExisting = False, steps = 10):
+    def grid_search(self, state, cost, params=None):
         ''' An N-dimensional grid search routine with optional plotting. '''
+        if params is None:
+            plot = False
+            loadExisting = False
+            steps = 10
+        else:
+            plot = params['plot']
+            loadExisting = params['loadExisting']
+            steps = params['steps']
         state, bounds = self.initialize_optimizer(state)
         if loadExisting:
             costs = np.loadtxt('costs.txt')
@@ -203,15 +240,21 @@ class Optimizer():
        # return (b*mu+np.sqrt(1-b**2)*sigma)
         return b*mu-(1-b)*sigma
 
-    def gaussian_process(self, X = None, axes = None, actuate = None, cost = None, iterations = 10, plot = False):
+    def gaussian_process(self, state, cost, params=None):
         ''' Gaussian Processing from https://github.com/thuijskens/bayesian-optimization/blob/master/python/gp.py
             and https://www.nature.com/articles/srep25890.pdf '''
-        if cost is None:
-            cost = self.cost
-        X, bounds = self.initialize_optimizer(axes)
-        c = np.array([cost(X, axes=axes)])
+        if params is None:
+            iterations = 10
+            plot = False
+        else:
+            iterations = params['iterations']
+            plot = params['plot']
+            
+        state, bounds = self.initialize_optimizer(state)
+        X = self.dict2array(state)
+        c = np.array([cost(state)])
 
-        points, costs = self.random_sampling(cost, 15, bounds, axes=axes)
+        points, costs = self.sample(state, 'random', cost, 15)
         X = np.append(np.atleast_2d(X), points, axis=0)
         c = np.append(c, costs)
         kernel = C(1.0, (1e-3, 1e3)) * RBF(10, (1e-2, 1e2))
@@ -222,43 +265,39 @@ class Optimizer():
             X_new = self.gaussian_process_next_sample(X, bounds, b, self.effective_cost, self.gp, greater_is_better=False, restarts=10)
             X_new = np.atleast_2d(X_new)
             X = np.append(X, X_new, axis=0)
-            c = np.append(c, self.cost(X[-1], axes = axes))
-        self.actuate(self.unnormalize(X[np.argmin(c)], axes), axes)
+            state = self.array2dict(X, list(state.keys()))
+            c = np.append(c, self.cost(state))
+        best_point = self.array2dict(X[np.argmin(c)], list(state.keys()))
+        self.actuate(self.unnormalize(best_point))
         if plot:
             self.plot_optimization(func = c, lbl = 'Gaussian Processing')
 
         return X, c
 
-
-
-    def skl_minimize(self, cost, method = 'L-BFGS-B', X = None, axes = None, plot = False, tol = 1e-7):
+    def skl_minimize(self, state, cost, params=None):
         ''' Runs a specified scikit-learn minimization method on the target axes and cost. '''
-        X, bounds = self.initialize_optimizer(axes)
-        res = minimize(fun=cost,
+        ''' TODO: properly convert state to X and back in overloaded cost function '''
+        if params is None:
+            method = 'L-BFGS-B'
+            plot = False
+            tol = 1e-7
+        else:
+            method = params['method']
+            plot = params['plot']
+            tol = params['tol']
+        state, bounds = self.initialize_optimizer(state)
+        X = self.dict2array(state)
+        keys = list(state.keys())
+        res = minimize(fun=cost_array,
                    x0=X,
                    bounds=bounds,
+                   args = (keys, cost)
                    method=method,
-                   args=(axes),
                    tol = tol)
         #simplex for SKL is res = minimize(fun = cost,x0 = X.reshape(1, -1), method = 'Nelder-Mead', tol = 1e7)
         print("SKL:" + method + "=%s" % res)
         if plot:
             self.plot_optimization(lbl = method)
-
-    #possible to make a dictionary for these optimization methods and all possibile SKL optimize.minimze routines
-    def optimize(self, routines = ['gp'], X = None, axes = None, iterations = 20, plot = True,
-                 actuate = None, cost = None, span = 1, steps = 100, dither = 0.1, eta = 1, method = 'L-BFGS-B'):
-        ''' Runs a targeted optimization routine with a given axes list and cost. '''
-        for r in routines:
-            X = np.random.uniform(0, 1, size=(1,self.dim)) #change when axes is implemented
-            if r == 'gp' or routines == ['all']:
-                X, cost, points, c_pred = self.gaussian_process(X, axes, iterations = iterations, plot = plot)
-                print("Gaussian Processing=%s" % cost[-1])
-            if r == 'sklm' or routines == ['all']:
-                self.skl_minimize(cost = cost, method = method)
-            if r == 'gs' and routines == ['all']:
-                c = self.grid_search(plot = plot)
-                print("Grid Search=%s" % c[-1])
 
     ''' Dimensionality Analytics and Reduction Algorithms (X always being the training data set) '''
     #NOTE: might need to convert to something with COST and to the entire training database
