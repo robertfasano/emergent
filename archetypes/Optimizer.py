@@ -126,7 +126,7 @@ class Optimizer():
         return points, costs
         
     ''' Optimization routines '''
-    def optimize(self, state, cost, params, method, plot = True):
+    def optimize(self, state, cost, method, params = None, plot = True):
         ''' Runs a targeted optimization routine on the cost function in the space spanned by the state dict. Fully implemented (untested) methods: line_search, grid_search'''
         func = getattr(self, method)
         points, cost = func(state, cost, params)
