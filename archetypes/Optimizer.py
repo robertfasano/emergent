@@ -28,26 +28,9 @@ import warnings
 warnings.warn = warn
 
 class Optimizer():
-    def __init__(self, noise=0):
-        self.noise = noise
-
-    ''' Base Functions '''
-    def actuate(self, point):
-        ''' Trivial placeholder actuate function which is overwritten by inheriting Hubs. '''
-        self.state = point
-
-    def cost(self, X = None, axes = None):
-        ''' A gaussian cost function in N dimensions which is overwritten by inheriting Hubs. '''
-        self.actuate(self.unnormalize(X, axes), axes)
-        X = np.atleast_2d(X)
-
-        cost = 1
-        sigma = 1/3
-        for n in range(X.shape[1]):
-            cost *= np.exp(-(X[:,n]-0.5)**2/(2*sigma**2))
-        cost += np.random.normal(0,self.noise)
-        self.history.loc[time.time()] = -cost
-        return -cost
+    def __init__(self, control_node):
+        ''' Initialize the optimizer and link to the parent Control node '''
+        self.parent = control_node
 
     def plot_optimization(self, func=None, lbl = None, yscl = 'linear',
                           ylbl = 'Optimization Function', xlbl = 'Time (s)'):
@@ -63,31 +46,38 @@ class Optimizer():
         plt.show()
 
     ''' Optimization Routines and Algorithms '''
-    def unnormalize(self, state, axes = None):
+    def unnormalize(self, norm):
         ''' Converts normalized (0-1) state to physical state based on specified
             max and min parameter values. '''
-        if axes == None:
-            return self.min + state * (self.max - self.min)
-        else:
-            return self.min[[axes]] + state * (self.max[[axes]]-self.min[[axes]])
-
-    def initialize_optimizer(self, axes = None):
+        unnorm = {}
+        
+        for i in norm.keys():
+                min = self.parent.settings[i]['min']
+                max = self.parent.settings[i]['max']
+                unnorm[i] = min + norm[i] * (max-min)
+        return unnorm
+        
+    def normalize(self, unnorm):
+        ''' Normalizes a state or substate based on min/max values saved in the parent control node '''
+        norm = {}
+        for i in unnorm.keys():
+                min = self.parent.settings[i]['min']
+                max = self.parent.settings[i]['max']
+                norm[i] = (unnorm[i] - min)/(max-min)
+        return norm
+                
+        
+    def initialize_optimizer(self, state):
         ''' Prepares a normalized substate and appropriate bounds. '''
-        cols = []
-        for axis in axes:
-            cols.append('X' + str(axis))
+        cols = list(state.keys()
+        
         cols.append('cost')
         self.history = pd.DataFrame(index = [], columns = cols) #pd.Series(index=[])
 
-        X = self.state
-        if axes is not None:
-            X = (X[[axes]] - self.min[[axes]])/(self.max[[axes]]-self.min[[axes]])
-        else:
-            X = (X - self.min)/(self.max-self.min)
+        state = self.normalize(state)
+        bounds = np.array(list(itertools.repeat([0,1], len(state.keys()))))
 
-        bounds = np.array(list(itertools.repeat([0,1], len(X))))
-
-        return X, bounds
+        return state, bounds
 
     def line_search(self, X = None, axis = 0, actuate = None, cost = None, step = 0.1):
         ''' Searches a single axis/dimension for a minimum using a moving derivative. '''
@@ -106,7 +96,7 @@ class Optimizer():
 
         dir = -1*np.sign(np.mean(np.diff(init_points))) #determine direction from differences towards mininum
 
-        if dir is -1: #undo move in wrong direction
+        if dir is -1: #undo move in wrction
             X[axis] -= init_step
             self.actuate(X)
 
