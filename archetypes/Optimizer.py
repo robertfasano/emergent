@@ -31,6 +31,7 @@ class Optimizer():
     def __init__(self, control_node):
         ''' Initialize the optimizer and link to the parent Control node '''
         self.parent = control_node
+        self.actuate = self.parent.actuate
 
     def plot_optimization(self, func=None, lbl = None, yscl = 'linear',
                           ylbl = 'Optimization Function', xlbl = 'Time (s)'):
@@ -79,50 +80,55 @@ class Optimizer():
 
         return state, bounds
 
-    def line_search(self, X = None, axis = 0, actuate = None, cost = None, step = 0.1):
-        ''' Searches a single axis/dimension for a minimum using a moving derivative. '''
-        X, bounds = self.initialize_optimizer(axis)
+    def line_search(self, state, cost, step = 0.1):
+        ''' Searches a single axis/dimension for a minimum using a moving derivative. Argument should be a state dict with one or more components; if more than one component is present, they are done sequentially.'''
+        state, bounds = self.initialize_optimizer(state)
 
-        #first compute the gradient to check which direction to move
-        init_step = 5 * step
-        init_points = []
+        for key in state.keys():
+                X = {key, state[key]}        # extract single axis
+                costs = [cost(X)]
+                #first compute the gradient to check which direction to move
+                init_step = 5 * step
+                init_points = []
 
-        X[axis] -= init_step
-        init_points.append(self.cost(X, axis))
+                X[key] -= init_step
+                init_points.append(cost(X))
 
-        for i in range(2):
-            X[axis] += init_step
-            init_points.append(self.cost(X, axis))
+                for i in range(2):
+                        X[key] += init_step
+                init_points.append(self.cost(X))
 
-        dir = -1*np.sign(np.mean(np.diff(init_points))) #determine direction from differences towards mininum
+                dir = -1*np.sign(np.mean(np.diff(init_points))) #determine direction from differences towards mininum
 
-        if dir is -1: #undo move in wrction
-            X[axis] -= init_step
-            self.actuate(X)
+                if dir is -1: #undo move in wrction
+                        X[key] -= init_step
+                        self.actuate(X)
 
-        #now, perform the line search
-        num_points = 5 #for moving derivative and to keep track of historically
-        costs = []
-        lastNPoints = np.array([])
-        movingDeriv = 0
-        maximizing = True
+                #now, perform the line search
+                num_points = 5 #for moving derivative and to keep track of historically
+                lastNPoints = np.array([])
+                movingDeriv = 0
 
-        while maximizing:
-            X[axis] += dir*step
-            val = self.cost(X, axis)
-            costs.append(val)
-            lastNPoints = np.append(lastNPoints, val)
-            if len(lastNPoints) > num_points:
-                lastNPoints = np.delete(lastNPoints,0)
-            if len(lastNPoints) > 1:
-                movingDeriv = np.mean(np.diff(lastNPoints))
-            if movingDeriv > 0 and len(lastNPoints) == num_points:
-                maximizing = False
-                numSteps = len(lastNPoints) - np.argmin(lastNPoints) - 1
-                X[axis] -= dir*step*numSteps
-                costs.append(self.cost(X, axis))
-
-        return X, costs
+                while True:
+                        X[key] += dir*step
+                        val = cost(X)
+                        costs.append(val)
+                        lastNPoints = np.append(lastNPoints, val)
+                        if len(lastNPoints) > num_points:
+                                lastNPoints = np.delete(lastNPoints,0)
+                        if len(lastNPoints) > 1:
+                                movingDeriv = np.mean(np.diff(lastNPoints))
+                        if movingDeriv > 0 and len(lastNPoints) == num_points:
+                                numSteps = len(lastNPoints) - np.argmin(lastNPoints) - 1
+                                X[key] -= dir*step*numSteps
+                                costs.append(self.cost(X))
+                                break
+                change = (costs[-1]-costs[0])/costs[0]*100
+                char = {1: '+', -1: '-'}[np.sign(change)]
+                print('Line search on axis %s terminated'%key)
+                print('Initial cost: %f'%costs[0])
+                print('Final cost: %f (%s%.1f%%)'%(costs[-1], char, change)
+                                
 
     def grid_search(self, X = None, axes = None, actuate = None, cost = None,
                     plot = False, loadExisting = False, steps = 10):
