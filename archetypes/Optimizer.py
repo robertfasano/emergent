@@ -130,16 +130,16 @@ class Optimizer():
                 print('Final cost: %f (%s%.1f%%)'%(costs[-1], char, change)
                                 
 
-    def grid_search(self, X = None, axes = None, actuate = None, cost = None,
+    def grid_search(self, state, cost,
                     plot = False, loadExisting = False, steps = 10):
         ''' An N-dimensional grid search routine with optional plotting. '''
-        X, bounds = self.initialize_optimizer(axes)
+        state, bounds = self.initialize_optimizer(state)
         if loadExisting:
             costs = np.loadtxt('costs.txt')
             points = np.loadtxt('points.txt')
         else:    
             ''' Generate search grid '''
-            N = len(X)
+            N = len(state.keys)
             grid = []
             for n in range(N):
                 space = np.linspace(bounds[n][0], bounds[n][1], steps)
@@ -150,14 +150,17 @@ class Optimizer():
             ''' Actuate search '''
             costs = []
             for point in points:
-                costs.append(self.cost(point, axes))
+                target = {}
+                for i in len(point):
+                    target[state.keys()[i]] = point[i]
+                costs.append(self.cost(target))
             
             np.savetxt('costs.txt', np.array(costs))
             np.savetxt('points.txt', np.array(points))
                 
         ''' Plot result if desired '''
         ax = None
-        if plot and len(X) is 2:
+        if plot and len(state.keys()) is 2:
             plt.figure()
             ordinate_index = 0
             abscissa_index = 1
@@ -170,7 +173,7 @@ class Optimizer():
             ax = plt.gca()
 
         best_point = points[np.argmin(costs)]
-        self.actuate(self.unnormalize(best_point, axes), axes)
+        self.actuate(self.unnormalize(best_point))
 
         return points, costs, ax
 
