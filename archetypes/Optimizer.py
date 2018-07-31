@@ -33,30 +33,30 @@ class Optimizer():
         ''' Initialize the optimizer and link to the parent Control node '''
         self.parent = control_node
         self.actuate = self.parent.actuate
-        
+
     def array2dict(self, arr, keys):
         ''' Converts a numpy array into a state dict '''
         state = {}
         for i in range(len(keys)):
             state[keys[i]] = arr[i]
         return state
-        
+
     def dict2array(self, state):
         ''' Converts a state dict into a numpy array '''
         arr = np.array([])
         for i in range(len(state.keys())):
-            arr.append(state[state.keys[i])
-        return arr, list(state.keys())
+            arr = np.append(arr, state[list(state.keys())[i]])
+        return arr
 
     def cost_array(self, X, keys, cost):
         ''' Converts an array into a state dict and evaluates cost '''
         state = self.array2dict(X, keys)
         return cost(state)
-        
+
     def initialize_optimizer(self, state):
         ''' Prepares a normalized substate and appropriate bounds. '''
-        cols = list(state.keys()
-        
+        cols = list(state.keys())
+
         cols.append('cost')
         self.history = pd.DataFrame(index = [], columns = cols) #pd.Series(index=[])
 
@@ -64,7 +64,7 @@ class Optimizer():
         bounds = np.array(list(itertools.repeat([0,1], len(state.keys()))))
 
         return state, bounds
-        
+
     def normalize(self, unnorm):
         ''' Normalizes a state or substate based on min/max values saved in the parent control node '''
         norm = {}
@@ -73,65 +73,66 @@ class Optimizer():
             max = self.parent.settings[i]['max']
             norm[i] = (unnorm[i] - min)/(max-min)
         return norm
-                
-                
+
+
     def unnormalize(self, norm):
         ''' Converts normalized (0-1) state to physical state based on specified
             max and min parameter values. '''
         unnorm = {}
-        
+
         for i in norm.keys():
                 min = self.parent.settings[i]['min']
                 max = self.parent.settings[i]['max']
                 unnorm[i] = min + norm[i] * (max-min)
         return unnorm
-        
+
     ''' Sampling methods '''
-    def sample(self, state, cost, method='random', points = 1)
+    def sample(self, state, cost, method='random', points = 1, bounds = None):
+        if bounds is None:
+            bounds = np.array(list(itertools.repeat([0,1, len(state.keys())])))
         func = {'random':self.random_sampling, 'grid':self.grid_sampling}
-        points, cost = func(state, cost, points)
-        
-    def grid_sampling(self, state, cost, points):
+        points, cost = func(state, cost, points, bounds)
+
+    def grid_sampling(self, state, cost, points, bounds):
         ''' Performs a uniformly-spaced sampling of the cost function in the space spanned by the passed-in state dict '''
-        N = len(state.keys)
+        N = len(state.keys())
         grid = []
         for n in range(N):
-            space = np.linspace(bounds[n][0], bounds[n][1], steps)
+            space = np.linspace(bounds[n][0], bounds[n][1], points)
             grid.append(space)
         grid = np.array(grid)
         points = np.transpose(np.meshgrid(*[grid[n] for n in range(N)])).reshape(-1,N)
-        
+
         ''' Actuate search '''
         costs = []
         for point in points:
-            target = {}
-            for i in len(point):
-                target[state.keys()[i]] = point[i]
-                costs.append(self.cost(target))
-            
+            target = self.array2dict(point, list(state.keys()))
+            costs.append(cost(target))
+
         points = np.array(points)
         costs = np.array(costs)
         np.savetxt('costs.txt', costs)
         np.savetxt('points.txt', points)
-        
-        return points, costs
-        
-    def random_sampling(self, cost, N, bounds, axes=None):
-        ''' Performs a random sampling of the cost function at N points within the specified bounds. '''
-        points = np.random.uniform(size=(N,bounds.shape[0]))
-        costs = []
-        for point in points:
-            costs.append(cost(point,axes=axes))
 
         return points, costs
-        
+
+    def random_sampling(self,state, cost, points, bounds):
+        ''' Performs a random sampling of the cost function at N points within the specified bounds. '''
+        points = np.random.uniform(size=(points,len(state.keys())))
+        costs = []
+        for point in points:
+            target = self.array2dict(point, list(state.keys()))
+            costs.append(cost(target))
+
+        return points, costs
+
     ''' Optimization routines '''
     def optimize(self, state, cost, method, params = None, plot = True):
         ''' Runs a targeted optimization routine on the cost function in the space spanned by the state dict. Fully implemented (untested) methods: line_search, grid_search'''
         func = getattr(self, method)
         points, cost = func(state, cost, params)
 
-                
+
     def line_search(self, state, cost, params = None):
         ''' Searches a single axis/dimension for a minimum using a moving derivative. Argument should be a state dict with one or more components; if more than one component is present, they are done sequentially.'''
         if params is None:
@@ -141,7 +142,7 @@ class Optimizer():
         state, bounds = self.initialize_optimizer(state)
 
         for key in state.keys():
-                X = {key, state[key]}        # extract single axis
+                X = {key: state[key]}        # extract single axis
                 costs = [cost(X)]
                 #first compute the gradient to check which direction to move
                 init_step = 5 * step
@@ -152,7 +153,7 @@ class Optimizer():
 
                 for i in range(2):
                         X[key] += init_step
-                init_points.append(self.cost(X))
+                init_points.append(cost(X))
 
                 dir = -1*np.sign(np.mean(np.diff(init_points))) #determine direction from differences towards mininum
 
@@ -177,14 +178,14 @@ class Optimizer():
                         if movingDeriv > 0 and len(lastNPoints) == num_points:
                                 numSteps = len(lastNPoints) - np.argmin(lastNPoints) - 1
                                 X[key] -= dir*step*numSteps
-                                costs.append(self.cost(X))
+                                costs.append(cost(X))
                                 break
                 change = (costs[-1]-costs[0])/costs[0]*100
-                char = {1: '+', -1: '-'}[np.sign(change)]
-                print('Line search on axis %s terminated'%key)
-                print('Initial cost: %f'%costs[0])
-                print('Final cost: %f (%s%.1f%%)'%(costs[-1], char, change)
-                                
+                char = {1: '+', -1: '-', 0: ''}[np.sign(change)]
+                print('Line search on axis %s terminated. Cost: %f->%f  (%s%.0f%%).'%(key, costs[0], costs[-1], char, change))
+
+        return None, costs
+
 
     def grid_search(self, state, cost, params=None):
         ''' An N-dimensional grid search routine with optional plotting. '''
@@ -200,18 +201,18 @@ class Optimizer():
         if loadExisting:
             costs = np.loadtxt('costs.txt')
             points = np.loadtxt('points.txt')
-        else:    
+        else:
             ''' Generate search grid '''
-            points, costs = self.grid_sampling(state, cost, steps)
-                
+            points, costs = self.grid_sampling(state, cost, steps, bounds)
+
         ''' Plot result if desired '''
         ax = None
         if plot and len(state.keys()) is 2:
             ax = self.plot_2D(points, costs)
-        best_point = points[np.argmin(costs)]
+        best_point = self.array2dict(points[np.argmin(costs)], list(state.keys()))
         self.actuate(self.unnormalize(best_point))
 
-        return points, costs, ax
+        return points, costs
 
     def gaussian_process_next_sample(self, X, bounds, b, cost, gaussian_process,
                                      greater_is_better=False, restarts=25):
@@ -249,7 +250,7 @@ class Optimizer():
         else:
             iterations = params['iterations']
             plot = params['plot']
-            
+
         state, bounds = self.initialize_optimizer(state)
         X = self.dict2array(state)
         c = np.array([cost(state)])
@@ -288,17 +289,17 @@ class Optimizer():
         state, bounds = self.initialize_optimizer(state)
         X = self.dict2array(state)
         keys = list(state.keys())
-        res = minimize(fun=cost_array,
+        res = minimize(fun=self.cost_array,
                    x0=X,
                    bounds=bounds,
-                   args = (keys, cost)
+                   args = (keys, cost),
                    method=method,
                    tol = tol)
         #simplex for SKL is res = minimize(fun = cost,x0 = X.reshape(1, -1), method = 'Nelder-Mead', tol = 1e7)
         print("SKL:" + method + "=%s" % res)
         if plot:
             self.plot_optimization(lbl = method)
-
+        return None, None
     ''' Dimensionality Analytics and Reduction Algorithms (X always being the training data set) '''
     #NOTE: might need to convert to something with COST and to the entire training database
     #use differential evolution from skl to develop a dataset for the pca to determine reduction, caluclate covariance and perform pca on it
@@ -331,15 +332,15 @@ class Optimizer():
         rbf_pca = KernelPCA(n_components = n_comps, kernel = krnl, gamma = gma)
         X_reduced = rbf_pca.fit_transform(X)
         return X_reduced
-    
+
     #NOTE: NOT TESTED AS OF YET 7.20.18
-    def cluster(self, name = 'k-means++', init = 'k-means++', n_clusters = 4, n_init = 10, 
+    def cluster(self, name = 'k-means++', init = 'k-means++', n_clusters = 4, n_init = 10,
                 X = None, axes = None):
-        ''' General Clustering from scikit-learn implementing various clustering techniques; 
+        ''' General Clustering from scikit-learn implementing various clustering techniques;
         implementation aided by http://scikit-learn.org/stable/modules/clustering'''
         X, bounds = self.initialize_optimizer(X, axes)
         labels = None
-        
+
         ''' K-Means - very large n_samples and medium n_clusters scalability (Use MiniBatch code)
          general-purose, even cluster size, flat geometry (distance between points), not too many clusters '''
         if name is 'k-means++': #could be k-mean++ or random init
@@ -356,7 +357,7 @@ class Optimizer():
             cluster_centers_indices = estimator.cluster_centers_indices_
             labels = estimator.labels_
             n_clusters_ = len(cluster_centers_indices) #estimated/determined n_clusters val
-        
+
         ''' Mean-shift - not scalable with n_samples, uses many clusters, uneven cluster size,
         non-flat geometry (distance between points) '''
         if name is 'mean-shift':
@@ -366,7 +367,7 @@ class Optimizer():
             labels = estimator.labels_
             cluster_centers = estimator.cluster_centers_
             n_clusters_ = len(np.unique(labels))
-        
+
         ''' DBSCAN - scalable with very large n_samples / medium n_clusters, uses of non-flat geometry,
         uneven cluster sizes, geometry of distances between nearest points - watch out for memory consumption'''
         if name is 'dbscan':
@@ -375,7 +376,7 @@ class Optimizer():
             core_samples_mask[estimator.core_sample_indices_] = True
             labels = estimator.labels_
             n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
-            
+
          #to be implemented if needed later on
         ''' Ward hierarchical clustering - scalable with large number of n_samples/n_clusters, uses
         many clusters with possible connectivitiy constraints, geometry of distance between points '''
@@ -385,10 +386,10 @@ class Optimizer():
         data reduction, and geometry of Euclidean distances between points '''
         ''' Gaussian mixtures - not scalable, uses flat geometry, good for density estimation,
         geometry of Mahalanobis(?) distances to centers '''
-             
+
         return estimator, labels, n_clusters
-        
-    def bench_clustering(self, estimator, names = ['k-means++'], 
+
+    def bench_clustering(self, estimator, names = ['k-means++'],
                          n_clusters = 4,n_init = 10, X = None, axes = None):
         ''' Method to benchmark and compare each clustering algorithm provided in scikit-learn '''
         n_samples = len(X) ** 2 #the number of points taken
@@ -405,7 +406,7 @@ class Optimizer():
              metrics.completeness_score(labels, estimator.labels_),
              metrics.v_measure_score(labels, estimator.labels_),
              metrics.adjusted_rand_score(labels, estimator.labels_),
-             metrics.adjusted_mutual_info_score(labels,  estimator.labels_))
+             metrics.adjusted_mutual_info_score(labels,  estimator.labels_)))
 
     # def covariance_reduction(self, X = None):
     #     '''with a 13 dimensional array, use covariance on the original data set,
@@ -426,7 +427,7 @@ class Optimizer():
         plt.colorbar(plot)
         plt.savefig('driftmesh' + str(time.time()) + '.png')
         ax = plt.gca()
-        
+
         return ax
 
     def plot_optimization(self, func=None, lbl = None, yscl = 'linear',
@@ -441,4 +442,3 @@ class Optimizer():
         plt.xlabel(xlbl)
         plt.legend()
         plt.show()
-
