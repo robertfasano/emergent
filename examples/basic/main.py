@@ -21,6 +21,16 @@ class TestControl(Control):
                         cost *= np.exp(-x**2/x0**2)
                 return cost
 
+        def cost_coupled(self, state):
+            return cost_coupled(state, theta=30*np.pi/180)
+            
+        def cost_uncoupled(self, state, theta=0):
+            x=self.state['deviceA.X']*np.cos(theta) - self.state['deviceA.Y']*np.sin(theta)
+            y=self.state['deviceA.X']*np.sin(theta) + self.state['deviceA.Y']*np.cos(theta)
+            x0 = 0.3
+            y0 = 0.6
+            return np.exp(-(x-0.5)**2/x0**2)*np.exp(-(y-0.5)**2/y0**2)
+            
         def scramble(self):
             for key in self.state.keys():
                 self.state[key] = np.random.uniform()
