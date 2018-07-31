@@ -28,46 +28,12 @@ import warnings
 warnings.warn = warn
 
 class Optimizer():
+    ''' General methods '''
     def __init__(self, control_node):
         ''' Initialize the optimizer and link to the parent Control node '''
         self.parent = control_node
         self.actuate = self.parent.actuate
 
-    def plot_optimization(self, func=None, lbl = None, yscl = 'linear',
-                          ylbl = 'Optimization Function', xlbl = 'Time (s)'):
-        ''' Plots an optimization time series stored in a pandas Series. '''
-        if func is None:
-            func = self.history
-            func.index -= func.index[0]
-        plt.plot(func, label = lbl)
-        plt.yscale(yscl)
-        plt.ylabel(ylbl)
-        plt.xlabel(xlbl)
-        plt.legend()
-        plt.show()
-
-    ''' Optimization Routines and Algorithms '''
-    def unnormalize(self, norm):
-        ''' Converts normalized (0-1) state to physical state based on specified
-            max and min parameter values. '''
-        unnorm = {}
-        
-        for i in norm.keys():
-                min = self.parent.settings[i]['min']
-                max = self.parent.settings[i]['max']
-                unnorm[i] = min + norm[i] * (max-min)
-        return unnorm
-        
-    def normalize(self, unnorm):
-        ''' Normalizes a state or substate based on min/max values saved in the parent control node '''
-        norm = {}
-        for i in unnorm.keys():
-                min = self.parent.settings[i]['min']
-                max = self.parent.settings[i]['max']
-                norm[i] = (unnorm[i] - min)/(max-min)
-        return norm
-                
-        
     def initialize_optimizer(self, state):
         ''' Prepares a normalized substate and appropriate bounds. '''
         cols = list(state.keys()
@@ -79,7 +45,67 @@ class Optimizer():
         bounds = np.array(list(itertools.repeat([0,1], len(state.keys()))))
 
         return state, bounds
+        
+    def normalize(self, unnorm):
+        ''' Normalizes a state or substate based on min/max values saved in the parent control node '''
+        norm = {}
+        for i in unnorm.keys():
+            min = self.parent.settings[i]['min']
+            max = self.parent.settings[i]['max']
+            norm[i] = (unnorm[i] - min)/(max-min)
+        return norm
+                
+                
+    def unnormalize(self, norm):
+        ''' Converts normalized (0-1) state to physical state based on specified
+            max and min parameter values. '''
+        unnorm = {}
+        
+        for i in norm.keys():
+                min = self.parent.settings[i]['min']
+                max = self.parent.settings[i]['max']
+                unnorm[i] = min + norm[i] * (max-min)
+        return unnorm
+        
+    ''' Sampling methods '''
+    def sample(self, state, cost, method='random', points = 1)
+        func = {'random':self.random_sampling, 'grid':self.grid_sampling}
+        points, cost = func(state, cost, points)
+        
+    def grid_sampling(self, state, cost, points):
+        ''' Performs a uniformly-spaced sampling of the cost function in the space spanned by the passed-in state dict '''
+        N = len(state.keys)
+        grid = []
+        for n in range(N):
+            space = np.linspace(bounds[n][0], bounds[n][1], steps)
+            grid.append(space)
+        grid = np.array(grid)
+        points = np.transpose(np.meshgrid(*[grid[n] for n in range(N)])).reshape(-1,N)
+        
+        ''' Actuate search '''
+        costs = []
+        for point in points:
+            target = {}
+            for i in len(point):
+                target[state.keys()[i]] = point[i]
+                costs.append(self.cost(target))
+            
+        points = np.array(points)
+        costs = np.array(costs)
+        np.savetxt('costs.txt', costs)
+        np.savetxt('points.txt', points)
+        
+        return points, costs
+        
+    def random_sampling(self, cost, N, bounds, axes=None):
+        ''' Performs a random sampling of the cost function at N points within the specified bounds. '''
+        points = np.random.uniform(size=(N,bounds.shape[0]))
+        costs = []
+        for point in points:
+            costs.append(cost(point,axes=axes))
 
+        return points, costs
+        
     def line_search(self, state, cost, step = 0.1):
         ''' Searches a single axis/dimension for a minimum using a moving derivative. Argument should be a state dict with one or more components; if more than one component is present, they are done sequentially.'''
         state, bounds = self.initialize_optimizer(state)
@@ -139,39 +165,12 @@ class Optimizer():
             points = np.loadtxt('points.txt')
         else:    
             ''' Generate search grid '''
-            N = len(state.keys)
-            grid = []
-            for n in range(N):
-                space = np.linspace(bounds[n][0], bounds[n][1], steps)
-                grid.append(space)
-            grid = np.array(grid)
-            points = np.transpose(np.meshgrid(*[grid[n] for n in range(N)])).reshape(-1,N)
-        
-            ''' Actuate search '''
-            costs = []
-            for point in points:
-                target = {}
-                for i in len(point):
-                    target[state.keys()[i]] = point[i]
-                costs.append(self.cost(target))
-            
-            np.savetxt('costs.txt', np.array(costs))
-            np.savetxt('points.txt', np.array(points))
+            points, costs = self.grid_sampling(state, cost, steps)
                 
         ''' Plot result if desired '''
         ax = None
         if plot and len(state.keys()) is 2:
-            plt.figure()
-            ordinate_index = 0
-            abscissa_index = 1
-            ordinate_mesh, abscissa_mesh = np.meshgrid(points[:,ordinate_index], points[:, abscissa_index])
-            normalized_costs = -1*(costs - np.min(costs))/(np.max(costs)-np.min(costs)) + 1
-            cost_grid = griddata(points[:,[ordinate_index, abscissa_index]], normalized_costs, (ordinate_mesh,abscissa_mesh))
-            plot = plt.pcolormesh(ordinate_mesh, abscissa_mesh, cost_grid, cmap='gist_rainbow')
-            plt.colorbar(plot)
-            plt.savefig('driftmesh' + str(time.time()) + '.png')
-            ax = plt.gca()
-
+            ax = self.plot_2D(points, costs)
         best_point = points[np.argmin(costs)]
         self.actuate(self.unnormalize(best_point))
 
@@ -230,14 +229,7 @@ class Optimizer():
 
         return X, c
 
-    def random_sampling(self, cost, N, bounds, axes=None):
-        ''' Performs a random sampling of the cost function at N points within the specified bounds. '''
-        points = np.random.uniform(size=(N,bounds.shape[0]))
-        c = []
-        for point in points:
-            c.append(cost(point,axes=axes))
 
-        return points, c
 
     def skl_minimize(self, cost, method = 'L-BFGS-B', X = None, axes = None, plot = False, tol = 1e-7):
         ''' Runs a specified scikit-learn minimization method on the target axes and cost. '''
@@ -382,10 +374,32 @@ class Optimizer():
     # yields number of rows = number of columns, then feature extraction using
     # PCA or clustering algorithm '''
 
-if __name__ == '__main__':
-    SNR = 100
-    a = Optimizer(noise = 1/SNR)
-    a.dim = 4
-    pos = np.random.uniform(0, 1, size=(1, a.dim)) #np.ones(dim)*X0, X0 = 0.2
-    a.actuate(pos)
-    a.optimize(routines = ['gs'])
+    ''' Visualization methods '''
+    def plot_2D(self, points, costs):
+        ''' Interpolates and plots a cost function sampled at an array of points '''
+        plt.figure()
+        ordinate_index = 0
+        abscissa_index = 1
+        ordinate_mesh, abscissa_mesh = np.meshgrid(points[:,ordinate_index], points[:, abscissa_index])
+        normalized_costs = -1*(costs - np.min(costs))/(np.max(costs)-np.min(costs)) + 1
+        cost_grid = griddata(points[:,[ordinate_index, abscissa_index]], normalized_costs, (ordinate_mesh,abscissa_mesh))
+        plot = plt.pcolormesh(ordinate_mesh, abscissa_mesh, cost_grid, cmap='gist_rainbow')
+        plt.colorbar(plot)
+        plt.savefig('driftmesh' + str(time.time()) + '.png')
+        ax = plt.gca()
+        
+        return ax
+
+    def plot_optimization(self, func=None, lbl = None, yscl = 'linear',
+                          ylbl = 'Optimization Function', xlbl = 'Time (s)'):
+        ''' Plots an optimization time series stored in a pandas Series. '''
+        if func is None:
+            func = self.history
+            func.index -= func.index[0]
+        plt.plot(func, label = lbl)
+        plt.yscale(yscl)
+        plt.ylabel(ylbl)
+        plt.xlabel(xlbl)
+        plt.legend()
+        plt.show()
+
