@@ -284,7 +284,7 @@ Now we add the sequence to the ``X`` variable and register it with the master cl
 
 .. code-block :: python
 
-   MEMS.X.sequence = s
-   control.clock.add_input(MEMS.X)
+   MEMS.inputs['X'].sequence = s
+   control.clock.add_input(MEMS.inputs['X'])
 
 Adding the input to the clock lets EMERGENT know that we want to run ``X`` in sequenced, not steady-state, operation. The last step is to start the clock with ``control.clock.start(T=0.5)''. Note that the time values in the sequence definition correspond to fractions of the total cycle, so with this cycle of 0.5 s, the MEMS will move to a position of 3 after 250 ms, then back to 0 after each new cycle starts.
