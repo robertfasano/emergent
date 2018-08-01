@@ -87,10 +87,10 @@ class Optimizer():
         return unnorm
 
     ''' Sampling methods '''
-    def sample(self, state, cost, method='random', points = 1, bounds = None):
+    def sample(self, state, cost, method='random_sampling', points = 1, bounds = None):
         if bounds is None:
             bounds = np.array(list(itertools.repeat([0,1, len(state.keys())])))
-        func = {'random':self.random_sampling, 'grid':self.grid_sampling}
+        func = getattr(self, method)
         points, cost = func(state, cost, points, bounds)
 
     def grid_sampling(self, state, cost, points, bounds):
@@ -300,10 +300,16 @@ class Optimizer():
         if plot:
             self.plot_optimization(lbl = method)
         return None, None
+        
+        
     ''' Dimensionality Analytics and Reduction Algorithms (X always being the training data set) '''
     #NOTE: might need to convert to something with COST and to the entire training database
     #use differential evolution from skl to develop a dataset for the pca to determine reduction, caluclate covariance and perform pca on it
 
+    def covariance(self, state, cost, points, method='random_sampling'):
+        points, cost = self.sample(state, cost, method, points)
+        return np.cov(cost)
+        
     def extract_pcs(self, X = None):
         ''' Uses numpy's svd() function to obtain the principal components of the training set. '''
         #NOTE: must take step to recenter data around the origin as necessary here
