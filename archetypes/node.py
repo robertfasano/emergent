@@ -100,7 +100,7 @@ class Control(Node):
                 self.devices = {}
                 self.inputs = {}
                 self.state = {}
-
+                self.actuating = 0
                 self.settings_path ='./settings/'
                 self.state_path = '/state/'
 
@@ -134,10 +134,15 @@ class Control(Node):
                 
   
         def actuate(self, state):
-                ''' Updates all Inputs in the given state to the given values. Argument should have keys of the form 'Device.Input', e.g. state={'MEMS.X':0} '''
+            ''' Updates all Inputs in the given state to the given values. Argument should have keys of the form 'Device.Input', e.g. state={'MEMS.X':0} '''
+            if not self.actuating:
+                self.actuating = 1
                 for i in state.keys():
                                 self.inputs[i].set(state[i])
-
+                self.actuating = 0
+            else:
+                print('Actuate blocked by already running actuation.')
+                
         def save(self):
                 ''' Saves the current state to a text file '''
                 paths = [self.settings_path, self.state_path]
