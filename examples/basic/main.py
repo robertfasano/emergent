@@ -2,11 +2,17 @@ import sys
 import os
 char = {'nt': '\\', 'posix': '/'}[os.name]
 sys.path.append(char.join(os.getcwd().split(char)[0:-3]))
-from emergent.archetypes.node import Control
-from emergent.devices.test import TestDevice
+from emergent.archetypes.node import Control, Device
 from emergent.archetypes.Optimizer import Optimizer
 
 import numpy as np
+
+class TestDevice(Device):
+        def __init__(self, name, parent):
+                super().__init__(name, parent)
+
+        def _actuate(self, state):
+                return
 
 class TestControl(Control):
         def __init__(self, name, parent=None):

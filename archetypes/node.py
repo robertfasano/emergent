@@ -1,7 +1,9 @@
 import json
 import os
+import weakref
 
 class Node():
+    instances = []
     def __init__(self, name, parent=None):
         ''' Initializes a Node with a name and optionally registers
             to a parent. If layer is None, then the layer is automatically
@@ -11,7 +13,7 @@ class Node():
             e.g. (Device, args)'''
         self.name = name
         self.type = None
-
+        self.__class__.instances.append(weakref.proxy(self))
         self.children = []
         if parent is not None:
                 self.register(parent)
@@ -27,8 +29,10 @@ class Node():
 
 
 class Input(Node):
+        instances = []
         def __init__(self, name, value, min, max, parent):
                 super().__init__(name, parent=parent)
+                self.__class__.instances.append(weakref.proxy(self))
                 self.value = value
                 self.min = min
                 self.max = max
@@ -39,8 +43,10 @@ class Input(Node):
 
 
 class Device(Node):
+        instances = []
         def __init__(self, name, parent, id=None):
                 super().__init__(name, parent=parent)
+                self.__class__.instances.append(weakref.proxy(self))
                 self.id = id
                 self.state = {}
                 self.inputs = {}
@@ -87,8 +93,10 @@ class Device(Node):
                 self.parent.add_device(self.name, self)
 
 class Control(Node):
+        instances = []
         def __init__(self, name, parent = None):
                 super().__init__(name, parent)
+                self.__class__.instances.append(weakref.proxy(self))
                 self.devices = {}
                 self.inputs = {}
                 self.state = {}
