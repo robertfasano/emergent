@@ -127,57 +127,36 @@ Building the network
 ~~~~~~~~~~~~~~~~~~~~~~
 The network architecture for the fiber coupling problem is shown in Figure 2. The tip and tilt degrees of freedom comprise two Input nodes, labeled X and Y. The Device node takes these two nodes as inputs and physically actuates the mirror using the driver in ``emergent/devices/picoAmp.py``. The output of the Device node is connected to an Optimizer node, which measures the fiber-coupled power and sends commands to the Device node to optimize the efficiency.
 
-Construction of this network requires only a few lines of code in ``main.py``, which should be added under the Network Construction header. First, we initialize a LabJack to control the entire experiment, then pass it in to a Control node:
+The first step in building the network is to define a custom control node for our alignment task:
 
 .. code-block:: python
 
+   class AutoAlign(Control):
+         def __init__(name, labjack, parent=None):
+                  super().__init__(name, parent)
+                  self.labjack = LabJack()
+                  
+         def cost(state):
+                  self.actuate(state)
+                  return self.labjack.AIn(0)
+
+Now we can connect to the LabJack and instantiate the Control node:
+
+.. code-block:: python
+
+   devid = '160049734'
    labjack = LabJack(devid=devid)
-   
-   optimizer = Node(name='autoAlign', sensor='labjackT7', args=('490016934', 'AIN0'), layer=0)
+   control = AutoAlign(name='control', labjack=labjack)
 
-Note that devid should correspond to the serial number of your LabJack.
-We have constructed a node named 'autoAlign' in the bottom layer of the network. Passing in a sensor argument tells EMERGENT that this is an Optimizer node (as opposed to a Device or Input node). We also pass in the serial number and the input channel of the LabJack.
-
-Now let's add the Device node:
+The final step is to define the Device node based on the custom class in ``emergent/devices/picoAmp.py`` and add Inputs:
 
 .. code-block:: python
 
-   MEMS = Node(name='MEMS', device='picoAmp', parent=optimizer, id='0001')
+   mems = PicoAmp('MEMS', labjack, parent=control)
+   mems.add_input('X', 0, -3, 3)
+   mems.add_input('Y', 0, -3, 3)
 
-Passing in a device argument specifies that this is a Device node, while passing the Optimizer node as a parent makes the connection between the two. We have also specified a unique id for the Device node, whose importance will be evident below.
-
-Finally, we can add the Input nodes:
-
-.. code-block:: python
-
-   Node(name='X', parent=MEMS)
-   Node(name='Y', parent=MEMS)
-
-The names we have chosen here are not arbitrary - 'X' and 'Y' correspond to the degrees of freedom defined in the picoAmp class.
-
-Settings
-~~~~~~~~~~~
-With the network fully constructed, you can now start up EMERGENT from the command line:
-
-.. code-block :: python
-
-   ipython
-   %run main.py
-
-As a last step, we will need to add a json file in emergent/settings.py to define important operational parameters for the MEMS mirror. To do this, run ``MEMS.setup()`` to start the setup wizard for the Device node. When prompted, enter the following parameters:
-
-.. code-block :: python
-
-   X: 0         # defines the initial X input value
-   X_min: -3.   # defines the minimum value of X
-   X_max: 3     # defines the maximum value of X
-   Y: 0         # defines the initial Y input value
-   Y_min: -3
-   Y_max: 3
-
-The minimum and maximum positions we set will define the bounds of our optimization space. Note that the full range of the PicoAmp driver is +/-80, but +/-3 will suffice for fiber alignment.
-
-After completing the setup wizard, a json file called ``emergent/settings/MEMS#XXXX`` will be created, where ``XXXX=0001`` here, corresponding to the id we passed in to the Device node. During normal operation, EMERGENT will frequently update and log the input values, such that the values stored in the json file will stay up to date.
+Note that the first argument to the ``add_input`` function should match one of the inputs defined in the Device driver, which in this case are ``X`` and ``Y``. The remaining arguments are the value and min/max values of the inputs, respectively.
 
 Manual operation
 ~~~~~~~~~~~~~~~~~~
@@ -197,18 +176,18 @@ Alternately, we could have changed the state of the input nodes directly:
 
 This will call the actuate() method indirectly, so it is functionally nearly identical to the first approach, but will offer greater flexibility when running EMERGENT in a GUI.
 
-After moving the mirror, you should have seen the coupling efficiency change. The power can be measured by calling ``optimizer.cost()``, which will read the LabJack's channel AIN0 and multiply by -1 (by convention, all optimization problems are framed as minimization).
+After moving the mirror, you should have seen the coupling efficiency change. The power can be measured by calling ``control.cost()``, which will read the LabJack's channel AIN0 and multiply by -1 (by convention, all optimization problems are cast as minimization).
 
-We can also save the new state by calling ``optimizer.save()``, which rewrites the input values stored in the settings json to their current values. If you restart emergent, the mirror should return to ``{'X':-1, 'Y':1}``.
+We can also save the new state by calling ``control.save()``, which writes the current settings to a json file in ``emergent/examples/MEMS_align/settings``. Calling ``control.load()`` will allow the saved state to be recovered.
 
 
 Automated operation
 ~~~~~~~~~~~~~~~~~~~~~~
-We are finally ready to unveil the holy grail of EMERGENT - automatic device optimization. By calling ``optimizer.optimize()``, the inputs will be tuned to maximize the fiber-coupled efficiency. Many different algorithms are implemented in EMERGENT and can be passed in through the ``method`` keyword argument; in general, the ideal algorithm will be chosen for a given application. We will first demonstrate the simplest possible algorithm, a two-dimensional grid-search.
+We are finally ready to unveil the holy grail of EMERGENT - automatic device optimization. By calling ``control.optimizer.optimize()``, the inputs will be tuned to maximize the fiber-coupled efficiency. Many different algorithms are implemented in EMERGENT and can be passed in through the ``method`` keyword argument; in general, the ideal algorithm will be chosen for a given application. We will first demonstrate the simplest possible algorithm, a two-dimensional grid-search.
 
 .. code-block :: python
 
-   optimizer.optimize(method='grid_search', args={'steps':20, 'plot':True})
+   control.optimizer.optimize(method='grid_search', args={'steps':20, 'plot':True})
 
 This call to grid_search will create a 20x20 grid in the XY plane, sample each point, and move to the best point. If the parameter 'plot' is True, the cost function evaluated over the grid will be plotted. This allows easy visualization of cost landscapes for lower-dimensional problems, but the aggressive complexity scaling of grid_search in the number of dimensions and steps prohibits its use for higher dimensions.
 
@@ -216,7 +195,7 @@ A more sophisticated algorithm is the Nelder-Mead method:
 
 .. code-block :: python
 
-   optimizer.optimize(method='Nelder-Mead')
+   control.optimizer.optimize(method='Nelder-Mead')
 Rather than scanning the entire space, the Nelder-Mead method attempts to efficiently move a N+1 dimensional simplex through an N dimensional cost landscape towards a minimum.
 
 
@@ -224,7 +203,7 @@ Subspace partitioning
 ----------------------
 A powerful feature of EMERGENT is the automatic identification of coupled variables, allowing high-dimensional optimization problems to be decomposed into separate lower-dimensional problems. For example, the idealized fiber coupling problem can be modeled as minimization in a Gaussian cost landscape, which contains no couplings between the X and Y degrees of freedom; therefore, we can run quick 1D line searches in each variable rather than a 2D simultaneous optimization, significantly reducing the size of the search space.
 
-Rather than the physical fiber coupling example above, we will now switch to a virtual cost function to facilitate demonstration of EMERGENT's subspace identification features. The code for this tutorial can be found in emergent/examples/subspace_identification. Navigate to this directory and run main.py within an IPython console.
+Rather than the physical fiber coupling example above, we will now switch to a virtual cost function to facilitate demonstration of EMERGENT's subspace identification features. The code for this tutorial can be found in ``emergent/examples/subspace_identification``. Navigate to this directory and run main.py within an IPython console.
 
 We analyze a simple network consisting of a control node implementing several virtual cost functions and a trivial device node which maps two virtual inputs, X and Y, to user-defined values. Two cost functions are implemented: ``control.cost_uncoupled`` and ``control.cost_coupled``. The former is simply a multivariate Gaussian with a relative factor of ½ between the widths in the X and Y directions; the latter also rotates the inputs by 30 degrees to create a coupling between X and Y.
 
@@ -234,21 +213,21 @@ Let's inspect the uncoupled landscape with the grid_search algorithm:
 
 .. code-block : python
 
-   control.optimize(method='grid_search', cost=control.cost_uncoupled, args={'plot':True})
+   control.optimizer.optimize(method='grid_search', cost=control.cost_uncoupled, args={'plot':True})
 
 To analyze couplings between degrees of freedom, run:
 
 .. code-block :: python
 
-   control.covariance(cost = control.cost_uncoupled, method='grid_search')
+   control.optimizer.covariance(cost = control.cost_uncoupled, method='grid_search')
 
 This will generate and return a covariance matrix through sampling on a uniform grid; couplings can be identified through nonzero off-diagonal elements. In this case, we see that the off-diagonal elements are zero (within an error threshold due to finite sampling), so we can move away from the minimum then optimize the cost through two separate 1D optimizations:
 
 .. code-block :: python
 
-   control.actuate({MEMS.input['X']:0, MEMS.input['Y']:0})
-   control.optimize(method='grid_search', inputs = [MEMS.input['X']], cost = control.cost_uncoupled)
-   control.optimize(method='grid_search', inputs = [MEMS.input['Y']], cost = control.cost_uncoupled)
+   control.actuate({'MEMS.X':0, 'MEMS.Y':0})
+   control.optimizer.optimize(method='grid_search', inputs = [MEMS.input['X']], cost = control.cost_uncoupled)
+   control.optimizer.optimize(method='grid_search', inputs = [MEMS.input['Y']], cost = control.cost_uncoupled)
 
 Since the system is perfectly uncoupled, we converge to the local minimum after only 2N iterations for N steps, whereas a coupled system will require N^2 steps to tile the XY plane.
 
