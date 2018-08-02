@@ -5,6 +5,7 @@ import pathlib
 import time
 from emergent.archetypes.Clock import Clock
 from emergent.archetypes.Historian import Historian
+from emergent.archetypes.Optimizer import Optimizer
 
 class Node():
     instances = []
@@ -107,9 +108,11 @@ class Control(Node):
 
                 self.clock = Clock(self)
                 self.historian = Historian(self)
+                self.optimizer = Optimizer(self)
                 for p in [self.settings_path, self.state_path]:
                         # os.makedirs(p, exist_ok=True)
                         pathlib.Path(p).mkdir(parents=True, exist_ok=True)
+                        
         def add_device(self, name, device):
             self.devices[name] = device
 
