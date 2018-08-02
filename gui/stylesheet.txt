@@ -1,0 +1,27 @@
+
+QTreeWidget {color:"#3a4055"; font-family: "Agency FB"; font-size: 18px}
+QHeaderView::section {color:"#3a4055"; font-weight: bold; font-family: "Agency FB"; font-size: 15px}
+
+QTreeView::branch:has-siblings:!adjoins-item {
+    border-image: url(../../gui/media/vline.png) 0;
+}
+
+QTreeView::branch:has-siblings:adjoins-item {
+    border-image: url(../../gui/media/branch-more.png) 0;
+}
+
+QTreeView::branch:!has-children:!has-siblings:adjoins-item {
+    border-image: url(../../gui/media/branch-end.png) 0;
+}
+
+QTreeView::branch:has-children:!has-siblings:closed,
+QTreeView::branch:closed:has-children:has-siblings {
+        border-image: none;
+        image: url(../../gui/media/branch-closed.png);
+}
+
+QTreeView::branch:open:has-children:!has-siblings,
+QTreeView::branch:open:has-children:has-siblings  {
+        border-image: none;
+        image: url(../../gui/media/branch-open.png);
+}
