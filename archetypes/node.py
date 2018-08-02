@@ -30,12 +30,10 @@ class Node():
 
 class Input(Node):
         instances = []
-        def __init__(self, name, value, min, max, parent):
+        def __init__(self, name, parent):
                 super().__init__(name, parent=parent)
                 self.__class__.instances.append(weakref.proxy(self))
-                self.value = value
-                self.min = min
-                self.max = max
+                self.value = None
 
         def set(self, value):
                 ''' Calls the parent Device.actuate() function to change self.value to a new value '''
@@ -44,18 +42,18 @@ class Input(Node):
 
 class Device(Node):
         instances = []
-        def __init__(self, name, parent, id=None):
+        def __init__(self, name, parent):
                 super().__init__(name, parent=parent)
                 self.__class__.instances.append(weakref.proxy(self))
-                self.id = id
                 self.state = {}
                 self.inputs = {}
 
-        def add_input(self, name, value, min, max):
+        def add_input(self, name):
                 ''' Attaches an Input node with the specified parameters '''
-                self.inputs[name] = Input(name, value, min, max, parent=self)
-                self.get_state()
+                self.inputs[name] = Input(name, parent=self)
                 self.parent.get_inputs()
+                self.parent.get_settings()
+                self.get_state()
                 self.parent.get_state()
 
         def _actuate(self, state):
@@ -130,9 +128,13 @@ class Control(Node):
         def get_settings(self):
             self.settings = {}
             for i in self.inputs.keys():
-                self.settings[i] = {'min': self.inputs[i].min, 'max': self.inputs[i].max}
-                
-  
+                try:
+                    self.settings[i] = {'min': self.inputs[i].min, 'max': self.inputs[i].max}
+                except AttributeError:
+                    print('%s not yet configured. Please enter min: '%self.inputs[i].name)
+                    self.min = wait_for_input()
+                    print('Please enter max: ')
+                    
         def actuate(self, state):
             ''' Updates all Inputs in the given state to the given values. Argument should have keys of the form 'Device.Input', e.g. state={'MEMS.X':0} '''
             if not self.actuating:
