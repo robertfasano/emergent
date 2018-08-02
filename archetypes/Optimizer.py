@@ -18,6 +18,7 @@ sys.path.append(char.join(os.getcwd().split(char)[0:-2]))
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C, WhiteKernel
 from sklearn.decomposition import PCA, IncrementalPCA, KernelPCA
+from scipy.sparse.csgraph import dijkstra
 import sklearn.cluster
 from sklearn import metrics
 import pandas as pd
@@ -121,12 +122,31 @@ class Optimizer():
     def random_sampling(self,state, cost, points, bounds):
         ''' Performs a random sampling of the cost function at N points within the specified bounds. '''
         points = np.random.uniform(size=(points,len(state.keys())))
+        print(points)
+        print(points.shape)
         costs = []
         for point in points:
             target = self.array2dict(point, list(state.keys()))
             costs.append(cost(target))
 
         return points, costs
+        
+    def dijkstra_sampling(self, points, weights = None):
+        ''' Determines the sampling order of the given points array to minimize
+            the distance between points, weighted by an optional vector. The weight
+            vector allows consideration of different actuation speeds in the path decision '''
+        if weights is None:
+            weights = np.ones(len(points))
+        
+        ''' First, calculate an adjacency matrix G, where G[i,j] is the distance
+            between points[i] and points[j] '''
+        G = np.zeros((len(points), len(points)))
+        for i in range(len(points)):
+             for j in range(len(points)):
+                 G[i,j] = np.linalg.norm(weights*points[i]-weights*points[j])
+                 
+        dist_matrix = dijkstra(G)
+
 
     ''' Optimization routines '''
     def optimize(self, state, cost, method, params = None, plot = True):
@@ -308,10 +328,13 @@ class Optimizer():
     #NOTE: might need to convert to something with COST and to the entire training database
     #use differential evolution from skl to develop a dataset for the pca to determine reduction, caluclate covariance and perform pca on it
 
+<<<<<<< HEAD
     def covariance(self, state, cost, points, method='random_sampling'):
         points, cost = self.sample(state, cost, method, points)
         return np.cov(cost)
 
+=======
+>>>>>>> 243bc917cdb2a475fa91148dff57950fc82f4051
     def extract_pcs(self, X = None):
         ''' Uses numpy's svd() function to obtain the principal components of the training set. '''
         #NOTE: must take step to recenter data around the origin as necessary here

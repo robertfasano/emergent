@@ -22,6 +22,4 @@ labjack = LabJack(devid=devid)
 control = AutoAlign(name='control', labjack=labjack)
 
 mems = PicoAmp('MEMS', labjack, parent=control)
-mems.add_input('X', 0, 0, 1)
-mems.add_input('Y', 0, 0, 1)
 

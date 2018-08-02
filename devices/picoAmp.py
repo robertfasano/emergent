@@ -15,8 +15,8 @@ class PicoAmp(Device):
         self.addr = {'A': '000', 'B': '001', 'C': '010', 'D': '011', 'ALL': '111'}
         self.labjack = labjack
         
-        self.add_input('X',0,0,1)
-        self.add_input('Y',0,0,1)
+        self.add_input('X')
+        self.add_input('Y')
 
     def _connect(self):
         if self.labjack._connected:
