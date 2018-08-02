@@ -2,7 +2,9 @@ import json
 import os
 import weakref
 import pathlib
-
+import time
+from emergent.archetypes.Clock import Clock
+from emergent.archetypes.Historian import Historian
 class Node():
     instances = []
     def __init__(self, name, parent=None):
@@ -40,6 +42,7 @@ class Input(Node):
         def set(self, value):
                 ''' Calls the parent Device.actuate() function to change self.value to a new value '''
                 self.parent.actuate({self.name:value})
+
 
 
 
@@ -106,6 +109,8 @@ class Control(Node):
                 self.settings_path ='./settings/'
                 self.state_path = './state/'
 
+                self.clock = Clock(self)
+                self.historian = Historian(self)
                 for p in [self.settings_path, self.state_path]:
                         # os.makedirs(p, exist_ok=True)
                         pathlib.Path(p).mkdir(parents=True, exist_ok=True)
@@ -130,10 +135,15 @@ class Control(Node):
 
         def get_settings(self):
             self.settings = {}
-            with open(self.settings_path+self.name+'.txt', 'r') as file:
-                saved_settings=json.load(file)
-            with open(self.state_path+self.name+'.txt', 'r') as file:
-                saved_state=json.load(file)
+            try:
+                with open(self.settings_path+self.name+'.txt', 'r') as file:
+                    saved_settings=json.loads(file.readlines()[-1].split('\t')[1])
+                with open(self.state_path+self.name+'.txt', 'r') as file:
+                    saved_state=json.loads(file.readlines()[-1].split('\t')[1])
+                loaded = 1
+            except FileNotFoundError:
+                loaded = 0
+
             for i in self.inputs.keys():
                 try:
                     self.settings[i] = {'min': self.inputs[i].min, 'max': self.inputs[i].max}
@@ -141,18 +151,19 @@ class Control(Node):
                     print('%s not yet configured.'%i)
                     resp = ''
                     saved = 0
-                    if i in saved_settings.keys() and i in saved_state.keys():
-                        saved = 1
-                        #print('Load from file? (y/n)')
-                        #resp = input()
-                        print('Loaded from file.')
-                        resp = 'y'
-                        if resp == 'y':
-                            for x in ['min', 'max']:
-                                setattr(self.inputs[i],x,saved_settings[i][x])
-                            self.settings[i] = saved_settings[i]
-                            self.state[i] = saved_state[i]
-                            self.inputs[i].value = self.state[i]
+                    if loaded:
+                        if i in saved_settings.keys() and i in saved_state.keys():
+                            saved = 1
+                            #print('Load from file? (y/n)')
+                            #resp = input()
+                            print('Loaded from file.')
+                            resp = 'y'
+                            if resp == 'y':
+                                for x in ['min', 'max']:
+                                    setattr(self.inputs[i],x,saved_settings[i][x])
+                                self.settings[i] = saved_settings[i]
+                                self.state[i] = saved_state[i]
+                                self.inputs[i].value = self.state[i]
                     if resp == 'n' or not saved:
                         print('Please enter initial value: ')
                         self.inputs[i].value = float(input())
@@ -162,13 +173,15 @@ class Control(Node):
                         self.inputs[i].max = float(input())
 
 
-        def actuate(self, state):
+        def actuate(self, state, save=True):
             ''' Updates all Inputs in the given state to the given values. Argument should have keys of the form 'Device.Input', e.g. state={'MEMS.X':0} '''
             if not self.actuating:
                 self.actuating = 1
                 for i in state.keys():
                                 self.inputs[i].set(state[i])
                 self.actuating = 0
+
+                self.save()
             else:
                 print('Actuate blocked by already running actuation.')
 
@@ -179,8 +192,17 @@ class Control(Node):
 
                 for i in range(len(paths)):
                     filename = paths[i]+self.name+'.txt'
-                    with open(filename, 'w') as file:
-                        json.dump(data[i], file)
+
+                    write_newline = False
+                    if os.path.isfile(filename):
+                        write_newline = True
+
+                    with open(filename, 'a') as file:
+                        if write_newline:
+                            file.write('\n')
+                        file.write('%f\t%s'%(time.time(),json.dumps(data[i])))
+                        #json.dump(data[i], file)
+
 
         def load(self):
                 ''' Loads a state from a text file'''
@@ -191,5 +213,5 @@ class Control(Node):
                 for i in range(len(paths)):
                     filename = paths[i]+self.name+'.txt'
                     with open(filename, 'r') as file:
-                	    vars[i]=json.load(file)
+                	    vars[i]=json.loads(file.readlines()[-1].split('\t')[1])
                 self.actuate(state)
