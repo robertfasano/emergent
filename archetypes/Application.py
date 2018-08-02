@@ -10,25 +10,26 @@ from emergent.archetypes.node import Input, Device, Control
 ''' Create application and engine '''
 app = QCoreApplication.instance()
 if app is None:
-    app = QApplication(sys.argv)         
-engine = QQmlApplicationEngine()    
+    app = QApplication(sys.argv)
+engine = QQmlApplicationEngine()
 
-''' Gather nodes '''
-controls = Control.instances
-for control in controls:
-    devices.append(control.devices)
-    for device in devices:
-    
-
-''' Show window '''
 engine.load("gui/main.qml")                     # Load the qml file into the engine
 window = engine.rootObjects()[0]
 window.show()
 
-''' Retrieve element handles from the engine and initialize default values '''
-for hub in engine.hubs:
-    hub._retrieve_handles()
-    hub._populate_listModel()
+''' Gather nodes '''
+tree = {}
+controls = Control.instances
+for control in controls:
+    tree[control.name] = {}
+    for device in control.devices.values():
+        tree[control.name][device.name] = []
+        for input in device.inputs.values():
+            tree[control.name][device.name].append(input.name)
+
+
+
+
 
 
 
