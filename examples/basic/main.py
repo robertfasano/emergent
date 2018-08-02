@@ -2,9 +2,13 @@ import sys
 import os
 char = {'nt': '\\', 'posix': '/'}[os.name]
 sys.path.append(char.join(os.getcwd().split(char)[0:-3]))
-from emergent.archetypes.node import Control, Device
+from PyQt5.QtQml import QQmlApplicationEngine
+from PyQt5.QtWidgets import QApplication
+from PyQt5.QtCore import QCoreApplication
+from emergent.archetypes.node import Control, Device, Input
 from emergent.archetypes.Optimizer import Optimizer
 from emergent.archetypes.Clock import Clock
+from emergent.gui.elements.treeview import MainFrame
 import numpy as np
 
 class TestDevice(Device):
@@ -43,6 +47,7 @@ class TestControl(Control):
                 self.state[key] = np.random.uniform()
 
 
+''' Define network '''
 control = TestControl('control')
 
 deviceA = TestDevice('deviceA', parent=control)
@@ -62,4 +67,24 @@ deviceA.inputs['X'].sequence = [(0,0), (0.5, 1)]
 deviceA.inputs['Y'].sequence = [(0,0), (0.25,-1), (0.5,0), (0.75, 1)]
 control.clock.add_input(deviceA.inputs['X'])
 control.clock.add_input(deviceA.inputs['Y'])
-control.clock.start(3)
+#control.clock.start(3)
+
+
+
+''' Gather nodes '''
+tree = {}
+controls = Control.instances
+for control in controls:
+    tree[control.name] = {}
+    for device in control.devices.values():
+        tree[control.name][device.name] = []
+        for input in device.inputs.values():
+            tree[control.name][device.name].append(input.name)
+
+if __name__ == "__main__":
+    app = QCoreApplication.instance()
+    if app is None:
+        app = QApplication(sys.argv)         # Create an instance of the application
+
+    main = MainFrame(tree, control)
+    main.show()
