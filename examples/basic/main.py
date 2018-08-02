@@ -10,7 +10,7 @@ import numpy as np
 class TestDevice(Device):
         def __init__(self, name, parent):
                 super().__init__(name, parent)
-
+                
         def _actuate(self, state):
                 print(state)
 
@@ -46,11 +46,11 @@ class TestControl(Control):
 control = TestControl('control')
 
 deviceA = TestDevice('deviceA', parent=control)
-deviceA.add_input('X', 0, 0, 1)
-deviceA.add_input('Y', 0, 0, 1)
+deviceA.add_input('X')
+deviceA.add_input('Y')
 
 deviceB = TestDevice('deviceB', parent=control)
-deviceB.add_input('Z', 0, 0, 1)
+deviceB.add_input('Z')
 
 control.get_state()
 control.get_settings()
