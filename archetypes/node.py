@@ -5,6 +5,7 @@ import pathlib
 import time
 from emergent.archetypes.Clock import Clock
 from emergent.archetypes.Historian import Historian
+
 class Node():
     instances = []
     def __init__(self, name, parent=None):
@@ -30,12 +31,11 @@ class Node():
         ''' Register self with parent node '''
         self.parent = parent
 
-
 class Input(Node):
         instances = []
         def __init__(self, name, parent):
                 super().__init__(name, parent=parent)
-                self.__class__.instances.append(weakref.proxy(self))
+                #self.__class__.instances.append(weakref.proxy(self))
                 self.value = None
                 self.full_name = self.parent.name+'.'+self.name
 
@@ -43,15 +43,11 @@ class Input(Node):
                 ''' Calls the parent Device.actuate() function to change self.value to a new value '''
                 self.parent.actuate({self.name:value})
 
-
-
-
-
 class Device(Node):
         instances = []
         def __init__(self, name, parent):
                 super().__init__(name, parent=parent)
-                self.__class__.instances.append(weakref.proxy(self))
+                #self.__class__.instances.append(weakref.proxy(self))
                 self.state = {}
                 self.inputs = {}
 
@@ -101,7 +97,7 @@ class Control(Node):
         instances = []
         def __init__(self, name, parent = None):
                 super().__init__(name, parent)
-                self.__class__.instances.append(weakref.proxy(self))
+                #self.__class__.instances.append(weakref.proxy(self))
                 self.devices = {}
                 self.inputs = {}
                 self.state = {}
@@ -172,7 +168,6 @@ class Control(Node):
                         print('Please enter max: ')
                         self.inputs[i].max = float(input())
 
-
         def actuate(self, state, save=True):
             ''' Updates all Inputs in the given state to the given values. Argument should have keys of the form 'Device.Input', e.g. state={'MEMS.X':0} '''
             if not self.actuating:
@@ -201,8 +196,6 @@ class Control(Node):
                         if write_newline:
                             file.write('\n')
                         file.write('%f\t%s'%(time.time(),json.dumps(data[i])))
-                        #json.dump(data[i], file)
-
 
         def load(self):
                 ''' Loads a state from a text file'''
