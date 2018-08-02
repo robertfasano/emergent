@@ -1,6 +1,7 @@
 import json
 import os
 import weakref
+import pathlib
 
 class Node():
     instances = []
@@ -34,10 +35,13 @@ class Input(Node):
                 super().__init__(name, parent=parent)
                 self.__class__.instances.append(weakref.proxy(self))
                 self.value = None
+                self.full_name = self.parent.name+'.'+self.name
 
         def set(self, value):
                 ''' Calls the parent Device.actuate() function to change self.value to a new value '''
                 self.parent.actuate({self.name:value})
+
+
 
 
 class Device(Node):
@@ -49,12 +53,12 @@ class Device(Node):
                 self.inputs = {}
 
         def add_input(self, name):
-                ''' Attaches an Input node with the specified parameters '''
-                self.inputs[name] = Input(name, parent=self)
-                self.parent.get_inputs()
-                self.parent.get_settings()
-                self.get_state()
-                self.parent.get_state()
+            ''' Attaches an Input node with the specified parameters '''
+            self.inputs[name] = Input(name, parent=self)
+            self.parent.get_inputs()
+            self.parent.get_settings()
+            self.get_state()
+            self.parent.get_state()
 
         def _actuate(self, state):
                 ''' Private placeholder, gets overwritten when adding a Device '''
@@ -84,7 +88,7 @@ class Device(Node):
             self.settings = {}
             for i in self.inputs.keys():
                 self.settings[i] = {'min': self.inputs[i].min, 'max': self.inputs[i].max}
-                
+
         def register(self, parent):
                 ''' Adds self to parent control '''
                 self.parent = parent
@@ -100,41 +104,64 @@ class Control(Node):
                 self.state = {}
                 self.actuating = 0
                 self.settings_path ='./settings/'
-                self.state_path = '/state/'
+                self.state_path = './state/'
 
                 for p in [self.settings_path, self.state_path]:
-                    if not os.path.exists(p):
-                        os.makedirs(p)
-
+                        # os.makedirs(p, exist_ok=True)
+                        pathlib.Path(p).mkdir(parents=True, exist_ok=True)
         def add_device(self, name, device):
-                self.devices[name] = device
+            self.devices[name] = device
 
         def cost(state):
                 return
 
         def get_inputs(self):
-                ''' Adds all connected Inputs of child Device nodes to self.inputs. An input is accessible through a key of the format 'Device.Input', e.g. 'MEMS.X' '''
-                for dev in list(self.devices.values()):
-                                for i in list(dev.inputs.values()):
-                                                name = dev.name+'.'+i.name
-                                                self.inputs[name] = i
+            ''' Adds all connected Inputs of child Device nodes to self.inputs. An input is accessible through a key of the format 'Device.Input', e.g. 'MEMS.X' '''
+            for dev in list(self.devices.values()):
+                for i in list(dev.inputs.values()):
+                    name = dev.name+'.'+i.name
+                    self.inputs[name] = i
+
         def get_state(self):
                 ''' Reads the state of all Inputs, and adds to a total state dict. '''
                 self.state = {}
                 for i in self.inputs.keys():
-                                self.state[i] = self.inputs[i].value
-
+                    self.state[i] = self.inputs[i].value
 
         def get_settings(self):
             self.settings = {}
+            with open(self.settings_path+self.name+'.txt', 'r') as file:
+                saved_settings=json.load(file)
+            with open(self.state_path+self.name+'.txt', 'r') as file:
+                saved_state=json.load(file)
             for i in self.inputs.keys():
                 try:
                     self.settings[i] = {'min': self.inputs[i].min, 'max': self.inputs[i].max}
                 except AttributeError:
-                    print('%s not yet configured. Please enter min: '%self.inputs[i].name)
-                    self.min = wait_for_input()
-                    print('Please enter max: ')
-                    
+                    print('%s not yet configured.'%i)
+                    resp = ''
+                    saved = 0
+                    if i in saved_settings.keys() and i in saved_state.keys():
+                        saved = 1
+                        #print('Load from file? (y/n)')
+                        #resp = input()
+                        print('Loaded from file.')
+                        resp = 'y'
+                        if resp == 'y':
+                            for x in ['min', 'max']:
+                                setattr(self.inputs[i],x,saved_settings[i][x])
+                            self.settings[i] = saved_settings[i]
+                            self.state[i] = saved_state[i]
+                            self.inputs[i].value = self.state[i]
+                    if resp == 'n' or not saved:
+                        print('Please enter initial value: ')
+                        self.inputs[i].value = float(input())
+                        print('Please enter min: ')
+                        self.inputs[i].min = float(input())
+                        print('Please enter max: ')
+                        self.inputs[i].max = float(input())
+
+
         def actuate(self, state):
             ''' Updates all Inputs in the given state to the given values. Argument should have keys of the form 'Device.Input', e.g. state={'MEMS.X':0} '''
             if not self.actuating:
@@ -144,12 +171,12 @@ class Control(Node):
                 self.actuating = 0
             else:
                 print('Actuate blocked by already running actuation.')
-                
+
         def save(self):
                 ''' Saves the current state to a text file '''
                 paths = [self.settings_path, self.state_path]
                 data = [self.settings, self.state]
-                
+
                 for i in range(len(paths)):
                     filename = paths[i]+self.name+'.txt'
                     with open(filename, 'w') as file:
@@ -158,8 +185,9 @@ class Control(Node):
         def load(self):
                 ''' Loads a state from a text file'''
                 paths = [self.settings_path, self.state_path]
+                state = {}
                 vars = [self.settings, state]
-                
+
                 for i in range(len(paths)):
                     filename = paths[i]+self.name+'.txt'
                     with open(filename, 'r') as file:
