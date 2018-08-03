@@ -54,7 +54,7 @@ class Optimizer():
         return arr
 
     def _cost(self, state, cost):
-        c = cost(state)
+        c = cost(self.unnormalize(state))
         self.history.loc[time.time()] = -c
         return c
 
@@ -121,7 +121,7 @@ class Optimizer():
         costs = []
         for point in points:
             target = self.array2dict(point, list(state.keys()))
-            costs.append(cost(target))
+            costs.append(cost(self.unnormalize(target)))
 
         points = np.array(points)
         costs = np.array(costs)
@@ -138,7 +138,7 @@ class Optimizer():
         costs = []
         for point in points:
             target = self.array2dict(point, list(state.keys()))
-            costs.append(cost(target))
+            costs.append(cost(self.unnormalize(target)))
 
         return points, costs
 
@@ -213,26 +213,29 @@ class Optimizer():
         return b*mu-(1-b)*sigma
 
     @algorithm
-    def gaussian_process(self, state, cost, params={'iterations':10, 'plot':0}):
+    def gaussian_process(self, state, cost, params={'batch_size':10,'presampled': 15, 'iterations':10, 'plot':0}):
         ''' Online Gaussian process regression '''
         state, bounds = self.initialize_optimizer(state)
         X = self.dict2array(state)
         c = np.array([self._cost(state,cost)])
 
-        points, costs = self.sample(state, cost, 'random_sampling', 15)
+        points, costs = self.sample(state, cost, 'random_sampling', params['presampled'])
         X = np.append(np.atleast_2d(X), points, axis=0)
         c = np.append(c, costs)
         kernel = C(1.0, (1e-3, 1e3)) * RBF(10, (1e-2, 1e2))
         self.gp = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=10)
         for i in range(params['iterations']):
             self.gp.fit(X,c)
-            b = i / (params['iterations']-1) #= 0.5 + 0.5*np.cos(2*np.pi*i/(iterations-1)), =1
-            X_new = self.gaussian_process_next_sample(X, bounds, b, self.effective_cost, self.gp, greater_is_better=False, restarts=10)
-            X_new = np.atleast_2d(X_new)
-            X = np.append(X, X_new, axis=0)
-            target = self.array2dict(X[-1], list(state.keys()))
-            c = np.append(c, self._cost(target, cost))
+            for j in range(params['batch_size']):
+                b = j / (params['batch_size']-1)
+                X_new = self.gaussian_process_next_sample(X, bounds, b, self.effective_cost, self.gp, greater_is_better=False, restarts=10)
+                X_new = np.atleast_2d(X_new)
+                X = np.append(X, X_new, axis=0)
+                target = self.array2dict(X[-1], list(state.keys()))
+                c = np.append(c, self._cost(target, cost))
         best_point = self.array2dict(X[np.argmin(c)], list(state.keys()))
+        print(best_point)
+        print(self.unnormalize(best_point))
         self.actuate(self.unnormalize(best_point))
         if params['plot']:
             self.plot_optimization(lbl = 'Gaussian Processing')
