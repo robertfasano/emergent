@@ -7,7 +7,7 @@ import scipy.signal as sig
 from scipy.stats import linregress
 import time
 from threading import Thread
-from labAPI.archetypes.Parallel import ProcessHandler
+from archetypes.Parallel import ProcessHandler
 
 class LabJack(ProcessHandler):
     def __init__(self, device = "ANY", connection = "ANY", devid = "ANY", orange = 10, arange = 10):
