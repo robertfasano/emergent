@@ -12,6 +12,15 @@ import json
 from archetypes.Optimizer import Optimizer
 from gui.elements.optimizer import OptimizerLayout
 
+class MyTreeWidget(QTreeWidget):
+    def __init__(self, parent):
+        super().__init__()
+        self.parent = parent
+
+    def keyPressEvent(self, event):
+        if event.key() == 16777220:
+            self.parent.update_editor()
+
 class TreeLayout(QHBoxLayout):
     def __init__(self, tree, control):
         super().__init__()
@@ -20,18 +29,20 @@ class TreeLayout(QHBoxLayout):
         self.control.window = self
         self.tree = tree
 
+        self.editorOpen = 0
         self.currentItem = None
         self.lastItem = None
 
         ''' Create QTreeWidget '''
-        self.treeWidget = QTreeWidget()
+        self.treeWidget = MyTreeWidget(self)
         self.treeWidget.setSelectionMode(QAbstractItemView.MultiSelection)
         self.treeWidget.setColumnCount(2)
         self.treeWidget.setHeaderLabels(["Node", "Value"])
         self.treeWidget.header().resizeSection(1,60)
         self.treeWidget.itemDoubleClicked.connect(self.open_editor)
-        self.treeWidget.currentItemChanged.connect(self.close_editor, Qt.UniqueConnection)
-        self.treeWidget.itemChanged.connect(self.update_editor, Qt.UniqueConnection)
+        self.treeWidget.itemSelectionChanged.connect(self.close_editor, Qt.UniqueConnection)
+        # self.treeWidget.itemChanged.connect(self.update_editor, Qt.UniqueConnection)
+        #self.treeWidget.keyPressEvent.connect(self.update_editor, Qt.UniqueConnection)
         self.treeWidget.setContextMenuPolicy(Qt.CustomContextMenu)
         self.treeWidget.customContextMenuRequested.connect(self.openMenu)
         self.addWidget(self.treeWidget)
@@ -50,10 +61,13 @@ class TreeLayout(QHBoxLayout):
     def close_editor(self):
         ''' Disable editing after the user clicks another node. '''
         try:
+
             self.lastItem = self.currentItem
             self.currentItem = self.treeWidget.currentItem()
+            if self.editorOpen:
+                self.lastItem.setText(1,self.currentValue)
             self.treeWidget.closePersistentEditor(self.lastItem, 1)
-
+            self.editorOpen = 0
         except AttributeError:
             pass
 
@@ -63,11 +77,11 @@ class TreeLayout(QHBoxLayout):
             self.lastItem = self.currentItem
             self.currentItem = self.treeWidget.currentItem()
             self.treeWidget.closePersistentEditor(self.lastItem, 1)
-
+            self.editorOpen = 0
             input = self.lastItem.text(0)
             device = self.lastItem.parent().text(0)
             key = device + '.' + input
-            value = self.lastItem.text(1)
+            value = self.currentItem.text(1)
             state = {key: float(value)}
             self.control.actuate(state)
         except AttributeError:
@@ -154,10 +168,11 @@ class TreeLayout(QHBoxLayout):
     def open_editor(self):
         ''' Allow the currently-selected node to be edited. '''
         self.currentItem = self.treeWidget.currentItem()
+        self.currentValue = self.currentItem.text(1)
         col = self.treeWidget.currentIndex().column()
         if col == 1:
             self.treeWidget.openPersistentEditor(self.treeWidget.currentItem(), col)
-
+            self.editorOpen = 1
     def openMenu(self, pos):
         level = self.get_selected_level()
         globalPos = self.mapToGlobal(pos)
