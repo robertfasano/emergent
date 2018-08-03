@@ -6,6 +6,8 @@ from PyQt5.QtQml import QQmlApplicationEngine
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import QCoreApplication
 from emergent.gui.elements.treeview import MainFrame
+from emergent.archetypes.node import Control
+
 import numpy as np
 
 ''' Import network '''
