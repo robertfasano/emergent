@@ -38,7 +38,6 @@ class OptimizerLayout(QVBoxLayout):
         ''' Call chosen optimization routine with user-selected cost function and parameters '''
         func = getattr(self.parent.control.optimizer, self.algorithm_box.currentText())
         params = self.params_edit.toPlainText().replace('\n','').replace("'", '"')
-        print(params)
         params = json.loads(params)
         cost = getattr(self.parent.control, self.cost_box.currentText())
         state = self.parent.treeLayout.get_selected_state()
@@ -46,6 +45,7 @@ class OptimizerLayout(QVBoxLayout):
             print('Please select at least one Input node for optimization.')
         else:
             points, cost = func(state, cost, params)
+            print('Optimization complete!')
             self.parent.treeLayout.get_state()
 
     def update_algorithm(self):
