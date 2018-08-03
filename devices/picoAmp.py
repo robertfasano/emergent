@@ -10,7 +10,7 @@ char = {'nt': '\\', 'posix': '/'}[os.name]
 sys.path.append(char.join(os.getcwd().split(char)[0:-1]))
 from utility import dev
 
-@dev 
+@dev
 class PicoAmp(Device):
     def __init__(self, name, labjack, parent = None):
         super().__init__(name, parent = parent)
@@ -19,6 +19,8 @@ class PicoAmp(Device):
 
         self.add_input('X')
         self.add_input('Y')
+
+        self._connect()
 
     def _connect(self):
         if self.labjack._connected:
@@ -35,15 +37,15 @@ class PicoAmp(Device):
         ENABLE_ALL_DAC_CHANNELS = '001000000000000000001111'      #2097167
         ENABLE_SOFTWARE_LDAC = '001100000000000000000001'    #3145728
 
+        self.Vbias = 80.0
         for cmd in [FULL_RESET, ENABLE_INTERNAL_REFERENCE, ENABLE_ALL_DAC_CHANNELS, ENABLE_SOFTWARE_LDAC]:
             self.command(cmd)
 
     def _actuate(self, state):
         ''' Updates MEMS to a target state. Axes not included in the state dict are unaffected.'''
         for axis in state.keys():
-                state[axis] = np.clip(state[axis], self.min, self.max)
+                #state[axis] = np.clip(state[axis], self.min, self.max)
                 self.setDifferential(state[axis], axis)
-        self.state = state
 
     def command(self, cmd):
         ''' Separates the bitstring cmd into a series of bytes and sends them through the SPI. '''
