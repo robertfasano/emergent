@@ -46,6 +46,7 @@ class OptimizerLayout(QVBoxLayout):
             print('Please select at least one Input node for optimization.')
         else:
             points, cost = func(state, cost, params)
+            self.parent.treeLayout.get_state()
 
     def update_algorithm(self):
         f = getattr(Optimizer, self.algorithm_box.currentText())
