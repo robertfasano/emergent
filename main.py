@@ -26,11 +26,13 @@ for control in controls:
         tree[control.name][device.name] = []
         for input in device.inputs.values():
             tree[control.name][device.name].append(input.name)
-
+controls_dict = {}
+for c in controls:
+    controls_dict[c.name] = c
 if __name__ == "__main__":
     app = QCoreApplication.instance()
     if app is None:
         app = QApplication(sys.argv)         # Create an instance of the application
 
-    main = MainFrame(tree, control)
+    main = MainFrame(tree, controls_dict)
     main.show()

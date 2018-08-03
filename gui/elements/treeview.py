@@ -22,11 +22,13 @@ class MyTreeWidget(QTreeWidget):
             self.parent.update_editor()
 
 class TreeLayout(QHBoxLayout):
-    def __init__(self, tree, control):
+    def __init__(self, tree, controls):
         super().__init__()
 
-        self.control = control
-        self.control.window = self
+        self.controls = controls
+        # self.controls = controls
+        # for c in self.controls:
+        #     c.window = self
         self.tree = tree
 
         self.editorOpen = 0
@@ -48,13 +50,19 @@ class TreeLayout(QHBoxLayout):
         self.addWidget(self.treeWidget)
 
         ''' Populate QTreeWidget '''
-        root_label = list(self.tree.keys())[0]
-        root = QTreeWidgetItem([root_label, ''])
-        self.treeWidget.insertTopLevelItems(0, [root])
-        self._generateTree(self.tree[root_label], root)
+        root_labels = list(self.tree.keys())
+        roots = []
+        for r in root_labels:
+            roots.append(QTreeWidgetItem([r, '']))
+        self.treeWidget.insertTopLevelItems(0, roots)
+
+        for i in range(len(root_labels)):
+            self._generateTree(self.tree[root_labels[i]], roots[i])
+
 
         ''' Prepare initial GUI state '''
-        self.get_state()
+        for control in controls.keys():
+            self.get_state(control)
         self.expand(0)
         self.expand(1)
 
@@ -83,7 +91,8 @@ class TreeLayout(QHBoxLayout):
             key = device + '.' + input
             value = self.currentItem.text(1)
             state = {key: float(value)}
-            self.control.actuate(state)
+            control = self.currentItem.parent().parent().text(0)
+            self.controls[control].actuate(state)
         except AttributeError:
             pass
 
@@ -111,6 +120,11 @@ class TreeLayout(QHBoxLayout):
             all_items.extend(self.get_subtree_nodes(top_item))
         return all_items
 
+    def get_input_control(self, full_name):
+        item = self.get_input(full_name)
+        control = item.parent().parent().text(0)
+        return getattr(__main__, control)
+
     def get_input(self, full_name):
         ''' Return input item corresponding to a full_name. '''
         device_name = full_name.split('.')[0]
@@ -122,6 +136,11 @@ class TreeLayout(QHBoxLayout):
 
     def get_items_on_level(self, level):
         all_items = self.get_all_items()
+        items = []
+        for i in all_items:
+            if self.get_layer(i) == level:
+                items.append(i)
+        return items
 
     def get_layer(self, item):
         ''' Get the layer in which an item resides. '''
@@ -131,6 +150,13 @@ class TreeLayout(QHBoxLayout):
             item = item.parent()
             layer +=1
         return layer-1
+
+    def get_selected_control(self):
+        ''' Returns a control node corresponding to the selected input node. '''
+        ''' WARNING: will cause unpredicted behavior if nodes across controls are selected '''
+        item = self.treeWidget.selectedItems()[0]
+        control_name = item.parent().parent().text(0)
+        return self.controls[control_name]
 
     def get_selected_level(self):
         ''' Return the level of the currently selected item. '''
@@ -150,6 +176,7 @@ class TreeLayout(QHBoxLayout):
             if i.column() == 0:
                 full_name = i.parent().data() + '.' + i.data()
                 state[full_name] = float(i.sibling(i.row(), 1).data())
+
         return state
 
     def get_subtree_nodes(self, item):
@@ -160,10 +187,12 @@ class TreeLayout(QHBoxLayout):
             nodes.extend(self.get_subtree_nodes(item.child(i)))
         return nodes
 
-    def get_state(self):
+    def get_state(self, control):
         ''' Read Control node state and update GUI. '''
-        for key in self.control.state:
-            self.get_input(key).setText(1, '%.2f'%self.control.state[key])
+        for key in self.controls[control].state:
+            print(key)
+            print(self.get_input(key))
+            self.get_input(key).setText(1, '%.2f'%self.controls[control].state[key])
 
     def open_editor(self):
         ''' Allow the currently-selected node to be edited. '''

@@ -12,16 +12,18 @@ class OptimizerLayout(QVBoxLayout):
 
         self.addWidget(QLabel('Optimizer'))
         self.algorithm_box = QComboBox()
-        for item in self.parent.control.optimizer.list_algorithms():
-            self.algorithm_box.addItem(item)
+        for control in self.parent.controls.values():
+            for item in control.optimizer.list_algorithms():
+                self.algorithm_box.addItem(item)
         self.addWidget(self.algorithm_box)
         self.algorithm_box.currentTextChanged.connect(self.update_algorithm)
         self.params_edit = QTextEdit('')
         self.addWidget(self.params_edit)
 
         self.cost_box = QComboBox()
-        for item in self.parent.control.list_costs():
-            self.cost_box.addItem(item)
+        for control in self.parent.controls.values():
+            for item in control.list_costs():
+                self.cost_box.addItem(item)
         self.addWidget(self.cost_box)
 
         self.optimizer_button = QPushButton('Go!')
@@ -36,17 +38,18 @@ class OptimizerLayout(QVBoxLayout):
 
     def start_optimizer(self):
         ''' Call chosen optimization routine with user-selected cost function and parameters '''
-        func = getattr(self.parent.control.optimizer, self.algorithm_box.currentText())
+        control = self.parent.treeLayout.get_selected_control()
+        func = getattr(control.optimizer, self.algorithm_box.currentText())
         params = self.params_edit.toPlainText().replace('\n','').replace("'", '"')
         params = json.loads(params)
-        cost = getattr(self.parent.control, self.cost_box.currentText())
+        cost = getattr(control, self.cost_box.currentText())
         state = self.parent.treeLayout.get_selected_state()
         if state == {}:
             print('Please select at least one Input node for optimization.')
         else:
             points, cost = func(state, cost, params)
             print('Optimization complete!')
-            self.parent.treeLayout.get_state()
+            self.parent.treeLayout.get_state(control.name)
 
     def update_algorithm(self):
         f = getattr(Optimizer, self.algorithm_box.currentText())

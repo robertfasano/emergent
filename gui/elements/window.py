@@ -14,17 +14,17 @@ from gui.elements.optimizer import OptimizerLayout
 from gui.elements.treeview import TreeLayout
 
 class MainFrame(QWidget):
-    def __init__(self, tree, control):
+    def __init__(self, tree, controls):
         QWidget.__init__(self)
         self.setWindowTitle('EMERGENT')
         with open('gui/stylesheet.txt',"r") as file:
             self.setStyleSheet(file.read())
-        self.control = control 
+        self.controls = controls
 
         layout= QHBoxLayout(self)
 
         ''' Create QTreeWidget '''
-        self.treeLayout = TreeLayout(tree, control)
+        self.treeLayout = TreeLayout(tree, controls)
         layout.addLayout(self.treeLayout)
 
         ''' Create optimizer layout '''
