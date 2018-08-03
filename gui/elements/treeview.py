@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
+import inspect
 import sys
 import types
 from PyQt5.QtGui import QStandardItem, QStandardItemModel, QFont
-from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QGridLayout,
-        QGroupBox, QHBoxLayout, QLabel, QLineEdit, QTreeView, QPushButton, QTableView,QVBoxLayout,
+from PyQt5.QtWidgets import (QApplication, QAbstractItemView,QCheckBox, QComboBox, QGridLayout,
+        QGroupBox, QHBoxLayout, QLabel, QTextEdit, QTreeView, QPushButton, QTableView,QVBoxLayout,
         QWidget, QMenu, QAction, QTreeWidget, QTreeWidgetItem)
 from PyQt5.QtCore import *
 from emergent.gui.elements.Optimizer import OptimizerWindow
-import functools
+from emergent.archetypes.Optimizer import Optimizer
+import json
 
 class MainFrame(QWidget):
     def __init__(self, tree, control):
@@ -19,6 +20,7 @@ class MainFrame(QWidget):
             self.setStyleSheet(file.read())
 
         self.control = control
+        self.control.window = self
         self.tree = tree
         self.optimizerWindow = OptimizerWindow(self.control)
 
@@ -26,6 +28,7 @@ class MainFrame(QWidget):
         self.lastItem = None
 
         self.treeWidget = QTreeWidget()
+        self.treeWidget.setSelectionMode(QAbstractItemView.MultiSelection)
         self.treeWidget.setColumnCount(2)
         self.treeWidget.setHeaderLabels(["Node", "Value"])
         self.treeWidget.header().resizeSection(1,60)
@@ -44,8 +47,71 @@ class MainFrame(QWidget):
         self.expand(0)
         self.expand(1)
 
-        layout = QHBoxLayout(self)
-        layout.addWidget(self.treeWidget)
+        treeLayout = QHBoxLayout()
+        treeLayout.addWidget(self.treeWidget)
+
+        optimizerLayout = QVBoxLayout()
+        optimizerLayout.addWidget(QLabel('Optimizer'))
+        self.algorithm_box = QComboBox()
+        for item in self.control.optimizer.list_algorithms():
+            self.algorithm_box.addItem(item)
+        optimizerLayout.addWidget(self.algorithm_box)
+        self.algorithm_box.currentTextChanged.connect(self.update_algorithm)
+        self.params_edit = QTextEdit('')
+        optimizerLayout.addWidget(self.params_edit)
+        self.update_algorithm()
+
+        self.cost_box = QComboBox()
+        for item in self.control.list_costs():
+            self.cost_box.addItem(item)
+        optimizerLayout.addWidget(self.cost_box)
+
+        self.optimizer_button = QPushButton('Go!')
+        self.optimizer_button.clicked.connect(self.start_optimizer)
+        optimizerLayout.addWidget(self.optimizer_button)
+
+        ''' Ensure that only Inputs are selectable '''
+        for item in self.get_all_items():
+            if self.get_layer(item) != 2:
+                item.setFlags(Qt.ItemIsEnabled)
+
+
+        layout= QHBoxLayout(self)
+
+
+        layout.addLayout(treeLayout)
+        layout.addLayout(optimizerLayout)
+
+    def start_optimizer(self):
+        func = getattr(self.control.optimizer, self.algorithm_box.currentText())
+        params = self.params_edit.toPlainText().replace('\n','').replace("'", '"')
+        print(params)
+        params = json.loads(params)
+        cost = getattr(self.control, self.cost_box.currentText())
+        state = self.get_selected_state()
+        if state == {}:
+            print('Please select at least one Input node for optimization.')
+        else:
+            points, cost = func(state, cost, params)
+
+    def update_algorithm(self):
+        f = getattr(Optimizer, self.algorithm_box.currentText())
+        doc = inspect.getdoc(f)
+        # self.algorithm_label.setText(doc)
+        args = inspect.signature(f).parameters
+        args = list(args.items())
+        arguments = []
+        for a in args:
+            name = a[0]
+            default = str(a[1])
+            if default == name:
+                default = 'Enter'
+            else:
+                default = default.split('=')[1]
+                default = default.replace('{', '{\n')
+                default = default.replace(',', ',\n')
+                default = default.replace('}', '\n}')
+                self.params_edit.setText(default)
 
     def expand(self, layer):
         items = self.get_all_items()
@@ -89,7 +155,7 @@ class MainFrame(QWidget):
                 return input
 
     def get_items_on_level(self, level):
-        all_items = get_all_items()
+        all_items = self.get_all_items()
 
     def get_subtree_nodes(self, item):
         """Returns all QTreeWidgetItems in the subtree rooted at the given node."""
@@ -109,7 +175,7 @@ class MainFrame(QWidget):
 
     def get_state(self):
         for key in self.control.state:
-            self.get_input(key).setText(1, str(self.control.state[key]))
+            self.get_input(key).setText(1, '%.2f'%self.control.state[key])
 
     def _generateTree(self, children, parent):
         for child in sorted(children):
@@ -156,3 +222,21 @@ class MainFrame(QWidget):
         key = device + '.' + input
         print(key)
         return key
+
+    def get_selected_keys(self):
+        indexes = self.treeWidget.selectedIndexes()
+        keys = []
+        for i in indexes:
+            if i.column() == 0:
+                full_name = i.parent().data() + '.' + i.data()
+                keys.append(full_name)
+        return keys
+
+    def get_selected_state(self):
+        indexes = self.treeWidget.selectedIndexes()
+        state = {}
+        for i in indexes:
+            if i.column() == 0:
+                full_name = i.parent().data() + '.' + i.data()
+                state[full_name] = float(i.sibling(i.row(), 1).data())
+        return state
