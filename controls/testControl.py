@@ -1,12 +1,12 @@
 import numpy as np
-from emergent.archetypes.node import Control
+from archetypes.node import Control
 
 def cost(func):
     return func
 
 class TestControl(Control):
-        def __init__(self, name, parent=None):
-                super().__init__(name, parent)
+        def __init__(self, name, parent=None, path = '.'):
+                super().__init__(name, parent, path=path)
 
         @cost
         def cost_coupled(self, state):

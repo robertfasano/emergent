@@ -1,7 +1,7 @@
 import time
 import numpy as np
 from threading import Thread
-from emergent.archetypes.Parallel import ProcessHandler
+from archetypes.Parallel import ProcessHandler
 
 class Clock(ProcessHandler):
     def __init__(self, parent):

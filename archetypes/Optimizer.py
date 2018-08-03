@@ -27,7 +27,7 @@ def warn(*args, **kwargs):
     pass
 import warnings
 warnings.warn = warn
-from emergent.utility import methodsWithDecorator
+from utility import methodsWithDecorator
 
 def algorithm(func):
     return func

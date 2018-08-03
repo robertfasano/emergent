@@ -3,10 +3,10 @@ import os
 import weakref
 import pathlib
 import time
-from emergent.archetypes.Clock import Clock
-from emergent.archetypes.Historian import Historian
-from emergent.archetypes.Optimizer import Optimizer
-from emergent.utility import methodsWithDecorator
+from archetypes.Clock import Clock
+from archetypes.Historian import Historian
+from archetypes.Optimizer import Optimizer
+from utility import methodsWithDecorator
 class Node():
     instances = []
     def __init__(self, name, parent=None):
@@ -97,15 +97,15 @@ class Device(Node):
 
 class Control(Node):
         instances = []
-        def __init__(self, name, parent = None):
+        def __init__(self, name, parent = None, path = '.'):
                 super().__init__(name, parent)
                 #self.__class__.instances.append(weakref.proxy(self))
                 self.devices = {}
                 self.inputs = {}
                 self.state = {}
                 self.actuating = 0
-                self.settings_path ='./settings/'
-                self.state_path = './state/'
+                self.settings_path =path+'/settings/'
+                self.state_path = path+'/state/'
 
                 self.clock = Clock(self)
                 self.historian = Historian(self)

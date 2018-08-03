@@ -1,4 +1,4 @@
-from emergent.archetypes.node import Device
+from archetypes.node import Device
 
 class TestDevice(Device):
         def __init__(self, name, parent):

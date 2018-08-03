@@ -9,13 +9,13 @@ from PyQt5.QtWidgets import (QApplication, QAbstractItemView,QCheckBox, QComboBo
         QWidget, QMenu, QAction, QTreeWidget, QTreeWidgetItem)
 from PyQt5.QtCore import *
 import json
-from emergent.archetypes.Optimizer import Optimizer
+from archetypes.Optimizer import Optimizer
 
 class MainFrame(QWidget):
     def __init__(self, tree, control):
         QWidget.__init__(self)
         self.setWindowTitle('EMERGENT')
-        with open('../../gui/stylesheet.txt',"r") as file:
+        with open('gui/stylesheet.txt',"r") as file:
             self.setStyleSheet(file.read())
 
         self.control = control
