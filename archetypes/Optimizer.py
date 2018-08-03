@@ -53,10 +53,15 @@ class Optimizer():
             arr = np.append(arr, state[list(state.keys())[i]])
         return arr
 
+    def _cost(self, state, cost):
+        c = cost(state)
+        self.history.loc[time.time()] = -c
+        return c
+
     def cost_array(self, X, keys, cost):
         ''' Converts an array into a state dict and evaluates cost '''
         state = self.array2dict(X, keys)
-        return cost(state)
+        return self._cost(state, cost)
 
     def initialize_optimizer(self, state):
         ''' Prepares a normalized substate and appropriate bounds. '''
@@ -81,7 +86,6 @@ class Optimizer():
             max = self.parent.settings[i]['max']
             norm[i] = (unnorm[i] - min)/(max-min)
         return norm
-
 
     def unnormalize(self, norm):
         ''' Converts normalized (0-1) state to physical state based on specified
@@ -213,7 +217,7 @@ class Optimizer():
         ''' Online Gaussian process regression '''
         state, bounds = self.initialize_optimizer(state)
         X = self.dict2array(state)
-        c = np.array([cost(state)])
+        c = np.array([self._cost(state,cost)])
 
         points, costs = self.sample(state, cost, 'random_sampling', 15)
         X = np.append(np.atleast_2d(X), points, axis=0)
@@ -227,11 +231,11 @@ class Optimizer():
             X_new = np.atleast_2d(X_new)
             X = np.append(X, X_new, axis=0)
             target = self.array2dict(X[-1], list(state.keys()))
-            c = np.append(c, cost(target))
+            c = np.append(c, self._cost(target, cost))
         best_point = self.array2dict(X[np.argmin(c)], list(state.keys()))
         self.actuate(self.unnormalize(best_point))
         if params['plot']:
-            self.plot_optimization(func = c, lbl = 'Gaussian Processing')
+            self.plot_optimization(lbl = 'Gaussian Processing')
 
         return X, c
 
@@ -249,7 +253,7 @@ class Optimizer():
                    tol = params['tol'])
         #simplex for SKL is res = minimize(fun = cost,x0 = X.reshape(1, -1), method = 'Nelder-Mead', tol = 1e7)
         if params['plot']:
-            self.plot_optimization(lbl = method)
+            self.plot_optimization(lbl = params['method'])
         return None, None
 
 
@@ -393,7 +397,7 @@ class Optimizer():
         if func is None:
             func = self.history
             func.index -= func.index[0]
-        plt.plot(func, label = lbl)
+        plt.plot(func['cost'], label = lbl)
         plt.yscale(yscl)
         plt.ylabel(ylbl)
         plt.xlabel(xlbl)

@@ -8,7 +8,9 @@ import sys
 import os
 char = {'nt': '\\', 'posix': '/'}[os.name]
 sys.path.append(char.join(os.getcwd().split(char)[0:-1]))
+from utility import dev
 
+@dev 
 class PicoAmp(Device):
     def __init__(self, name, labjack, parent = None):
         super().__init__(name, parent = parent)

@@ -1,8 +1,6 @@
 import numpy as np
 from archetypes.node import Control
-
-def cost(func):
-    return func
+from utility import cost
 
 class TestControl(Control):
         def __init__(self, name, parent=None, path = '.'):

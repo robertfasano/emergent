@@ -8,9 +8,7 @@ import sys
 import os
 char = {'nt': '\\', 'posix': '/'}[os.name]
 sys.path.append(char.join(os.getcwd().split(char)[0:-1]))
-
-def cost(func):
-    return func
+from utility import cost
 
 class AutoAlign(Control):
     def __init__(self, name, labjack, parent = None, path='.'):

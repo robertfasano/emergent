@@ -7,6 +7,7 @@ from archetypes.Clock import Clock
 from archetypes.Historian import Historian
 from archetypes.Optimizer import Optimizer
 from utility import methodsWithDecorator
+
 class Node():
     instances = []
     def __init__(self, name, parent=None):
@@ -116,9 +117,6 @@ class Control(Node):
 
         def add_device(self, name, device):
             self.devices[name] = device
-
-        def cost(state):
-                return
 
         def list_costs(self):
             return methodsWithDecorator(self.__class__, 'cost')

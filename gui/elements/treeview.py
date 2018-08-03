@@ -10,13 +10,11 @@ from PyQt5.QtWidgets import (QApplication, QAbstractItemView,QCheckBox, QComboBo
 from PyQt5.QtCore import *
 import json
 from archetypes.Optimizer import Optimizer
+from gui.elements.optimizer import OptimizerLayout
 
-class MainFrame(QWidget):
+class TreeLayout(QHBoxLayout):
     def __init__(self, tree, control):
-        QWidget.__init__(self)
-        self.setWindowTitle('EMERGENT')
-        with open('gui/stylesheet.txt',"r") as file:
-            self.setStyleSheet(file.read())
+        super().__init__()
 
         self.control = control
         self.control.window = self
@@ -24,7 +22,6 @@ class MainFrame(QWidget):
 
         self.currentItem = None
         self.lastItem = None
-        layout= QHBoxLayout(self)
 
         ''' Create QTreeWidget '''
         self.treeWidget = QTreeWidget()
@@ -37,9 +34,7 @@ class MainFrame(QWidget):
         self.treeWidget.itemChanged.connect(self.close_editor)
         self.treeWidget.setContextMenuPolicy(Qt.CustomContextMenu)
         self.treeWidget.customContextMenuRequested.connect(self.openMenu)
-        treeLayout = QHBoxLayout()
-        treeLayout.addWidget(self.treeWidget)
-        layout.addLayout(treeLayout)
+        self.addWidget(self.treeWidget)
 
         ''' Populate QTreeWidget '''
         root_label = list(self.tree.keys())[0]
@@ -52,32 +47,7 @@ class MainFrame(QWidget):
         self.expand(0)
         self.expand(1)
 
-        ''' Create optimizer layout '''
-        optimizerLayout = QVBoxLayout()
-        optimizerLayout.addWidget(QLabel('Optimizer'))
-        self.algorithm_box = QComboBox()
-        for item in self.control.optimizer.list_algorithms():
-            self.algorithm_box.addItem(item)
-        optimizerLayout.addWidget(self.algorithm_box)
-        self.algorithm_box.currentTextChanged.connect(self.update_algorithm)
-        self.params_edit = QTextEdit('')
-        optimizerLayout.addWidget(self.params_edit)
-        self.update_algorithm()
 
-        self.cost_box = QComboBox()
-        for item in self.control.list_costs():
-            self.cost_box.addItem(item)
-        optimizerLayout.addWidget(self.cost_box)
-
-        self.optimizer_button = QPushButton('Go!')
-        self.optimizer_button.clicked.connect(self.start_optimizer)
-        optimizerLayout.addWidget(self.optimizer_button)
-        layout.addLayout(optimizerLayout)
-
-        ''' Ensure that only Inputs are selectable '''
-        for item in self.get_all_items():
-            if self.get_layer(item) != 2:
-                item.setFlags(Qt.ItemIsEnabled)
 
     def close_editor(self):
         ''' Send actuate command and disable editing after the user presses return or clicks another node. '''
@@ -141,6 +111,26 @@ class MainFrame(QWidget):
             layer +=1
         return layer-1
 
+    def get_selected_level(self):
+        ''' Return the level of the currently selected item. '''
+        indexes = self.treeWidget.selectedIndexes()
+        level = 0
+        index = indexes[0]
+        while index.parent().isValid():
+            index = index.parent()
+            level += 1
+        return level
+
+    def get_selected_state(self):
+        ''' Build a substate from all currently selected items. '''
+        indexes = self.treeWidget.selectedIndexes()
+        state = {}
+        for i in indexes:
+            if i.column() == 0:
+                full_name = i.parent().data() + '.' + i.data()
+                state[full_name] = float(i.sibling(i.row(), 1).data())
+        return state
+
     def get_subtree_nodes(self, item):
         """Returns all QTreeWidgetItems in the subtree rooted at the given node."""
         nodes = []
@@ -161,51 +151,6 @@ class MainFrame(QWidget):
         if col == 1:
             self.treeWidget.openPersistentEditor(self.treeWidget.currentItem(), col)
 
-    def start_optimizer(self):
-        ''' Call chosen optimization routine with user-selected cost function and parameters '''
-        func = getattr(self.control.optimizer, self.algorithm_box.currentText())
-        params = self.params_edit.toPlainText().replace('\n','').replace("'", '"')
-        print(params)
-        params = json.loads(params)
-        cost = getattr(self.control, self.cost_box.currentText())
-        state = self.get_selected_state()
-        if state == {}:
-            print('Please select at least one Input node for optimization.')
-        else:
-            points, cost = func(state, cost, params)
-
-    def update_algorithm(self):
-        f = getattr(Optimizer, self.algorithm_box.currentText())
-        ''' Read default params dict from source code and insert in self.params_edit. '''
-        args = inspect.signature(f).parameters
-        args = list(args.items())
-        arguments = []
-        for a in args:
-            name = a[0]
-            default = str(a[1])
-            if default == name:
-                default = 'Enter'
-            else:
-                default = default.split('=')[1]
-                default = default.replace('{', '{\n')
-                default = default.replace(',', ',\n')
-                default = default.replace('}', '\n}')
-                self.params_edit.setText(default)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     def openMenu(self, pos):
         level = self.get_selected_level()
         globalPos = self.mapToGlobal(pos)
@@ -218,25 +163,3 @@ class MainFrame(QWidget):
 
 
         selectedItem = menu.exec_(globalPos)
-
-    def get_selected_level(self):
-        ''' Return the level of the currently selected item. '''
-        indexes = self.treeWidget.selectedIndexes()
-        level = 0
-        index = indexes[0]
-        while index.parent().isValid():
-            index = index.parent()
-            level += 1
-        return level
-
-
-
-    def get_selected_state(self):
-        ''' Build a substate from all currently selected items. '''
-        indexes = self.treeWidget.selectedIndexes()
-        state = {}
-        for i in indexes:
-            if i.column() == 0:
-                full_name = i.parent().data() + '.' + i.data()
-                state[full_name] = float(i.sibling(i.row(), 1).data())
-        return state
