@@ -27,6 +27,10 @@ def warn(*args, **kwargs):
     pass
 import warnings
 warnings.warn = warn
+from emergent.utility import methodsWithDecorator
+
+def algorithm(func):
+    return func
 
 class Optimizer():
     ''' General methods '''
@@ -65,6 +69,9 @@ class Optimizer():
         bounds = np.array(list(itertools.repeat([0,1], len(state.keys()))))
 
         return state, bounds
+
+    def list_algorithms(self):
+        return methodsWithDecorator(Optimizer, 'algorithm')
 
     def normalize(self, unnorm):
         ''' Normalizes a state or substate based on min/max values saved in the parent control node '''
@@ -130,21 +137,21 @@ class Optimizer():
             costs.append(cost(target))
 
         return points, costs
-        
+
     def dijkstra_sampling(self, points, weights = None):
         ''' Determines the sampling order of the given points array to minimize
             the distance between points, weighted by an optional vector. The weight
             vector allows consideration of different actuation speeds in the path decision '''
         if weights is None:
             weights = np.ones(len(points))
-        
+
         ''' First, calculate an adjacency matrix G, where G[i,j] is the distance
             between points[i] and points[j] '''
         G = np.zeros((len(points), len(points)))
         for i in range(len(points)):
              for j in range(len(points)):
                  G[i,j] = np.linalg.norm(weights*points[i]-weights*points[j])
-                 
+
         dist_matrix = dijkstra(G)
 
 
@@ -154,82 +161,20 @@ class Optimizer():
         func = getattr(self, method)
         points, cost = func(state, cost, params)
 
-
-    def line_search(self, state, cost, params = None):
-        ''' Searches a single axis/dimension for a minimum using a moving derivative. Argument should be a state dict with one or more components; if more than one component is present, they are done sequentially.'''
-        if params is None:
-            step = 0.1
-        else:
-            step = params['step']
-        state, bounds = self.initialize_optimizer(state)
-
-        for key in state.keys():
-                X = {key: state[key]}        # extract single axis
-                costs = [cost(X)]
-                #first compute the gradient to check which direction to move
-                init_step = 5 * step
-                init_points = []
-
-                X[key] -= init_step
-                init_points.append(cost(X))
-
-                for i in range(2):
-                        X[key] += init_step
-                init_points.append(cost(X))
-
-                dir = -1*np.sign(np.mean(np.diff(init_points))) #determine direction from differences towards mininum
-
-                if dir is -1: #undo move in wrction
-                        X[key] -= init_step
-                        self.actuate(X)
-
-                #now, perform the line search
-                num_points = 5 #for moving derivative and to keep track of historically
-                lastNPoints = np.array([])
-                movingDeriv = 0
-
-                while True:
-                        X[key] += dir*step
-                        val = cost(X)
-                        costs.append(val)
-                        lastNPoints = np.append(lastNPoints, val)
-                        if len(lastNPoints) > num_points:
-                                lastNPoints = np.delete(lastNPoints,0)
-                        if len(lastNPoints) > 1:
-                                movingDeriv = np.mean(np.diff(lastNPoints))
-                        if movingDeriv > 0 and len(lastNPoints) == num_points:
-                                numSteps = len(lastNPoints) - np.argmin(lastNPoints) - 1
-                                X[key] -= dir*step*numSteps
-                                costs.append(cost(X))
-                                break
-                change = (costs[-1]-costs[0])/costs[0]*100
-                char = {1: '+', -1: '-', 0: ''}[np.sign(change)]
-                print('Line search on axis %s terminated. Cost: %f->%f  (%s%.0f%%).'%(key, costs[0], costs[-1], char, change))
-
-        return None, costs
-
-
-    def grid_search(self, state, cost, params=None):
+    @algorithm
+    def grid_search(self, state, cost, params={'plot':0, 'loadExisting':0, 'steps':10}):
         ''' An N-dimensional grid search routine with optional plotting. '''
-        if params is None:
-            plot = False
-            loadExisting = False
-            steps = 10
-        else:
-            plot = params['plot']
-            loadExisting = params['loadExisting']
-            steps = params['steps']
         state, bounds = self.initialize_optimizer(state)
-        if loadExisting:
+        if params['loadExisting']:
             costs = np.loadtxt('costs.txt')
             points = np.loadtxt('points.txt')
         else:
             ''' Generate search grid '''
-            points, costs = self.grid_sampling(state, cost, steps, bounds)
+            points, costs = self.grid_sampling(state, cost, params['steps'], bounds)
 
         ''' Plot result if desired '''
         ax = None
-        if plot and len(state.keys()) is 2:
+        if params['plot'] and len(state.keys()) is 2:
             ax = self.plot_2D(points, costs)
         best_point = self.array2dict(points[np.argmin(costs)], list(state.keys()))
         self.actuate(self.unnormalize(best_point))
@@ -263,51 +208,36 @@ class Optimizer():
        # return (b*mu+np.sqrt(1-b**2)*sigma)
         return b*mu-(1-b)*sigma
 
-    def gaussian_process(self, state, cost, params=None):
-        ''' Gaussian Processing from https://github.com/thuijskens/bayesian-optimization/blob/master/python/gp.py
-            and https://www.nature.com/articles/srep25890.pdf '''
-        if params is None:
-            iterations = 10
-            plot = False
-        else:
-            iterations = params['iterations']
-            plot = params['plot']
-
+    @algorithm
+    def gaussian_process(self, state, cost, params={'iterations':10, 'plot':0}):
+        ''' Online Gaussian process regression '''
         state, bounds = self.initialize_optimizer(state)
         X = self.dict2array(state)
         c = np.array([cost(state)])
 
-        points, costs = self.sample(state, 'random', cost, 15)
+        points, costs = self.sample(state, cost, 'random_sampling', 15)
         X = np.append(np.atleast_2d(X), points, axis=0)
         c = np.append(c, costs)
         kernel = C(1.0, (1e-3, 1e3)) * RBF(10, (1e-2, 1e2))
         self.gp = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=10)
-        for i in range(iterations):
+        for i in range(params['iterations']):
             self.gp.fit(X,c)
-            b = i / (iterations-1) #= 0.5 + 0.5*np.cos(2*np.pi*i/(iterations-1)), =1
+            b = i / (params['iterations']-1) #= 0.5 + 0.5*np.cos(2*np.pi*i/(iterations-1)), =1
             X_new = self.gaussian_process_next_sample(X, bounds, b, self.effective_cost, self.gp, greater_is_better=False, restarts=10)
             X_new = np.atleast_2d(X_new)
             X = np.append(X, X_new, axis=0)
-            state = self.array2dict(X, list(state.keys()))
-            c = np.append(c, self.cost(state))
+            target = self.array2dict(X[-1], list(state.keys()))
+            c = np.append(c, cost(target))
         best_point = self.array2dict(X[np.argmin(c)], list(state.keys()))
         self.actuate(self.unnormalize(best_point))
-        if plot:
+        if params['plot']:
             self.plot_optimization(func = c, lbl = 'Gaussian Processing')
 
         return X, c
 
-    def skl_minimize(self, state, cost, params=None):
-        ''' Runs a specified scikit-learn minimization method on the target axes and cost. '''
-        ''' TODO: properly convert state to X and back in overloaded cost function '''
-        if params is None:
-            method = 'L-BFGS-B'
-            plot = False
-            tol = 1e-7
-        else:
-            method = params['method']
-            plot = params['plot']
-            tol = params['tol']
+    @algorithm
+    def scipy_minimize(self, state, cost, params={'method':'L-BFGS-B', 'plot':0, 'tol':1e-7}):
+        ''' Runs a specified scipy minimization method on the target axes and cost. '''
         state, bounds = self.initialize_optimizer(state)
         X = self.dict2array(state)
         keys = list(state.keys())
@@ -315,11 +245,10 @@ class Optimizer():
                    x0=X,
                    bounds=bounds,
                    args = (keys, cost),
-                   method=method,
-                   tol = tol)
+                   method=params['method'],
+                   tol = params['tol'])
         #simplex for SKL is res = minimize(fun = cost,x0 = X.reshape(1, -1), method = 'Nelder-Mead', tol = 1e7)
-        print("SKL:" + method + "=%s" % res)
-        if plot:
+        if params['plot']:
             self.plot_optimization(lbl = method)
         return None, None
 
@@ -328,13 +257,10 @@ class Optimizer():
     #NOTE: might need to convert to something with COST and to the entire training database
     #use differential evolution from skl to develop a dataset for the pca to determine reduction, caluclate covariance and perform pca on it
 
-<<<<<<< HEAD
     def covariance(self, state, cost, points, method='random_sampling'):
         points, cost = self.sample(state, cost, method, points)
         return np.cov(cost)
 
-=======
->>>>>>> 243bc917cdb2a475fa91148dff57950fc82f4051
     def extract_pcs(self, X = None):
         ''' Uses numpy's svd() function to obtain the principal components of the training set. '''
         #NOTE: must take step to recenter data around the origin as necessary here
