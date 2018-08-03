@@ -155,7 +155,6 @@ class Control(Node):
                 try:
                     self.settings[i] = {'min': self.inputs[i].min, 'max': self.inputs[i].max}
                 except AttributeError:
-                    print('%s not yet configured.'%i)
                     resp = ''
                     saved = 0
                     if loaded:
@@ -163,7 +162,7 @@ class Control(Node):
                             saved = 1
                             #print('Load from file? (y/n)')
                             #resp = input()
-                            print('Loaded from file.')
+                            print('%s settings loaded from file.'%i)
                             resp = 'y'
                             if resp == 'y':
                                 for x in ['min', 'max']:
@@ -172,6 +171,7 @@ class Control(Node):
                                 self.state[i] = saved_state[i]
                                 self.inputs[i].value = self.state[i]
                     if resp == 'n' or not saved:
+                        print('%s not yet configured.'%i)
                         print('Please enter initial value: ')
                         self.inputs[i].value = float(input())
                         print('Please enter min: ')
