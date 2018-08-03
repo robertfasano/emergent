@@ -30,8 +30,8 @@ class TreeLayout(QHBoxLayout):
         self.treeWidget.setHeaderLabels(["Node", "Value"])
         self.treeWidget.header().resizeSection(1,60)
         self.treeWidget.itemDoubleClicked.connect(self.open_editor)
-        self.treeWidget.currentItemChanged.connect(self.close_editor)
-        self.treeWidget.itemChanged.connect(self.close_editor)
+        self.treeWidget.currentItemChanged.connect(self.close_editor, Qt.UniqueConnection)
+        self.treeWidget.itemChanged.connect(self.update_editor, Qt.UniqueConnection)
         self.treeWidget.setContextMenuPolicy(Qt.CustomContextMenu)
         self.treeWidget.customContextMenuRequested.connect(self.openMenu)
         self.addWidget(self.treeWidget)
@@ -47,22 +47,29 @@ class TreeLayout(QHBoxLayout):
         self.expand(0)
         self.expand(1)
 
-
-
     def close_editor(self):
+        ''' Disable editing after the user clicks another node. '''
+        try:
+            self.lastItem = self.currentItem
+            self.currentItem = self.treeWidget.currentItem()
+            self.treeWidget.closePersistentEditor(self.lastItem, 1)
+
+        except AttributeError:
+            pass
+
+    def update_editor(self):
         ''' Send actuate command and disable editing after the user presses return or clicks another node. '''
         try:
-            if self.lastItem != self.currentItem:
-                self.lastItem = self.currentItem
-                self.currentItem = self.treeWidget.currentItem()
-                self.treeWidget.closePersistentEditor(self.lastItem, 1)
+            self.lastItem = self.currentItem
+            self.currentItem = self.treeWidget.currentItem()
+            self.treeWidget.closePersistentEditor(self.lastItem, 1)
 
-                input = self.lastItem.text(0)
-                device = self.lastItem.parent().text(0)
-                key = device + '.' + input
-                value = self.lastItem.text(1)
-                state = {key: float(value)}
-                self.control.actuate(state)
+            input = self.lastItem.text(0)
+            device = self.lastItem.parent().text(0)
+            key = device + '.' + input
+            value = self.lastItem.text(1)
+            state = {key: float(value)}
+            self.control.actuate(state)
         except AttributeError:
             pass
 
