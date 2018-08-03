@@ -15,11 +15,11 @@ class AutoAlign(Control):
         super().__init__(name, parent = parent, path=path)
         self.labjack = labjack
 
-    def readADC(self, num = 1, delay = 0):
+    def readADC(self, num = 10, delay = 0):
         time.sleep(delay)
         return self.labjack.AIn(0, num=num)
 
     @cost
     def measure_power(self, state):
         self.actuate(state)
-        return self.readADC()
+        return -self.readADC()
