@@ -43,8 +43,8 @@ class Input(Node):
 
         def set(self, value):
                 ''' Calls the parent Device.actuate() function to change self.value to a new value '''
-                if value != self.value:
-                    self.parent.actuate({self.name:value})
+                # if value != self.value:
+                self.parent.actuate({self.name:value})
 
 class Device(Node):
         instances = []
@@ -69,8 +69,8 @@ class Device(Node):
         def actuate(self, state):
                 ''' Calls self.device._actuate() and updates self.state'''
                 self_substate = dict((k, self.state[k]) for k in state.keys())
-                if self_substate == state:
-                    return
+                # if self_substate == state:
+                #     return
                 self._actuate(state)
                 self.update(state)
 
@@ -190,7 +190,7 @@ class Control(Node):
             if not self.actuating:
                 self.actuating = 1
                 for i in state.keys():
-                                self.inputs[i].set(state[i])
+                    self.inputs[i].set(state[i])
                 self.actuating = 0
 
                 self.save()
