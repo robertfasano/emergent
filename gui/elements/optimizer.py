@@ -2,12 +2,14 @@ from PyQt5.QtWidgets import (QComboBox, QLabel, QTextEdit, QPushButton, QVBoxLay
         QWidget)
 from PyQt5.QtCore import *
 from archetypes.Optimizer import Optimizer
+from archetypes.Parallel import ProcessHandler
 import inspect
 import json
 
-class OptimizerLayout(QVBoxLayout):
+class OptimizerLayout(QVBoxLayout, ProcessHandler):
     def __init__(self, parent):
-        super().__init__()
+        QVBoxLayout.__init__(self)
+        ProcessHandler.__init__(self)
         self.parent = parent
 
         self.addWidget(QLabel('Optimizer'))
@@ -27,7 +29,7 @@ class OptimizerLayout(QVBoxLayout):
         self.addWidget(self.cost_box)
 
         self.optimizer_button = QPushButton('Go!')
-        self.optimizer_button.clicked.connect(self.start_optimizer)
+        self.optimizer_button.clicked.connect(self.optimize)
         self.addWidget(self.optimizer_button)
 
         self.update_algorithm()
@@ -35,6 +37,9 @@ class OptimizerLayout(QVBoxLayout):
         for item in self.parent.treeLayout.get_all_items():
             if self.parent.treeLayout.get_layer(item) != 2:
                 item.setFlags(Qt.ItemIsEnabled)
+
+    def optimize(self):
+        self._run_thread(self.start_optimizer, stoppable=False)
 
     def start_optimizer(self):
         ''' Call chosen optimization routine with user-selected cost function and parameters '''
