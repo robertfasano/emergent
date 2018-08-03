@@ -1,5 +1,11 @@
-
+QComboBox {color:"#3a4055"; font-family: "Agency FB"; font-size: 18px}
+QPushButton {color:"#3a4055"; font-family: "Agency FB"; font-size: 18px}
+QTextEdit {color:"#3a4055"; font-family: "Agency FB"; font-size: 18px}
 QTreeWidget {color:"#3a4055"; font-family: "Agency FB"; font-size: 18px}
+
+QLabel {color:"#3a4055"; font-weight: bold; font-family: "Agency FB"; font-size: 15px}
+
+
 QHeaderView::section {color:"#3a4055"; font-weight: bold; font-family: "Agency FB"; font-size: 15px}
 
 QTreeView::branch:has-siblings:!adjoins-item {
