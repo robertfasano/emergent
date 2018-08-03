@@ -190,8 +190,6 @@ class TreeLayout(QHBoxLayout):
     def get_state(self, control):
         ''' Read Control node state and update GUI. '''
         for key in self.controls[control].state:
-            print(key)
-            print(self.get_input(key))
             self.get_input(key).setText(1, '%.2f'%self.controls[control].state[key])
 
     def open_editor(self):
