@@ -175,6 +175,9 @@ class Control(Node):
                         print('Please enter max: ')
                         self.inputs[i].max = float(input())
 
+                        self.save()
+                        self.get_settings()
+
         def actuate(self, state, save=True):
             ''' Updates all Inputs in the given state to the given values. Argument should have keys of the form 'Device.Input', e.g. state={'MEMS.X':0} '''
             if not self.actuating:
