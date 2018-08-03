@@ -6,7 +6,7 @@ import time
 from emergent.archetypes.Clock import Clock
 from emergent.archetypes.Historian import Historian
 from emergent.archetypes.Optimizer import Optimizer
-
+from emergent.utility import methodsWithDecorator
 class Node():
     instances = []
     def __init__(self, name, parent=None):
@@ -94,6 +94,7 @@ class Device(Node):
                 self.parent = parent
                 self.parent.add_device(self.name, self)
 
+
 class Control(Node):
         instances = []
         def __init__(self, name, parent = None):
@@ -112,12 +113,15 @@ class Control(Node):
                 for p in [self.settings_path, self.state_path]:
                         # os.makedirs(p, exist_ok=True)
                         pathlib.Path(p).mkdir(parents=True, exist_ok=True)
-                        
+
         def add_device(self, name, device):
             self.devices[name] = device
 
         def cost(state):
                 return
+
+        def list_costs(self):
+            return methodsWithDecorator(self.__class__, 'cost')
 
         def get_inputs(self):
             ''' Adds all connected Inputs of child Device nodes to self.inputs. An input is accessible through a key of the format 'Device.Input', e.g. 'MEMS.X' '''
@@ -180,6 +184,8 @@ class Control(Node):
                 self.actuating = 0
 
                 self.save()
+                if self.window is not None:
+                    self.window.get_state()
             else:
                 print('Actuate blocked by already running actuation.')
 
