@@ -6,7 +6,7 @@ sys.path.append(char.join(os.getcwd().split(char)[0:-3]))
 from PyQt5.QtQml import QQmlApplicationEngine
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import QCoreApplication
-from gui.elements.treeview import MainFrame
+from gui.elements.window import MainFrame
 from archetypes.node import Control
 import numpy as np
 sys.path.append('examples/%s'%sys.argv[1])

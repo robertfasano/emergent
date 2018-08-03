@@ -12,12 +12,9 @@ import json
 from archetypes.Optimizer import Optimizer
 from gui.elements.optimizer import OptimizerLayout
 
-class MainFrame(QWidget):
+class TreeLayout(QHBoxLayout):
     def __init__(self, tree, control):
-        QWidget.__init__(self)
-        self.setWindowTitle('EMERGENT')
-        with open('gui/stylesheet.txt',"r") as file:
-            self.setStyleSheet(file.read())
+        super().__init__()
 
         self.control = control
         self.control.window = self
@@ -25,7 +22,6 @@ class MainFrame(QWidget):
 
         self.currentItem = None
         self.lastItem = None
-        layout= QHBoxLayout(self)
 
         ''' Create QTreeWidget '''
         self.treeWidget = QTreeWidget()
@@ -38,9 +34,7 @@ class MainFrame(QWidget):
         self.treeWidget.itemChanged.connect(self.close_editor)
         self.treeWidget.setContextMenuPolicy(Qt.CustomContextMenu)
         self.treeWidget.customContextMenuRequested.connect(self.openMenu)
-        treeLayout = QHBoxLayout()
-        treeLayout.addWidget(self.treeWidget)
-        layout.addLayout(treeLayout)
+        self.addWidget(self.treeWidget)
 
         ''' Populate QTreeWidget '''
         root_label = list(self.tree.keys())[0]
@@ -53,9 +47,6 @@ class MainFrame(QWidget):
         self.expand(0)
         self.expand(1)
 
-        ''' Create optimizer layout '''
-        self.optimizer = OptimizerLayout(self)
-        layout.addLayout(self.optimizer)
 
 
     def close_editor(self):

@@ -30,8 +30,8 @@ class OptimizerLayout(QVBoxLayout):
 
         self.update_algorithm()
         ''' Ensure that only Inputs are selectable '''
-        for item in self.parent.get_all_items():
-            if self.parent.get_layer(item) != 2:
+        for item in self.parent.treeLayout.get_all_items():
+            if self.parent.treeLayout.get_layer(item) != 2:
                 item.setFlags(Qt.ItemIsEnabled)
 
     def start_optimizer(self):
@@ -41,7 +41,7 @@ class OptimizerLayout(QVBoxLayout):
         print(params)
         params = json.loads(params)
         cost = getattr(self.parent.control, self.cost_box.currentText())
-        state = self.parent.get_selected_state()
+        state = self.parent.treeLayout.get_selected_state()
         if state == {}:
             print('Please select at least one Input node for optimization.')
         else:
