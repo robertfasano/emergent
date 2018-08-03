@@ -9,6 +9,7 @@ from emergent.archetypes.node import Control, Device, Input
 from emergent.archetypes.Optimizer import Optimizer
 from emergent.archetypes.Clock import Clock
 from emergent.gui.elements.treeview import MainFrame
+from emergent.controls.testControl import TestControl
 import numpy as np
 
 class TestDevice(Device):
@@ -18,33 +19,9 @@ class TestDevice(Device):
         def _actuate(self, state):
                 print(state)
 
-class TestControl(Control):
-        def __init__(self, name, parent=None):
-                super().__init__(name, parent)
-                self.optimizer = Optimizer(self)
-                self.clock = Clock(self)
+def cost(func):
+    return func
 
-        def cost(self, state):
-                self.actuate(state)
-                x0 = .3
-                cost = -1
-                for x in self.state.values():
-                        cost *= np.exp(-x**2/x0**2)
-                return cost
-
-        def cost_coupled(self, state):
-            return cost_coupled(state, theta=30*np.pi/180)
-
-        def cost_uncoupled(self, state, theta=0):
-            x=self.state['deviceA.X']*np.cos(theta) - self.state['deviceA.Y']*np.sin(theta)
-            y=self.state['deviceA.X']*np.sin(theta) + self.state['deviceA.Y']*np.cos(theta)
-            x0 = 0.3
-            y0 = 0.6
-            return np.exp(-(x-0.5)**2/x0**2)*np.exp(-(y-0.5)**2/y0**2)
-
-        def scramble(self):
-            for key in self.state.keys():
-                self.state[key] = np.random.uniform()
 
 
 ''' Define network '''
