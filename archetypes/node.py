@@ -77,7 +77,9 @@ class Device(Node):
         def update(self,state):
                 ''' Updates self.state to new variables stored in state dict '''
                 for key in state.keys():
-                                self.state[key] = state[key]
+                        self.state[key] = state[key]
+                        self.inputs[key].value = state[key]
+
 
                 ''' format state dict and update parent '''
                 for key in state.keys():
@@ -192,8 +194,7 @@ class Control(Node):
                 self.actuating = 0
 
                 self.save()
-                if self.window is not None:
-                    self.window.get_state()
+
             else:
                 print('Actuate blocked by already running actuation.')
 
