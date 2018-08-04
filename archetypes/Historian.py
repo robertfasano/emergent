@@ -4,13 +4,15 @@ import json
 
 
 class Historian():
+    ''' The Historian class attaches to a Control node to provide a history of
+    explored states. '''
     def __init__(self, parent):
         self.parent = parent
         self.state_path = self.parent.state_path + self.parent.name + '.txt'
         self.settings_path = self.parent.settings_path + self.parent.name + '.txt'
 
     def load(self):
-        ''' Loads all historical state data and returns a dataframe '''
+        ''' Loads all historical state data and returns a dataframe. '''
         with open(self.state_path, 'r') as file:
             data = file.readlines()
 
@@ -30,7 +32,7 @@ class Historian():
         return df
 
     def clear(self):
-        ''' Deletes historical state data up to the last point '''
+        ''' Deletes historical state data up to the last point. '''
         for p in [self.state_path, self.settings_path]:
             with open(p, 'r') as file:
                 line = file.readlines()[-1]
