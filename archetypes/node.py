@@ -12,7 +12,12 @@ class Node():
     ''' The Node class is the core building block of the EMERGENT network,
     providing useful organizational methods which are passed on to the Input,
     Device, and Control classes. '''
+
     instances = []
+    ''' Contains all currently instantiated Nodes. This can
+        be accessed for a given type, e.g. Control.instances lists all Control
+        nodes. '''
+
     def __init__(self, name, parent=None):
         ''' Initializes a Node with a name and optionally registers
             to a parent. '''
@@ -41,6 +46,12 @@ class Node():
 class Input(Node):
     ''' Input nodes represent physical variables which may affect the outcome of
         an experiment, such as laser frequency or beam alignment. '''
+
+    instances = []
+    ''' Contains all currently instantiated Nodes. This can
+        be accessed for a given type, e.g. Control.instances lists all Control
+        nodes. '''
+
     def __init__(self, name, parent):
         ''' Initializes an Input node. '''
         super().__init__(name, parent=parent)
@@ -57,6 +68,12 @@ class Input(Node):
 class Device(Node):
     ''' Device nodes represent apparatus which can control the state of Input
         nodes, such as a synthesizer or motorized actuator. '''
+
+    instances = []
+    ''' Contains all currently instantiated Nodes. This can
+        be accessed for a given type, e.g. Control.instances lists all Control
+        nodes. '''
+
     def __init__(self, name, parent):
         ''' Initializes a Device node. '''
         super().__init__(name, parent=parent)
@@ -100,7 +117,12 @@ class Device(Node):
 class Control(Node):
     ''' The Control node oversees connected Devices, allowing the Inputs to be
         algorithmically tuned to optimize some target function. '''
+
     instances = []
+    ''' Contains all currently instantiated Nodes. This can
+        be accessed for a given type, e.g. Control.instances lists all Control
+        nodes. '''
+
     def __init__(self, name, parent = None, path = '.'):
         ''' Initializes a Control node and attaches Clock, Historian, and Optimizer
             objects. '''
@@ -169,7 +191,6 @@ class Control(Node):
             state={'MEMS.X':0} '''
         if not self.actuating:
             self.actuating = 1
-            print(state)
 
             for i in state.keys():
                 self.inputs[i].set(state[i])
