@@ -19,6 +19,9 @@ def dev(func):
 def cost(func):
     return func
 
+def algorithm(func):
+    return func
+
 def get_classes(directory, decoratorName):
     classes = {}
     mod = importlib.import_module(directory)

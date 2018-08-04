@@ -27,10 +27,7 @@ def warn(*args, **kwargs):
     pass
 import warnings
 warnings.warn = warn
-from utility import methodsWithDecorator
-
-def algorithm(func):
-    return func
+from utility import methodsWithDecorator, algorithm 
 
 class Optimizer():
     ''' General methods '''
