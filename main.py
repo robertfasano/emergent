@@ -3,7 +3,6 @@ import sys
 import os
 char = {'nt': '\\', 'posix': '/'}[os.name]
 sys.path.append(char.join(os.getcwd().split(char)[0:-3]))
-from PyQt5.QtQml import QQmlApplicationEngine
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import QCoreApplication
 from gui.elements.window import MainFrame
@@ -34,5 +33,5 @@ if __name__ == "__main__":
     if app is None:
         app = QApplication(sys.argv)         # Create an instance of the application
 
-    main = MainFrame(tree, controls_dict)
+    main = MainFrame(app, tree, controls_dict)
     main.show()
