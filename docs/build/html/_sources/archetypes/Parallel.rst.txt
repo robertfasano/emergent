@@ -1,7 +1,7 @@
 Parallel
 ===============
 
-.. automodule:: Parallel
+.. automodule:: parallel
     :members:
     :undoc-members:
     :special-members:

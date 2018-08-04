@@ -28,8 +28,8 @@
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Hamamatsu PMT" href="hamamatsu_PMT.html" />
-    <link rel="prev" title="Dummy" href="dummy.html" /> 
+    <link rel="next" title="Labjack T7" href="labjackT7.html" />
+    <link rel="prev" title="Current driver" href="current_driver.html" /> 
 
   
   <script src="../_static/js/modernizr.min.js"></script>
@@ -84,26 +84,14 @@
             
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../index.html">EMERGENT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture.html">Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../archetypes.html">Archetypes</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../devices.html">Devices</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="DLCPro.html">Toptica DLCPro</a></li>
-<li class="toctree-l2"><a class="reference internal" href="agilis.html">Newport Agilis</a></li>
-<li class="toctree-l2"><a class="reference internal" href="daq.html">MCDAQ</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dummy.html">Dummy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="current_driver.html">Current driver</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">TDK Genesys</a></li>
-<li class="toctree-l2"><a class="reference internal" href="hamamatsu_PMT.html">Hamamatsu PMT</a></li>
-<li class="toctree-l2"><a class="reference internal" href="index.html">labAPI</a></li>
-<li class="toctree-l2"><a class="reference internal" href="intensity_servo.html">Intensity Servo</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ion_pump.html">Digitel SPCe ion pump controller</a></li>
 <li class="toctree-l2"><a class="reference internal" href="labjackT7.html">Labjack T7</a></li>
-<li class="toctree-l2"><a class="reference internal" href="msquared.html">MSquared SolsTiS</a></li>
-<li class="toctree-l2"><a class="reference internal" href="netcontrols.html">NetControls 9x Series Motion Controller</a></li>
-<li class="toctree-l2"><a class="reference internal" href="novatech.html">Novatech DDS</a></li>
 <li class="toctree-l2"><a class="reference internal" href="picoAmp.html">Mirrorcle PicoAmp</a></li>
-<li class="toctree-l2"><a class="reference internal" href="rga.html">Residual Gas Analyzer</a></li>
-<li class="toctree-l2"><a class="reference internal" href="sprout.html">Sprout Pump Laser</a></li>
-<li class="toctree-l2"><a class="reference internal" href="thorlabs_camera.html">Thorlabs DCx Camera</a></li>
 </ul>
 </li>
 </ul>
@@ -176,16 +164,12 @@
 <span id="tdk-genesys"></span><h1>TDK Genesys<a class="headerlink" href="#module-genesys" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="genesys.Genesys">
-<em class="property">class </em><code class="descclassname">genesys.</code><code class="descname">Genesys</code><span class="sig-paren">(</span><em>port='COM13'</em>, <em>name='genesys'</em>, <em>connect=True</em>, <em>parent=None</em>, <em>lowlevel=True</em><span class="sig-paren">)</span><a class="headerlink" href="#genesys.Genesys" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">labAPI.archetypes.device.Device</span></code></p>
+<em class="property">class </em><code class="descclassname">genesys.</code><code class="descname">Genesys</code><span class="sig-paren">(</span><em>name</em>, <em>port</em>, <em>parent=None</em><span class="sig-paren">)</span><a class="headerlink" href="#genesys.Genesys" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">archetypes.node.Device</span></code></p>
+<p>Device driver for the TDK Genesys programmable power supply.</p>
 <dl class="method">
 <dt id="genesys.Genesys.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>port='COM13'</em>, <em>name='genesys'</em>, <em>connect=True</em>, <em>parent=None</em>, <em>lowlevel=True</em><span class="sig-paren">)</span><a class="headerlink" href="#genesys.Genesys.__init__" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="genesys.Genesys.__module__">
-<code class="descname">__module__</code><em class="property"> = 'genesys'</em><a class="headerlink" href="#genesys.Genesys.__module__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>name</em>, <em>port</em>, <em>parent=None</em><span class="sig-paren">)</span><a class="headerlink" href="#genesys.Genesys.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -196,7 +180,8 @@
 <dl class="method">
 <dt id="genesys.Genesys._connect">
 <code class="descname">_connect</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#genesys.Genesys._connect" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Establish a serial connection over USB and enable output.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="genesys.Genesys.command">
@@ -230,10 +215,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="hamamatsu_PMT.html" class="btn btn-neutral float-right" title="Hamamatsu PMT" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="labjackT7.html" class="btn btn-neutral float-right" title="Labjack T7" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="dummy.html" class="btn btn-neutral" title="Dummy" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="current_driver.html" class="btn btn-neutral" title="Current driver" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

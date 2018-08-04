@@ -1,8 +1,8 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<!--[if IE 8]><html class="no-js lt-ie9" lang="python" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="python" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
   
@@ -24,27 +24,18 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="../genindex.html"/>
-        <link rel="search" title="Search" href="../search.html"/>
-    <link rel="top" title="EMERGENT 0.1alpha documentation" href="../index.html"/>
-        <link rel="up" title="Devices" href="../devices.html"/>
-        <link rel="prev" title="Labjack T7" href="labjackT7.html"/> 
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="Labjack T7" href="labjackT7.html" /> 
 
   
   <script src="../_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
@@ -96,8 +87,8 @@
 <li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../archetypes.html">Archetypes</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../devices.html">Devices</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="dummy.html">Dummy</a></li>
-<li class="toctree-l2"><a class="reference internal" href="index.html">labAPI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="current_driver.html">Current driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="genesys.html">TDK Genesys</a></li>
 <li class="toctree-l2"><a class="reference internal" href="labjackT7.html">Labjack T7</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Mirrorcle PicoAmp</a></li>
 </ul>
@@ -113,7 +104,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">EMERGENT</a>
@@ -121,9 +112,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -167,15 +159,64 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="mirrorcle-picoamp">
-<h1>Mirrorcle PicoAmp<a class="headerlink" href="#mirrorcle-picoamp" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-picoAmp">
+<span id="mirrorcle-picoamp"></span><h1>Mirrorcle PicoAmp<a class="headerlink" href="#module-picoAmp" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="picoAmp.PicoAmp">
+<em class="property">class </em><code class="descclassname">picoAmp.</code><code class="descname">PicoAmp</code><span class="sig-paren">(</span><em>name</em>, <em>labjack</em>, <em>parent=None</em><span class="sig-paren">)</span><a class="headerlink" href="#picoAmp.PicoAmp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">archetypes.node.Device</span></code></p>
+<p>Device driver for the Mirrorcle PicoAmp board.</p>
+<dl class="method">
+<dt id="picoAmp.PicoAmp.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>name</em>, <em>labjack</em>, <em>parent=None</em><span class="sig-paren">)</span><a class="headerlink" href="#picoAmp.PicoAmp.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize the Device for use.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="picoAmp.PicoAmp._actuate">
+<code class="descname">_actuate</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#picoAmp.PicoAmp._actuate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates MEMS to a target state. Axes not included in the state dict are unaffected.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="picoAmp.PicoAmp._connect">
+<code class="descname">_connect</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#picoAmp.PicoAmp._connect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes the PicoAmp via SPI.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="picoAmp.PicoAmp._initialize">
+<code class="descname">_initialize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#picoAmp.PicoAmp._initialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes the DAC and sets the bias voltage on all four channels to 80 V.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="picoAmp.PicoAmp.command">
+<code class="descname">command</code><span class="sig-paren">(</span><em>cmd</em><span class="sig-paren">)</span><a class="headerlink" href="#picoAmp.PicoAmp.command" title="Permalink to this definition">¶</a></dt>
+<dd><p>Separates the bitstring cmd into a series of bytes and sends them through the SPI.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="picoAmp.PicoAmp.digital">
+<code class="descname">digital</code><span class="sig-paren">(</span><em>V</em><span class="sig-paren">)</span><a class="headerlink" href="#picoAmp.PicoAmp.digital" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts an analog voltage V to a 16-bit string for the DAC</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="picoAmp.PicoAmp.setDifferential">
+<code class="descname">setDifferential</code><span class="sig-paren">(</span><em>V</em>, <em>axis</em><span class="sig-paren">)</span><a class="headerlink" href="#picoAmp.PicoAmp.setDifferential" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets a target differential voltage V=HV_A-HV_B if axis is 'X' or V=HV_C-HV_D if axis is 'Y'.
+For example, if V=2 and  axis is 'X', this sets HV_A=81 and HV_2=79.
+Allowed range of V is -80 to 80.</p>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -213,6 +254,7 @@
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
             VERSION:'0.1alpha',
+            LANGUAGE:'python',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
@@ -225,19 +267,13 @@
 
   
 
-  
-  
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>

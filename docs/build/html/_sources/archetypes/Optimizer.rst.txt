@@ -1,7 +1,7 @@
 Optimizer
 ================
 
-.. automodule:: Optimizer
+.. automodule:: optimizer
     :members:
     :undoc-members:
     :special-members:

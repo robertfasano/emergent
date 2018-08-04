@@ -1,8 +1,8 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<!--[if IE 8]><html class="no-js lt-ie9" lang="python" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="python" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
   
@@ -24,27 +24,19 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="genindex.html"/>
-        <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="EMERGENT 0.1alpha documentation" href="index.html"/>
-        <link rel="next" title="Hub" href="archetypes/Hub.html"/>
-        <link rel="prev" title="Examples" href="examples.html"/> 
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Optimizer" href="archetypes/Optimizer.html" />
+    <link rel="prev" title="Examples" href="examples.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
@@ -95,11 +87,10 @@
 <li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Archetypes</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="archetypes/Hub.html">Hub</a></li>
-<li class="toctree-l2"><a class="reference internal" href="archetypes/Link.html">Link</a></li>
 <li class="toctree-l2"><a class="reference internal" href="archetypes/Optimizer.html">Optimizer</a></li>
 <li class="toctree-l2"><a class="reference internal" href="archetypes/Parallel.html">Parallel</a></li>
-<li class="toctree-l2"><a class="reference internal" href="archetypes/device.html">Device</a></li>
+<li class="toctree-l2"><a class="reference internal" href="archetypes/clock.html">Clock</a></li>
+<li class="toctree-l2"><a class="reference internal" href="archetypes/historian.html">Historian</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="devices.html">Devices</a></li>
@@ -114,7 +105,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">EMERGENT</a>
@@ -122,9 +113,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -170,26 +162,23 @@
 <h1>Archetypes<a class="headerlink" href="#archetypes" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="archetypes/Hub.html">Hub</a></li>
-<li class="toctree-l1"><a class="reference internal" href="archetypes/Link.html">Link</a></li>
 <li class="toctree-l1"><a class="reference internal" href="archetypes/Optimizer.html">Optimizer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="archetypes/Parallel.html">Parallel</a></li>
-<li class="toctree-l1"><a class="reference internal" href="archetypes/device.html">Device</a></li>
+<li class="toctree-l1"><a class="reference internal" href="archetypes/clock.html">Clock</a></li>
+<li class="toctree-l1"><a class="reference internal" href="archetypes/historian.html">Historian</a></li>
 </ul>
 </div>
 </div>
 
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="archetypes/Hub.html" class="btn btn-neutral float-right" title="Hub" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="archetypes/Optimizer.html" class="btn btn-neutral float-right" title="Optimizer" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="examples.html" class="btn btn-neutral" title="Examples" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
@@ -223,6 +212,7 @@
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
             VERSION:'0.1alpha',
+            LANGUAGE:'python',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
@@ -235,19 +225,13 @@
 
   
 
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>

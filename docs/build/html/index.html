@@ -1,8 +1,8 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<!--[if IE 8]><html class="no-js lt-ie9" lang="python" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="python" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
   
@@ -24,26 +24,18 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="genindex.html"/>
-        <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="EMERGENT 0.1alpha documentation" href="#"/>
-        <link rel="next" title="Architecture" href="architecture.html"/> 
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Architecture" href="architecture.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
@@ -106,7 +98,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="#">EMERGENT</a>
@@ -114,9 +106,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -215,7 +208,7 @@ cross-layer debugging.</p>
 <div class="section" id="tenet-3-automation">
 <h3>Tenet 3: Automation<a class="headerlink" href="#tenet-3-automation" title="Permalink to this headline">¶</a></h3>
 <p>Experimental physics is rife with simple yet tedious tasks which are typically
-carried out daily. Our philosophy is that no frequently occurring problem should &#8216;
+carried out daily. Our philosophy is that no frequently occurring problem should '
 be manually solved more than once - once the important inputs and outputs are
 understood, sensors and actuators can be added to the network and used to automate
 the tedious. EMERGENT offers a suite of optimization algorithms, from simple
@@ -273,25 +266,27 @@ Device objects to the network and defining cost functions for the Optimizer.</p>
 <div class="toctree-wrapper compound">
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">EMERGENT</a></li>
-<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="architecture/node.html">Node</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture/input.html">Input</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture/device.html">Device</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture/control.html">Control</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="examples.html#simple-network">Simple network</a></li>
-<li class="toctree-l2"><a class="reference internal" href="examples.html#fiber-coupling">Fiber coupling</a></li>
-<li class="toctree-l2"><a class="reference internal" href="examples.html#subspace-partitioning">Subspace partitioning</a></li>
-<li class="toctree-l2"><a class="reference internal" href="examples.html#sequencing">Sequencing</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="archetypes.html">Archetypes</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="archetypes/Hub.html">Hub</a></li>
-<li class="toctree-l2"><a class="reference internal" href="archetypes/Link.html">Link</a></li>
 <li class="toctree-l2"><a class="reference internal" href="archetypes/Optimizer.html">Optimizer</a></li>
 <li class="toctree-l2"><a class="reference internal" href="archetypes/Parallel.html">Parallel</a></li>
-<li class="toctree-l2"><a class="reference internal" href="archetypes/device.html">Device</a></li>
+<li class="toctree-l2"><a class="reference internal" href="archetypes/clock.html">Clock</a></li>
+<li class="toctree-l2"><a class="reference internal" href="archetypes/historian.html">Historian</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="devices.html">Devices</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="devices/dummy.html">Dummy</a></li>
-<li class="toctree-l2"><a class="reference internal" href="devices/index.html">labAPI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="devices/current_driver.html">Current driver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="devices/genesys.html">TDK Genesys</a></li>
 <li class="toctree-l2"><a class="reference internal" href="devices/labjackT7.html">Labjack T7</a></li>
 <li class="toctree-l2"><a class="reference internal" href="devices/picoAmp.html">Mirrorcle PicoAmp</a></li>
 </ul>
@@ -303,9 +298,7 @@ Device objects to the network and defining cost functions for the Optimizer.</p>
 
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -343,6 +336,7 @@ Device objects to the network and defining cost functions for the Optimizer.</p>
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
             VERSION:'0.1alpha',
+            LANGUAGE:'python',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
@@ -355,19 +349,13 @@ Device objects to the network and defining cost functions for the Optimizer.</p>
 
   
 
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>
