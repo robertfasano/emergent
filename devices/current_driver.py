@@ -1,8 +1,8 @@
 import sys
 import numpy as np
 sys.path.append('O:/Public/Yb clock')
-from emergent.devices.genesys import Genesys
-from emergent.archetypes.node import Device
+from devices.genesys import Genesys
+from archetypes.node import Device
 from scipy.stats import linregress
 import matplotlib.pyplot as plt
 plt.ion()
