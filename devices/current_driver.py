@@ -25,10 +25,9 @@ class CurrentDriver(Device):
         self.labjack = labjack
 
         self.probe_coefficient = 2000/49.9
-        params = self.params
-        self.intercept = [params['intercept_1']['value'], params['intercept_2']['value']]
-        self.slope = [params['slope_1']['value'], params['slope_2']['value']]
 
+        self.add_input('grad')
+        self.add_input('zero')
         self._connected = self._connect()
 
     def calibrate(self, coil, Vmin=1, Vmax=3, steps=100, delay = 1/100):
@@ -76,7 +75,7 @@ class CurrentDriver(Device):
   #      return 1
 
     def _actuate(self, state):
-        self.set_field(state['grad'], state['z0'])
+        self.set_field(state['grad'], state['zero'])
 
     def set_current(self, coil, current):
         ''' Sets the current of the targeted coil. 0-5V corresponds to 0-100 A. '''
