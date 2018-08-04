@@ -21,7 +21,7 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('../../archetypes'))
 sys.path.insert(0, os.path.abspath('../../devices'))
-sys.path.insert(0, os.path.abspath('../../../'))
+sys.path.insert(0, os.path.abspath('../../'))
 
 # -- General configuration ------------------------------------------------
 
@@ -102,7 +102,7 @@ html_static_path = ['_static']
 # -- Options for HTMLHelp output ------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'labAPIdoc'
+htmlhelp_basename = 'emergentdoc'
 
 
 # -- Options for LaTeX output ---------------------------------------------
@@ -139,7 +139,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'labapi', 'labAPI Documentation',
+    (master_doc, 'emergent', 'EMERGENT Documentation',
      [author], 1)
 ]
 
