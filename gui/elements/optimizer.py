@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import (QComboBox, QLabel, QTextEdit, QPushButton, QVBoxLayout,
-        QWidget)
+        QWidget, QProgressBar, qApp)
 from PyQt5.QtCore import *
 from archetypes.Optimizer import Optimizer
 from archetypes.Parallel import ProcessHandler
@@ -32,14 +32,28 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         self.optimizer_button.clicked.connect(self.optimize)
         self.addWidget(self.optimizer_button)
 
+        self.progress_bar = QProgressBar()
+        self.max_progress = 100
+        self.progress_bar.setMaximum(self.max_progress)
+        self.addWidget(self.progress_bar)
+
         self.update_algorithm()
         ''' Ensure that only Inputs are selectable '''
         for item in self.parent.treeLayout.get_all_items():
-            if self.parent.treeLayout.get_layer(item) != 2:
+            if item.level != 2:
                 item.setFlags(Qt.ItemIsEnabled)
 
+    def update_progress_bar(self, progress):
+        self.progress_bar.setValue(progress*self.max_progress)
+        #self.parent.app.processEvents()
+        qApp.processEvents(QEventLoop.ExcludeUserInputEvents)
+
+    def hyperparameter(self):
+        control = self.parent.treeLayout.controls['control']
+        control.optimizer.grid_optimize(control.state, control.cost_coupled)
     def optimize(self):
-        self._run_thread(self.start_optimizer, stoppable=False)
+        # self._run_thread(self.start_optimizer, stoppable=False)
+        self.start_optimizer()
 
     def start_optimizer(self):
         ''' Call chosen optimization routine with user-selected cost function and parameters '''
@@ -52,9 +66,9 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         if state == {}:
             print('Please select at least one Input node for optimization.')
         else:
-            points, cost = func(state, cost, params)
+            points, cost = func(state, cost, params, self.update_progress_bar)
             print('Optimization complete!')
-            self.parent.treeLayout.get_state(control.name)
+            self.parent.treeLayout.update_state(control.name)
 
     def update_algorithm(self):
         f = getattr(Optimizer, self.algorithm_box.currentText())
@@ -64,12 +78,13 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         arguments = []
         for a in args:
             name = a[0]
-            default = str(a[1])
-            if default == name:
-                default = 'Enter'
-            else:
-                default = default.split('=')[1]
-                default = default.replace('{', '{\n')
-                default = default.replace(',', ',\n')
-                default = default.replace('}', '\n}')
-                self.params_edit.setText(default)
+            if name == 'params':
+                default = str(a[1])
+                if default == name:
+                    default = 'Enter'
+                else:
+                    default = default.split('=')[1]
+                    default = default.replace('{', '{\n')
+                    default = default.replace(',', ',\n')
+                    default = default.replace('}', '\n}')
+                    self.params_edit.setText(default)
