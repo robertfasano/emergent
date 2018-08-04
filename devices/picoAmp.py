@@ -1,5 +1,3 @@
-'''if the amplifiers are not working, then first unplug and reinsert the #1 +5V HV the pin once it is connected
-and initialized; otherwise, ensure that 5 volts of power are being delivered to the board'''
 import time
 from devices.labjackT7 import LabJack
 from archetypes.node import Device
@@ -12,7 +10,9 @@ from utility import dev
 
 @dev
 class PicoAmp(Device):
+    ''' Device driver for the Mirrorcle PicoAmp board. '''
     def __init__(self, name, labjack, parent = None):
+        ''' Initialize the Device for use. '''
         super().__init__(name, parent = parent)
         self.addr = {'A': '000', 'B': '001', 'C': '010', 'D': '011', 'ALL': '111'}
         self.labjack = labjack
@@ -23,10 +23,12 @@ class PicoAmp(Device):
         self._connect()
 
     def _connect(self):
+        ''' Initializes the PicoAmp via SPI. '''
         if self.labjack._connected:
             self.labjack.spi_initialize(mode=0, CLK = 0, CS = 1, MISO = 3, MOSI = 2)
             self._initialize()
-            self.actuate(self.state)
+        else:
+            print('Error: could not initialize PicoAmp - LabJack not connected!')
 
     def _initialize(self):
         ''' Initializes the DAC and sets the bias voltage on all four channels to 80 V. '''
@@ -62,10 +64,6 @@ class PicoAmp(Device):
 
         return format(int(Vdigital), '016b')
 
-    def readADC(self, num = 1, delay = 0):
-        time.sleep(delay)
-        return self.labjack.AIn(0, num=num)
-
     def setDifferential(self, V, axis):
         ''' Sets a target differential voltage V=HV_A-HV_B if axis is 'X' or V=HV_C-HV_D if axis is 'Y'.
             For example, if V=2 and  axis is 'X', this sets HV_A=81 and HV_2=79.
@@ -76,9 +74,3 @@ class PicoAmp(Device):
 
         self.command(cmdPlus)
         self.command(cmdMinus)
-
-if __name__ == '__main__':
-    import sys
-    sys.path.append('O:/Public/Yb clock')
-    pico = PicoAmp(lowlevel = False)
-    pico.squareWave(80,2)     # aligned for differential amplitude of 80 V
