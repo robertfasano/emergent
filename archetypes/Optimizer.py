@@ -35,51 +35,54 @@ def algorithm(func):
 class Optimizer():
     ''' General methods '''
     def __init__(self, control_node):
-        ''' Initialize the optimizer and link to the parent Control node '''
+        ''' Initialize the optimizer and link to the parent Control node. '''
         self.parent = control_node
         self.actuate = self.parent.actuate
 
     def array2dict(self, arr, keys):
-        ''' Converts a numpy array into a state dict '''
+        ''' Converts a numpy array into a state dict with the specified keys. '''
         state = {}
         for i in range(len(keys)):
             state[keys[i]] = arr[i]
         return state
 
     def dict2array(self, state):
-        ''' Converts a state dict into a numpy array '''
+        ''' Converts a state dict into a numpy array. '''
         arr = np.array([])
         for i in range(len(state.keys())):
             arr = np.append(arr, state[list(state.keys())[i]])
         return arr
 
     def _cost(self, state, cost):
+        ''' Unnormalizes the state dict, computes the cost, and logs. '''
         c = cost(self.unnormalize(state))
         self.history.loc[time.time()] = -c
         return c
 
     def cost_array(self, X, keys, cost):
-        ''' Converts an array into a state dict and evaluates cost '''
+        ''' Converts a normalized array into a state dict and evaluates cost. '''
         state = self.array2dict(X, keys)
         return self._cost(state, cost)
 
     def initialize_optimizer(self, state):
-        ''' Prepares a normalized substate and appropriate bounds. '''
+        ''' Creates a history dataframe to log the optimization. Normalizes the
+            state in terms of the min/max of each Input node, then prepares a
+            bounds array. '''
         cols = list(state.keys())
-
         cols.append('cost')
-        self.history = pd.DataFrame(index = [], columns = cols) #pd.Series(index=[])
-
+        self.history = pd.DataFrame(index = [], columns = cols)
         state = self.normalize(state)
         bounds = np.array(list(itertools.repeat([0,1], len(state.keys()))))
 
         return state, bounds
 
     def list_algorithms(self):
+        ''' Returns a list of all methods tagged with the '@algorithm' decorator '''
         return methodsWithDecorator(Optimizer, 'algorithm')
 
     def normalize(self, unnorm):
-        ''' Normalizes a state or substate based on min/max values saved in the parent control node '''
+        ''' Normalizes a state or substate based on min/max values of the Inputs,
+            saved in the parent Control node. '''
         norm = {}
         for i in unnorm.keys():
             min = self.parent.settings[i]['min']
@@ -100,6 +103,8 @@ class Optimizer():
 
     ''' Sampling methods '''
     def sample(self, state, cost, method='random_sampling', points = 1, bounds = None):
+        ''' Returns a list of points sampled with the specified method, as well as
+            the cost function evaluated at these points. '''
         if bounds is None:
             bounds = np.array(list(itertools.repeat([0,1], len(state.keys()))))
         func = getattr(self, method)
@@ -108,7 +113,8 @@ class Optimizer():
         return points, cost
 
     def grid_sampling(self, state, cost, points, bounds, update=None, args=None, norm = True):
-        ''' Performs a uniformly-spaced sampling of the cost function in the space spanned by the passed-in state dict '''
+        ''' Performs a uniformly-spaced sampling of the cost function in the
+            space spanned by the passed-in state dict. '''
         N = len(state.keys())
         grid = []
         for n in range(N):
@@ -139,7 +145,8 @@ class Optimizer():
         return points, costs
 
     def random_sampling(self,state, cost, points, bounds):
-        ''' Performs a random sampling of the cost function at N points within the specified bounds. '''
+        ''' Performs a random sampling of the cost function at N points within
+            the specified bounds. '''
         points = np.random.uniform(size=(points,len(state.keys())))
         print(points)
         print(points.shape)
@@ -152,8 +159,9 @@ class Optimizer():
 
     def dijkstra_sampling(self, points, weights = None):
         ''' Determines the sampling order of the given points array to minimize
-            the distance between points, weighted by an optional vector. The weight
-            vector allows consideration of different actuation speeds in the path decision '''
+            the distance between points, weighted by an optional vector. The
+            weight vector allows consideration of different actuation speeds
+            in the path decision. NOTE: not yet tested. '''
         if weights is None:
             weights = np.ones(len(points))
 
@@ -169,13 +177,14 @@ class Optimizer():
 
     ''' Optimization routines '''
     def optimize(self, state, cost, method, params = None, plot = True):
-        ''' Runs a targeted optimization routine on the cost function in the space spanned by the state dict. Fully implemented (untested) methods: line_search, grid_search'''
+        ''' Runs a targeted optimization routine on the cost function in the
+            space spanned by the state dict. '''
         func = getattr(self, method)
         points, cost = func(state, cost, params)
 
     @algorithm
     def grid_search(self, state, cost, params={'plot':0, 'loadExisting':0, 'steps':10}, update=None):
-        ''' An N-dimensional grid search routine with optional plotting. '''
+        ''' An N-dimensional grid search (brute force) optimizer. '''
         state, bounds = self.initialize_optimizer(state)
         if params['loadExisting']:
             costs = np.loadtxt('costs.txt')
@@ -193,8 +202,7 @@ class Optimizer():
 
         return points, costs
 
-    def gaussian_process_next_sample(self, X, bounds, b, cost, gaussian_process,
-                                     greater_is_better=False, restarts=25):
+    def gp_next_sample(self, X, bounds, b, cost, gaussian_process, restarts=25):
         ''' Generates the next sampling point by minimizing cost on the virtual
             response surface modeled by the Gaussian process. '''
         best_x = None
@@ -212,7 +220,7 @@ class Optimizer():
 
         return best_x
 
-    def effective_cost(self, x, b, gp):
+    def gp_effective_cost(self, x, b, gp):
         ''' Computes an effective cost for Gaussian process optimization, featuring
             some tradeoff between optimization and learning. '''
         ''' Watch for function recieveing a 2d x with higher dimensional state vectors (disagreement with internal GP dimension) '''
@@ -222,7 +230,8 @@ class Optimizer():
 
     @algorithm
     def gaussian_process(self, state, cost, params={'batch_size':10,'presampled': 15, 'iterations':10, 'plot':0},update=None):
-        ''' Online Gaussian process regression '''
+        ''' Online Gaussian process regression. Batch sampling is done with
+            points with varying trade-off of optimization vs. exploration. '''
         state, bounds = self.initialize_optimizer(state)
         X = self.dict2array(state)
         c = np.array([self._cost(state,cost)])
@@ -236,7 +245,7 @@ class Optimizer():
             self.gp.fit(X,c)
             for j in range(params['batch_size']):
                 b = j / (params['batch_size']-1)
-                X_new = self.gaussian_process_next_sample(X, bounds, b, self.effective_cost, self.gp, greater_is_better=False, restarts=10)
+                X_new = self.gp_next_sample(X, bounds, b, self.gp_effective_cost, self.gp, restarts=10)
                 X_new = np.atleast_2d(X_new)
                 X = np.append(X, X_new, axis=0)
                 target = self.array2dict(X[-1], list(state.keys()))
@@ -270,7 +279,7 @@ class Optimizer():
 
     @algorithm
     def simplex(self, state, cost, params={'plot':0, 'tol':1e-7}, update=None):
-        ''' Runs a specified scipy minimization method on the target axes and cost. '''
+        ''' Nelder-Mead algorithm from scipy.optimize. '''
         state, bounds = self.initialize_optimizer(state)
         X = self.dict2array(state)
         keys = list(state.keys())
@@ -286,7 +295,7 @@ class Optimizer():
 
     @algorithm
     def differential_evolution(self, state, cost, params={'strategy':'best1bin', 'plot':0, 'popsize':15, 'tol':0.01, 'mutation': 1,'recombination':0.7}, update=None):
-        ''' Runs a specified scipy minimization method on the target axes and cost. '''
+        ''' Differential evolution algorithm from scipy.optimize. '''
         state, bounds = self.initialize_optimizer(state)
         X = self.dict2array(state)
         keys = list(state.keys())
@@ -327,129 +336,9 @@ class Optimizer():
     #
     #     return points, costs
 
-
-
-    ''' Dimensionality Analytics and Reduction Algorithms (X always being the training data set) '''
-    #NOTE: might need to convert to something with COST and to the entire training database
-    #use differential evolution from skl to develop a dataset for the pca to determine reduction, caluclate covariance and perform pca on it
-
-    def covariance(self, state, cost, points, method='random_sampling'):
-        points, cost = self.sample(state, cost, method, points)
-        return np.cov(cost)
-
-    def extract_pcs(self, X = None):
-        ''' Uses numpy's svd() function to obtain the principal components of the training set. '''
-        #NOTE: must take step to recenter data around the origin as necessary here
-        X_centered = X - X.mean(axis = 0) #NOTE: assumes that the dataset is centered around the origin
-        U, s, Vt = np.linalg.svd(X_centered)
-        #use the following to extract each pca given their index: c1 = Vt.T[:,0] where 0 is the index
-        return Vt
-
-    def pca_reduction(self, X = None, pvariance = 0.95, slvr = "auto"): #svd_solver can be ‘auto’, ‘full’, ‘arpack’, or ‘randomized’
-        ''' Employs SKL's PCA to reduce dimensionality of the dataset based on a preserved variance threshold. '''
-        if pvariance is not int(pvariance):
-            pca = PCA()
-            pca.fit(X.copy)
-            d = np.argmax(np.cumsum(pca.explained_variance_ratio_) >= pvariance) + 1
-            print("Minimum number of dimensions to preserve variance: ", d)
-
-        #reduce the data set and find the breakdown of variance for each axis in the dataset
-        #define pvariance as a number of components or percentage of varaiance to preserve (e.g. pvariance = 3 or 0.95)
-        pca = PCA(n_components = pvariance, svd_solver = slvr) #use "randomized" for solver if desiring stochastic approximations
-        X_reduced = pca.fit_tranform(X)
-        variance_breakdown = pca.explained_variance_ratio_
-        return X_reduced, variance_breakdown
-
-    def pca_kernel(self, X = None, n_comps = 4, krnl = "rbf", gma = 0.04):
-        ''' Employs kernel techniques to PCA, allowing complex nonlinear projections for dimensionality reduction. '''
-        rbf_pca = KernelPCA(n_components = n_comps, kernel = krnl, gamma = gma)
-        X_reduced = rbf_pca.fit_transform(X)
-        return X_reduced
-
-    #NOTE: NOT TESTED AS OF YET 7.20.18
-    def cluster(self, name = 'k-means++', init = 'k-means++', n_clusters = 4, n_init = 10,
-                X = None, axes = None):
-        ''' General Clustering from scikit-learn implementing various clustering techniques;
-        implementation aided by http://scikit-learn.org/stable/modules/clustering'''
-        X, bounds = self.initialize_optimizer(X, axes)
-        labels = None
-
-        ''' K-Means - very large n_samples and medium n_clusters scalability (Use MiniBatch code)
-         general-purose, even cluster size, flat geometry (distance between points), not too many clusters '''
-        if name is 'k-means++': #could be k-mean++ or random init
-                estimator = KMeans(init = init, n_clusters = n_clusters, n_init = n_init)
-        if name is 'PCA-based': #PCA modified k-means++
-            pca = PCA(n_components = n_clusters).fit(X)
-            estimator = KMeans(init = pca.components_, n_clusters = n_clusters, n_init = 1) #n_init 1 b/c PCA is deterministic
-        estimator.fit(X)
-        ''' Affinity propagation - not scalable with n_samples, uses many clusters,
-        uneven cluster sizes, non-flat geometry (graph distance - nearest neighbor graph), large computational complexity '''
-        if name is 'af':
-            # strange to test - must use sample data
-            estimator = AffinityPropagation(preference=-50).fit(X)
-            cluster_centers_indices = estimator.cluster_centers_indices_
-            labels = estimator.labels_
-            n_clusters_ = len(cluster_centers_indices) #estimated/determined n_clusters val
-
-        ''' Mean-shift - not scalable with n_samples, uses many clusters, uneven cluster size,
-        non-flat geometry (distance between points) '''
-        if name is 'mean-shift':
-            bandwidth = estimate_bandwidth(X, quantile=0.2, n_samples=len(X) ** 2)
-            estimator = MeanShift(bandwidth=bandwidth, bin_seeding=True)
-            estimator.fit(X)
-            labels = estimator.labels_
-            cluster_centers = estimator.cluster_centers_
-            n_clusters_ = len(np.unique(labels))
-
-        ''' DBSCAN - scalable with very large n_samples / medium n_clusters, uses of non-flat geometry,
-        uneven cluster sizes, geometry of distances between nearest points - watch out for memory consumption'''
-        if name is 'dbscan':
-            estimator= DBSCAN(eps=0.3, min_samples=10).fit(X)
-            core_samples_mask = np.zeros_like(estimator.labels_, dtype=bool)
-            core_samples_mask[estimator.core_sample_indices_] = True
-            labels = estimator.labels_
-            n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
-
-         #to be implemented if needed later on
-        ''' Ward hierarchical clustering - scalable with large number of n_samples/n_clusters, uses
-        many clusters with possible connectivitiy constraints, geometry of distance between points '''
-        ''' Agglomerative clustering - scalable with large n_samples/n_clusters, uses of many clusters,
-        possible connectivity constraints, non-Euclidean distances (any pairwise distances for geometry) '''
-        ''' Birch - scalable with large n_clusters and n_samples, uses for large datasets, outlier removal,
-        data reduction, and geometry of Euclidean distances between points '''
-        ''' Gaussian mixtures - not scalable, uses flat geometry, good for density estimation,
-        geometry of Mahalanobis(?) distances to centers '''
-
-        return estimator, labels, n_clusters
-
-    def bench_clustering(self, estimator, names = ['k-means++'],
-                         n_clusters = 4,n_init = 10, X = None, axes = None):
-        ''' Method to benchmark and compare each clustering algorithm provided in scikit-learn '''
-        n_samples = len(X) ** 2 #the number of points taken
-        n_features = len(X)
-        print("n_clusters: %d, \t n_samples %d, \t n_features %d"
-              % (n_clusters, n_samples, n_features))
-        print(82 * '_')
-        print('init\t\ttime\tinertia\thomo\tcompl\tv-meas\tARI\tAMI\tsilhouette')
-        for name in names:
-            estimator, labels, n_clusters = self.cluster(init = name, n_clusters = n_clusters, n_init = n_init, X = X, axes = axes)
-            print('%-9s\t%.2fs\t%i\t%.3f\t%.3f\t%.3f\t%.3f\t%.3f'
-          % (name, (time() - t0), estimator.inertia_,
-             metrics.homogeneity_score(labels, estimator.labels_),
-             metrics.completeness_score(labels, estimator.labels_),
-             metrics.v_measure_score(labels, estimator.labels_),
-             metrics.adjusted_rand_score(labels, estimator.labels_),
-             metrics.adjusted_mutual_info_score(labels,  estimator.labels_)))
-
-    # def covariance_reduction(self, X = None):
-    #     '''with a 13 dimensional array, use covariance on the original data set,
-    # rows = number of features, columns = number of observations, covariance
-    # yields number of rows = number of columns, then feature extraction using
-    # PCA or clustering algorithm '''
-
     ''' Visualization methods '''
     def plot_2D(self, points, costs):
-        ''' Interpolates and plots a cost function sampled at an array of points '''
+        ''' Interpolates and plots a cost function sampled at an array of points. '''
         plt.figure()
         ordinate_index = 0
         abscissa_index = 1
@@ -465,7 +354,7 @@ class Optimizer():
 
     def plot_optimization(self, func=None, lbl = None, yscl = 'linear',
                           ylbl = 'Optimization Function', xlbl = 'Time (s)'):
-        ''' Plots an optimization time series stored in a pandas Series. '''
+        ''' Plots an optimization time series stored in self.history. '''
         if func is None:
             func = self.history
             func.index -= func.index[0]
