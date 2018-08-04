@@ -12,7 +12,7 @@ from scipy.interpolate import griddata
 from scipy.stats import norm
 import matplotlib.pyplot as plt
 plt.ion()
-from scipy.optimize import curve_fit, minimize
+from scipy.optimize import curve_fit, minimize, differential_evolution, basinhopping
 char = {'nt': '\\', 'posix': '/'}[os.name]
 sys.path.append(char.join(os.getcwd().split(char)[0:-2]))
 from sklearn.gaussian_process import GaussianProcessRegressor
@@ -107,7 +107,7 @@ class Optimizer():
 
         return points, cost
 
-    def grid_sampling(self, state, cost, points, bounds):
+    def grid_sampling(self, state, cost, points, bounds, update=None, args=None, norm = True):
         ''' Performs a uniformly-spaced sampling of the cost function in the space spanned by the passed-in state dict '''
         N = len(state.keys())
         grid = []
@@ -121,7 +121,15 @@ class Optimizer():
         costs = []
         for point in points:
             target = self.array2dict(point, list(state.keys()))
-            costs.append(cost(self.unnormalize(target)))
+            if norm:
+                target = self.unnormalize(target)
+            if args is None:
+                costs.append(cost(target))
+            else:
+                costs.append(cost(target,args))
+            if update is not None:
+                update(len(costs)/len(points))
+                # print(len(costs)/len(points))
 
         points = np.array(points)
         costs = np.array(costs)
@@ -166,7 +174,7 @@ class Optimizer():
         points, cost = func(state, cost, params)
 
     @algorithm
-    def grid_search(self, state, cost, params={'plot':0, 'loadExisting':0, 'steps':10}):
+    def grid_search(self, state, cost, params={'plot':0, 'loadExisting':0, 'steps':10}, update=None):
         ''' An N-dimensional grid search routine with optional plotting. '''
         state, bounds = self.initialize_optimizer(state)
         if params['loadExisting']:
@@ -174,7 +182,7 @@ class Optimizer():
             points = np.loadtxt('points.txt')
         else:
             ''' Generate search grid '''
-            points, costs = self.grid_sampling(state, cost, params['steps'], bounds)
+            points, costs = self.grid_sampling(state, cost, params['steps'], bounds, update=update)
 
         ''' Plot result if desired '''
         ax = None
@@ -213,7 +221,7 @@ class Optimizer():
         return b*mu-(1-b)*sigma
 
     @algorithm
-    def gaussian_process(self, state, cost, params={'batch_size':10,'presampled': 15, 'iterations':10, 'plot':0}):
+    def gaussian_process(self, state, cost, params={'batch_size':10,'presampled': 15, 'iterations':10, 'plot':0},update=None):
         ''' Online Gaussian process regression '''
         state, bounds = self.initialize_optimizer(state)
         X = self.dict2array(state)
@@ -233,6 +241,8 @@ class Optimizer():
                 X = np.append(X, X_new, axis=0)
                 target = self.array2dict(X[-1], list(state.keys()))
                 c = np.append(c, self._cost(target, cost))
+                if update is not None:
+                    update((j+i*params['batch_size'])/params['batch_size']/params['iterations'])
         best_point = self.array2dict(X[np.argmin(c)], list(state.keys()))
         print(best_point)
         print(self.unnormalize(best_point))
@@ -243,7 +253,7 @@ class Optimizer():
         return X, c
 
     @algorithm
-    def scipy_minimize(self, state, cost, params={'method':'L-BFGS-B', 'plot':0, 'tol':1e-7}):
+    def scipy_minimize(self, state, cost, params={'method':'L-BFGS-B', 'plot':0, 'tol':1e-7}, update=None):
         ''' Runs a specified scipy minimization method on the target axes and cost. '''
         state, bounds = self.initialize_optimizer(state)
         X = self.dict2array(state)
@@ -254,10 +264,69 @@ class Optimizer():
                    args = (keys, cost),
                    method=params['method'],
                    tol = params['tol'])
-        #simplex for SKL is res = minimize(fun = cost,x0 = X.reshape(1, -1), method = 'Nelder-Mead', tol = 1e7)
         if params['plot']:
             self.plot_optimization(lbl = params['method'])
         return None, None
+
+    @algorithm
+    def simplex(self, state, cost, params={'plot':0, 'tol':1e-7}, update=None):
+        ''' Runs a specified scipy minimization method on the target axes and cost. '''
+        state, bounds = self.initialize_optimizer(state)
+        X = self.dict2array(state)
+        keys = list(state.keys())
+        res = minimize(fun=self.cost_array,
+                   x0=X,
+                   args = (keys, cost),
+                   method='Nelder-Mead',
+                   tol = params['tol'])
+        #simplex for SKL is res = minimize(fun = cost,x0 = X.reshape(1, -1), method = 'Nelder-Mead', tol = 1e7)
+        if params['plot']:
+            self.plot_optimization(lbl = 'simplex')
+        return None, None
+
+    @algorithm
+    def differential_evolution(self, state, cost, params={'strategy':'best1bin', 'plot':0, 'popsize':15, 'tol':0.01, 'mutation': 1,'recombination':0.7}, update=None):
+        ''' Runs a specified scipy minimization method on the target axes and cost. '''
+        state, bounds = self.initialize_optimizer(state)
+        X = self.dict2array(state)
+        keys = list(state.keys())
+        res = differential_evolution(func=self.cost_array,
+                   bounds=bounds,
+                   args = (keys, cost),
+                   strategy=params['strategy'],
+                   tol = params['tol'],
+                   mutation = params['mutation'],
+                   recombination = params['recombination'],
+                   popsize = params['popsize'])
+        # res = differential_evolution(func=self.cost_array,
+        #                               bounds=bounds,
+        #                               args = (keys, cost),
+        #                               recombination = params['recombination'],
+        #                               popsize = int(params['popsize']))
+        if params['plot']:
+            self.plot_optimization(lbl = params['strategy'])
+        return None, None
+
+    # ''' Hyperparameter optimization '''
+    # def hypercost(self, params, args):
+    #     ''' Returns the optimization time for a given algorithm, cost, and initial state '''
+    #     algo, state, cost = args
+    #     algo(state, cost, params)
+    #     c = self.history.index[-1]-self.history.index[0]
+    #     return c
+    #
+    # @algorithm
+    # def grid_hypertune(self, state, cost, params={'steps':10},update=None):
+    #     algo = self.differential_evolution
+    #     hyperparams = {'popsize':15, 'recombination':0.7}
+    #     bounds = np.array([[10,20],[0.3,1]])
+    #     args = (algo, state, cost)
+    #     points, costs = self.grid_sampling(hyperparams, self.hypercost, params['steps'], bounds, args=args, norm=False, update = update)
+    #
+    #     self.plot_2D(points,costs)
+    #
+    #     return points, costs
+
 
 
     ''' Dimensionality Analytics and Reduction Algorithms (X always being the training data set) '''
