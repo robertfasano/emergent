@@ -1,12 +1,12 @@
 import sys
 sys.path.append('O:\\Public\\Yb clock')
 sys.path.append('C:\\Users\yblab\Documents\GitHub')
-from emergent.protocols.serial import Serial, PARITY_NONE, STOPBITS_ONE, EIGHTBITS
-from emergent.archetypes.node import Device
+from protocols.serial import Serial, PARITY_NONE, STOPBITS_ONE, EIGHTBITS
+from archetypes.node import Device
 import time
 
 class Genesys(Device):
-    def __init__(self, name, port = 'COM13', name = 'genesys',
+    def __init__(self, name, port = 'COM13',
                  parent = None):
         super().__init__(name, parent = parent)
         self.port = port
