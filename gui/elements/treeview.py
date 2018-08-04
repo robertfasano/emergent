@@ -21,14 +21,30 @@ class MyTreeWidget(QTreeWidget):
         if event.key() == 16777220:
             self.parent.update_editor()
 
+class MyTreeWidgetItem(QTreeWidgetItem):
+    def __init__(self, name, node, level):
+        super().__init__(name)
+        self.node = node
+        self.level = level
+        self.node.leaf = self
+        self.root = self.get_root()
+
+    def get_root(self):
+        root = self.node
+        while True:
+            try:
+                root = root.parent
+            except AttributeError:
+                return root
+
 class TreeLayout(QHBoxLayout):
-    def __init__(self, tree, controls):
+    def __init__(self, tree, controls, window):
         super().__init__()
 
         self.controls = controls
-        # self.controls = controls
-        # for c in self.controls:
-        #     c.window = self
+        for c in self.controls.values():
+            c.window = self
+        self.window = window
         self.tree = tree
 
         self.editorOpen = 0
@@ -53,16 +69,15 @@ class TreeLayout(QHBoxLayout):
         root_labels = list(self.tree.keys())
         roots = []
         for r in root_labels:
-            roots.append(QTreeWidgetItem([r, '']))
+            roots.append(MyTreeWidgetItem([r, ''], self.controls[r], 0))
         self.treeWidget.insertTopLevelItems(0, roots)
 
         for i in range(len(root_labels)):
             self._generateTree(self.tree[root_labels[i]], roots[i])
 
-
         ''' Prepare initial GUI state '''
         for control in controls.keys():
-            self.get_state(control)
+            self.update_state(control)
         self.expand(0)
         self.expand(1)
 
@@ -79,38 +94,23 @@ class TreeLayout(QHBoxLayout):
         except AttributeError:
             pass
 
-    def update_editor(self):
-        ''' Send actuate command and disable editing after the user presses return or clicks another node. '''
-        try:
-            self.lastItem = self.currentItem
-            self.currentItem = self.treeWidget.currentItem()
-            self.treeWidget.closePersistentEditor(self.lastItem, 1)
-            self.editorOpen = 0
-            input = self.lastItem.text(0)
-            device = self.lastItem.parent().text(0)
-            key = device + '.' + input
-            value = self.currentItem.text(1)
-            state = {key: float(value)}
-            control = self.currentItem.parent().parent().text(0)
-            self.controls[control].actuate(state)
-        except AttributeError:
-            pass
-
     def expand(self, layer):
         ''' Expand all nodes in a given layer. '''
         items = self.get_all_items()
-        items = [x for x in items if self.get_layer(x)==layer]
+        items = [x for x in items if x.level==layer]
         for item in items:
             item.setExpanded(True)
 
-    def _generateTree(self, children, parent):
+    def _generateTree(self, children, parent, level = 1):
         ''' Recursively add nodes to build the full network. '''
+        ch = {1: 'devices', 2: 'inputs'}
         for child in sorted(children):
-            child_item = QTreeWidgetItem([child])
+            object = getattr(parent.node, ch[level])[child]
+            child_item = MyTreeWidgetItem([child], object, level)
             parent.addChild(child_item)
 
             if isinstance(children, dict):
-                self._generateTree(children[child], child_item)
+                self._generateTree(children[child], child_item, level = level+1)
 
     def get_all_items(self):
         """Returns all QTreeWidgetItems in the given QTreeWidget."""
@@ -134,23 +134,6 @@ class TreeLayout(QHBoxLayout):
             if input.parent().text(0) == device_name:
                 return input
 
-    def get_items_on_level(self, level):
-        all_items = self.get_all_items()
-        items = []
-        for i in all_items:
-            if self.get_layer(i) == level:
-                items.append(i)
-        return items
-
-    def get_layer(self, item):
-        ''' Get the layer in which an item resides. '''
-        layer = 0
-        parent = 0
-        while item is not None:
-            item = item.parent()
-            layer +=1
-        return layer-1
-
     def get_selected_control(self):
         ''' Returns a control node corresponding to the selected input node. '''
         ''' WARNING: will cause unpredicted behavior if nodes across controls are selected '''
@@ -158,24 +141,39 @@ class TreeLayout(QHBoxLayout):
         control_name = item.parent().parent().text(0)
         return self.controls[control_name]
 
+    # def get_selected_level(self):
+    #     ''' Return the level of the currently selected item. '''
+    #     indexes = self.treeWidget.selectedIndexes()
+    #     level = 0
+    #     index = indexes[0]
+    #     while index.parent().isValid():
+    #         index = index.parent()
+    #         level += 1
+    #     return level
+
     def get_selected_level(self):
         ''' Return the level of the currently selected item. '''
-        indexes = self.treeWidget.selectedIndexes()
-        level = 0
-        index = indexes[0]
-        while index.parent().isValid():
-            index = index.parent()
-            level += 1
-        return level
+        item = self.treeWidget.selectedItems()[0]
+        return item.level
+
+    # def get_selected_state(self):
+    #     ''' Build a substate from all currently selected inputs. '''
+    #     indexes = self.treeWidget.selectedIndexes()
+    #     state = {}
+    #     for i in indexes:
+    #         if i.column() == 0:
+    #             full_name = i.parent().data() + '.' + i.data()
+    #             state[full_name] = float(i.sibling(i.row(), 1).data())
+    #     return state
 
     def get_selected_state(self):
-        ''' Build a substate from all currently selected items. '''
-        indexes = self.treeWidget.selectedIndexes()
+        ''' Build a substate from all currently selected inputs. '''
+        items = self.treeWidget.selectedItems()
         state = {}
-        for i in indexes:
-            if i.column() == 0:
-                full_name = i.parent().data() + '.' + i.data()
-                state[full_name] = float(i.sibling(i.row(), 1).data())
+        for i in items:
+            input = i.node
+            dev = input.parent
+            state[dev.name + '.' + input.name] = input.value
 
         return state
 
@@ -187,7 +185,24 @@ class TreeLayout(QHBoxLayout):
             nodes.extend(self.get_subtree_nodes(item.child(i)))
         return nodes
 
-    def get_state(self, control):
+    def update_editor(self):
+        ''' Send actuate command and disable editing after the user presses return or clicks another node. '''
+        try:
+            self.lastItem = self.currentItem
+            self.currentItem = self.treeWidget.currentItem()
+            self.treeWidget.closePersistentEditor(self.lastItem, 1)
+            self.editorOpen = 0
+            input = self.lastItem.text(0)
+            device = self.lastItem.parent().text(0)
+            key = device + '.' + input
+            value = self.currentItem.text(1)
+            state = {key: float(value)}
+            control = self.currentItem.parent().parent().text(0)
+            self.controls[control].actuate(state)
+        except AttributeError:
+            pass
+
+    def update_state(self, control):
         ''' Read Control node state and update GUI. '''
         for key in self.controls[control].state:
             self.get_input(key).setText(1, '%.2f'%self.controls[control].state[key])
@@ -200,6 +215,7 @@ class TreeLayout(QHBoxLayout):
         if col == 1:
             self.treeWidget.openPersistentEditor(self.treeWidget.currentItem(), col)
             self.editorOpen = 1
+
     def openMenu(self, pos):
         level = self.get_selected_level()
         globalPos = self.mapToGlobal(pos)
@@ -209,6 +225,5 @@ class TreeLayout(QHBoxLayout):
         #     optimize_action = QAction('Optimize', self)
         #     optimize_action.triggered.connect(self.optimizerWindow.show)
         #     menu.addAction(optimize_action)
-
 
         selectedItem = menu.exec_(globalPos)
