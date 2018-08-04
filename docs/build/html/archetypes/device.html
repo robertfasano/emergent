@@ -1,8 +1,8 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="python" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="python" > <!--<![endif]-->
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
   
@@ -24,19 +24,28 @@
 
   
 
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Devices" href="../devices.html" />
-    <link rel="prev" title="Parallel" href="Parallel.html" /> 
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../genindex.html"/>
+        <link rel="search" title="Search" href="../search.html"/>
+    <link rel="top" title="EMERGENT 0.1alpha documentation" href="../index.html"/>
+        <link rel="up" title="Archetypes" href="../archetypes.html"/>
+        <link rel="next" title="Devices" href="../devices.html"/>
+        <link rel="prev" title="Parallel" href="Parallel.html"/> 
 
   
   <script src="../_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav">
+<body class="wy-body-for-nav" role="document">
 
    
   <div class="wy-grid-for-nav">
@@ -84,6 +93,7 @@
             
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../index.html">EMERGENT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture.html">Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../archetypes.html">Archetypes</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="Hub.html">Hub</a></li>
@@ -105,7 +115,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" aria-label="top navigation">
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">EMERGENT</a>
@@ -113,10 +123,9 @@
       </nav>
 
 
+      
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
           
 
 
@@ -160,93 +169,15 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="module-device">
-<span id="device"></span><h1>Device<a class="headerlink" href="#module-device" title="Permalink to this headline">¶</a></h1>
-<p>The Device class handles persistent settings saved in json files in labAPI/settings. Settings are loaded into the
-Device.params dict and are handled differently based on their &quot;type&quot;: &quot;state&quot; objects are loaded into a state vector
-to be made accessible by the Optimizer class, while &quot;settings&quot; objects (e.g. velocity of the a translation stage) are not.</p>
-<dl class="class">
-<dt id="device.Device">
-<em class="property">class </em><code class="descclassname">device.</code><code class="descname">Device</code><span class="sig-paren">(</span><em>name</em>, <em>base_path=None</em>, <em>lowlevel=True</em>, <em>parent=None</em><span class="sig-paren">)</span><a class="headerlink" href="#device.Device" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
-<dl class="method">
-<dt id="device.Device.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>name</em>, <em>base_path=None</em>, <em>lowlevel=True</em>, <em>parent=None</em><span class="sig-paren">)</span><a class="headerlink" href="#device.Device.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Instantiate a Device with a given name. Setting base_path allows
-nonstandard settings file locations. Settings files will only exist
-if lowlevel=True. If parent is not None, the Device is added as a child
-to the parent Hub.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="device.Device._actuate">
-<code class="descname">_actuate</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#device.Device._actuate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Placeholder to be overwritten for a specific device</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="device.Device._delete">
-<code class="descname">_delete</code><span class="sig-paren">(</span><em>setpoint</em><span class="sig-paren">)</span><a class="headerlink" href="#device.Device._delete" title="Permalink to this definition">¶</a></dt>
-<dd><p>Read in setpoints from file, delete target setpoint, and write</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="device.Device._get_index_by_param">
-<code class="descname">_get_index_by_param</code><span class="sig-paren">(</span><em>param</em><span class="sig-paren">)</span><a class="headerlink" href="#device.Device._get_index_by_param" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a state index given a parameter</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="device.Device._get_param_by_index">
-<code class="descname">_get_param_by_index</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="headerlink" href="#device.Device._get_param_by_index" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a params dict entry given a state index</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="device.Device._load">
-<code class="descname">_load</code><span class="sig-paren">(</span><em>setpoint</em><span class="sig-paren">)</span><a class="headerlink" href="#device.Device._load" title="Permalink to this definition">¶</a></dt>
-<dd><p>Read in setpoints from file</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="device.Device._params_to_state">
-<code class="descname">_params_to_state</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#device.Device._params_to_state" title="Permalink to this definition">¶</a></dt>
-<dd><p>Prepare the normalized state vector of the Device by parsing all state variables</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="device.Device._save">
-<code class="descname">_save</code><span class="sig-paren">(</span><em>setpoint=None</em><span class="sig-paren">)</span><a class="headerlink" href="#device.Device._save" title="Permalink to this definition">¶</a></dt>
-<dd><p>Read in setpoints from file, append or update current setpoint, and write</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="device.Device._state_to_params">
-<code class="descname">_state_to_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#device.Device._state_to_params" title="Permalink to this definition">¶</a></dt>
-<dd><p>Update the params file with the current values of the state vector</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="device.Device._update_parent">
-<code class="descname">_update_parent</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#device.Device._update_parent" title="Permalink to this definition">¶</a></dt>
-<dd><p>Push current params upstream to parent</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="device.Device.actuate">
-<code class="descname">actuate</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#device.Device.actuate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Ensures that the target state is within bounds, then calls the
-device-specific _actuate() method to update the physical state.
-Finally, updates the internal state and params</p>
-</dd></dl>
-
-</dd></dl>
-
+  <div class="section" id="device">
+<h1>Device<a class="headerlink" href="#device" title="Permalink to this headline">¶</a></h1>
 </div>
 
 
            </div>
-           
+           <div class="articleComments">
+            
+           </div>
           </div>
           <footer>
   
@@ -286,7 +217,6 @@ Finally, updates the internal state and params</p>
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
             VERSION:'0.1alpha',
-            LANGUAGE:'python',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
@@ -299,13 +229,19 @@ Finally, updates the internal state and params</p>
 
   
 
-  <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
 
+  
+  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.Navigation.enable(true);
+          SphinxRtdTheme.StickyNav.enable();
       });
-  </script> 
+  </script>
+   
 
 </body>
 </html>

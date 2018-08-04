@@ -10,17 +10,15 @@ EMERGENT
 
 Overview
 -------------------
-EMERGENT is a library featuring device drivers and abstract classes allowing
-universal control of laboratory experiments.To allow simple extension to any 
-research project, we model a generalized experiment as a network consisting of
-*N* inputs, *M* outputs, and *L* intermediate layers, each of which possessing
-some number of inputs and outputs.
-
-The library was written based on 
-the main belief that science progresses quickest when experimentalists 
+EMERGENT (Explorative Machine-learning EnviRonment for Generalized Experiments of Networked Things) is a library featuring device drivers and abstract classes allowing
+universal autonomous control of laboratory experiments. The library was written based on the main belief that science progresses quickest when experimentalists 
 are free to spend as much time thinking and as little time turning knobs and 
-writing code as possible. This naturally leads to five core tenets underlying 
-the development of EMERGENT, each of which aiming to solve an important problem
+writing code as possible.
+
+To allow simple extension to any 
+research project, we model a generalized experiment as a network consisting of three types of objects: the Input, a physical degree of freedom like laser frequency or mechanical displacement; the Device, which allows Inputs to be set to desired configurations; and the Control, which oversees many devices to coordinate the experiment. The basic building block of EMERGENT is the Node class, which allows a graph-theoretic framework for experimental control and state traversal, and whose properties are inherited in the three child objects.
+
+The goals of EMERGENT are outlined in five core tenets, each of which aims to solve an important problem
 in research. We provide an introduction to these problems viewed through the lens
 of a magneto-optical trapping experiment, but the tenets can
 be extended to any field.
@@ -41,7 +39,7 @@ and/or output of analog or digital signals. Due to the diversity of devices with
 generally different communications protocols in a typical experiment, uncareful 
 control architecture design can easily lead to a proliferation of code which is 
 all performing the same task (device communication) in many different ways. Such
-practices needlessly consume the experimentalist's time during development, as 
+practices slow down the typically rapid early stage of experimentation, as 
 well as resulting in code which is tricky to generalize to other experiments.
 
 EMERGENT solves this problem through a standardized object-oriented design. Every device
@@ -49,9 +47,9 @@ in the network is controlled by an abstract Device class which implements a univ
 syntax for describing or manipulating the state of a device, as well as providing 
 common functionalities such as saving or loading states to/from an archive. Devices
 not yet implemented in EMERGENT can be easily added by inheriting from the Device class,
-then rewriting the Device._connect() and Device._actuate() functions to correctly
-interface with the device API. As EMERGENT grows, more and more devices will be 
-natively supported, allowing control architecture experiments to be rapidly 
+then reimplementing the Device._connect() and Device._actuate() functions to correctly
+interface with the device API, typically only requiring several lines of code. As EMERGENT grows, more and more devices will be 
+natively supported, allowing control architecture for experiments to be rapidly 
 constructed.
 
 
@@ -59,7 +57,7 @@ Tenet 2: Scalability
 ~~~~~~~~~~~~~~~~~~~~~~~
 With a well-defined standardization method for device integration, it should be
 very easy to add large numbers of devices from a central hub, which we refer to
-as *minimal marginal device cost*: the 1001st device should be as simple to add 
+as the principle of *minimal marginal device cost*: the 1001st device should be as simple to add 
 to the network as the second. In the previous problem, we discussed how EMERGENT 
 streamlines device *creation*, but this is not enough to ensure scalability: a 
 control architecture consisting of many devices must also possess a communication
@@ -69,32 +67,7 @@ once a lower-level component is properly implemented, any conflicts need only
 to be addressed at the interface to the next higher layer, avoiding complicated
 cross-layer debugging.
 
-We now overview the automated "plumbing" that goes on behind the scenes to hook 
-up your devices to the network for actual use. Although any device driver inheriting from the Device class will be able to 
-run independently, the true power of EMERGENT is revealed in our second abstract
-class: the Hub. A Hub represents a fully self-contained ecosystem of devices (lasers, current drivers, etc)
-united for a common purpose (the magneto-optical trap). Devices can be added as
-child objects to a parent Hub upon instantiation, and the Hub acquires a macroscopic
-state vector composed of all of the concatenated states from its child Devices.
-We can think of a single Hub as an entire experiment, with its input state
-(frequency, intensity, etc) producing an output state (atom number, temperature, etc).
-Or, a Hub can be a building block of a larger experiment, which can
-be thought of as a higher-layered Hub which uses the outputs of the previous Hub layer
-as its inputs. 
-
-The Hub archetype also inherits from the Link class, which connects the control code,
-which runs in Python, to the Application gui, which can in principle be written in any language
-but here is implemented in QML. The Application itself is constructed in a scalable manner,
-where new Hubs automatically register themselves within the QML engine and appear
-in the interface. Python's powerful introspection features also allow an
-automatically-populated function browser within the Application, allowing the user
-to run any Device function by navigating through the Hub->Device->function 
-hierarchy.
-
-This hierarchical infrastructure enforces standardized, modular data flow from a Device
-to its parent Hub to other parts of the experiment, as well as providing an
-automatically-generated yet beautiful user interface with which to control the
-entire experiment.
+Scalability is ensured through the modular framework of experimental control through the Input->Device->Control triplet. This framework leads to self-contained ecosystems of devices (lasers, current drivers, mechanical actuators, etc) united for a common purpose (the magneto-optical trap) whose quality is measured through some output (atom number, temperature, etc). Individual triplets can be combined into a larger experiment with a simple graphical representation: horizontally separated modules have no interdependences and can be run and/or optimized in parallel, while vertically separated modules naturally enforce typical experimental sequences (e.g. first-stage cooling, second-stage cooling, etc).
 
 
 Tenet 3: Automation
@@ -103,10 +76,9 @@ Experimental physics is rife with simple yet tedious tasks which are typically
 carried out daily. Our philosophy is that no frequently occurring problem should '
 be manually solved more than once - once the important inputs and outputs are 
 understood, sensors and actuators can be added to the network and used to automate
-the tedious. labAPI offers a suite of optimization algorithms, from simple
+the tedious. EMERGENT offers a suite of optimization algorithms, from simple
 grid searches for lower-dimensional problems, to gradient-descent and simplex
-methods for middle-dimensional problems, to neural networks for simultaneous optimization
-of many degrees of freedom.
+methods for middle-dimensional problems, to neural networks and genetic algorithms for simultaneous optimization of many degrees of freedom.
 
 An example application is alignment of a laser beam into an 
 optical fiber, which must be reoptimized somewhat frequently due to thermally-induced 

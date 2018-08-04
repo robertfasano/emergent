@@ -6,12 +6,12 @@ Simple network
 ---------------
 A full example for a simple network can be found in emergent/examples/basic.py. In this example, a single Control node oversees two Device nodes, one with inputs 'X' and 'Y' and another with input 'Z'. Take a moment to look through the code required to initialize the network.
 
-You can start EMERGENT with this network by navigating to the emergent/examples/basic directory in the command line and running
+You can start EMERGENT with this network from the root directory by running
 
 .. code-block :: python
 
    ipython
-   %run main
+   %run main basic
 
 Accessing node attributes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -135,7 +135,7 @@ The first step in building the network is to define a custom control node for ou
          def __init__(name, labjack, parent=None):
                   super().__init__(name, parent)
                   self.labjack = LabJack()
-                  
+
          def cost(state):
                   self.actuate(state)
                   return self.labjack.AIn(0)

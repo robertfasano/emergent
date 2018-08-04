@@ -1,8 +1,8 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="python" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="python" > <!--<![endif]-->
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
   
@@ -24,19 +24,27 @@
 
   
 
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Archetypes" href="archetypes.html" />
-    <link rel="prev" title="Architecture" href="architecture.html" /> 
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="EMERGENT 0.1alpha documentation" href="index.html"/>
+        <link rel="next" title="Archetypes" href="archetypes.html"/>
+        <link rel="prev" title="Architecture" href="architecture.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav">
+<body class="wy-body-for-nav" role="document">
 
    
   <div class="wy-grid-for-nav">
@@ -89,13 +97,13 @@
 <li class="toctree-l2"><a class="reference internal" href="#simple-network">Simple network</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#accessing-node-attributes">Accessing node attributes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#actuation">Actuation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#state-recall">State recall</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#fiber-coupling">Fiber coupling</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#first-steps">First steps</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#building-the-experiment">Building the experiment</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#building-the-network">Building the network</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#settings">Settings</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#manual-operation">Manual operation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#automated-operation">Automated operation</a></li>
 </ul>
@@ -122,7 +130,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" aria-label="top navigation">
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">EMERGENT</a>
@@ -130,10 +138,9 @@
       </nav>
 
 
+      
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
           
 
 
@@ -179,10 +186,10 @@
 <h1>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="simple-network">
 <h2>Simple network<a class="headerlink" href="#simple-network" title="Permalink to this headline">¶</a></h2>
-<p>A full example for a simple network can be found in emergent/examples/basic.py. In this example, a single Control node oversees two Device nodes, one with inputs 'X' and 'Y' and another with input 'Z'. Take a moment to look through the code required to initialize the network.</p>
-<p>You can start EMERGENT with this network by navigating to the emergent directory in the command line and running</p>
+<p>A full example for a simple network can be found in emergent/examples/basic.py. In this example, a single Control node oversees two Device nodes, one with inputs &#8216;X&#8217; and &#8216;Y&#8217; and another with input &#8216;Z&#8217;. Take a moment to look through the code required to initialize the network.</p>
+<p>You can start EMERGENT with this network from the root directory by running</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">ipython</span>
-<span class="o">%</span><span class="n">run</span> <span class="n">examples</span><span class="o">/</span><span class="n">basic</span>
+<span class="o">%</span><span class="n">run</span> <span class="n">main</span> <span class="n">basic</span>
 </pre></div>
 </div>
 <div class="section" id="accessing-node-attributes">
@@ -246,16 +253,20 @@
 </div>
 <p>No matter which method we use, the result is the same: the value of each targeted Input node is changed, and both <code class="docutils literal"><span class="pre">device.state</span></code> and <code class="docutils literal"><span class="pre">control.state</span></code> are updated.</p>
 </div>
+<div class="section" id="state-recall">
+<h3>State recall<a class="headerlink" href="#state-recall" title="Permalink to this headline">¶</a></h3>
+<p>The current state of our Control node can be saved by running <code class="docutils literal"><span class="pre">control.save()</span></code>. This stores the state dict in <code class="docutils literal"><span class="pre">basic/settings/control.txt</span></code>. The state can be recovered at a later time by running <code class="docutils literal"><span class="pre">control.load()</span></code>, which will read the state dict into memory and update included Input nodes to the loaded state.</p>
+</div>
 </div>
 <div class="section" id="fiber-coupling">
 <h2>Fiber coupling<a class="headerlink" href="#fiber-coupling" title="Permalink to this headline">¶</a></h2>
 <p>As a simple yet highly useful application of EMERGENT, we present here a complete walkthrough for setting up a new EMERGENT project implementing automated beam alignment into an optical fiber.</p>
 <div class="section" id="first-steps">
 <h3>First steps<a class="headerlink" href="#first-steps" title="Permalink to this headline">¶</a></h3>
-<p>Before writing any code, you'll need to prepare a project directory for your application in the same directory that houses your EMERGENT package. The emergent/template directory contains a blueprint project that you can copy and rename. Let's name it &quot;autoAlign&quot;.</p>
-<p>You'll see several files and folders in the newly-created project directory:</p>
+<p>Before writing any code, you&#8217;ll need to prepare a project directory for your application in the same directory that houses your EMERGENT package. The emergent/template directory contains a blueprint project that you can copy and rename. Let&#8217;s name it &#8220;autoAlign&#8221;.</p>
+<p>You&#8217;ll see several files and folders in the newly-created project directory:</p>
 <ul class="simple">
-<li><code class="docutils literal"><span class="pre">main.py</span></code>: the script which runs your project. In here, we'll import any modules we want to use, then define our experiment.</li>
+<li><code class="docutils literal"><span class="pre">main.py</span></code>: the script which runs your project. In here, we&#8217;ll import any modules we want to use, then define our experiment.</li>
 <li><code class="docutils literal"><span class="pre">nodes</span></code>: an empty folder which will contain any project-specific classes inheriting from Node</li>
 <li><code class="docutils literal"><span class="pre">settings</span></code>: an empty folder which will contain settings files for the experiment</li>
 </ul>
@@ -271,67 +282,56 @@
 <div class="section" id="building-the-network">
 <h3>Building the network<a class="headerlink" href="#building-the-network" title="Permalink to this headline">¶</a></h3>
 <p>The network architecture for the fiber coupling problem is shown in Figure 2. The tip and tilt degrees of freedom comprise two Input nodes, labeled X and Y. The Device node takes these two nodes as inputs and physically actuates the mirror using the driver in <code class="docutils literal"><span class="pre">emergent/devices/picoAmp.py</span></code>. The output of the Device node is connected to an Optimizer node, which measures the fiber-coupled power and sends commands to the Device node to optimize the efficiency.</p>
-<p>Construction of this network requires only a few lines of code in <code class="docutils literal"><span class="pre">main.py</span></code>, which should be added under the Network Construction header. First, we define the Optimizer node:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">optimizer</span> <span class="o">=</span> <span class="n">Node</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;autoAlign&#39;</span><span class="p">,</span> <span class="n">sensor</span><span class="o">=</span><span class="s1">&#39;labjackT7&#39;</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;490016934&#39;</span><span class="p">,</span> <span class="s1">&#39;AIN0&#39;</span><span class="p">),</span> <span class="n">layer</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<p>The first step in building the network is to define a custom control node for our alignment task:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">AutoAlign</span><span class="p">(</span><span class="n">Control</span><span class="p">):</span>
+      <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">labjack</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+               <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">parent</span><span class="p">)</span>
+               <span class="bp">self</span><span class="o">.</span><span class="n">labjack</span> <span class="o">=</span> <span class="n">LabJack</span><span class="p">()</span>
+
+      <span class="k">def</span> <span class="nf">cost</span><span class="p">(</span><span class="n">state</span><span class="p">):</span>
+               <span class="bp">self</span><span class="o">.</span><span class="n">actuate</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+               <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">labjack</span><span class="o">.</span><span class="n">AIn</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>We have constructed a node named 'autoAlign' in the bottom layer of the network. Passing in a sensor argument tells EMERGENT that this is an Optimizer node (as opposed to a Device or Input node). We also pass in the serial number and the input channel of the LabJack.</p>
-<p>Now let's add the Device node:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">MEMS</span> <span class="o">=</span> <span class="n">Node</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;MEMS&#39;</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s1">&#39;picoAmp&#39;</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">optimizer</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="s1">&#39;0001&#39;</span><span class="p">)</span>
+<p>Now we can connect to the LabJack and instantiate the Control node:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">devid</span> <span class="o">=</span> <span class="s1">&#39;160049734&#39;</span>
+<span class="n">labjack</span> <span class="o">=</span> <span class="n">LabJack</span><span class="p">(</span><span class="n">devid</span><span class="o">=</span><span class="n">devid</span><span class="p">)</span>
+<span class="n">control</span> <span class="o">=</span> <span class="n">AutoAlign</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;control&#39;</span><span class="p">,</span> <span class="n">labjack</span><span class="o">=</span><span class="n">labjack</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Passing in a device argument specifies that this is a Device node, while passing the Optimizer node as a parent makes the connection between the two. We have also specified a unique id for the Device node, whose importance will be evident below.</p>
-<p>Finally, we can add the Input nodes:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">Node</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;X&#39;</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">MEMS</span><span class="p">)</span>
-<span class="n">Node</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Y&#39;</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">MEMS</span><span class="p">)</span>
+<p>The final step is to define the Device node based on the custom class in <code class="docutils literal"><span class="pre">emergent/devices/picoAmp.py</span></code> and add Inputs:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">mems</span> <span class="o">=</span> <span class="n">PicoAmp</span><span class="p">(</span><span class="s1">&#39;MEMS&#39;</span><span class="p">,</span> <span class="n">labjack</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">control</span><span class="p">)</span>
+<span class="n">mems</span><span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;X&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="n">mems</span><span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="s1">&#39;Y&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>The names we have chosen here are not arbitrary - 'X' and 'Y' correspond to the degrees of freedom defined in the picoAmp class.</p>
-</div>
-<div class="section" id="settings">
-<h3>Settings<a class="headerlink" href="#settings" title="Permalink to this headline">¶</a></h3>
-<p>With the network fully constructed, you can now start up EMERGENT from the command line:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">ipython</span>
-<span class="o">%</span><span class="n">run</span> <span class="n">main</span><span class="o">.</span><span class="n">py</span>
-</pre></div>
-</div>
-<p>As a last step, we will need to add a json file in emergent/settings.py to define important operational parameters for the MEMS mirror. To do this, run <code class="docutils literal"><span class="pre">MEMS.setup()</span></code> to start the setup wizard for the Device node. When prompted, enter the following parameters:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">X</span><span class="p">:</span> <span class="mi">0</span>         <span class="c1"># defines the initial X input value</span>
-<span class="n">X_min</span><span class="p">:</span> <span class="o">-</span><span class="mf">3.</span>   <span class="c1"># defines the minimum value of X</span>
-<span class="n">X_max</span><span class="p">:</span> <span class="mi">3</span>     <span class="c1"># defines the maximum value of X</span>
-<span class="n">Y</span><span class="p">:</span> <span class="mi">0</span>         <span class="c1"># defines the initial Y input value</span>
-<span class="n">Y_min</span><span class="p">:</span> <span class="o">-</span><span class="mi">3</span>
-<span class="n">Y_max</span><span class="p">:</span> <span class="mi">3</span>
-</pre></div>
-</div>
-<p>The minimum and maximum positions we set will define the bounds of our optimization space. Note that the full range of the PicoAmp driver is +/-80, but +/-3 will suffice for fiber alignment.</p>
-<p>After completing the setup wizard, a json file called <code class="docutils literal"><span class="pre">emergent/settings/MEMS#XXXX</span></code> will be created, where <code class="docutils literal"><span class="pre">XXXX=0001</span></code> here, corresponding to the id we passed in to the Device node. During normal operation, EMERGENT will frequently update and log the input values, such that the values stored in the json file will stay up to date.</p>
+<p>Note that the first argument to the <code class="docutils literal"><span class="pre">add_input</span></code> function should match one of the inputs defined in the Device driver, which in this case are <code class="docutils literal"><span class="pre">X</span></code> and <code class="docutils literal"><span class="pre">Y</span></code>. The remaining arguments are the value and min/max values of the inputs, respectively.</p>
 </div>
 <div class="section" id="manual-operation">
 <h3>Manual operation<a class="headerlink" href="#manual-operation" title="Permalink to this headline">¶</a></h3>
-<p>With the experiment built and the network constructed, let's now take manual control to familiarize ourselves with the command format. First, let's move the mirror. There are two ways we can do this; first, we could call the actuate() method to move the X and Y to new values, say -1 and 1:</p>
+<p>With the experiment built and the network constructed, let&#8217;s now take manual control to familiarize ourselves with the command format. First, let&#8217;s move the mirror. There are two ways we can do this; first, we could call the actuate() method to move the X and Y to new values, say -1 and 1:</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">MEMS</span><span class="o">.</span><span class="n">actuate</span><span class="p">({</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">:</span><span class="mi">1</span><span class="p">})</span>
 </pre></div>
 </div>
-<p>Note that we don't have to specify any values we don't want to change: passing in <code class="docutils literal"><span class="pre">{'X':-1}</span></code> will update <code class="docutils literal"><span class="pre">X</span></code> but leave <code class="docutils literal"><span class="pre">Y</span></code> unchanged.</p>
+<p>Note that we don&#8217;t have to specify any values we don&#8217;t want to change: passing in <code class="docutils literal"><span class="pre">{'X':-1}</span></code> will update <code class="docutils literal"><span class="pre">X</span></code> but leave <code class="docutils literal"><span class="pre">Y</span></code> unchanged.</p>
 <p>Alternately, we could have changed the state of the input nodes directly:</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">MEMS</span><span class="o">.</span><span class="n">input</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
 <span class="n">MEMS</span><span class="o">.</span><span class="n">input</span><span class="p">[</span><span class="s1">&#39;Y&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>This will call the actuate() method indirectly, so it is functionally nearly identical to the first approach, but will offer greater flexibility when running EMERGENT in a GUI.</p>
-<p>After moving the mirror, you should have seen the coupling efficiency change. The power can be measured by calling <code class="docutils literal"><span class="pre">optimizer.cost()</span></code>, which will read the LabJack's channel AIN0 and multiply by -1 (by convention, all optimization problems are framed as minimization).</p>
-<p>We can also save the new state by calling <code class="docutils literal"><span class="pre">optimizer.save()</span></code>, which rewrites the input values stored in the settings json to their current values. If you restart emergent, the mirror should return to <code class="docutils literal"><span class="pre">{'X':-1,</span> <span class="pre">'Y':1}</span></code>.</p>
+<p>After moving the mirror, you should have seen the coupling efficiency change. The power can be measured by calling <code class="docutils literal"><span class="pre">control.cost()</span></code>, which will read the LabJack&#8217;s channel AIN0 and multiply by -1 (by convention, all optimization problems are cast as minimization).</p>
+<p>We can also save the new state by calling <code class="docutils literal"><span class="pre">control.save()</span></code>, which writes the current settings to a json file in <code class="docutils literal"><span class="pre">emergent/examples/MEMS_align/settings</span></code>. Calling <code class="docutils literal"><span class="pre">control.load()</span></code> will allow the saved state to be recovered.</p>
 </div>
 <div class="section" id="automated-operation">
 <h3>Automated operation<a class="headerlink" href="#automated-operation" title="Permalink to this headline">¶</a></h3>
-<p>We are finally ready to unveil the holy grail of EMERGENT - automatic device optimization. By calling <code class="docutils literal"><span class="pre">optimizer.optimize()</span></code>, the inputs will be tuned to maximize the fiber-coupled efficiency. Many different algorithms are implemented in EMERGENT and can be passed in through the <code class="docutils literal"><span class="pre">method</span></code> keyword argument; in general, the ideal algorithm will be chosen for a given application. We will first demonstrate the simplest possible algorithm, a two-dimensional grid-search.</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">optimizer</span><span class="o">.</span><span class="n">optimize</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s1">&#39;grid_search&#39;</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;steps&#39;</span><span class="p">:</span><span class="mi">20</span><span class="p">,</span> <span class="s1">&#39;plot&#39;</span><span class="p">:</span><span class="bp">True</span><span class="p">})</span>
+<p>We are finally ready to unveil the holy grail of EMERGENT - automatic device optimization. By calling <code class="docutils literal"><span class="pre">control.optimizer.optimize()</span></code>, the inputs will be tuned to maximize the fiber-coupled efficiency. Many different algorithms are implemented in EMERGENT and can be passed in through the <code class="docutils literal"><span class="pre">method</span></code> keyword argument; in general, the ideal algorithm will be chosen for a given application. We will first demonstrate the simplest possible algorithm, a two-dimensional grid-search.</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">control</span><span class="o">.</span><span class="n">optimizer</span><span class="o">.</span><span class="n">optimize</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s1">&#39;grid_search&#39;</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;steps&#39;</span><span class="p">:</span><span class="mi">20</span><span class="p">,</span> <span class="s1">&#39;plot&#39;</span><span class="p">:</span><span class="bp">True</span><span class="p">})</span>
 </pre></div>
 </div>
-<p>This call to grid_search will create a 20x20 grid in the XY plane, sample each point, and move to the best point. If the parameter 'plot' is True, the cost function evaluated over the grid will be plotted. This allows easy visualization of cost landscapes for lower-dimensional problems, but the aggressive complexity scaling of grid_search in the number of dimensions and steps prohibits its use for higher dimensions.</p>
+<p>This call to grid_search will create a 20x20 grid in the XY plane, sample each point, and move to the best point. If the parameter &#8216;plot&#8217; is True, the cost function evaluated over the grid will be plotted. This allows easy visualization of cost landscapes for lower-dimensional problems, but the aggressive complexity scaling of grid_search in the number of dimensions and steps prohibits its use for higher dimensions.</p>
 <p>A more sophisticated algorithm is the Nelder-Mead method:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">optimizer</span><span class="o">.</span><span class="n">optimize</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s1">&#39;Nelder-Mead&#39;</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">control</span><span class="o">.</span><span class="n">optimizer</span><span class="o">.</span><span class="n">optimize</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s1">&#39;Nelder-Mead&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Rather than scanning the entire space, the Nelder-Mead method attempts to efficiently move a N+1 dimensional simplex through an N dimensional cost landscape towards a minimum.</p>
@@ -340,19 +340,19 @@
 <div class="section" id="subspace-partitioning">
 <h2>Subspace partitioning<a class="headerlink" href="#subspace-partitioning" title="Permalink to this headline">¶</a></h2>
 <p>A powerful feature of EMERGENT is the automatic identification of coupled variables, allowing high-dimensional optimization problems to be decomposed into separate lower-dimensional problems. For example, the idealized fiber coupling problem can be modeled as minimization in a Gaussian cost landscape, which contains no couplings between the X and Y degrees of freedom; therefore, we can run quick 1D line searches in each variable rather than a 2D simultaneous optimization, significantly reducing the size of the search space.</p>
-<p>Rather than the physical fiber coupling example above, we will now switch to a virtual cost function to facilitate demonstration of EMERGENT's subspace identification features. The code for this tutorial can be found in emergent/examples/subspace_identification. Navigate to this directory and run main.py within an IPython console.</p>
+<p>Rather than the physical fiber coupling example above, we will now switch to a virtual cost function to facilitate demonstration of EMERGENT&#8217;s subspace identification features. The code for this tutorial can be found in <code class="docutils literal"><span class="pre">emergent/examples/subspace_identification</span></code>. Navigate to this directory and run main.py within an IPython console.</p>
 <p>We analyze a simple network consisting of a control node implementing several virtual cost functions and a trivial device node which maps two virtual inputs, X and Y, to user-defined values. Two cost functions are implemented: <code class="docutils literal"><span class="pre">control.cost_uncoupled</span></code> and <code class="docutils literal"><span class="pre">control.cost_coupled</span></code>. The former is simply a multivariate Gaussian with a relative factor of ½ between the widths in the X and Y directions; the latter also rotates the inputs by 30 degrees to create a coupling between X and Y.</p>
 <div class="section" id="uncoupled-optimization">
 <h3>Uncoupled optimization<a class="headerlink" href="#uncoupled-optimization" title="Permalink to this headline">¶</a></h3>
-<p>Let's inspect the uncoupled landscape with the grid_search algorithm:</p>
+<p>Let&#8217;s inspect the uncoupled landscape with the grid_search algorithm:</p>
 <p>To analyze couplings between degrees of freedom, run:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">control</span><span class="o">.</span><span class="n">covariance</span><span class="p">(</span><span class="n">cost</span> <span class="o">=</span> <span class="n">control</span><span class="o">.</span><span class="n">cost_uncoupled</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;grid_search&#39;</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">control</span><span class="o">.</span><span class="n">optimizer</span><span class="o">.</span><span class="n">covariance</span><span class="p">(</span><span class="n">cost</span> <span class="o">=</span> <span class="n">control</span><span class="o">.</span><span class="n">cost_uncoupled</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;grid_search&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>This will generate and return a covariance matrix through sampling on a uniform grid; couplings can be identified through nonzero off-diagonal elements. In this case, we see that the off-diagonal elements are zero (within an error threshold due to finite sampling), so we can move away from the minimum then optimize the cost through two separate 1D optimizations:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">control</span><span class="o">.</span><span class="n">actuate</span><span class="p">({</span><span class="n">MEMS</span><span class="o">.</span><span class="n">input</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">]:</span><span class="mi">0</span><span class="p">,</span> <span class="n">MEMS</span><span class="o">.</span><span class="n">input</span><span class="p">[</span><span class="s1">&#39;Y&#39;</span><span class="p">]:</span><span class="mi">0</span><span class="p">})</span>
-<span class="n">control</span><span class="o">.</span><span class="n">optimize</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s1">&#39;grid_search&#39;</span><span class="p">,</span> <span class="n">inputs</span> <span class="o">=</span> <span class="p">[</span><span class="n">MEMS</span><span class="o">.</span><span class="n">input</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">]],</span> <span class="n">cost</span> <span class="o">=</span> <span class="n">control</span><span class="o">.</span><span class="n">cost_uncoupled</span><span class="p">)</span>
-<span class="n">control</span><span class="o">.</span><span class="n">optimize</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s1">&#39;grid_search&#39;</span><span class="p">,</span> <span class="n">inputs</span> <span class="o">=</span> <span class="p">[</span><span class="n">MEMS</span><span class="o">.</span><span class="n">input</span><span class="p">[</span><span class="s1">&#39;Y&#39;</span><span class="p">]],</span> <span class="n">cost</span> <span class="o">=</span> <span class="n">control</span><span class="o">.</span><span class="n">cost_uncoupled</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">control</span><span class="o">.</span><span class="n">actuate</span><span class="p">({</span><span class="s1">&#39;MEMS.X&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;MEMS.Y&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">})</span>
+<span class="n">control</span><span class="o">.</span><span class="n">optimizer</span><span class="o">.</span><span class="n">optimize</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s1">&#39;grid_search&#39;</span><span class="p">,</span> <span class="n">inputs</span> <span class="o">=</span> <span class="p">[</span><span class="n">MEMS</span><span class="o">.</span><span class="n">input</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">]],</span> <span class="n">cost</span> <span class="o">=</span> <span class="n">control</span><span class="o">.</span><span class="n">cost_uncoupled</span><span class="p">)</span>
+<span class="n">control</span><span class="o">.</span><span class="n">optimizer</span><span class="o">.</span><span class="n">optimize</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s1">&#39;grid_search&#39;</span><span class="p">,</span> <span class="n">inputs</span> <span class="o">=</span> <span class="p">[</span><span class="n">MEMS</span><span class="o">.</span><span class="n">input</span><span class="p">[</span><span class="s1">&#39;Y&#39;</span><span class="p">]],</span> <span class="n">cost</span> <span class="o">=</span> <span class="n">control</span><span class="o">.</span><span class="n">cost_uncoupled</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Since the system is perfectly uncoupled, we converge to the local minimum after only 2N iterations for N steps, whereas a coupled system will require N^2 steps to tile the XY plane.</p>
@@ -360,7 +360,7 @@
 </div>
 <div class="section" id="coupled-optimization">
 <h3>Coupled optimization<a class="headerlink" href="#coupled-optimization" title="Permalink to this headline">¶</a></h3>
-<p>Now let's inspect the landscape of the coupled cost function:
+<p>Now let&#8217;s inspect the landscape of the coupled cost function:
 algorithm:</p>
 <p>We once again compute the covariance matrix:</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">cov</span> <span class="o">=</span> <span class="n">control</span><span class="o">.</span><span class="n">covariance</span><span class="p">(</span><span class="n">cost</span> <span class="o">=</span> <span class="n">control</span><span class="o">.</span><span class="n">cost_coupled</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;grid_search&#39;</span><span class="p">)</span>
@@ -392,17 +392,19 @@ algorithm:</p>
 </pre></div>
 </div>
 <p>Now we add the sequence to the <code class="docutils literal"><span class="pre">X</span></code> variable and register it with the master clock, which synchronizes sequences across all devices:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">MEMS</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">sequence</span> <span class="o">=</span> <span class="n">s</span>
-<span class="n">control</span><span class="o">.</span><span class="n">clock</span><span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="n">MEMS</span><span class="o">.</span><span class="n">X</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">MEMS</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sequence</span> <span class="o">=</span> <span class="n">s</span>
+<span class="n">control</span><span class="o">.</span><span class="n">clock</span><span class="o">.</span><span class="n">add_input</span><span class="p">(</span><span class="n">MEMS</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">])</span>
 </pre></div>
 </div>
-<p>Adding the input to the clock lets EMERGENT know that we want to run <code class="docutils literal"><span class="pre">X</span></code> in sequenced, not steady-state, operation. The last step is to start the clock with <a href="#id1"><span class="problematic" id="id2">``</span></a>control.clock.start(T=0.5)''. Note that the time values in the sequence definition correspond to fractions of the total cycle, so with this cycle of 0.5 s, the MEMS will move to a position of 3 after 250 ms, then back to 0 after each new cycle starts.</p>
+<p>Adding the input to the clock lets EMERGENT know that we want to run <code class="docutils literal"><span class="pre">X</span></code> in sequenced, not steady-state, operation. The last step is to start the clock with <a href="#id1"><span class="problematic" id="id2">``</span></a>control.clock.start(T=0.5)&#8217;&#8216;. Note that the time values in the sequence definition correspond to fractions of the total cycle, so with this cycle of 0.5 s, the MEMS will move to a position of 3 after 250 ms, then back to 0 after each new cycle starts.</p>
 </div>
 </div>
 
 
            </div>
-           
+           <div class="articleComments">
+            
+           </div>
           </div>
           <footer>
   
@@ -442,7 +444,6 @@ algorithm:</p>
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
             VERSION:'0.1alpha',
-            LANGUAGE:'python',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
@@ -455,13 +456,19 @@ algorithm:</p>
 
   
 
-  <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
 
+  
+  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.Navigation.enable(true);
+          SphinxRtdTheme.StickyNav.enable();
       });
-  </script> 
+  </script>
+   
 
 </body>
 </html>
