@@ -3,34 +3,34 @@ import os
 import weakref
 import pathlib
 import time
-from archetypes.Clock import Clock
-from archetypes.Historian import Historian
-from archetypes.Optimizer import Optimizer
+from archetypes.clock import Clock
+from archetypes.historian import Historian
+from archetypes.optimizer import Optimizer
 from utility import methodsWithDecorator
 
 class Node():
+    ''' The Node class is the core building block of the EMERGENT network,
+    providing useful organizational methods which are passed on to the Input,
+    Device, and Control classes. '''
     instances = []
     def __init__(self, name, parent=None):
         ''' Initializes a Node with a name and optionally registers
-            to a parent. If layer is None, then the layer is automatically
-            calculated from the network topology. Layer should be 0 for
-            bottom-level Nodes.
-            Device Nodes can be initialized by passing in a device/arg tuple,
-            e.g. (Device, args)'''
+            to a parent. '''
         self.name = name
         self.type = None
         self.__class__.instances.append(weakref.proxy(self))
-        self.children = []
+        self.children = {}
         if parent is not None:
-                self.register(parent)
+            self.register(parent)
         self.root = self.get_root()
 
-    def add_child(self, children):
-        assert type(children) is list
-        for child in children:
-                self.children.append(child)
+    # def add_child(self, children):
+    #     assert type(children) is list
+    #     for child in children:
+    #             self.children.append(child)
 
     def get_root(self):
+        ''' Returns the root Control node of any branch. '''
         root = self
         while True:
             try:
@@ -39,8 +39,9 @@ class Node():
                 return root
 
     def register(self, parent):
-        ''' Register self with parent node '''
+        ''' Register self with parent node. '''
         self.parent = parent
+        parent.children[self.name] = self
 
 class Input(Node):
         instances = []
@@ -64,7 +65,7 @@ class Device(Node):
 
         def add_input(self, name):
             ''' Attaches an Input node with the specified parameters '''
-            self.inputs[name] = Input(name, parent=self)
+            self.children[name] = Input(name, parent=self)
             self.parent.get_inputs()
             self.parent.get_settings()
             self.get_state()
@@ -99,10 +100,10 @@ class Device(Node):
             for i in self.inputs.keys():
                 self.settings[i] = {'min': self.inputs[i].min, 'max': self.inputs[i].max}
 
-        def register(self, parent):
-                ''' Adds self to parent control '''
-                self.parent = parent
-                self.parent.add_device(self.name, self)
+        # def register(self, parent):
+        #         ''' Adds self to parent control '''
+        #         self.parent = parent
+        #         self.parent.add_device(self.name, self)
 
 
 class Control(Node):
@@ -132,8 +133,8 @@ class Control(Node):
 
         def get_inputs(self):
             ''' Adds all connected Inputs of child Device nodes to self.inputs. An input is accessible through a key of the format 'Device.Input', e.g. 'MEMS.X' '''
-            for dev in list(self.devices.values()):
-                for i in list(dev.inputs.values()):
+            for dev in list(self.children.values()):
+                for i in list(dev.children.values()):
                     name = dev.name+'.'+i.name
                     self.inputs[name] = i
 
