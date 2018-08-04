@@ -1,5 +1,3 @@
-'''if the amplifiers are not working, then first unplug and reinsert the #1 +5V HV the pin once it is connected
-and initialized; otherwise, ensure that 5 volts of power are being delivered to the board'''
 import time
 from devices.labjackT7 import LabJack
 from archetypes.node import Control
