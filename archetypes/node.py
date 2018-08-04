@@ -23,11 +23,20 @@ class Node():
         self.children = []
         if parent is not None:
                 self.register(parent)
+        self.root = self.get_root()
 
     def add_child(self, children):
         assert type(children) is list
         for child in children:
                 self.children.append(child)
+
+    def get_root(self):
+        root = self
+        while True:
+            try:
+                root = root.parent
+            except AttributeError:
+                return root
 
     def register(self, parent):
         ''' Register self with parent node '''
@@ -43,7 +52,6 @@ class Input(Node):
 
         def set(self, value):
                 ''' Calls the parent Device.actuate() function to change self.value to a new value '''
-                # if value != self.value:
                 self.parent.actuate({self.name:value})
 
 class Device(Node):
@@ -68,18 +76,13 @@ class Device(Node):
 
         def actuate(self, state):
                 ''' Calls self.device._actuate() and updates self.state'''
-                self_substate = dict((k, self.state[k]) for k in state.keys())
-                # if self_substate == state:
-                #     return
                 self._actuate(state)
                 self.update(state)
 
         def update(self,state):
                 ''' Updates self.state to new variables stored in state dict '''
                 for key in state.keys():
-                        self.state[key] = state[key]
-                        self.inputs[key].value = state[key]
-
+                                self.state[key] = state[key]
 
                 ''' format state dict and update parent '''
                 for key in state.keys():
@@ -171,7 +174,6 @@ class Control(Node):
                                 self.state[i] = saved_state[i]
                                 self.inputs[i].value = self.state[i]
                     if resp == 'n' or not saved:
-                        print('%s not yet configured.'%i)
                         print('Please enter initial value: ')
                         self.inputs[i].value = float(input())
                         print('Please enter min: ')
@@ -184,17 +186,15 @@ class Control(Node):
 
         def actuate(self, state, save=True):
             ''' Updates all Inputs in the given state to the given values. Argument should have keys of the form 'Device.Input', e.g. state={'MEMS.X':0} '''
-            self_substate = dict((k, self.state[k]) for k in state.keys())
-            if self_substate == state:
-                return
             if not self.actuating:
                 self.actuating = 1
                 for i in state.keys():
-                    self.inputs[i].set(state[i])
+                                self.inputs[i].set(state[i])
                 self.actuating = 0
 
                 self.save()
-
+                if self.window is not None:
+                    self.window.update_state(self.name)
             else:
                 print('Actuate blocked by already running actuation.')
 
