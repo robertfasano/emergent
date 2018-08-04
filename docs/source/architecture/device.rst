@@ -1,7 +1,8 @@
 Device
-=============
+================
 
-.. automodule:: device
+.. automodule:: node
+.. autoclass:: Device 
     :members:
     :undoc-members:
     :special-members:

@@ -1,7 +1,7 @@
-Parallel
-===============
+Historian
+================
 
-.. automodule:: parallel
+.. automodule:: historian
     :members:
     :undoc-members:
     :special-members:

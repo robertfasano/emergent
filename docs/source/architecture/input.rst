@@ -1,7 +1,8 @@
-Parallel
-===============
+Input 
+================
 
-.. automodule:: parallel
+.. automodule:: node
+.. autoclass:: Input
     :members:
     :undoc-members:
     :special-members:

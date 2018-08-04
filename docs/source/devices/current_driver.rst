@@ -1,7 +1,7 @@
-Dummy
-============
+Current driver
+==============
 
-.. automodule:: dummy
+.. automodule:: current_driver
     :members:
     :undoc-members:
     :show-inheritance:

@@ -1,7 +1,8 @@
-Link
-===========
+Node
+================
 
-.. automodule:: Link
+.. automodule:: node
+.. autoclass:: Node
     :members:
     :undoc-members:
     :special-members:

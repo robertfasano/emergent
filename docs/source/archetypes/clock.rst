@@ -1,7 +1,7 @@
-Parallel
-===============
+Clock
+================
 
-.. automodule:: parallel
+.. automodule:: clock
     :members:
     :undoc-members:
     :special-members:
