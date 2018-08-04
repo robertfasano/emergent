@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import (QApplication, QAbstractItemView,QCheckBox, QComboBo
         QWidget, QMenu, QAction, QTreeWidget, QTreeWidgetItem)
 from PyQt5.QtCore import *
 import json
-from archetypes.Optimizer import Optimizer
+from archetypes.optimizer import Optimizer
 from gui.elements.optimizer import OptimizerLayout
 
 class MyTreeWidget(QTreeWidget):
@@ -59,8 +59,6 @@ class TreeLayout(QHBoxLayout):
         self.treeWidget.header().resizeSection(1,60)
         self.treeWidget.itemDoubleClicked.connect(self.open_editor)
         self.treeWidget.itemSelectionChanged.connect(self.close_editor, Qt.UniqueConnection)
-        # self.treeWidget.itemChanged.connect(self.update_editor, Qt.UniqueConnection)
-        #self.treeWidget.keyPressEvent.connect(self.update_editor, Qt.UniqueConnection)
         self.treeWidget.setContextMenuPolicy(Qt.CustomContextMenu)
         self.treeWidget.customContextMenuRequested.connect(self.openMenu)
         self.addWidget(self.treeWidget)
@@ -104,8 +102,11 @@ class TreeLayout(QHBoxLayout):
     def _generateTree(self, children, parent, level = 1):
         ''' Recursively add nodes to build the full network. '''
         ch = {1: 'devices', 2: 'inputs'}
+
         for child in sorted(children):
-            object = getattr(parent.node, ch[level])[child]
+            # object = getattr(parent.node, ch[level])[child]
+            object = parent.node.children[child]
+
             child_item = MyTreeWidgetItem([child], object, level)
             parent.addChild(child_item)
 
@@ -141,30 +142,10 @@ class TreeLayout(QHBoxLayout):
         control_name = item.parent().parent().text(0)
         return self.controls[control_name]
 
-    # def get_selected_level(self):
-    #     ''' Return the level of the currently selected item. '''
-    #     indexes = self.treeWidget.selectedIndexes()
-    #     level = 0
-    #     index = indexes[0]
-    #     while index.parent().isValid():
-    #         index = index.parent()
-    #         level += 1
-    #     return level
-
     def get_selected_level(self):
         ''' Return the level of the currently selected item. '''
         item = self.treeWidget.selectedItems()[0]
         return item.level
-
-    # def get_selected_state(self):
-    #     ''' Build a substate from all currently selected inputs. '''
-    #     indexes = self.treeWidget.selectedIndexes()
-    #     state = {}
-    #     for i in indexes:
-    #         if i.column() == 0:
-    #             full_name = i.parent().data() + '.' + i.data()
-    #             state[full_name] = float(i.sibling(i.row(), 1).data())
-    #     return state
 
     def get_selected_state(self):
         ''' Build a substate from all currently selected inputs. '''
