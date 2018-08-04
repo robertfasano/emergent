@@ -1,8 +1,8 @@
 from PyQt5.QtWidgets import (QComboBox, QLabel, QTextEdit, QPushButton, QVBoxLayout,
         QWidget, QProgressBar, qApp)
 from PyQt5.QtCore import *
-from archetypes.Optimizer import Optimizer
-from archetypes.Parallel import ProcessHandler
+from archetypes.optimizer import Optimizer
+from archetypes.parallel import ProcessHandler
 import inspect
 import json
 

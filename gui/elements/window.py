@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import (QApplication, QAbstractItemView,QCheckBox, QComboBo
         QWidget, QMenu, QAction, QTreeWidget, QTreeWidgetItem)
 from PyQt5.QtCore import *
 import json
-from archetypes.Optimizer import Optimizer
+from archetypes.optimizer import Optimizer
 from gui.elements.optimizer import OptimizerLayout
 from gui.elements.treeview import TreeLayout
 
