@@ -6,8 +6,8 @@ from archetypes.node import Device
 import time
 
 class Genesys(Device):
-    def __init__(self, name, port = 'COM13',
-                 parent = None):
+    ''' Device driver for the TDK Genesys programmable power supply. '''
+    def __init__(self, name, port, parent = None):
         super().__init__(name, parent = parent)
         self.port = port
         self.addr = 6
@@ -16,6 +16,7 @@ class Genesys(Device):
         self._connect()
 
     def _connect(self):
+        ''' Establish a serial connection over USB and enable output. '''
         self.serial = Serial(port = self.port, baudrate = 19200,
                              encoding = 'ascii', parity = PARITY_NONE,
                              stopbits = STOPBITS_ONE, bytesize = EIGHTBITS,
@@ -25,7 +26,6 @@ class Genesys(Device):
             self.command('ADR %i'%self.addr)
             self.command('RST')
             self.command('OUT 1')
-            self.set_voltage(6)
             self._connected = 1
 
     def _actuate(self, state):

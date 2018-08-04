@@ -18,7 +18,10 @@ Z2 = 0.037488
 N2 = 48.869121
 
 class CurrentDriver(Device):
+    ''' Current driver for quadrupole coils using two TDK Genesys programmable
+        power supplies and a bespoke current servo board. '''
     def __init__(self, port1, port2, parent = None, labjack = None):
+        ''' Initialize the Device for use. '''
         super().__init__(name='coils', parent = parent)
         self.port1 = port1
         self.port2 = port2
@@ -31,7 +34,7 @@ class CurrentDriver(Device):
         self._connected = self._connect()
 
     def calibrate(self, coil, Vmin=1, Vmax=3, steps=100, delay = 1/100):
-        ''' Measures and fits an IV curve '''
+        ''' Measure and fit the IV curve of the FETs. '''
         V = np.linspace(Vmin, Vmax, steps)
         I = []
         for v in V:
@@ -52,29 +55,29 @@ class CurrentDriver(Device):
         self.labjack.AOut(coil-1, 0)
 
     def measure_current(self, coil):
-        ''' Measures the Hall probe current '''
+        ''' Measure the Hall probe current. '''
         i = coil-1
         current = self.labjack.AIn(i) * self.probe_coefficient #make sure monitor probes plugged in
         return current
 
     def _connect(self):
-         try:
-             self.coil1 = Genesys(port = self.port1, lowlevel = False)
-             self.coil2 = Genesys(port = self.port2, lowlevel = False)
-             print()
-             self.coil1.set_current(80) #there's a bit of a naming ambiguity
-             #b/c there are 2 current setting methods, 1 for the PSUs& 1 for the FETs
-             self.coil2.set_current(80)
+        ''' Connect to and initialize the power supplies, then run IV calibration. '''
+        try:
+             self.psu1 = Genesys(port = self.port1)
+             self.psu2 = Genesys(port = self.port2)
+             for psu in [self.psu1, self.psu2]:
+                 psu.set_current(80)
+                 psu.set_voltage(6)
+
              self.calibrate(1)
              self.calibrate(2)
              return 1
-         except Exception as e:
+        except Exception as e:
              print('Failed to connect to coils:', e)
              return 0
 
-  #      return 1
-
     def _actuate(self, state):
+        ''' Set the gradient and zero position of the magnetic field. '''
         self.set_field(state['grad'], state['zero'])
 
     def set_current(self, coil, current):
@@ -89,19 +92,15 @@ class CurrentDriver(Device):
             to coil 2. '''
         z0 /= 1000
         grad /= 100
-
         denom = (z0-Z1)*(R2**2+(z0-Z2)*(Z1-Z2))-R1**2*(z0-Z2)
-
         alpha = 2/3/MU0 * (R1**2+(z0-Z1)**2)*(R2**2+(z0-Z2)**2)/denom
-
         I1 = alpha * (R1**2+(z0-Z1)**2)**(3/2)/N1/R1**2 * grad
         I2 = alpha * (R2**2+(z0-Z2)**2)**(3/2)/N2/R2**2 * grad
-
         self.set_current(1, I1)
         self.set_current(2, I2)
 
     def wave(self, frequency=1, duty_cycle=.5, reps=50, grad=50, z0=5):
-        """Square pulse the B-field between 0 and a set configuration"""
+        """Square pulse the B-field between 0 and a set configuration."""
         i = 0
         loop = True
         while loop:
