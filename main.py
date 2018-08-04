@@ -21,9 +21,9 @@ tree = {}
 controls = Control.instances
 for control in controls:
     tree[control.name] = {}
-    for device in control.devices.values():
+    for device in control.children.values():
         tree[control.name][device.name] = []
-        for input in device.inputs.values():
+        for input in device.children.values():
             tree[control.name][device.name].append(input.name)
 controls_dict = {}
 for c in controls:
