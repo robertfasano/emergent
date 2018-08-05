@@ -26,8 +26,9 @@ class Clock(ProcessHandler):
         (very computationally quick) and another which actuates the Control node
         to keep in sync with the Clock state (more time-intensive).'''
         states = self.prepare_sequence(T)
-        self._run_thread(self.loop)
         self._run_thread(self.sync)
+        self._run_thread(self.loop)
+
 
     def stop(self):
         ''' Terminates sequencing. '''
@@ -45,6 +46,21 @@ class Clock(ProcessHandler):
             time.sleep(delay)
             self.state = state
             i = (i+1)%len(self.sequence)
+
+    def run_once(self, T):
+        states = self.prepare_sequence(T)
+        self._run_thread(self.sync)
+        self.single_shot()
+        self._quit_thread(self.sync)
+
+    def single_shot(self):
+        ''' Executes the sequence once '''
+        i = 0
+        for i in range(len(sequence)):
+            delay = self.sequence[i][0]
+            state = self.sequence[i][1]
+            time.sleep(delay)
+            self.state = state
 
     def sync(self, stopped):
         ''' Keeps the Control state synced with the Clock state.  '''
