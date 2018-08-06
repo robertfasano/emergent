@@ -136,11 +136,12 @@ class Control(Node):
         self.settings_path =path+'/settings/'
         self.state_path = path+'/state/'
         self.sequence_path = path+'/sequence/'
+        self.data_path = path+'/data/'
 
         self.clock = Clock(self)
         self.historian = Historian(self)
         self.optimizer = Optimizer(self)
-        for p in [self.settings_path, self.state_path, self.sequence_path]:
+        for p in [self.settings_path, self.state_path, self.sequence_path, self.data_path]:
             pathlib.Path(p).mkdir(parents=True, exist_ok=True)
 
     def get_sequence(self):
@@ -248,6 +249,20 @@ class Control(Node):
         state = {name: vars[1][name]}
         self.settings[name] = vars[0][name]
         self.actuate(state)
+
+    def get_subsequence(self, keys):
+        ''' Returns a sequence dict containing only the specified keys '''
+        sequence = {}
+        for key in keys:
+            sequence[key] = self.sequences[key]
+        return sequence
+
+    def get_substate(self, keys):
+        ''' Returns a state dict containing only the specified keys '''
+        state = {}
+        for key in keys:
+            state[key] = self.state[key]
+        return state
 
     def onLoad(self):
         self.clock.prepare_sequence()
