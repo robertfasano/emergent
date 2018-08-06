@@ -55,15 +55,16 @@ class Input(Node):
     def __init__(self, name, parent):
         ''' Initializes an Input node. '''
         super().__init__(name, parent=parent)
-        self.value = None
+        self.state = None
+        self.sequence = None
         self.full_name = self.parent.name+'.'+self.name
         self.min = None
         self.max = None
 
-    def set(self, value):
+    def set(self, state):
             ''' Calls the parent Device.actuate() function to change
-                self.value to a new value '''
-            self.parent.actuate({self.name:value})
+                self.state to a new value '''
+            self.parent.actuate({self.name:state})
 
 class Device(Node):
     ''' Device nodes represent apparatus which can control the state of Input
@@ -110,7 +111,7 @@ class Device(Node):
         ''' Synchronously updates the state of the Input, Device, and Control. '''
         for key in state.keys():
             self.state[key] = state[key]    # update Device
-            self.children[key].value = state[key]   # update Input
+            self.children[key].state = state[key]   # update Input
             parent_key = self.name+'.'+key
             self.parent.state[parent_key] = state[key]   # update Control
 
@@ -130,15 +131,21 @@ class Control(Node):
         self.inputs = {}
         self.state = {}
         self.settings = {}
+        self.sequences = {}
         self.actuating = 0
         self.settings_path =path+'/settings/'
         self.state_path = path+'/state/'
+        self.sequence_path = path+'/sequence/'
 
         self.clock = Clock(self)
         self.historian = Historian(self)
         self.optimizer = Optimizer(self)
-        for p in [self.settings_path, self.state_path]:
+        for p in [self.settings_path, self.state_path, self.sequence_path]:
             pathlib.Path(p).mkdir(parents=True, exist_ok=True)
+
+    def get_sequence(self):
+        for i in self.inputs.values():
+            self.sequences[i.full_name] = i.sequence
 
     def list_costs(self):
         ''' Returns a list of all methods tagged with the '@cost' decorator. '''
@@ -203,8 +210,8 @@ class Control(Node):
 
     def save(self):
             ''' Saves the current state to a text file. '''
-            paths = [self.settings_path, self.state_path]
-            data = [self.settings, self.state]
+            paths = [self.settings_path, self.state_path, self.sequence_path]
+            data = [self.settings, self.state, self.sequences]
 
             for i in range(len(paths)):
                 filename = paths[i]+self.name+'.txt'
@@ -224,12 +231,23 @@ class Control(Node):
         state = {}
         vars = [self.settings, state]
 
+        ''' load settings and state '''
         for i in range(len(paths)):
             filename = paths[i]+self.name+'.txt'
             with open(filename, 'r') as file:
         	    vars[i]=json.loads(file.readlines()[-1].split('\t')[1])
 
+        ''' load sequence '''
+        filename = self.sequence_path+self.name+'.txt'
+        with open(filename, 'r') as file:
+            lines = file.readlines()
+            self.sequences[name]=json.loads(lines[-1].split('\t')[1])[name]
+            self.inputs[name].sequence = self.sequences[name]
+            self.cycle_time=float(lines[-1].split('\t')[2])
+
         state = {name: vars[1][name]}
         self.settings[name] = vars[0][name]
-
         self.actuate(state)
+
+    def onLoad(self):
+        self.clock.prepare_sequence()
