@@ -100,4 +100,4 @@
 1533328560.136922	{"mems_slowing.X": {"min": -63.0, "max": -57.0}, "mems_slowing.Y": {"min": -3, "max": 3}}
 1533328560.241932	{"mems_slowing.X": {"min": -63.0, "max": -57.0}, "mems_slowing.Y": {"min": -3, "max": 3}}
 1533328560.323941	{"mems_slowing.X": {"min": -63.0, "max": -57.0}, "mems_slowing.Y": {"min": -3, "max": 3}}
-1533328561.275036	{"mems_slowing.X": {"min": -63.0, "max": -57.0}, "mems_slowing.Y": {"min": -3, "max": 3}}
+1533328561.275036	{"cycle_time": 1, "mems_slowing.X": {"min": -63.0, "max": -57.0}, "mems_slowing.Y": {"min": -3, "max": 3}}
