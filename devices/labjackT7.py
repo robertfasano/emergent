@@ -76,6 +76,7 @@ class LabJack(ProcessHandler):
         except Exception as e:
             print(e)
 
+    ''' SPI methods '''
     def spi_initialize(self, mode = 3, CLK=0, CS=1,MOSI=2, MISO=3):  #, CS, CLK, MISO, MOSI):
         ''' Args:
             int CS: the channel to use as chip select
@@ -120,3 +121,20 @@ class LabJack(ProcessHandler):
             print("")
             for i in range(numBytes):
                 print("dataWrite[%i] = %0.0f" % (i, data[i]))
+
+    ''' Streaming methods '''
+    def stream_out(self, channel, data):
+        ''' Prepares an output stream on channel 0 or 1 (DAC0 or DAC1)'''
+        ljm.eWriteName(self.handle, "STREAM_OUT0_ENABLE", 0)
+        ljm.eWriteName(self.handle, "STREAM_OUT0_TARGET", 1000+2*channel)
+        ljm.eWriteName(self.handle, "STREAM_OUT0_BUFFER_SIZE", 1024)
+        ljm.eWriteName(self.handle, "STREAM_OUT0_ENABLE", 1)
+
+        ''' Add data to buffer '''
+        ljm.eWriteName(self.handle, "STREAM_OUT0_BUFFER_F32", data)
+
+        ''' Set loop size '''
+        ljm.eWriteName(self.handle, "STREAM_OUT0_LOOP_SIZE", 0)
+
+        ''' Start stream '''
+        ljm.eWriteName(self.handle, "STREAM_OUT0_SET_LOOP", 1)
