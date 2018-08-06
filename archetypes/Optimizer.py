@@ -27,7 +27,7 @@ def warn(*args, **kwargs):
     pass
 import warnings
 warnings.warn = warn
-from utility import methodsWithDecorator, algorithm 
+from utility import methodsWithDecorator, algorithm
 
 class Optimizer():
     ''' General methods '''
@@ -35,6 +35,25 @@ class Optimizer():
         ''' Initialize the optimizer and link to the parent Control node. '''
         self.parent = control_node
         self.actuate = self.parent.actuate
+
+    def sequence2array(self, sequence):
+        ''' Convert an experimental sequence to an array of setpoints. '''
+        arr = []
+        for key in sequence.keys():
+            s = sequence[key]
+            for i in range(len(s)):
+                arr.append(s[i][1])
+        return arr
+
+    def array2sequence(self, arr, sequence):
+        ''' Updates setpoints in a sequence with values from an array. '''
+        i = 0
+        for key in sequence.keys():
+            s = sequence[key]
+            for j in range(len(s)):
+                s[j][1] = arr[i]
+                i += 1
+        return sequence
 
     def array2dict(self, arr, keys):
         ''' Converts a numpy array into a state dict with the specified keys. '''
