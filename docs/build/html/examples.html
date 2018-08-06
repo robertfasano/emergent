@@ -1,0 +1,329 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Examples &mdash; EMERGENT 0.1alpha documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="EMERGENT 0.1alpha documentation" href="index.html"/>
+        <link rel="next" title="Archetypes" href="archetypes.html"/>
+        <link rel="prev" title="Optimization" href="optimization.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> EMERGENT
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1alpha
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="index.html">EMERGENT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="optimization.html">Optimization</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#simple-network">Simple network</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#state-access-and-actuation">State access and actuation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#state-recall">State recall</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="archetypes.html">Archetypes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="devices.html">Devices</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">EMERGENT</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Examples</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/examples.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="examples">
+<h1>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="simple-network">
+<h2>Simple network<a class="headerlink" href="#simple-network" title="Permalink to this headline">¶</a></h2>
+<p>A full example for a simple network can be found in emergent/examples/basic.py.
+In this example, a single Control node oversees two Device nodes, one with inputs
+'X' and 'Y' and another with input 'Z'. Take a moment to look through the code
+required to initialize the network: in <code class="docutils literal notranslate"><span class="pre">network.py</span></code>, we have simply imported
+and instantiated the objects defined in the <code class="docutils literal notranslate"><span class="pre">devices</span></code> and <code class="docutils literal notranslate"><span class="pre">controls</span></code> folder.
+EMERGENT hooks up the network under the hood - all you have to do is define the
+node parent/child relationships.</p>
+<p>EMERGENT uses a single script, <code class="docutils literal notranslate"><span class="pre">main.py</span></code>, to launch any connected network, which
+is defined through its <code class="docutils literal notranslate"><span class="pre">network.py</span></code> file which is here in the <code class="docutils literal notranslate"><span class="pre">basic</span></code> folder.
+You can start EMERGENT with this network from the root directory (<code class="docutils literal notranslate"><span class="pre">emergent</span></code>)
+by running</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">ipython</span>
+<span class="o">%</span><span class="n">run</span> <span class="n">main</span> <span class="n">basic</span>
+</pre></div>
+</div>
+<p>Once EMERGENT launches, a GUI will open. The left pane displays the network tree;
+Inputs can be changed by double-clicking on their values, entering a new value,
+and pressing the Enter key.</p>
+<p>The right pane allows optimization of selected inputs. With one or more inputs
+selected in the left pane, you can choose an algorithm from the drop-down menu,
+edit the parameters passed into the algorithm, and choose a cost function to
+optimize.</p>
+<p>Let's try tuning the <code class="docutils literal notranslate"><span class="pre">deviceA</span></code> inputs to optimize the <code class="docutils literal notranslate"><span class="pre">cost_coupled</span></code> function
+using the <code class="docutils literal notranslate"><span class="pre">grid_search</span></code> algorithm and 30 steps per axis. Make sure to set
+<code class="docutils literal notranslate"><span class="pre">plot:1</span></code> to display the output.</p>
+<img alt="_images/examples_grid_search.png" src="_images/examples_grid_search.png" />
+<p>When you click the Go! button, the parameter space will be sampled uniformly and
+the inputs will be set to the best discovered point:</p>
+<img alt="_images/examples_grid_search_result.png" src="_images/examples_grid_search_result.png" />
+<p>The grid search scales poorly with number of inputs, so often we will want to use
+a cleverer algorithm. The <code class="docutils literal notranslate"><span class="pre">differential_evolution</span></code> algorithm is one example that
+we can try:</p>
+<img alt="_images/examples_differential_evolution_result.png" src="_images/examples_differential_evolution_result.png" />
+<p>In the following examples, we'll go beyond the GUI and get a feel for EMERGENT
+from the command line.</p>
+<div class="section" id="state-access-and-actuation">
+<h3>State access and actuation<a class="headerlink" href="#state-access-and-actuation" title="Permalink to this headline">¶</a></h3>
+<p>In this example, we will assume that the inputs are initialized to 0.
+There are three ways that the state of one or more inputs can be changed.
+First, we could act directly on the Input node:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">deviceA</span><span class="o">.</span><span class="n">children</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">deviceA</span><span class="o">.</span><span class="n">state</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">control</span><span class="o">.</span><span class="n">state</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">}</span>
+<span class="p">{</span><span class="s1">&#39;deviceA.X&#39;</span><span class="p">:</span><span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;deviceA.Y&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;deviceB.X&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;deviceB.Y&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>We can act on one or more inputs of a single device by passing in a target state to the <code class="docutils literal notranslate"><span class="pre">Device.actuate()</span></code> method:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">deviceA</span><span class="o">.</span><span class="n">actuate</span><span class="p">({</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">:</span><span class="mi">1</span><span class="p">})</span>
+<span class="k">print</span><span class="p">(</span><span class="n">deviceA</span><span class="o">.</span><span class="n">state</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">control</span><span class="o">.</span><span class="n">state</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">:</span><span class="mi">1</span><span class="p">}</span>
+<span class="p">{</span><span class="s1">&#39;deviceA.X&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;deviceA.Y&#39;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;deviceB.X&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;deviceB.Y&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>We can also act on any number of inputs across any number of devices through the <code class="docutils literal notranslate"><span class="pre">Control.actuate()</span></code> method:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">control</span><span class="o">.</span><span class="n">actuate</span><span class="p">({</span><span class="s1">&#39;deviceA.X&#39;</span><span class="p">:</span><span class="mi">7</span><span class="p">,</span> <span class="s1">&#39;deviceA.Y&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;deviceB.X&#39;</span><span class="p">:</span><span class="mi">13</span><span class="p">})</span>
+<span class="k">print</span><span class="p">(</span><span class="n">deviceA</span><span class="o">.</span><span class="n">state</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">deviceB</span><span class="o">.</span><span class="n">state</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">control</span><span class="o">.</span><span class="n">state</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="mi">7</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">}</span>
+<span class="p">{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="mi">13</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">}</span>
+<span class="p">{</span><span class="s1">&#39;deviceA.X&#39;</span><span class="p">:</span><span class="mi">7</span><span class="p">,</span> <span class="s1">&#39;deviceA.Y&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;deviceB.X&#39;</span><span class="p">:</span><span class="mi">13</span><span class="p">,</span> <span class="s1">&#39;deviceB.Y&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>No matter which method we use, the result is the same: the value of each targeted
+Input node is changed, and both <code class="docutils literal notranslate"><span class="pre">device.state</span></code> and <code class="docutils literal notranslate"><span class="pre">control.state</span></code> are updated.</p>
+</div>
+<div class="section" id="state-recall">
+<h3>State recall<a class="headerlink" href="#state-recall" title="Permalink to this headline">¶</a></h3>
+<p>The current state of our Control node can be saved by running <code class="docutils literal notranslate"><span class="pre">control.save()</span></code>.
+This stores the state dict in <code class="docutils literal notranslate"><span class="pre">basic/settings/control.txt</span></code>. The state can be
+recovered at a later time by running <code class="docutils literal notranslate"><span class="pre">control.load()</span></code>, which will read the state
+dict into memory and update included Input nodes to the loaded state.</p>
+</div>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="archetypes.html" class="btn btn-neutral float-right" title="Archetypes" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="optimization.html" class="btn btn-neutral" title="Optimization" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Robert Fasano.
+
+    </p>
+  </div> 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.1alpha',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
