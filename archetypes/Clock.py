@@ -66,12 +66,20 @@ class Clock(ProcessHandler):
             if self.state != parent_substate:
                 self.parent.actuate(self.state)
 
+    def prepare_constant(self, value, key, N):
+        ''' Sets the sequence labeled by key to N uniformly spaced setpoints of
+            constant value '''
+        s = []
+        for i in range(N):
+            s.append([i/N, value])
+        self.parent.sequences[key] = s
+
     def prepare_sequence(self):
         ''' Prepares a master sequence by combining sequences of all inputs. '''
         T = self.parent.cycle_time
         times = []
         for input in self.parent.inputs.values():
-            self.parent.sequences[input.full_name] = input.sequence 
+            self.parent.sequences[input.full_name] = input.sequence
             times.extend([x[0]*T for x in input.sequence])
         times = np.unique(times)
 
