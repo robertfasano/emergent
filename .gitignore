@@ -6,3 +6,5 @@ __pycache__
 control.txt
 costs.txt
 points.txt
+examples/basic/data/*
+docs/build/*
