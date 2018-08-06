@@ -19,6 +19,19 @@ class TestControl(Control):
             y0 = 0.6
             return -np.exp(-(x-0.5)**2/x0**2)*np.exp(-(y-0.5)**2/y0**2)
 
+        @cost
+        def cost_ramp(self, arr):
+            ''' Evaluate a cost function similar to an optical scattering force,
+                which is maximized for a ramp x(t)=1/t. '''
+            result = 0
+            for i in range(len(arr)):
+                x = arr[i]
+                t = i/10
+                result -= 1/(1+(1-x*t)**2)
+            return result
+
+
+
         def scramble(self):
             for key in self.state.keys():
                 self.state[key] = np.random.uniform()
