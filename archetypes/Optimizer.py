@@ -295,6 +295,7 @@ class Optimizer():
         best_point = self.array2dict(points[np.argmin(costs)], state)
         self.actuate(self.unnormalize(best_point))
 
+        self.parent.save(tag='optimize')
         return points, costs
 
     def gp_next_sample(self, X, bounds, b, cost, gaussian_process, restarts=25):
@@ -350,6 +351,8 @@ class Optimizer():
         if params['plot']:
             self.plot_optimization(lbl = 'Gaussian Processing')
 
+        self.parent.save(tag='optimize')
+
         return X, c
 
 
@@ -367,6 +370,9 @@ class Optimizer():
         print(res)
         if params['plot']:
             self.plot_optimization(lbl = params['method'])
+
+        self.parent.save(tag='optimize')
+
         return None, None
 
     # @algorithm
@@ -397,6 +403,9 @@ class Optimizer():
         #simplex for SKL is res = minimize(fun = cost,x0 = X.reshape(1, -1), method = 'Nelder-Mead', tol = 1e7)
         if params['plot']:
             self.plot_optimization(lbl = 'simplex')
+
+        self.parent.save(tag='optimize')
+
         return None, None
 
     @algorithm
@@ -419,6 +428,9 @@ class Optimizer():
         #                               popsize = int(params['popsize']))
         if params['plot']:
             self.plot_optimization(lbl = params['strategy'])
+
+        self.parent.save(tag='optimize')
+
         return None, None
 
     # ''' Hyperparameter optimization '''

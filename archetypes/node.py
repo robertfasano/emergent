@@ -203,13 +203,13 @@ class Control(Node):
             for i in state.keys():
                 self.inputs[i].set(state[i])
             self.actuating = 0
-
+            self.save(tag='actuate')
             if hasattr(self, 'window'):
                 self.window.update_state(self.name)
         else:
             print('Actuate blocked by already running actuation.')
 
-    def save(self):
+    def save(self, tag = ''):
             ''' Saves the current state to a text file. '''
             paths = [self.settings_path, self.state_path, self.sequence_path]
             data = [self.settings, self.state, self.sequences]
@@ -224,31 +224,25 @@ class Control(Node):
                 with open(filename, 'a') as file:
                     if write_newline:
                         file.write('\n')
-                    file.write('%f\t%s'%(time.time(),json.dumps(data[i])))
+                    file.write('%f\t%s\t%s'%(time.time(),json.dumps(data[i]), tag))
 
     def load(self, name):
         ''' Loads a state from a text file.'''
-        paths = [self.settings_path, self.state_path]
+        paths = [self.settings_path, self.state_path, self.sequence_path]
         state = {}
-        vars = [self.settings, state]
+        vars = [self.settings, state, self.sequences]
 
-        ''' load settings and state '''
         for i in range(len(paths)):
             filename = paths[i]+self.name+'.txt'
             with open(filename, 'r') as file:
         	    vars[i]=json.loads(file.readlines()[-1].split('\t')[1])
 
-        ''' load sequence '''
-        filename = self.sequence_path+self.name+'.txt'
-        with open(filename, 'r') as file:
-            lines = file.readlines()
-            self.sequences[name]=json.loads(lines[-1].split('\t')[1])[name]
-            self.inputs[name].sequence = self.sequences[name]
-            self.cycle_time=float(lines[-1].split('\t')[2])
-
-        state = {name: vars[1][name]}
+        self.settings['cycle_time'] = vars[0]['cycle_time']
         self.settings[name] = vars[0][name]
-        self.actuate(state)
+        self.state[name] = vars[1][name]
+        self.sequences[name] = vars[2][name]
+        self.inputs[name].sequence = self.sequences[name]
+        #self.actuate(state)
 
     def get_subsequence(self, keys):
         ''' Returns a sequence dict containing only the specified keys '''
@@ -265,4 +259,6 @@ class Control(Node):
         return state
 
     def onLoad(self):
+        self.actuate(self.state)
+        self.cycle_time = self.settings['cycle_time']
         self.clock.prepare_sequence()

@@ -10,6 +10,7 @@ class Historian():
         self.parent = parent
         self.state_path = self.parent.state_path + self.parent.name + '.txt'
         self.settings_path = self.parent.settings_path + self.parent.name + '.txt'
+        self.sequence_path = self.parent.sequence_path + self.parent.name + '.txt'
 
     def load(self):
         ''' Loads all historical state data and returns a dataframe. '''
@@ -33,8 +34,23 @@ class Historian():
 
     def clear(self):
         ''' Deletes historical state data up to the last point. '''
-        for p in [self.state_path, self.settings_path]:
+        for p in [self.state_path, self.settings_path, self.sequence_path]:
             with open(p, 'r') as file:
                 line = file.readlines()[-1]
             with open(p, 'w') as file:
                 file.write(line)
+
+    def delete_tag(self, tag):
+        ''' Deletes all historical state data with the given tag. '''
+        for p in [self.state_path, self.settings_path, self.sequence_path]:
+            with open(p, 'r') as file:
+                lines = file.readlines()
+            new_lines = []
+            for l in lines:
+                try:
+                    if tag not in l.split('\t')[2]:
+                        new_lines.append(l)
+                except IndexError:
+                    print('WARNING: wrong format detected in file:', l)
+            with open(p, 'w') as file:
+                file.writelines(new_lines)
