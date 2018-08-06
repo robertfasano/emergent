@@ -90,6 +90,7 @@ class Device(Node):
         self.children[name] = input
         self.parent.inputs[input.full_name] = input
         self.parent.load(input.full_name)
+        self.state[name] = self.children[name].state
 
 
     def _actuate(self, state):
@@ -235,10 +236,11 @@ class Control(Node):
         for i in range(len(paths)):
             filename = paths[i]+self.name+'.txt'
             with open(filename, 'r') as file:
-        	    vars[i]=json.loads(file.readlines()[-1].split('\t')[1])
+                vars[i]=json.loads(file.readlines()[-1].split('\t')[1])
 
         self.settings['cycle_time'] = vars[0]['cycle_time']
         self.settings[name] = vars[0][name]
+        self.inputs[name].state = vars[1][name]
         self.state[name] = vars[1][name]
         self.sequences[name] = vars[2][name]
         self.inputs[name].sequence = self.sequences[name]
