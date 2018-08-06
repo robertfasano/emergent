@@ -52,7 +52,7 @@ In the following examples, we'll go beyond the GUI and get a feel for EMERGENT
 from the command line.
 
 State access and actuation
-~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 In this example, we will assume that the inputs are initialized to 0.
 There are three ways that the state of one or more inputs can be changed.
 First, we could act directly on the Input node:
