@@ -55,19 +55,41 @@ class Optimizer():
                 i += 1
         return sequence
 
-    def array2dict(self, arr, keys):
+    def array2state(self, arr, d):
         ''' Converts a numpy array into a state dict with the specified keys. '''
+        keys = list(d.keys())
         state = {}
         for i in range(len(keys)):
             state[keys[i]] = arr[i]
         return state
 
-    def dict2array(self, state):
+    def state2array(self, state):
         ''' Converts a state dict into a numpy array. '''
         arr = np.array([])
         for i in range(len(state.keys())):
             arr = np.append(arr, state[list(state.keys())[i]])
         return arr
+
+    def dict2array(self, d):
+        d_type = type(list(d.values())[0])
+
+        if d_type == list:
+            arr = self.sequence2array(d)
+        elif d_type in [int, float, np.float64]:
+            arr = self.state2array(d)
+
+        return arr
+    def array2dict(self, arr, initial):
+        ''' Converts the array back to the form of the initial object. '''
+
+        initial_type = type(list(initial.values())[0])
+
+        if initial_type == list:
+            target = self.array2sequence(arr, initial)
+        elif initial_type in [int, float, np.float64]:
+            target = self.array2state(arr, initial)
+
+        return target
 
     def _cost(self, state, cost):
         ''' Unnormalizes the state dict, computes the cost, and logs. '''
@@ -75,9 +97,9 @@ class Optimizer():
         self.history.loc[time.time()] = -c
         return c
 
-    def cost_array(self, X, keys, cost):
+    def cost_array(self, X, state, cost):
         ''' Converts a normalized array into a state dict and evaluates cost. '''
-        state = self.array2dict(X, keys)
+        state = self.array2dict(X, state)
         return self._cost(state, cost)
 
     def initialize_optimizer(self, state):
@@ -142,7 +164,7 @@ class Optimizer():
         ''' Actuate search '''
         costs = []
         for point in points:
-            target = self.array2dict(point, list(state.keys()))
+            target = self.array2dict(point, state)
             if norm:
                 target = self.unnormalize(target)
             if args is None:
@@ -168,7 +190,7 @@ class Optimizer():
         print(points.shape)
         costs = []
         for point in points:
-            target = self.array2dict(point, list(state.keys()))
+            target = self.array2dict(point, state)
             costs.append(cost(self.unnormalize(target)))
 
         return points, costs
@@ -213,7 +235,7 @@ class Optimizer():
         ax = None
         if params['plot'] and len(state.keys()) is 2:
             ax = self.plot_2D(points, costs)
-        best_point = self.array2dict(points[np.argmin(costs)], list(state.keys()))
+        best_point = self.array2dict(points[np.argmin(costs)], state)
         self.actuate(self.unnormalize(best_point))
 
         return points, costs
@@ -264,11 +286,11 @@ class Optimizer():
                 X_new = self.gp_next_sample(X, bounds, b, self.gp_effective_cost, self.gp, restarts=10)
                 X_new = np.atleast_2d(X_new)
                 X = np.append(X, X_new, axis=0)
-                target = self.array2dict(X[-1], list(state.keys()))
+                target = self.array2dict(X[-1], state)
                 c = np.append(c, self._cost(target, cost))
                 if update is not None:
                     update((j+i*params['batch_size'])/params['batch_size']/params['iterations'])
-        best_point = self.array2dict(X[np.argmin(c)], list(state.keys()))
+        best_point = self.array2dict(X[np.argmin(c)], state)
         print(best_point)
         print(self.unnormalize(best_point))
         self.actuate(self.unnormalize(best_point))
