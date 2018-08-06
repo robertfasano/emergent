@@ -1,0 +1,10 @@
+1533328556.854594	{"cycle_time": 1, "coils.grad": {"min": 0, "max": 90}, "coils.zero": {"min": -10, "max": 10}}
+1533593793.709115	{"cycle_time": 1, "coils.grad": {"min": 0, "max": 90}, "coils.zero": {"min": -10, "max": 10}}	actuate
+1533593798.306574	{"cycle_time": 1, "coils.grad": {"min": 0, "max": 90}, "coils.zero": {"min": -10, "max": 10}}	actuate
+1533593802.586002	{"cycle_time": 1, "coils.grad": {"min": 0, "max": 90}, "coils.zero": {"min": -10, "max": 10}}	actuate
+1533593806.942438	{"cycle_time": 1, "coils.grad": {"min": 0, "max": 90}, "coils.zero": {"min": -10, "max": 10}}	actuate
+1533593809.793723	{"cycle_time": 1, "coils.grad": {"min": 0, "max": 90}, "coils.zero": {"min": -10, "max": 10}}	actuate
+1533593822.438987	{"cycle_time": 1, "coils.grad": {"min": 0, "max": 90}, "coils.zero": {"min": -10, "max": 10}}	actuate
+1533593829.291672	{"cycle_time": 1, "coils.grad": {"min": 0, "max": 90}, "coils.zero": {"min": -10, "max": 10}}	actuate
+1533593834.983242	{"cycle_time": 1, "coils.grad": {"min": 0, "max": 90}, "coils.zero": {"min": -10, "max": 10}}	actuate
+1533593839.044648	{"cycle_time": 1, "coils.grad": {"min": 0, "max": 90}, "coils.zero": {"min": -10, "max": 10}}	actuate

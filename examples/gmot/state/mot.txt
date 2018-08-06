@@ -1,0 +1,10 @@
+1533328556.854594	{"coils.grad": 0, "coils.zero": 0}
+1533593793.718116	{"coils.grad": 60.0, "coils.zero": 0}	actuate
+1533593798.317575	{"coils.grad": 50.0, "coils.zero": 0}	actuate
+1533593802.600003	{"coils.grad": 50.0, "coils.zero": 3.0}	actuate
+1533593806.950439	{"coils.grad": 50.0, "coils.zero": 10.0}	actuate
+1533593809.805724	{"coils.grad": 50.0, "coils.zero": 0.0}	actuate
+1533593822.450989	{"coils.grad": 0.0, "coils.zero": 0.0}	actuate
+1533593829.303674	{"coils.grad": -0.1, "coils.zero": 0.0}	actuate
+1533593834.998243	{"coils.grad": -1.0, "coils.zero": 0.0}	actuate
+1533593839.057649	{"coils.grad": 0.0, "coils.zero": 0.0}	actuate
