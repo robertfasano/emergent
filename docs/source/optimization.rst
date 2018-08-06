@@ -178,12 +178,17 @@ We discretize the inputs as :math:`x_i=x(t_i)` and compute the cost function as
 .. math:: \mathcal M(T) = \frac{T}{N}\sum_{i=1}^N \frac{1}{1+(1-x_it_i)^2},
 
 where :math:`T=1`. This function is implemented in the ``emergent/examples/basic``
-network as ``control.cost_ramp``, which takes a sequence as an argument. 
-
-
+network as ``control.cost_ramp``, which takes a sequence as an argument. This
+example can be run with the ``TestControl.optimize_sequence()`` function.
 
 We'll initialize the state with a guess :math:`x_i=1` for all :math:`i` and run a
-simplex algorithm to optimize the inputs.
+simplex algorithm to optimize the inputs. Note that EMERGENT's algorithms can
+handle states or sequences interchangeably - if you pass in a state like
+``state={'X':1, 'Y':2}``, it decomposes it to array form ``[1,2]`` before
+optimization, whereas a sequence like ``{'X':[(0,0),(0.5,1)], 'Y':[(0,2), (0.5,3)]}``
+is represented in array form as ``[0,1,2,3]``. After this, the algorithm doesn't
+care if it's working with a state or sequence - it simply passes this array into
+a cost function which actuates a state or runs a sequence and returns a result.
 
 
 Subspace decoupling
