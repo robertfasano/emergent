@@ -154,7 +154,7 @@ class TreeLayout(QHBoxLayout):
         for i in items:
             input = i.node
             dev = input.parent
-            state[dev.name + '.' + input.name] = input.value
+            state[dev.name + '.' + input.name] = input.state
 
         return state
 
