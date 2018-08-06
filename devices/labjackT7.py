@@ -62,17 +62,17 @@ class LabJack(ProcessHandler):
         try:
             roll_value = self.clock / frequency
             config_a = duty_cycle * roll_value / 100
-            ljm.eWriteName(handle, "DIO_EF_CLOCK0_ENABLE", 0);    # Disable the clock source
-            ljm.eWriteName(handle, "DIO_EF_CLOCK0_DIVISOR", 1); 	# Configure Clock0's divisor
-            ljm.eWriteName(handle, "DIO_EF_CLOCK0_ROLL_VALUE", roll_value); 	# Configure Clock0's roll value
-            ljm.eWriteName(handle, "DIO_EF_CLOCK0_ENABLE", 1); 	# Enable the clock source
+            ljm.eWriteName(self.handle, "DIO_EF_CLOCK0_ENABLE", 0);    # Disable the clock source
+            ljm.eWriteName(self.handle, "DIO_EF_CLOCK0_DIVISOR", 1); 	# Configure Clock0's divisor
+            ljm.eWriteName(self.handle, "DIO_EF_CLOCK0_ROLL_VALUE", roll_value); 	# Configure Clock0's roll value
+            ljm.eWriteName(self.handle, "DIO_EF_CLOCK0_ENABLE", 1); 	# Enable the clock source
 
             # Configure EF Channel Registers:
-            ljm.eWriteName(handle, "DIO%i_EF_ENABLE"%channel, 0); 	# Disable the EF system for initial configuration
-            ljm.eWriteName(handle, "DIO%i_EF_INDEX"%channel, 0); 	# Configure EF system for PWM
-            ljm.eWriteName(handle, "DIO%i_EF_OPTIONS"%channel, 0); 	# Configure what clock source to use: Clock0
-            ljm.eWriteName(handle, "DIO%i_EF_CONFIG_A"%channel, config_a); 	# Configure duty cycle
-            ljm.eWriteName(handle, "DIO%i_EF_ENABLE"%channel, 1); 	# Enable the EF system, PWM wave is now being outputted
+            ljm.eWriteName(self.handle, "DIO%i_EF_ENABLE"%channel, 0); 	# Disable the EF system for initial configuration
+            ljm.eWriteName(self.handle, "DIO%i_EF_INDEX"%channel, 0); 	# Configure EF system for PWM
+            ljm.eWriteName(self.handle, "DIO%i_EF_OPTIONS"%channel, 0); 	# Configure what clock source to use: Clock0
+            ljm.eWriteName(self.handle, "DIO%i_EF_CONFIG_A"%channel, config_a); 	# Configure duty cycle
+            ljm.eWriteName(self.handle, "DIO%i_EF_ENABLE"%channel, 1); 	# Enable the EF system, PWM wave is now being outputted
         except Exception as e:
             print(e)
 
