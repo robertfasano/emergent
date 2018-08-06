@@ -20,12 +20,14 @@ N2 = 48.869121
 class CurrentDriver(Device):
     ''' Current driver for quadrupole coils using two TDK Genesys programmable
         power supplies and a bespoke current servo board. '''
-    def __init__(self, port1, port2, parent = None, labjack = None):
+    def __init__(self, name, port1, port2, parent = None, labjack = None):
         ''' Initialize the Device for use. '''
-        super().__init__(name='coils', parent = parent)
+        super().__init__(name=name, parent = parent)
         self.port1 = port1
         self.port2 = port2
         self.labjack = labjack
+        self.slope = [0,0]
+        self.intercept = [0,0]
 
         self.probe_coefficient = 2000/49.9
 
@@ -33,7 +35,7 @@ class CurrentDriver(Device):
         self.add_input('zero')
         self._connected = self._connect()
 
-    def calibrate(self, coil, Vmin=1, Vmax=3, steps=100, delay = 1/100):
+    def calibrate(self, coil, Vmin=1, Vmax=3, steps=100, delay = 1/100, plot = False):
         ''' Measure and fit the IV curve of the FETs. '''
         V = np.linspace(Vmin, Vmax, steps)
         I = []
@@ -44,12 +46,13 @@ class CurrentDriver(Device):
         fit = linregress(V, I)
         self.slope[coil-1] = fit[0]
         self.intercept[coil-1] = fit[1]
-        plt.figure()
-        plt.plot(V, I)
-        plt.xlabel('Setpoint (V)')
-        plt.ylabel('Current (I)')
-        plt.show()
-        print('done')
+
+        if plot:
+            plt.figure()
+            plt.plot(V, I)
+            plt.xlabel('Setpoint (V)')
+            plt.ylabel('Current (I)')
+            plt.show()
         #self._save()
         #self._actuate(self.state)           # return to initial state
         self.labjack.AOut(coil-1, 0)
@@ -63,8 +66,8 @@ class CurrentDriver(Device):
     def _connect(self):
         ''' Connect to and initialize the power supplies, then run IV calibration. '''
         try:
-             self.psu1 = Genesys(port = self.port1)
-             self.psu2 = Genesys(port = self.port2)
+             self.psu1 = Genesys(name='psu1', port = self.port1)
+             self.psu2 = Genesys(name='psu2', port = self.port2)
              for psu in [self.psu1, self.psu2]:
                  psu.set_current(80)
                  psu.set_voltage(6)
@@ -78,7 +81,15 @@ class CurrentDriver(Device):
 
     def _actuate(self, state):
         ''' Set the gradient and zero position of the magnetic field. '''
-        self.set_field(state['grad'], state['zero'])
+        try:
+            grad = state['grad']
+        except KeyError:
+            grad = self.state['grad']
+        try:
+            zero = state['zero']
+        except KeyError:
+            zero = self.state['zero']
+        self.set_field(grad, zero)
 
     def set_current(self, coil, current):
         ''' Sets the current of the targeted coil. 0-5V corresponds to 0-100 A. '''
