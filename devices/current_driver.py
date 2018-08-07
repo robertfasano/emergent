@@ -21,8 +21,17 @@ N2 = 48.869121
 class CurrentDriver(Device):
     ''' Current driver for quadrupole coils using two TDK Genesys programmable
         power supplies and a bespoke current servo board. '''
+
     def __init__(self, name, port1, port2, parent = None, labjack = None):
-        ''' Initialize the Device for use. '''
+        ''' Initialize the Device for use.
+
+            Args:
+                name (str): Name of Device node.
+                port1 (str): Serial port for the first power supply (e.g. 'COM1').
+                port2 (str): Serial port for the second power supply (e.g. 'COM2').
+                parent (str): Name of the parent Control node.
+                labjack (archetypes.labjackT7.LabJack): LabJack instance to use.
+        '''
         super().__init__(name=name, parent = parent)
         self.port1 = port1
         self.port2 = port2
@@ -40,7 +49,16 @@ class CurrentDriver(Device):
         self._connected = self._connect()
 
     def calibrate(self, coil, Vmin=1, Vmax=3, steps=100, delay = 1/100, plot = False):
-        ''' Measure and fit the IV curve of the FETs. '''
+        ''' Measure and fit the IV curve of the FETs.
+
+            Args:
+                coil (int): The coil to calibrate (1 or 2)
+                Vmin (float): Lower bound of the voltage sweep.
+                Vmax (float): Upper bound of the voltage sweep.
+                steps (int): Number of steps in the voltage sweep.
+                delay (float): Optional settling time between changing voltage and measuring.
+                plot (bool): If True, plot the calibration curve.
+        '''
         V = np.linspace(Vmin, Vmax, steps)
         I = []
         for v in V:
@@ -62,13 +80,17 @@ class CurrentDriver(Device):
         self.labjack.AOut(coil-1, 0)
 
     def measure_current(self, coil):
-        ''' Measure the Hall probe current. '''
+        ''' Measure the Hall probe current.
+
+            Args:
+                coil (int): 1 or 2
+        '''
         i = coil-1
         current = self.labjack.AIn(i) * self.probe_coefficient #make sure monitor probes plugged in
         return current
 
     def _connect(self):
-        ''' Connect to and initialize the power supplies, then run IV calibration. '''
+        ''' Connect to and initialize the power supplies, then run IV calibration for each coil. '''
         try:
              self.psu1 = Genesys(name='psu1', port = self.port1)
              self.psu2 = Genesys(name='psu2', port = self.port2)
@@ -96,19 +118,36 @@ class CurrentDriver(Device):
     #     self.set_field(grad, zero)
 
     def _actuate(self, state):
-        self.set_current(1, state['I1'])
-        self.set_current(2, state['I2'])
+        ''' Set the current of each coil.
+
+            Args:
+                state (dict): State dict containing target currents in amps, e.g. {'I1':50, 'I2':40}.
+        '''
+        for key in state.keys():
+            coil = key[1]
+            self.set_current(coil, state[key])
+
 
 
     def set_current(self, coil, current):
-        ''' Sets the current of the targeted coil. 0-5V corresponds to 0-100 A. '''
+        ''' Sets the current of the targeted coil based on the IV calibration.
+            Args:
+                coil (int): 1 or 2
+                current (float): target current
+        '''
         i = coil-1
         voltage = (current-self.intercept[i])/self.slope[i]
         self.labjack.AOut(i, voltage)
 
     def real_to_virtual(self, state):
         ''' Converts a real state with currents I1, I2 to a virtual state with a
-            gradient and zero. '''
+            gradient and zero.
+
+            Args:
+                state (dict): State dict with real currents in amps, e.g. {'I1':50, 'I2':40}.
+            Returns:
+                virtual_state (dict): State dict with gradient in G/cm and zero position in mm, e.g. {'grad':50, 'zero':0}.
+        '''
         state = self.get_missing_keys(state, ['I1', 'I2'])
         I1 = state['I1']
         I2 = state['I2']
@@ -128,7 +167,13 @@ class CurrentDriver(Device):
 
     def virtual_to_real(self, state):
         ''' Converts a virtual state with gradient and zero into a real state with
-            currents I1, I2. '''
+            currents I1, I2.
+
+            Args:
+                state (dict): State dict with gradient in G/cm and zero position in mm, e.g. {'grad':50, 'zero':0}.
+            Returns:
+                virtual_state (dict): State dict with real currents in amps, e.g. {'I1':50, 'I2':40}.
+        '''
         state = self.get_missing_keys(state, ['grad', 'zero'])
         z0 = state['zero']
         grad = state['grad']
@@ -143,9 +188,12 @@ class CurrentDriver(Device):
         return {'I1':I1, 'I2':I2}
 
     def set_field(self, grad, z0):
-        ''' Args: gradient in G/cm, z0 in mm. The zero position is relative
-            to the center of the coils, along the axis pointing from coil 1
-            to coil 2. '''
+        ''' Sets coil currents to achieve the desired gradient and zero position.
+
+            Args:
+                gradient (float): Magnetic field gradient at the zero position, in G/cm.
+                z0 (float): offset of the zero position from the center of the coils in mm, along the axis pointing from coil 1 to coil 2.
+            '''
         z0 /= 1000
         grad /= 100
         denom = (z0-Z1)*(R2**2+(z0-Z2)*(Z1-Z2))-R1**2*(z0-Z2)
