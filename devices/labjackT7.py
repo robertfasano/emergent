@@ -13,8 +13,12 @@ class LabJack(ProcessHandler):
     ''' Python interface for the LabJack T7. '''
 
     def __init__(self, device = "ANY", connection = "ANY", devid = "ANY", arange = 10):
-        ''' Attempt to connect to the LabJack specified by device, connection, and
-            devid args. '''
+        ''' Attempt to connect to a LabJack.
+            Args:
+                device (str): Device type ("ANY", "T7" are currently supported).
+                connection (str): Desired connection type ("ANY", "USB", "TCP", "ETHERNET", or "WIFI").
+                devid (str): Serial number, which can be found on the underside of the LabJack.
+                arange (float): analog input range.'''
         super().__init__()
         self.device = device
         self.connection = connection
@@ -41,12 +45,21 @@ class LabJack(ProcessHandler):
             print('Failed to connect to LabJack (%s).'%self.devid)
 
     def _command(self, register, value):
-        ''' Writes a value to a specified register. '''
+        ''' Writes a value to a specified register.
+
+            Args:
+                register (str): a Modbus register on the LabJack.
+                value: the value to write to the register.
+                '''
         self._command(register, value)
 
     def AIn(self, channel, num = 1):
-        ''' Read the specified channel. If num>1, multiple measurements are
-            performed and averaged. '''
+        ''' Read a channel with optional averaging.
+
+            Args:
+                channel (int): number of the target AIN channel.
+                num (int): number of measurements to perform and average.
+        '''
         vals = []
         for i in range(num):
             vals.append(ljm.eReadName(self.handle, 'AIN%i'%channel))
@@ -61,8 +74,13 @@ class LabJack(ProcessHandler):
             self._command("TDAC%i"%channel, value)
 
     def PWM(self, channel, frequency, duty_cycle):
-        ''' Pulse width modulation on a channel (0 or 2-5) at a given frequency
-            in Hz and duty cycle (0-1). '''
+        ''' Starts pulse width modulation on an FIO channel.
+
+            Args:
+                channel (int): FIO channel to use (0 or 2-5).
+                frequency (float): desired frequency in Hz
+                duty_cycle (float): duty cycle between 0 and 100.
+        '''
         try:
             roll_value = self.clock / frequency
             config_a = duty_cycle * roll_value / 100
@@ -82,27 +100,15 @@ class LabJack(ProcessHandler):
 
     ''' SPI methods '''
     def spi_initialize(self, mode = 3, CLK=0, CS=1,MOSI=2, MISO=3):  #, CS, CLK, MISO, MOSI):
-        ''' Args:
-            int CS: the channel to use as chip select
-            int CLK: the channel to use as the clock
-            int MISO: the channel to use for input
-            int MOSI: the channel to use for output
-            '''
-        """
-        You can short MOSI to MISO for testing.
+        ''' Initializes the SPI bus using several FIO ports.
 
-        T7:
-            MOSI    FIO2
-            MISO    FIO3
-            CLK     FIO0
-            CS      FIO1
+            Args:
+                CS (int): the FIO channel to use as chip select
+                CLK (int): the FIO channel to use as the clock
+                MISO (int): the FIO channel to use for input
+                MOSI (int): the FIO channel to use for output
+        '''
 
-
-        If you short MISO to MOSI, then you will read back the same bytes that you
-        write.  If you short MISO to GND, then you will read back zeros.  If you
-        short MISO to VS or leave it unconnected, you will read back 255s.
-
-        """
         self._command("SPI_CS_DIONUM", CS)
         self._command("SPI_CLK_DIONUM", CLK)
         self._command("SPI_MISO_DIONUM", MISO)
@@ -112,7 +118,10 @@ class LabJack(ProcessHandler):
         self._command("SPI_OPTIONS", 0)               # Enabling active low clock select pin
 
     def spi_write(self, data):
-        ''' Writes a list of commands via SPI. '''
+        ''' Writes a list of commands via SPI.
+            Args:
+                data (list): a list of bytes to send through MOSI.
+        '''
         numBytes = len(data)
         self._command("SPI_NUM_BYTES", numBytes)
 
@@ -122,7 +131,13 @@ class LabJack(ProcessHandler):
 
     ''' Streaming methods '''
     def stream_out(self, channel, data, loop = False):
-        ''' Streams data out on channel 0 or 1 (DAC0 or DAC1). '''
+        ''' Streams data at 100 kS/s.
+
+            Args:
+                channel (int): DAC channel to use. 0 for DAC0 or 1 for DAC1.
+                data (array): Data to stream out.
+                loop (bool): if False, data will be streamed out once; if True, the stream will loop.
+        '''
 
         self._command("STREAM_OUT0_ENABLE", 0)
         self._command("STREAM_OUT0_TARGET", 1000+2*channel)
