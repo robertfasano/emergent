@@ -27,7 +27,7 @@ class LabJack(ProcessHandler):
     def _connect(self):
         try:
             self.handle = ljm.openS(self.device, self.connection, self.devid)
-            ljm.eWriteName(self.handle, 'AIN_ALL_RANGE', self.arange)
+            self._command('AIN_ALL_RANGE', self.arange)
             info = ljm.getHandleInfo(self.handle)
             print('Connected to LabJack (%i).'%(info[2]))
             self.clock = 80e6       # internal clock frequency
@@ -39,6 +39,10 @@ class LabJack(ProcessHandler):
 
         except:
             print('Failed to connect to LabJack (%s).'%self.devid)
+
+    def _command(self, register, value):
+        ''' Writes a value to a specified register. '''
+        self._command(register, value)
 
     def AIn(self, channel, num = 1):
         ''' Read the specified channel. If num>1, multiple measurements are
@@ -52,9 +56,9 @@ class LabJack(ProcessHandler):
         ''' Output value (0-5V) on the specified channel. The HV flag allows the
             LJTick-DAC addon board to be used to generate +/-10V. '''
         if not HV:
-            ljm.eWriteName(self.handle, '%s%i'%('DAC', channel), value)
+            self._command('%s%i'%('DAC', channel), value)
         else:
-            ljm.eWriteName(self.handle, "TDAC%i"%channel, value)
+            self._command("TDAC%i"%channel, value)
 
     def PWM(self, channel, frequency, duty_cycle):
         ''' Pulse width modulation on a channel (0 or 2-5) at a given frequency
@@ -62,17 +66,17 @@ class LabJack(ProcessHandler):
         try:
             roll_value = self.clock / frequency
             config_a = duty_cycle * roll_value / 100
-            ljm.eWriteName(self.handle, "DIO_EF_CLOCK0_ENABLE", 0);    # Disable the clock source
-            ljm.eWriteName(self.handle, "DIO_EF_CLOCK0_DIVISOR", 1); 	# Configure Clock0's divisor
-            ljm.eWriteName(self.handle, "DIO_EF_CLOCK0_ROLL_VALUE", roll_value); 	# Configure Clock0's roll value
-            ljm.eWriteName(self.handle, "DIO_EF_CLOCK0_ENABLE", 1); 	# Enable the clock source
+            self._command("DIO_EF_CLOCK0_ENABLE", 0);    # Disable the clock source
+            self._command("DIO_EF_CLOCK0_DIVISOR", 1); 	# Configure Clock0's divisor
+            self._command("DIO_EF_CLOCK0_ROLL_VALUE", roll_value); 	# Configure Clock0's roll value
+            self._command("DIO_EF_CLOCK0_ENABLE", 1); 	# Enable the clock source
 
             # Configure EF Channel Registers:
-            ljm.eWriteName(self.handle, "DIO%i_EF_ENABLE"%channel, 0); 	# Disable the EF system for initial configuration
-            ljm.eWriteName(self.handle, "DIO%i_EF_INDEX"%channel, 0); 	# Configure EF system for PWM
-            ljm.eWriteName(self.handle, "DIO%i_EF_OPTIONS"%channel, 0); 	# Configure what clock source to use: Clock0
-            ljm.eWriteName(self.handle, "DIO%i_EF_CONFIG_A"%channel, config_a); 	# Configure duty cycle
-            ljm.eWriteName(self.handle, "DIO%i_EF_ENABLE"%channel, 1); 	# Enable the EF system, PWM wave is now being outputted
+            self._command("DIO%i_EF_ENABLE"%channel, 0); 	# Disable the EF system for initial configuration
+            self._command("DIO%i_EF_INDEX"%channel, 0); 	# Configure EF system for PWM
+            self._command("DIO%i_EF_OPTIONS"%channel, 0); 	# Configure what clock source to use: Clock0
+            self._command("DIO%i_EF_CONFIG_A"%channel, config_a); 	# Configure duty cycle
+            self._command("DIO%i_EF_ENABLE"%channel, 1); 	# Enable the EF system, PWM wave is now being outputted
         except Exception as e:
             print(e)
 
@@ -99,22 +103,22 @@ class LabJack(ProcessHandler):
         short MISO to VS or leave it unconnected, you will read back 255s.
 
         """
-        ljm.eWriteName(self.handle, "SPI_CS_DIONUM", CS)
-        ljm.eWriteName(self.handle, "SPI_CLK_DIONUM", CLK)
-        ljm.eWriteName(self.handle, "SPI_MISO_DIONUM", MISO)
-        ljm.eWriteName(self.handle, "SPI_MOSI_DIONUM", MOSI)
-        ljm.eWriteName(self.handle, "SPI_MODE", mode)                  # Selecting Mode CPHA=1 (bit 0), CPOL=1 (bit 1)
-        ljm.eWriteName(self.handle, "SPI_SPEED_THROTTLE", 0)        # Valid speed throttle values are 1 to 65536 where 0 = 65536 ~ 800 kHz
-        ljm.eWriteName(self.handle, "SPI_OPTIONS", 0)               # Enabling active low clock select pin
+        self._command("SPI_CS_DIONUM", CS)
+        self._command("SPI_CLK_DIONUM", CLK)
+        self._command("SPI_MISO_DIONUM", MISO)
+        self._command("SPI_MOSI_DIONUM", MOSI)
+        self._command("SPI_MODE", mode)                  # Selecting Mode CPHA=1 (bit 0), CPOL=1 (bit 1)
+        self._command("SPI_SPEED_THROTTLE", 0)        # Valid speed throttle values are 1 to 65536 where 0 = 65536 ~ 800 kHz
+        self._command("SPI_OPTIONS", 0)               # Enabling active low clock select pin
 
     def spi_write(self, data, verbose = False):
         ''' Writes a list of commands via SPI. '''
         numBytes = len(data)
-        ljm.eWriteName(self.handle, "SPI_NUM_BYTES", numBytes)
+        self._command("SPI_NUM_BYTES", numBytes)
 
         # Write the bytes
         ljm.eWriteNameByteArray(self.handle, "SPI_DATA_TX", len(data), data)
-        ljm.eWriteName(self.handle, "SPI_GO", 1)  # Do the SPI communications
+        self._command("SPI_GO", 1)  # Do the SPI communications
 
         if verbose:
             # Display the bytes written
@@ -125,16 +129,16 @@ class LabJack(ProcessHandler):
     ''' Streaming methods '''
     def stream_out(self, channel, data):
         ''' Prepares an output stream on channel 0 or 1 (DAC0 or DAC1)'''
-        ljm.eWriteName(self.handle, "STREAM_OUT0_ENABLE", 0)
-        ljm.eWriteName(self.handle, "STREAM_OUT0_TARGET", 1000+2*channel)
-        ljm.eWriteName(self.handle, "STREAM_OUT0_BUFFER_SIZE", 1024)
-        ljm.eWriteName(self.handle, "STREAM_OUT0_ENABLE", 1)
+        self._command("STREAM_OUT0_ENABLE", 0)
+        self._command("STREAM_OUT0_TARGET", 1000+2*channel)
+        self._command("STREAM_OUT0_BUFFER_SIZE", 1024)
+        self._command("STREAM_OUT0_ENABLE", 1)
 
         ''' Add data to buffer '''
-        ljm.eWriteName(self.handle, "STREAM_OUT0_BUFFER_F32", data)
+        self._command("STREAM_OUT0_BUFFER_F32", data)
 
         ''' Set loop size '''
-        ljm.eWriteName(self.handle, "STREAM_OUT0_LOOP_SIZE", 0)
+        self._command("STREAM_OUT0_LOOP_SIZE", 0)
 
         ''' Start stream '''
-        ljm.eWriteName(self.handle, "STREAM_OUT0_SET_LOOP", 1)
+        self._command("STREAM_OUT0_SET_LOOP", 1)
