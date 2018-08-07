@@ -337,16 +337,18 @@ class Control(Node):
                 file.write('\n')
             file.write('%f\t%s\t%s'%(time.time(),json.dumps(state), tag))
 
-    def load(self, name):
+    def load(self, full_name):
         """Loads the last saved state and attempts to reinitialize previous values for the Input node specified by full_name. If the input did not exist in the last state, then it is initialized with default values.
 
         Args:
             full_name (str): Specifies the Input node and its parent device, e.g. 'deviceA.input1'.
         """
-        state = {}
         filename = self.settings_path + self.name + '.txt'
-        with open(filename, 'r') as file:
-            state = json.loads(file.readlines()[-1].split('\t')[1])
+        try:
+            with open(filename, 'r') as file:
+                state = json.loads(file.readlines()[-1].split('\t')[1])
+        except FileNotFoundError:
+            state = {}
 
         ''' Load variables into control '''
         try:
@@ -361,7 +363,7 @@ class Control(Node):
             self.cycle_time = 0
 
         ''' Update sequence of inputs '''
-        self.inputs[name].sequence = self.sequence[name]
+        self.inputs[full_name].sequence = self.sequence[full_name]
 
     def get_subsequence(self, keys):
         """Returns a sequence dict containing only the specified keys.
