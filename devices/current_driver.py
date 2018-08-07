@@ -153,7 +153,7 @@ class CurrentDriver(Device):
         I2 = state['I2']
 
         ''' Find root numerically for zero of B-field '''
-        res = minimize(fun=self.B, x0=0)
+        res = minimize(fun=self.B, args=(I1,I2), x0=0)
         z0 = res.x
         grad = 3*MU0/2 * (I2*N2*R2**2*(z0-Z2)/(R2**2+(z0-Z2)**2)**(5/2)-I1*N1*R1**2*(z0-Z1)/(R1**2+(z0-Z1)**2)**(5/2))
 
@@ -162,7 +162,15 @@ class CurrentDriver(Device):
         grad *= 100
         return {'zero':z0, 'grad':grad}
 
-    def B(self, z):
+    def B(self, z, I1, I2):
+        ''' Analytic model for the on-axis field as a function of known calibration constants.
+
+            Args:
+                z (float): On-axis position in m.
+                I1 (float): Current of coil 1 in A.
+                I2 (float): Current of coil 2 in A.
+        '''
+
         return MU0/2 * (N1*I1*R1**2/(R1**2+(z-Z1)**2)**(3/2)-N2*I2*R2**2/(R2**2+(z-Z2)**2)**(3/2))
 
     def virtual_to_real(self, state):
