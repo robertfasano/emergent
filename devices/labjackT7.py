@@ -144,22 +144,58 @@ class LabJack(ProcessHandler):
                 channel (int): DAC channel to use. 0 for DAC0 or 1 for DAC1.
                 data (array): Data to stream out.
                 loop (bool): if False, data will be streamed out once; if True, the stream will loop.
+
+            Note:
+                The maximum buffer size of the LabJack T7 is 2^15=32768 bytes,
+                so up to 2^14=16384 samples can be held. At the default stream
+                rate of 100 kS/s, this corresponds to 163.84 ms of data. If we
+                want to stream for longer than that, we need to repeatedly write
+                half a buffer's worth of data each time the buffer is half full.
         '''
 
         self._command("STREAM_OUT0_ENABLE", 0)
         self._command("STREAM_OUT0_TARGET", 1000+2*channel)
-        data_size = data.nbytes*2
-        buffer_exponent = np.ceil(1+np.log2(data_size))
+        data_size = data.nbytes
+        buffer_exponent = np.ceil(1+np.log2(2*data_size))
         buffer_size = 2**buffer_exponent
-        self._command("STREAM_OUT0_BUFFER_SIZE", buffer_size)
-        self._command("STREAM_OUT0_ENABLE", 1)
 
-        if loop:
-            ljm.eWriteName(handle, "STREAM_OUT0_LOOP_SIZE", len(data))
-            ljm.eWriteName(handle, "STREAM_OUT0_SET_LOOP", 1)
+        if buffer_exponent <= 14:
+            self._command("STREAM_OUT0_BUFFER_SIZE", buffer_size)
+            self._command("STREAM_OUT0_ENABLE", 1)
 
-        ''' Add data to buffer '''
-        self._command("STREAM_OUT0_BUFFER_F32", data)
+            if loop:
+                ljm.eWriteName(handle, "STREAM_OUT0_LOOP_SIZE", len(data))
+                ljm.eWriteName(handle, "STREAM_OUT0_SET_LOOP", 1)
 
-        ''' Start stream '''
-        self._command("STREAM_OUT0", 1)
+            ''' Add data to buffer '''
+            self._command("STREAM_OUT0_BUFFER_F32", data)
+
+            ''' Start stream '''
+            self._command("STREAM_OUT0", 1)
+
+        else:
+            ''' If we want to stream more than 2^14 points, we need to repeatedly
+                update half of the buffer. '''
+            buffer_size = 2**14
+            max_samples = int(buffer_size/2)
+            write_length = int(max_samples/2)
+            self._command("STREAM_OUT0_BUFFER_SIZE", buffer_size)
+            self._command("STREAM_OUT0_ENABLE", 1)
+
+            self._command("STREAM_OUT0_LOOP_SIZE", write_length)
+            subdata = data[0:write_length]
+
+            ljm.eWriteNameArray(self.handle, 'STREAM_OUT0_BUFFER_F32', len(subdata), subdata)
+            self._command("STREAM_OUT0_SET_LOOP", 1)
+
+            data = np.delete(data, range(write_length))
+            while True:
+                if ljm.eReadName('STREAM_OUT0_BUFFER_STATUS') > write_length:
+                    subdata = data[0:write_length]
+                    data = np.delete(data, range(write_length))
+
+                    if len(subdata) == 0:
+                        break
+                    self._command("STREAM_OUT0_BUFFER_F32", subdata)
+                    self._command("STREAM_OUT0_LOOP_SIZE", write_length)
+                    self._command("STREAM_OUT0_SET_LOOP", 1)
