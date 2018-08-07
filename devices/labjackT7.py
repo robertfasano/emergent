@@ -111,7 +111,7 @@ class LabJack(ProcessHandler):
         self._command("SPI_SPEED_THROTTLE", 0)        # Valid speed throttle values are 1 to 65536 where 0 = 65536 ~ 800 kHz
         self._command("SPI_OPTIONS", 0)               # Enabling active low clock select pin
 
-    def spi_write(self, data, verbose = False):
+    def spi_write(self, data):
         ''' Writes a list of commands via SPI. '''
         numBytes = len(data)
         self._command("SPI_NUM_BYTES", numBytes)
@@ -120,25 +120,21 @@ class LabJack(ProcessHandler):
         ljm.eWriteNameByteArray(self.handle, "SPI_DATA_TX", len(data), data)
         self._command("SPI_GO", 1)  # Do the SPI communications
 
-        if verbose:
-            # Display the bytes written
-            print("")
-            for i in range(numBytes):
-                print("dataWrite[%i] = %0.0f" % (i, data[i]))
-
     ''' Streaming methods '''
-    def stream_out(self, channel, data):
-        ''' Prepares an output stream on channel 0 or 1 (DAC0 or DAC1)'''
+    def stream_out(self, channel, data, loop = False):
+        ''' Streams data out on channel 0 or 1 (DAC0 or DAC1). '''
+
         self._command("STREAM_OUT0_ENABLE", 0)
         self._command("STREAM_OUT0_TARGET", 1000+2*channel)
-        self._command("STREAM_OUT0_BUFFER_SIZE", 1024)
+        self._command("STREAM_OUT0_BUFFER_SIZE", data.nbytes*2)
         self._command("STREAM_OUT0_ENABLE", 1)
+
+        if loop:
+            ljm.eWriteName(handle, "STREAM_OUT0_LOOP_SIZE", len(data))
+            ljm.eWriteName(handle, "STREAM_OUT0_SET_LOOP", 1)
 
         ''' Add data to buffer '''
         self._command("STREAM_OUT0_BUFFER_F32", data)
 
-        ''' Set loop size '''
-        self._command("STREAM_OUT0_LOOP_SIZE", 0)
-
         ''' Start stream '''
-        self._command("STREAM_OUT0_SET_LOOP", 1)
+        self._command("STREAM_OUT0", 1)
