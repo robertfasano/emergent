@@ -95,6 +95,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../index.html">EMERGENT</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture.html">Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../optimization.html">Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../networkflow.html">Network flow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../archetypes.html">Archetypes</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../devices.html">Devices</a><ul class="current">
@@ -205,6 +206,12 @@ devid args.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="labjackT7.LabJack._command">
+<code class="descname">_command</code><span class="sig-paren">(</span><em>register</em>, <em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#labjackT7.LabJack._command" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes a value to a specified register.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="labjackT7.LabJack._connect">
 <code class="descname">_connect</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#labjackT7.LabJack._connect" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -221,8 +228,14 @@ int MOSI: the channel to use for output</p>
 
 <dl class="method">
 <dt id="labjackT7.LabJack.spi_write">
-<code class="descname">spi_write</code><span class="sig-paren">(</span><em>data</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="headerlink" href="#labjackT7.LabJack.spi_write" title="Permalink to this definition">¶</a></dt>
+<code class="descname">spi_write</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#labjackT7.LabJack.spi_write" title="Permalink to this definition">¶</a></dt>
 <dd><p>Writes a list of commands via SPI.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="labjackT7.LabJack.stream_out">
+<code class="descname">stream_out</code><span class="sig-paren">(</span><em>channel</em>, <em>data</em>, <em>loop=False</em><span class="sig-paren">)</span><a class="headerlink" href="#labjackT7.LabJack.stream_out" title="Permalink to this definition">¶</a></dt>
+<dd><p>Streams data out on channel 0 or 1 (DAC0 or DAC1).</p>
 </dd></dl>
 
 </dd></dl>

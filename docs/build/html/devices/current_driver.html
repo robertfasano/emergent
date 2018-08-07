@@ -95,6 +95,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../index.html">EMERGENT</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture.html">Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../optimization.html">Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../networkflow.html">Network flow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../archetypes.html">Archetypes</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../devices.html">Devices</a><ul class="current">
@@ -173,13 +174,13 @@
 <span id="current-driver"></span><h1>Current driver<a class="headerlink" href="#module-current_driver" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="current_driver.CurrentDriver">
-<em class="property">class </em><code class="descclassname">current_driver.</code><code class="descname">CurrentDriver</code><span class="sig-paren">(</span><em>port1</em>, <em>port2</em>, <em>parent=None</em>, <em>labjack=None</em><span class="sig-paren">)</span><a class="headerlink" href="#current_driver.CurrentDriver" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">current_driver.</code><code class="descname">CurrentDriver</code><span class="sig-paren">(</span><em>name</em>, <em>port1</em>, <em>port2</em>, <em>parent=None</em>, <em>labjack=None</em><span class="sig-paren">)</span><a class="headerlink" href="#current_driver.CurrentDriver" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">archetypes.node.Device</span></code></p>
 <p>Current driver for quadrupole coils using two TDK Genesys programmable
 power supplies and a bespoke current servo board.</p>
 <dl class="method">
 <dt id="current_driver.CurrentDriver.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>port1</em>, <em>port2</em>, <em>parent=None</em>, <em>labjack=None</em><span class="sig-paren">)</span><a class="headerlink" href="#current_driver.CurrentDriver.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>name</em>, <em>port1</em>, <em>port2</em>, <em>parent=None</em>, <em>labjack=None</em><span class="sig-paren">)</span><a class="headerlink" href="#current_driver.CurrentDriver.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialize the Device for use.</p>
 </dd></dl>
 
@@ -197,7 +198,7 @@ power supplies and a bespoke current servo board.</p>
 
 <dl class="method">
 <dt id="current_driver.CurrentDriver.calibrate">
-<code class="descname">calibrate</code><span class="sig-paren">(</span><em>coil</em>, <em>Vmin=1</em>, <em>Vmax=3</em>, <em>steps=100</em>, <em>delay=0.01</em><span class="sig-paren">)</span><a class="headerlink" href="#current_driver.CurrentDriver.calibrate" title="Permalink to this definition">¶</a></dt>
+<code class="descname">calibrate</code><span class="sig-paren">(</span><em>coil</em>, <em>Vmin=1</em>, <em>Vmax=3</em>, <em>steps=100</em>, <em>delay=0.01</em>, <em>plot=False</em><span class="sig-paren">)</span><a class="headerlink" href="#current_driver.CurrentDriver.calibrate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Measure and fit the IV curve of the FETs.</p>
 </dd></dl>
 

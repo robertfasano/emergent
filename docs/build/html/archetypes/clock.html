@@ -95,6 +95,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../index.html">EMERGENT</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture.html">Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../optimization.html">Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../networkflow.html">Network flow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../archetypes.html">Archetypes</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Clock</a></li>
@@ -205,6 +206,13 @@ constant value</p>
 <dt id="clock.Clock.prepare_sequence">
 <code class="descname">prepare_sequence</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#clock.Clock.prepare_sequence" title="Permalink to this definition">¶</a></dt>
 <dd><p>Prepares a master sequence by combining sequences of all inputs.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="clock.Clock.prepare_stream">
+<code class="descname">prepare_stream</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#clock.Clock.prepare_stream" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts the sequence of the input labeled by key to a LabJack stream
+at 100 kS/s.</p>
 </dd></dl>
 
 <dl class="method">
