@@ -131,7 +131,7 @@ class Control(Node):
         self.inputs = {}
         self.state = {}
         self.settings = {}
-        self.sequences = {}
+        self.sequence = {}
         self.actuating = 0
         self.settings_path =path+'/settings/'
         self.state_path = path+'/state/'
@@ -139,7 +139,7 @@ class Control(Node):
         self.data_path = path+'/data/'
         for p in [self.settings_path, self.state_path, self.sequence_path, self.data_path]:
             pathlib.Path(p).mkdir(parents=True, exist_ok=True)
-            
+
         self.clock = Clock(self)
         self.historian = Historian(self)
         self.optimizer = Optimizer(self)
@@ -147,7 +147,7 @@ class Control(Node):
 
     def get_sequence(self):
         for i in self.inputs.values():
-            self.sequences[i.full_name] = i.sequence
+            self.sequence[i.full_name] = i.sequence
 
     def list_costs(self):
         ''' Returns a list of all methods tagged with the '@cost' decorator. '''
@@ -211,46 +211,49 @@ class Control(Node):
             print('Actuate blocked by already running actuation.')
 
     def save(self, tag = ''):
-            ''' Saves the current state to a text file. '''
-            paths = [self.settings_path, self.state_path, self.sequence_path]
-            data = [self.settings, self.state, self.sequences]
+        state = {}
+        state['cycle_time'] = self.cycle_time
+        for input in self.inputs.values():
+            full_name = input.full_name
+            state[full_name] = {}
+            state[full_name]['state'] = self.state[full_name]
+            state[full_name]['settings'] = self.settings[full_name]
+            state[full_name]['sequence'] = self.sequence[full_name]
 
-            for i in range(len(paths)):
-                filename = paths[i]+self.name+'.txt'
+        filename = self.state_path + self.name + '.txt'
+        write_newline = os.path.isfile(filename)
 
-                write_newline = False
-                if os.path.isfile(filename):
-                    write_newline = True
-
-                with open(filename, 'a') as file:
-                    if write_newline:
-                        file.write('\n')
-                    file.write('%f\t%s\t%s'%(time.time(),json.dumps(data[i]), tag))
+        with open(filename, 'a') as file:
+            if write_newline:
+                file.write('\n')
+            file.write('%f\t%s\t%s'%(time.time(),json.dumps(state), tag))
 
     def load(self, name):
-        ''' Loads a state from a text file.'''
-        paths = [self.settings_path, self.state_path, self.sequence_path]
         state = {}
-        vars = [self.settings, state, self.sequences]
+        filename = self.settings_path + self.name + '.txt'
+        with open(filename, 'r') as file:
+            state = json.loads(file.readlines()[-1].split('\t')[1])
+        print('loading',name)
+        ''' Load variables into control '''
+        try:
+            self.settings[name] = state[name]['settings']
+            self.state[name] = state[name]['state']
+            self.sequence[name] = state[name]['sequence']
+            self.cycle_time = state[name]['cycle_time']
+        except KeyError:
+            self.settings[name] = {'min':0, 'max':1}
+            self.state[name] = 0
+            self.sequence[name] = [[0,0]]
+            self.cycle_time = 0
 
-        for i in range(len(paths)):
-            filename = paths[i]+self.name+'.txt'
-            with open(filename, 'r') as file:
-                vars[i]=json.loads(file.readlines()[-1].split('\t')[1])
-
-        self.settings['cycle_time'] = vars[0]['cycle_time']
-        self.settings[name] = vars[0][name]
-        self.inputs[name].state = vars[1][name]
-        self.state[name] = vars[1][name]
-        self.sequences[name] = vars[2][name]
-        self.inputs[name].sequence = self.sequences[name]
-        #self.actuate(state)
+        ''' Update sequence of inputs '''
+        self.inputs[name].sequence = self.sequence[name]
 
     def get_subsequence(self, keys):
         ''' Returns a sequence dict containing only the specified keys '''
         sequence = {}
         for key in keys:
-            sequence[key] = self.sequences[key]
+            sequence[key] = self.sequence[key]
         return sequence
 
     def get_substate(self, keys):
@@ -262,5 +265,4 @@ class Control(Node):
 
     def onLoad(self):
         self.actuate(self.state)
-        self.cycle_time = self.settings['cycle_time']
         self.clock.prepare_sequence()
