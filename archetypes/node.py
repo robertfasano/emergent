@@ -51,8 +51,15 @@ class Input(Node):
         be accessed for a given type, e.g. Control.instances lists all Control
         nodes. '''
 
-    def __init__(self, name, parent, type='real'):
-        ''' Initializes an Input node. '''
+    def __init__(self, name, parent, type='real', speed = 'slow'):
+        """Initializes an Input node.
+
+        Args:
+            name (str): node name. Nodes which share a Device should have unique names.
+            parent (str): name of parent Device node.
+            type (str): Specifies whether the Input node is 'real' (representing a directly controlled quantity) or 'virtual' (representing a derived quantity or superposition of real quantities).
+            speed (str): Specified whether the Input node is 'slow' (using state-actuation for sequencing) or 'fast' (using burst streaming from a LabJack).
+        """
         super().__init__(name, parent=parent)
         self.type = type
         self.state = None
@@ -62,11 +69,19 @@ class Input(Node):
         self.max = None
 
     def set(self, state):
-            ''' Calls the parent Device.actuate() function to change
-                self.state to a new value. Only update virtual nodes after
-                the first state preparation. '''
-            if self.type is 'real' or self.parent.loaded:
-                self.parent.actuate({self.name:state})
+        """Requests actuation from the parent Device.
+
+        Note:
+            Virtual nodes can only be updated after the first state preparation.
+            During network initialization, the Control node loads the previous
+            states of the real nodes and actuates them; after this is finished,
+            the virtual states are computed and updated.
+
+        Args:
+            state (float): Target value.
+        """
+        if self.type is 'real' or self.parent.loaded:
+            self.parent.actuate({self.name:state})
 
 class Device(Node):
     ''' Device nodes represent apparatus which can control the state of Input
@@ -78,7 +93,12 @@ class Device(Node):
         nodes. '''
 
     def __init__(self, name, parent):
-        ''' Initializes a Device node. '''
+        """Initializes a Device node.
+
+        Args:
+            name (str): node name. Devices which share a Control should have unique names.
+            parent (str): name of parent Control node.
+        """
         super().__init__(name, parent=parent)
         self.state = {}
         self.loaded = 0     # set to 1 after first state preparation
@@ -103,17 +123,41 @@ class Device(Node):
             self.virtual_inputs += 1
 
     def _actuate(self, state):
-        ''' Private placeholder for the device-specific physical actuator which
-            should be reimplemented in each driver file. The public method
-            Device.actuate() calls this method to update the physical state,
-            then the public method updates the virtual state. '''
+        """Private placeholder for the device-specific driver.
+
+        Note:
+            State actuation is done by first calling the Device.actuate() method,
+            which calls Device._actuate(state) to change something in the lab, then
+            calls Device.update(state) to register this new state with EMERGENT.
+            When you write a driver inheriting from Device, you should reimplement
+            this method to update your device to the specified state only - do not
+            update any stored states such as Device.state, Input.state, or Control.state
+            from this method.
+
+        Args:
+            state (dict): Target state of the form {'param1':value1, 'param2':value2,...}.
+        """
         return
 
     def actuate(self, state):
-        ''' Updates the physical and virtual state to a target state. The passed
-            dict can contain one or all of the inputs: e.g. state={'X':1} updates
-            only the 'X' input, while state={'X':1, 'Y':2} updates both 'X'
-            and 'Y'. '''
+        """Makes a physical device change in the lab with the _actuate() method, then registers this change with EMERGENT.
+
+        Note:
+            If a virtual state is passed in (i.e. all dict keys label virtual Input nodes),
+            then the state will be converted to real using Device.virtual_to_real(),
+            which must be implemented in any driver file which uses virtual inputs.
+            After actuation of the real state, the equivalent virtual state is
+            updated.
+
+        Note:
+            If a mixed state is passed in (with both real and virtual components),
+            only the real components will be used.
+
+
+        Args:
+            state (dict): Target state of the form {'param1':value1, 'param2':value2,...}.
+        """
+
 
         ''' First prepare a pure real state. If the passed state is mixed between
             real and virtual components, only the real components will be used. '''
@@ -133,7 +177,23 @@ class Device(Node):
             self.update(self.real_to_virtual(state))
 
     def get_missing_keys(self, state, keys):
-        ''' Returns the state dict with any missing keys filled in with self.state. '''
+        """Returns the state dict with any missing keys filled in from self.state.
+
+        Note:
+            This is useful when using virtual functions which depend on multiple
+            inputs. Consider two inputs X and Y with two virtual inputs u=X+Y
+            and v=X-Y. If we actuate just X or Y, the virtual inputs still need
+            to know the value of the non-actuated input to update their state.
+            This method pulls the latest value of any parameters specified in
+            keys so that the virtual inputs can be calculated.
+
+        Args:
+            state (dict): Target state, e.g. {'param1':value1, 'param2':value2}.
+            keys (list): List of parameters not contained in state, e.g. ['param3'].
+
+        Returns:
+            state (dict): State containing both specified changes and previous values, etc {'param1':value1,'param2':value2, 'param3':self.state['param3']}.
+        """
         total_state = {}
         for key in keys:
             try:
@@ -143,7 +203,15 @@ class Device(Node):
         return total_state
 
     def get_type(self, state, type):
-        ''' Returns the real/virtual components of the state according to the passed type. '''
+        """Returns the real/virtual components of the state according to the passed type.
+
+        Args:
+            state (dict): Target state, e.g. {'param1':value1, 'param2':value2}.
+            type (str): Input node type ('real' or 'virtual').
+
+        Returns:
+            new_state (dict): State dict containing the real or virtual elements of state.
+        """
         new_state = {}
         for key in state.keys():
             if self.children[key].type == type:
@@ -151,14 +219,29 @@ class Device(Node):
         return new_state
 
     def is_type(self, state, type):
-        ''' Return True if all elements of the state are real.'''
+        """Checks whether the state is real or virtual according to the passed in type.
+        Note:
+            is_type(state,'real')==False does not mean the state is virtual - it could be mixed!
+
+        Args:
+            state (dict): State dict, e.g. {'param1':value1, 'param2':value2}.
+            type (str): Input node type ('real' or 'virtual').
+
+        Returns:
+            is_type (bool): True if all elements of state are type; False otherwise.
+        """
         is_type = True
         for key in state.keys():
             is_type = is_type and (self.children[key].type == type)
         return is_type
 
     def update(self,state):
-        ''' Synchronously updates the state of the Input, Device, and Control. '''
+        """Synchronously updates the state of the Input, Device, and Control.
+
+        Args:
+            state (dict): New state, e.g. {'param1':value1, 'param2':value2}.
+
+        """
         for key in state.keys():
             self.state[key] = state[key]    # update Device
             self.children[key].state = state[key]   # update Input
@@ -175,8 +258,15 @@ class Control(Node):
         nodes. '''
 
     def __init__(self, name, parent = None, path = '.'):
-        ''' Initializes a Control node and attaches Clock, Historian, and Optimizer
-            objects. '''
+        """Initializes a Control node and attaches Clock, Historian, and Optimizer instances.
+
+        Args:
+            name (str): node name. All Control nodes should have unique names.
+            parent (str): name of parent Control node. Note: child Control nodes are currently not supported and may lead to unpredictable behavior.
+            path (str): network path relative to the emergent/ folder. For example, if the network.py file is located in emergent/networks/example, then path should be 'networks/example.'
+
+        """
+
         super().__init__(name, parent)
         self.inputs = {}
         self.state = {}
@@ -196,31 +286,40 @@ class Control(Node):
 
 
     def get_sequence(self):
+        """Populates the self.sequence dict with sequences of all inputs."""
         for i in self.inputs.values():
             self.sequence[i.full_name] = i.sequence
 
     def list_costs(self):
-        ''' Returns a list of all methods tagged with the '@cost' decorator. '''
+        """Returns a list of all methods tagged with the '@cost' decorator."""
         return methodsWithDecorator(self.__class__, 'cost')
 
     def actuate(self, state, save=True):
-        ''' Updates all Inputs in the given state to the given values.
-            Argument should have keys of the form 'Device.Input', e.g.
-            state={'MEMS.X':0}. The type argument allows actuation of only
-            real or virtual inputs.  '''
+        """Updates all Inputs in the given state to the given values and optionally logs the state.
+
+        Args:
+            state (dict): Target state of the form {'deviceA.param1':1, 'deviceA.param1':2,...}
+            save (bool): Whether or not to log.
+        """
         if not self.actuating:
             self.actuating = 1
 
             for i in state.keys():
                 self.inputs[i].set(state[i])
             self.actuating = 0
-            self.save(tag='actuate')
+            if save:
+                self.save(tag='actuate')
             if hasattr(self, 'window'):
                 self.window.update_state(self.name)
         else:
             print('Actuate blocked by already running actuation.')
 
     def save(self, tag = ''):
+        """Aggregates the self.state, self.settings, self.cycle_time, and self.sequence variables into a single dict and saves to file.
+
+        Args:
+            tag (str): Label written to the third column of the log file which describes where the state was saved from, e.g. 'actuate' or 'optimize'.
+        """
         state = {}
         state['cycle_time'] = self.cycle_time
         for input in self.inputs.values():
@@ -239,6 +338,11 @@ class Control(Node):
             file.write('%f\t%s\t%s'%(time.time(),json.dumps(state), tag))
 
     def load(self, name):
+        """Loads the last saved state and attempts to reinitialize previous values for the Input node specified by full_name. If the input did not exist in the last state, then it is initialized with default values.
+
+        Args:
+            full_name (str): Specifies the Input node and its parent device, e.g. 'deviceA.input1'.
+        """
         state = {}
         filename = self.settings_path + self.name + '.txt'
         with open(filename, 'r') as file:
@@ -246,34 +350,43 @@ class Control(Node):
 
         ''' Load variables into control '''
         try:
-            self.settings[name] = state[name]['settings']
-            self.state[name] = state[name]['state']
-            self.sequence[name] = state[name]['sequence']
-            self.cycle_time = state[name]['cycle_time']
+            self.settings[full_name] = state[full_name]['settings']
+            self.state[full_name] = state[full_name]['state']
+            self.sequence[full_name] = state[full_name]['sequence']
+            self.cycle_time = state[full_name]['cycle_time']
         except KeyError:
-            self.settings[name] = {'min':0, 'max':1}
-            self.state[name] = 0
-            self.sequence[name] = [[0,0]]
+            self.settings[full_name] = {'min':0, 'max':1}
+            self.state[full_name] = 0
+            self.sequence[full_name] = [[0,0]]
             self.cycle_time = 0
 
         ''' Update sequence of inputs '''
         self.inputs[name].sequence = self.sequence[name]
 
     def get_subsequence(self, keys):
-        ''' Returns a sequence dict containing only the specified keys '''
+        """Returns a sequence dict containing only the specified keys.
+
+        Args:
+            keys (list): full_name variables of Input nodes to retrieve, e.g. ['deviceA.input1', 'deviceB.input1'].
+        """
         sequence = {}
         for key in keys:
             sequence[key] = self.sequence[key]
         return sequence
 
     def get_substate(self, keys):
-        ''' Returns a state dict containing only the specified keys '''
+        """Returns a state dict containing only the specified keys.
+
+        Args:
+            keys (list): full_name variables of Input nodes to retrieve, e.g. ['deviceA.input1', 'deviceB.input1'].
+        """
         state = {}
         for key in keys:
             state[key] = self.state[key]
         return state
 
     def onLoad(self):
+        """Tasks to be carried out after all Devices and Inputs are initialized."""
         self.actuate(self.state)
         for device in self.children.values():
             device.loaded = 1
