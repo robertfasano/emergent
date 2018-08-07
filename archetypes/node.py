@@ -61,10 +61,12 @@ class Input(Node):
         self.min = None
         self.max = None
 
-    def set(self, state, type='any'):
+    def set(self, state):
             ''' Calls the parent Device.actuate() function to change
-                self.state to a new value '''
-            self.parent.actuate({self.name:state}, type=type)
+                self.state to a new value. Only update virtual nodes after
+                the first state preparation. '''
+            if self.type is 'real' or self.parent.loaded:
+                self.parent.actuate({self.name:state})
 
 class Device(Node):
     ''' Device nodes represent apparatus which can control the state of Input
@@ -79,6 +81,9 @@ class Device(Node):
         ''' Initializes a Device node. '''
         super().__init__(name, parent=parent)
         self.state = {}
+        self.loaded = 0     # set to 1 after first state preparation
+        self.real_inputs = 0
+        self.virtual_inputs = 0
 
     def add_input(self, name, type='real'):
         ''' Attaches an Input node with the specified name. This should correspond
@@ -92,6 +97,10 @@ class Device(Node):
         self.parent.load(input.full_name)
         self.state[name] = self.children[name].state
 
+        if type == 'real':
+            self.real_inputs += 1
+        elif type == 'virtual':
+            self.virtual_inputs += 1
 
     def _actuate(self, state):
         ''' Private placeholder for the device-specific physical actuator which
@@ -100,13 +109,53 @@ class Device(Node):
             then the public method updates the virtual state. '''
         return
 
-    def actuate(self, state, type='any'):
+    def actuate(self, state):
         ''' Updates the physical and virtual state to a target state. The passed
             dict can contain one or all of the inputs: e.g. state={'X':1} updates
             only the 'X' input, while state={'X':1, 'Y':2} updates both 'X'
             and 'Y'. '''
-        self._actuate(state, type=type)
+
+        ''' First prepare a pure real state. If the passed state is mixed between
+            real and virtual components, only the real components will be used. '''
+        real = self.is_type(state, 'real')
+        virtual = self.is_type(state, 'virtual')
+        if real and virtual:
+            state = self.get_type(state, 'real')
+            virtual = False
+            print('WARNING: only real components are being used of a mixed real/virtual state.')
+        if virtual:
+            state = self.virtual_to_real(state)
+
+        ''' Now actuate and update '''
+        self._actuate(state)
         self.update(state)
+        if self.loaded and self.virtual_inputs > 0:
+            self.update(self.real_to_virtual(state))
+
+    def get_missing_keys(self, state, keys):
+        ''' Returns the state dict with any missing keys filled in with self.state. '''
+        total_state = {}
+        for key in keys:
+            try:
+                total_state[key] = state[key]
+            except KeyError:
+                total_state[key] = self.state[key]
+        return total_state
+
+    def get_type(self, state, type):
+        ''' Returns the real/virtual components of the state according to the passed type. '''
+        new_state = {}
+        for key in state.keys():
+            if self.children[key].type == type:
+                new_state[key] = state[key]
+        return new_state
+
+    def is_type(self, state, type):
+        ''' Return True if all elements of the state are real.'''
+        is_type = True
+        for key in state.keys():
+            is_type = is_type and (self.children[key].type == type)
+        return is_type
 
     def update(self,state):
         ''' Synchronously updates the state of the Input, Device, and Control. '''
@@ -154,7 +203,7 @@ class Control(Node):
         ''' Returns a list of all methods tagged with the '@cost' decorator. '''
         return methodsWithDecorator(self.__class__, 'cost')
 
-    def actuate(self, state, save=True, type='any'):
+    def actuate(self, state, save=True):
         ''' Updates all Inputs in the given state to the given values.
             Argument should have keys of the form 'Device.Input', e.g.
             state={'MEMS.X':0}. The type argument allows actuation of only
@@ -163,9 +212,7 @@ class Control(Node):
             self.actuating = 1
 
             for i in state.keys():
-                input = self.inputs[i]
-                if input.type == type or type == 'any':
-                    self.inputs[i].set(state[i], type=type)
+                self.inputs[i].set(state[i])
             self.actuating = 0
             self.save(tag='actuate')
             if hasattr(self, 'window'):
@@ -196,7 +243,7 @@ class Control(Node):
         filename = self.settings_path + self.name + '.txt'
         with open(filename, 'r') as file:
             state = json.loads(file.readlines()[-1].split('\t')[1])
-        print('loading',name)
+
         ''' Load variables into control '''
         try:
             self.settings[name] = state[name]['settings']
@@ -227,5 +274,10 @@ class Control(Node):
         return state
 
     def onLoad(self):
-        self.actuate(self.state, type='real')
+        self.actuate(self.state)
+        for device in self.children.values():
+            device.loaded = 1
+            if device.virtual_inputs > 0:
+                device.update(device.real_to_virtual(device.state))
+
         self.clock.prepare_sequence()
