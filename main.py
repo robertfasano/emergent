@@ -8,7 +8,7 @@ from PyQt5.QtCore import QCoreApplication
 from gui.elements.window import MainFrame
 from archetypes.node import Control
 import numpy as np
-sys.path.append('examples/%s'%sys.argv[1])
+sys.path.append('networks/%s'%sys.argv[1])
 
 ''' Import network '''
 from network import *

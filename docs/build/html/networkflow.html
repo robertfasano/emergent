@@ -1,0 +1,334 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Network flow &mdash; EMERGENT 0.1alpha documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="EMERGENT 0.1alpha documentation" href="index.html"/>
+        <link rel="next" title="Examples" href="examples.html"/>
+        <link rel="prev" title="Optimization" href="optimization.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> EMERGENT
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1alpha
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="index.html">EMERGENT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="optimization.html">Optimization</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Network flow</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#network-construction">Network construction</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#the-control-node">The Control node</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#adding-devices">Adding devices</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#state-actuation">State actuation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#sequencing">Sequencing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#optimization">Optimization</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="archetypes.html">Archetypes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="devices.html">Devices</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">EMERGENT</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Network flow</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/networkflow.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="network-flow">
+<h1>Network flow<a class="headerlink" href="#network-flow" title="Permalink to this headline">¶</a></h1>
+<p>In this page we describe the overall control flow of EMERGENT, including network
+construction and initialization, state and sequence actuation, and optimization.
+We will follow the example network in <code class="docutils literal notranslate"><span class="pre">emergent/examples/basic</span></code>.</p>
+<div class="section" id="network-construction">
+<h2>Network construction<a class="headerlink" href="#network-construction" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="the-control-node">
+<h3>The Control node<a class="headerlink" href="#the-control-node" title="Permalink to this headline">¶</a></h3>
+<p>To define a network, we first define a Control node:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">examples.basic.controls.testControl</span> <span class="kn">import</span> <span class="n">TestControl</span>
+<span class="n">control</span> <span class="o">=</span> <span class="n">TestControl</span><span class="p">(</span><span class="s1">&#39;control&#39;</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="s1">&#39;examples/</span><span class="si">%s</span><span class="s1">&#39;</span><span class="o">%</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>The first argument to the node initializer is the <code class="docutils literal notranslate"><span class="pre">name</span></code> 'control', which will
+label the node within the network tree. It doesn't have to be the same as the
+variable name, but it may be helpful. The second argument is the path of our
+network directory - to start emergent, we will run <code class="docutils literal notranslate"><span class="pre">main.py</span></code> in the root
+directory with the argument <code class="docutils literal notranslate"><span class="pre">basic</span></code> to specify this network.</p>
+<p>When a Control node is initialized, it first calls its parent initializer,
+<code class="docutils literal notranslate"><span class="pre">Node.__init__(name,</span> <span class="pre">parent)</span></code>, which does five things:</p>
+<ol class="arabic simple">
+<li>Save the passed name as an attribute <code class="docutils literal notranslate"><span class="pre">self.name=name</span></code>.</li>
+<li>Append <code class="docutils literal notranslate"><span class="pre">self</span></code> to the <code class="docutils literal notranslate"><span class="pre">instances</span></code> variable, which will allow nodes of a single type to be collected.</li>
+<li>Define the empty <code class="docutils literal notranslate"><span class="pre">self.children</span></code> dict.</li>
+<li>Register self with parent (in this case <code class="docutils literal notranslate"><span class="pre">parent==None</span></code>, so no action is taken)</li>
+<li>Find the root node (which for a control node is itself)</li>
+</ol>
+<p>After initializing the <code class="docutils literal notranslate"><span class="pre">Node</span></code>, the Control class does a few more things:</p>
+<ol class="arabic simple">
+<li>Initialize empty dicts for <code class="docutils literal notranslate"><span class="pre">inputs</span></code>, <code class="docutils literal notranslate"><span class="pre">state</span></code>, <code class="docutils literal notranslate"><span class="pre">settings</span></code>, and <code class="docutils literal notranslate"><span class="pre">sequences</span></code>.</li>
+<li>Set <code class="docutils literal notranslate"><span class="pre">self.actuating=0</span></code> to indicate that no motion is currently occurring.</li>
+<li>Prepare paths to the settings, state, sequence, and data directories based on our network specified in <code class="docutils literal notranslate"><span class="pre">sys.argv[1]</span></code>.</li>
+<li>Initialize the Clock, Historian, and Optimizer modules.</li>
+</ol>
+</div>
+<div class="section" id="adding-devices">
+<h3>Adding devices<a class="headerlink" href="#adding-devices" title="Permalink to this headline">¶</a></h3>
+<p>With the Control node defined, we can now add child Device nodes:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">deviceA</span> <span class="o">=</span> <span class="n">TestDevice</span><span class="p">(</span><span class="s1">&#39;deviceA&#39;</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">control</span><span class="p">)</span>
+<span class="n">deviceB</span> <span class="o">=</span> <span class="n">TestDevice</span><span class="p">(</span><span class="s1">&#39;deviceB&#39;</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">control</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Again we have specified a name, and this time we have specified that each device
+is a child of the parent Control node. The Node initialization will proceed
+similarly, but this time the <code class="docutils literal notranslate"><span class="pre">Node.register(parent)</span></code> function will occur.
+This function links the nodes so that the Device node can access the Control node
+through the <code class="docutils literal notranslate"><span class="pre">Device.parent</span></code> variable, while the Control node can access the
+Device node through an entry in the <code class="docutils literal notranslate"><span class="pre">Control.children</span></code> dict. The Node initializer
+also finds the root again, which is the Control node.</p>
+<p>Next, in the Device initializer, the <code class="docutils literal notranslate"><span class="pre">Device.state</span></code> variable is initialized to
+an empty dict. In the definition of the inheriting class <code class="docutils literal notranslate"><span class="pre">TestDevice</span></code>, we define
+two variables <code class="docutils literal notranslate"><span class="pre">X</span></code> and <code class="docutils literal notranslate"><span class="pre">Y</span></code> by calling the <code class="docutils literal notranslate"><span class="pre">Device.add_input</span></code> function twice.
+This function generates an Input node, which once again repeats the Node initializer
+and then defines placeholders for variables which will be set later.</p>
+<p>After creating the Input node, <code class="docutils literal notranslate"><span class="pre">Device.add_input(name)</span></code> does four things:</p>
+<ol class="arabic simple">
+<li>Add the input node by <code class="docutils literal notranslate"><span class="pre">name</span></code> to the <code class="docutils literal notranslate"><span class="pre">Device.children</span></code> dict.</li>
+<li>Add the input node by <code class="docutils literal notranslate"><span class="pre">full_name</span></code> to the <code class="docutils literal notranslate"><span class="pre">Control.inputs</span></code> dict.</li>
+<li>Call the Control.load(input.full_name) method to attempt to recall a previous state.</li>
+<li>Set the <code class="docutils literal notranslate"><span class="pre">name</span></code> component of <code class="docutils literal notranslate"><span class="pre">Device.state</span></code> equal to the state of the input, which is loaded in the previous step.</li>
+</ol>
+<p>The <code class="docutils literal notranslate"><span class="pre">Control.load()</span></code> method takes a <code class="docutils literal notranslate"><span class="pre">full_name</span></code> as an argument and searches for
+this component within the last entry of its settings, sequence, and state files.</p>
+</div>
+</div>
+<div class="section" id="state-actuation">
+<h2>State actuation<a class="headerlink" href="#state-actuation" title="Permalink to this headline">¶</a></h2>
+<p>The specific control flow for actuation is designed to make sure that the state
+of an Input node never loses sync with its representation in the Device and Control
+nodes. Actuation begins with a call to <code class="docutils literal notranslate"><span class="pre">Control.actuate()</span></code> with a state dict as
+an argument. This indices of this state dict are <code class="docutils literal notranslate"><span class="pre">full_name</span></code> variables for each
+input such as <code class="docutils literal notranslate"><span class="pre">'deviceA.X'</span></code> which label both the device and the state.</p>
+<ol class="arabic simple">
+<li>For each item in the state, call the <code class="docutils literal notranslate"><span class="pre">Input.set()</span></code> method of the corresponding Input node.</li>
+<li>The Input node requests a new state from the parent Device node by passing itself and the target value into a call to <code class="docutils literal notranslate"><span class="pre">Device.actuate()</span></code>.</li>
+<li><code class="docutils literal notranslate"><span class="pre">Device.actuate()</span></code> first calls <code class="docutils literal notranslate"><span class="pre">Device._actuate()</span></code>, which is a private  function implemented for each separate device; this function changes the physical  state (e.g. by setting a voltage to a certain value) but does not change the virtual state.</li>
+<li>Next, <code class="docutils literal notranslate"><span class="pre">Device.actuate()</span></code> calls <code class="docutils literal notranslate"><span class="pre">Device.update()</span></code>, which simultaneously updates the state of the Input, Device, and Control nodes.</li>
+</ol>
+</div>
+<div class="section" id="sequencing">
+<h2>Sequencing<a class="headerlink" href="#sequencing" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="optimization">
+<h2>Optimization<a class="headerlink" href="#optimization" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="examples.html" class="btn btn-neutral float-right" title="Examples" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="optimization.html" class="btn btn-neutral" title="Optimization" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Robert Fasano.
+
+    </p>
+  </div> 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.1alpha',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
