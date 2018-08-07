@@ -181,33 +181,72 @@ algorithmically tuned to optimize some target function.</p>
 <dl class="method">
 <dt id="node.Control.__init__">
 <code class="descname">__init__</code><span class="sig-paren">(</span><em>name</em>, <em>parent=None</em>, <em>path='.'</em><span class="sig-paren">)</span><a class="headerlink" href="#node.Control.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initializes a Control node and attaches Clock, Historian, and Optimizer
-objects.</p>
+<dd><p>Initializes a Control node and attaches Clock, Historian, and Optimizer instances.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> (<em>str</em>) -- node name. All Control nodes should have unique names.</li>
+<li><strong>parent</strong> (<em>str</em>) -- name of parent Control node. Note: child Control nodes are currently not supported and may lead to unpredictable behavior.</li>
+<li><strong>path</strong> (<em>str</em>) -- network path relative to the emergent/ folder. For example, if the network.py file is located in emergent/networks/example, then path should be 'networks/example.'</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="node.Control.actuate">
 <code class="descname">actuate</code><span class="sig-paren">(</span><em>state</em>, <em>save=True</em><span class="sig-paren">)</span><a class="headerlink" href="#node.Control.actuate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Updates all Inputs in the given state to the given values.
-Argument should have keys of the form 'Device.Input', e.g.
-state={'MEMS.X':0}</p>
+<dd><p>Updates all Inputs in the given state to the given values and optionally logs the state.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>state</strong> (<em>dict</em>) -- Target state of the form {'deviceA.param1':1, 'deviceA.param1':2,...}</li>
+<li><strong>save</strong> (<em>bool</em>) -- Whether or not to log.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="node.Control.get_sequence">
 <code class="descname">get_sequence</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#node.Control.get_sequence" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Populates the self.sequence dict with sequences of all inputs.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="node.Control.get_subsequence">
 <code class="descname">get_subsequence</code><span class="sig-paren">(</span><em>keys</em><span class="sig-paren">)</span><a class="headerlink" href="#node.Control.get_subsequence" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a sequence dict containing only the specified keys</p>
+<dd><p>Returns a sequence dict containing only the specified keys.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>keys</strong> (<em>list</em>) -- full_name variables of Input nodes to retrieve, e.g. ['deviceA.input1', 'deviceB.input1'].</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="node.Control.get_substate">
 <code class="descname">get_substate</code><span class="sig-paren">(</span><em>keys</em><span class="sig-paren">)</span><a class="headerlink" href="#node.Control.get_substate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a state dict containing only the specified keys</p>
+<dd><p>Returns a state dict containing only the specified keys.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>keys</strong> (<em>list</em>) -- full_name variables of Input nodes to retrieve, e.g. ['deviceA.input1', 'deviceB.input1'].</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="attribute">
@@ -227,18 +266,35 @@ nodes.</p>
 <dl class="method">
 <dt id="node.Control.load">
 <code class="descname">load</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#node.Control.load" title="Permalink to this definition">¶</a></dt>
-<dd><p>Loads a state from a text file.</p>
+<dd><p>Loads the last saved state and attempts to reinitialize previous values for the Input node specified by full_name. If the input did not exist in the last state, then it is initialized with default values.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>full_name</strong> (<em>str</em>) -- Specifies the Input node and its parent device, e.g. 'deviceA.input1'.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="node.Control.onLoad">
 <code class="descname">onLoad</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#node.Control.onLoad" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Tasks to be carried out after all Devices and Inputs are initialized.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="node.Control.save">
 <code class="descname">save</code><span class="sig-paren">(</span><em>tag=''</em><span class="sig-paren">)</span><a class="headerlink" href="#node.Control.save" title="Permalink to this definition">¶</a></dt>
-<dd><p>Saves the current state to a text file.</p>
+<dd><p>Aggregates the self.state, self.settings, self.cycle_time, and self.sequence variables into a single dict and saves to file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tag</strong> (<em>str</em>) -- Label written to the third column of the log file which describes where the state was saved from, e.g. 'actuate' or 'optimize'.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </dd></dl>

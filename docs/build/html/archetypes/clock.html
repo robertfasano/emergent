@@ -190,16 +190,37 @@ cycle.</p>
 <dl class="method">
 <dt id="clock.Clock.loop">
 <code class="descname">loop</code><span class="sig-paren">(</span><em>stopped</em><span class="sig-paren">)</span><a class="headerlink" href="#clock.Clock.loop" title="Permalink to this definition">¶</a></dt>
-<dd><p>Loops through the specified sequence. The argument states is a list
-of tuples where the first element of each tuple is a delay and the second
-is a target state.</p>
+<dd><p>Loops through the specified sequence.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>stopped</strong> (<em>function</em>) -- A boolean function passed in by ProcessHandler which switches from 0 to 1 after calling self._quit_thread.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="clock.Clock.prepare_constant">
 <code class="descname">prepare_constant</code><span class="sig-paren">(</span><em>value</em>, <em>key</em>, <em>N</em><span class="sig-paren">)</span><a class="headerlink" href="#clock.Clock.prepare_constant" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sets the sequence labeled by key to N uniformly spaced setpoints of
-constant value</p>
+constant value.</p>
+<p class="rubric">Notes</p>
+<p>This method is convenient when preparing an initial sequence for optimization.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>value</strong> (<em>float</em>) -- constant setpoint of the sequence.</li>
+<li><strong>key</strong> (<em>str</em>) -- full_name of the target Input node.</li>
+<li><strong>N</strong> (<em>int</em>) -- number of setpoints in the sequence.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -213,6 +234,14 @@ constant value</p>
 <code class="descname">prepare_stream</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#clock.Clock.prepare_stream" title="Permalink to this definition">¶</a></dt>
 <dd><p>Converts the sequence of the input labeled by key to a LabJack stream
 at 100 kS/s.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>key</strong> (<em>str</em>) -- full_name of the target Input node.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -247,6 +276,14 @@ to keep in sync with the Clock state (more time-intensive).</p>
 <dt id="clock.Clock.sync">
 <code class="descname">sync</code><span class="sig-paren">(</span><em>stopped</em><span class="sig-paren">)</span><a class="headerlink" href="#clock.Clock.sync" title="Permalink to this definition">¶</a></dt>
 <dd><p>Keeps the Control state synced with the Clock state.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>stopped</strong> (<em>function</em>) -- A boolean function passed in by ProcessHandler which switches from 0 to 1 after calling self._quit_thread.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </dd></dl>

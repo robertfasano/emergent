@@ -180,35 +180,95 @@
 <dl class="method">
 <dt id="labjackT7.LabJack.AIn">
 <code class="descname">AIn</code><span class="sig-paren">(</span><em>channel</em>, <em>num=1</em><span class="sig-paren">)</span><a class="headerlink" href="#labjackT7.LabJack.AIn" title="Permalink to this definition">¶</a></dt>
-<dd><p>Read the specified channel. If num&gt;1, multiple measurements are
-performed and averaged.</p>
+<dd><p>Read a channel with optional averaging.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>channel</strong> (<em>int</em>) -- number of the target AIN channel.</li>
+<li><strong>num</strong> (<em>int</em>) -- number of measurements to perform and average.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="labjackT7.LabJack.AOut">
 <code class="descname">AOut</code><span class="sig-paren">(</span><em>channel</em>, <em>value</em>, <em>HV=False</em><span class="sig-paren">)</span><a class="headerlink" href="#labjackT7.LabJack.AOut" title="Permalink to this definition">¶</a></dt>
-<dd><p>Output value (0-5V) on the specified channel. The HV flag allows the
-LJTick-DAC addon board to be used to generate +/-10V.</p>
+<dd><p>Output an analog voltage.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>channel</strong> (<em>int</em>) -- number of the target DAC channel.</li>
+<li><strong>value</strong> (<em>float</em>) -- Voltage in volts.</li>
+<li><strong>HV</strong> (<em>bool</em>) -- If False, use a DAC channel (0-5 V); if True, use a TDAC channel with the LJTick-DAC accessory (+/-10 V).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="labjackT7.LabJack.PWM">
 <code class="descname">PWM</code><span class="sig-paren">(</span><em>channel</em>, <em>frequency</em>, <em>duty_cycle</em><span class="sig-paren">)</span><a class="headerlink" href="#labjackT7.LabJack.PWM" title="Permalink to this definition">¶</a></dt>
-<dd><p>Pulse width modulation on a channel (0 or 2-5) at a given frequency
-in Hz and duty cycle (0-1).</p>
+<dd><p>Starts pulse width modulation on an FIO channel.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>channel</strong> (<em>int</em>) -- FIO channel to use (0 or 2-5).</li>
+<li><strong>frequency</strong> (<em>float</em>) -- desired frequency in Hz</li>
+<li><strong>duty_cycle</strong> (<em>float</em>) -- duty cycle between 0 and 100.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="labjackT7.LabJack.__init__">
 <code class="descname">__init__</code><span class="sig-paren">(</span><em>device='ANY'</em>, <em>connection='ANY'</em>, <em>devid='ANY'</em>, <em>arange=10</em><span class="sig-paren">)</span><a class="headerlink" href="#labjackT7.LabJack.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Attempt to connect to the LabJack specified by device, connection, and
-devid args.</p>
+<dd><p>Attempt to connect to a LabJack.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>device</strong> (<em>str</em>) -- Device type (&quot;ANY&quot;, &quot;T7&quot; are currently supported).</li>
+<li><strong>connection</strong> (<em>str</em>) -- Desired connection type (&quot;ANY&quot;, &quot;USB&quot;, &quot;TCP&quot;, &quot;ETHERNET&quot;, or &quot;WIFI&quot;).</li>
+<li><strong>devid</strong> (<em>str</em>) -- Serial number, which can be found on the underside of the LabJack.</li>
+<li><strong>arange</strong> (<em>float</em>) -- analog input range.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="labjackT7.LabJack._command">
 <code class="descname">_command</code><span class="sig-paren">(</span><em>register</em>, <em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#labjackT7.LabJack._command" title="Permalink to this definition">¶</a></dt>
 <dd><p>Writes a value to a specified register.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>register</strong> (<em>str</em>) -- a Modbus register on the LabJack.</li>
+<li><strong>value</strong> -- the value to write to the register.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -219,23 +279,54 @@ devid args.</p>
 <dl class="method">
 <dt id="labjackT7.LabJack.spi_initialize">
 <code class="descname">spi_initialize</code><span class="sig-paren">(</span><em>mode=3</em>, <em>CLK=0</em>, <em>CS=1</em>, <em>MOSI=2</em>, <em>MISO=3</em><span class="sig-paren">)</span><a class="headerlink" href="#labjackT7.LabJack.spi_initialize" title="Permalink to this definition">¶</a></dt>
-<dd><p>Args:
-int CS: the channel to use as chip select
-int CLK: the channel to use as the clock
-int MISO: the channel to use for input
-int MOSI: the channel to use for output</p>
+<dd><p>Initializes the SPI bus using several FIO ports.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>CS</strong> (<em>int</em>) -- the FIO channel to use as chip select</li>
+<li><strong>CLK</strong> (<em>int</em>) -- the FIO channel to use as the clock</li>
+<li><strong>MISO</strong> (<em>int</em>) -- the FIO channel to use for input</li>
+<li><strong>MOSI</strong> (<em>int</em>) -- the FIO channel to use for output</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="labjackT7.LabJack.spi_write">
 <code class="descname">spi_write</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#labjackT7.LabJack.spi_write" title="Permalink to this definition">¶</a></dt>
 <dd><p>Writes a list of commands via SPI.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> (<em>list</em>) -- a list of bytes to send through MOSI.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="labjackT7.LabJack.stream_out">
 <code class="descname">stream_out</code><span class="sig-paren">(</span><em>channel</em>, <em>data</em>, <em>loop=False</em><span class="sig-paren">)</span><a class="headerlink" href="#labjackT7.LabJack.stream_out" title="Permalink to this definition">¶</a></dt>
-<dd><p>Streams data out on channel 0 or 1 (DAC0 or DAC1).</p>
+<dd><p>Streams data at 100 kS/s.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>channel</strong> (<em>int</em>) -- DAC channel to use. 0 for DAC0 or 1 for DAC1.</li>
+<li><strong>data</strong> (<em>array</em>) -- Data to stream out.</li>
+<li><strong>loop</strong> (<em>bool</em>) -- if False, data will be streamed out once; if True, the stream will loop.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </dd></dl>

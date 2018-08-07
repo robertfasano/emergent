@@ -95,6 +95,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../index.html">EMERGENT</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture.html">Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../optimization.html">Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../networkflow.html">Network flow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../archetypes.html">Archetypes</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="clock.html">Clock</a></li>
@@ -208,29 +209,82 @@ registers it with the parent ProcessHandler.</p>
 <code class="descname">_quit_process</code><span class="sig-paren">(</span><em>target</em><span class="sig-paren">)</span><a class="headerlink" href="#parallel.ProcessHandler._quit_process" title="Permalink to this definition">¶</a></dt>
 <dd><p>Terminates a process by looking for the first running process in
 self.processes matching the target function and stopping it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>target</strong> (<em>function/str</em>) -- function or string matching function name</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="parallel.ProcessHandler._quit_thread">
 <code class="descname">_quit_thread</code><span class="sig-paren">(</span><em>target</em><span class="sig-paren">)</span><a class="headerlink" href="#parallel.ProcessHandler._quit_thread" title="Permalink to this definition">¶</a></dt>
 <dd><p>Terminates a thread by looking for the first running thread in self.threads
-matching the target function and stops it. Warning: stopping a thread can
-have unintended consequences, as threads share memory with the rest of the code.</p>
+matching the target function and stops it.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Stopping a thread can have unintended consequences, as threads share memory with the rest of the code.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>target</strong> (<em>function/str</em>) -- function or string matching function name</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="parallel.ProcessHandler._run_process">
 <code class="descname">_run_process</code><span class="sig-paren">(</span><em>func</em>, <em>args=None</em><span class="sig-paren">)</span><a class="headerlink" href="#parallel.ProcessHandler._run_process" title="Permalink to this definition">¶</a></dt>
-<dd><p>Instantiates and starts a process running a target function.
-Process do not share memory with the rest of the code, so they
-must be entirely self-contained.</p>
+<dd><p>Instantiates and starts a process running a target function.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Process do not share memory with the rest of the code, so they must be entirely self-contained.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>func</strong> (<em>function/str</em>) -- target function to run in process. Can also pass a string matching the function name.</li>
+<li><strong>args</strong> (<em>tuple</em>) -- arguments to be passed in to func</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="parallel.ProcessHandler._run_thread">
 <code class="descname">_run_thread</code><span class="sig-paren">(</span><em>target</em>, <em>args=None</em>, <em>stoppable=True</em><span class="sig-paren">)</span><a class="headerlink" href="#parallel.ProcessHandler._run_thread" title="Permalink to this definition">¶</a></dt>
-<dd><p>Instantiates and starts a thread running a target function. Threads
-can share memory freely with the rest of the code.</p>
+<dd><p>Instantiates and starts a thread running a target function.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Threads can share memory freely with the rest of the code.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The <code class="docutils literal notranslate"><span class="pre">stoppable</span></code> flag allows early termination of functions. To properly implement a stoppable threaded function, the main loop of the function should be executed inside a <code class="docutils literal notranslate"><span class="pre">while</span> <span class="pre">not</span> <span class="pre">stopped():</span></code> statement.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>target</strong> (<em>function/str</em>) -- target function to run in thread. Can also pass a string matching the function name.</li>
+<li><strong>args</strong> (<em>tuple</em>) -- arguments to pass into func</li>
+<li><strong>stoppable</strong> (<em>bool</em>) -- whether or not we should allow early termination of the Thread</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </dd></dl>

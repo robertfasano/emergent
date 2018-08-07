@@ -179,47 +179,165 @@
 <p>Current driver for quadrupole coils using two TDK Genesys programmable
 power supplies and a bespoke current servo board.</p>
 <dl class="method">
+<dt id="current_driver.CurrentDriver.B">
+<code class="descname">B</code><span class="sig-paren">(</span><em>z</em>, <em>I1</em>, <em>I2</em><span class="sig-paren">)</span><a class="headerlink" href="#current_driver.CurrentDriver.B" title="Permalink to this definition">¶</a></dt>
+<dd><p>Analytic model for the on-axis field as a function of known calibration constants.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>z</strong> (<em>float</em>) -- On-axis position in m.</li>
+<li><strong>I1</strong> (<em>float</em>) -- Current of coil 1 in A.</li>
+<li><strong>I2</strong> (<em>float</em>) -- Current of coil 2 in A.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="current_driver.CurrentDriver.__init__">
 <code class="descname">__init__</code><span class="sig-paren">(</span><em>name</em>, <em>port1</em>, <em>port2</em>, <em>parent=None</em>, <em>labjack=None</em><span class="sig-paren">)</span><a class="headerlink" href="#current_driver.CurrentDriver.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialize the Device for use.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> (<em>str</em>) -- Name of Device node.</li>
+<li><strong>port1</strong> (<em>str</em>) -- Serial port for the first power supply (e.g. 'COM1').</li>
+<li><strong>port2</strong> (<em>str</em>) -- Serial port for the second power supply (e.g. 'COM2').</li>
+<li><strong>parent</strong> (<em>str</em>) -- Name of the parent Control node.</li>
+<li><strong>labjack</strong> (<em>archetypes.labjackT7.LabJack</em>) -- LabJack instance to use.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="current_driver.CurrentDriver._actuate">
 <code class="descname">_actuate</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#current_driver.CurrentDriver._actuate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set the gradient and zero position of the magnetic field.</p>
+<dd><p>Set the current of each coil.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>state</strong> (<em>dict</em>) -- State dict containing target currents in amps, e.g. {'I1':50, 'I2':40}.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="current_driver.CurrentDriver._connect">
 <code class="descname">_connect</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#current_driver.CurrentDriver._connect" title="Permalink to this definition">¶</a></dt>
-<dd><p>Connect to and initialize the power supplies, then run IV calibration.</p>
+<dd><p>Connect to and initialize the power supplies, then run IV calibration for each coil.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="current_driver.CurrentDriver.calibrate">
 <code class="descname">calibrate</code><span class="sig-paren">(</span><em>coil</em>, <em>Vmin=1</em>, <em>Vmax=3</em>, <em>steps=100</em>, <em>delay=0.01</em>, <em>plot=False</em><span class="sig-paren">)</span><a class="headerlink" href="#current_driver.CurrentDriver.calibrate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Measure and fit the IV curve of the FETs.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>coil</strong> (<em>int</em>) -- The coil to calibrate (1 or 2)</li>
+<li><strong>Vmin</strong> (<em>float</em>) -- Lower bound of the voltage sweep.</li>
+<li><strong>Vmax</strong> (<em>float</em>) -- Upper bound of the voltage sweep.</li>
+<li><strong>steps</strong> (<em>int</em>) -- Number of steps in the voltage sweep.</li>
+<li><strong>delay</strong> (<em>float</em>) -- Optional settling time between changing voltage and measuring.</li>
+<li><strong>plot</strong> (<em>bool</em>) -- If True, plot the calibration curve.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="current_driver.CurrentDriver.measure_current">
 <code class="descname">measure_current</code><span class="sig-paren">(</span><em>coil</em><span class="sig-paren">)</span><a class="headerlink" href="#current_driver.CurrentDriver.measure_current" title="Permalink to this definition">¶</a></dt>
 <dd><p>Measure the Hall probe current.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>coil</strong> (<em>int</em>) -- 1 or 2</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="current_driver.CurrentDriver.real_to_virtual">
+<code class="descname">real_to_virtual</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#current_driver.CurrentDriver.real_to_virtual" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts a real state with currents I1, I2 to a virtual state with a
+gradient and zero.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>state</strong> (<em>dict</em>) -- State dict with real currents in amps, e.g. {'I1':50, 'I2':40}.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">State dict with gradient in G/cm and zero position in mm, e.g. {'grad':50, 'zero':0}.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">virtual_state (dict)</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="current_driver.CurrentDriver.set_current">
 <code class="descname">set_current</code><span class="sig-paren">(</span><em>coil</em>, <em>current</em><span class="sig-paren">)</span><a class="headerlink" href="#current_driver.CurrentDriver.set_current" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sets the current of the targeted coil. 0-5V corresponds to 0-100 A.</p>
+<dd><p>Sets the current of the targeted coil based on the IV calibration.
+:param coil: 1 or 2
+:type coil: int
+:param current: target current
+:type current: float</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="current_driver.CurrentDriver.set_field">
 <code class="descname">set_field</code><span class="sig-paren">(</span><em>grad</em>, <em>z0</em><span class="sig-paren">)</span><a class="headerlink" href="#current_driver.CurrentDriver.set_field" title="Permalink to this definition">¶</a></dt>
-<dd><p>Args: gradient in G/cm, z0 in mm. The zero position is relative
-to the center of the coils, along the axis pointing from coil 1
-to coil 2.</p>
+<dd><p>Sets coil currents to achieve the desired gradient and zero position.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>gradient</strong> (<em>float</em>) -- Magnetic field gradient at the zero position, in G/cm.</li>
+<li><strong>z0</strong> (<em>float</em>) -- offset of the zero position from the center of the coils in mm, along the axis pointing from coil 1 to coil 2.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="current_driver.CurrentDriver.virtual_to_real">
+<code class="descname">virtual_to_real</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#current_driver.CurrentDriver.virtual_to_real" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts a virtual state with gradient and zero into a real state with
+currents I1, I2.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>state</strong> (<em>dict</em>) -- State dict with gradient in G/cm and zero position in mm, e.g. {'grad':50, 'zero':0}.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">State dict with real currents in amps, e.g. {'I1':50, 'I2':40}.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">virtual_state (dict)</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">

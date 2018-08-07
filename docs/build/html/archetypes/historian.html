@@ -193,7 +193,7 @@ explored states.</p>
 <dl class="method">
 <dt id="historian.Historian.delete_tag">
 <code class="descname">delete_tag</code><span class="sig-paren">(</span><em>tag</em><span class="sig-paren">)</span><a class="headerlink" href="#historian.Historian.delete_tag" title="Permalink to this definition">¶</a></dt>
-<dd><p>Deletes all historical state data with the given tag.</p>
+<dd><p>Deletes all historical state data with the given tag. This can be used to prune the log file of frequently-written output, such as from Control.actuate(), while preserving important states such as the results from the optimizer.</p>
 </dd></dl>
 
 <dl class="method">

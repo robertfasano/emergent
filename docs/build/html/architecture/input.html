@@ -174,14 +174,28 @@
 <span id="input"></span><h1>Input<a class="headerlink" href="#module-node" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="node.Input">
-<em class="property">class </em><code class="descclassname">node.</code><code class="descname">Input</code><span class="sig-paren">(</span><em>name</em>, <em>parent</em><span class="sig-paren">)</span><a class="headerlink" href="#node.Input" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">node.</code><code class="descname">Input</code><span class="sig-paren">(</span><em>name</em>, <em>parent</em>, <em>type='real'</em>, <em>speed='slow'</em><span class="sig-paren">)</span><a class="headerlink" href="#node.Input" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="node.html#node.Node" title="node.Node"><code class="xref py py-class docutils literal notranslate"><span class="pre">node.Node</span></code></a></p>
 <p>Input nodes represent physical variables which may affect the outcome of
 an experiment, such as laser frequency or beam alignment.</p>
 <dl class="method">
 <dt id="node.Input.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>name</em>, <em>parent</em><span class="sig-paren">)</span><a class="headerlink" href="#node.Input.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>name</em>, <em>parent</em>, <em>type='real'</em>, <em>speed='slow'</em><span class="sig-paren">)</span><a class="headerlink" href="#node.Input.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initializes an Input node.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> (<em>str</em>) -- node name. Nodes which share a Device should have unique names.</li>
+<li><strong>parent</strong> (<em>str</em>) -- name of parent Device node.</li>
+<li><strong>type</strong> (<em>str</em>) -- Specifies whether the Input node is 'real' (representing a directly controlled quantity) or 'virtual' (representing a derived quantity or superposition of real quantities).</li>
+<li><strong>speed</strong> (<em>str</em>) -- Specified whether the Input node is 'slow' (using state-actuation for sequencing) or 'fast' (using burst streaming from a LabJack).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="attribute">
@@ -195,8 +209,22 @@ nodes.</p>
 <dl class="method">
 <dt id="node.Input.set">
 <code class="descname">set</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#node.Input.set" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calls the parent Device.actuate() function to change
-self.state to a new value</p>
+<dd><p>Requests actuation from the parent Device.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Virtual nodes can only be updated after the first state preparation.
+During network initialization, the Control node loads the previous
+states of the real nodes and actuates them; after this is finished,
+the virtual states are computed and updated.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>state</strong> (<em>float</em>) -- Target value.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </dd></dl>

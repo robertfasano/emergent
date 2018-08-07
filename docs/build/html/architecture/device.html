@@ -182,33 +182,135 @@ nodes, such as a synthesizer or motorized actuator.</p>
 <dt id="node.Device.__init__">
 <code class="descname">__init__</code><span class="sig-paren">(</span><em>name</em>, <em>parent</em><span class="sig-paren">)</span><a class="headerlink" href="#node.Device.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initializes a Device node.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> (<em>str</em>) -- node name. Devices which share a Control should have unique names.</li>
+<li><strong>parent</strong> (<em>str</em>) -- name of parent Control node.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="node.Device._actuate">
 <code class="descname">_actuate</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#node.Device._actuate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Private placeholder for the device-specific physical actuator which
-should be reimplemented in each driver file. The public method
-Device.actuate() calls this method to update the physical state,
-then the public method updates the virtual state.</p>
+<dd><p>Private placeholder for the device-specific driver.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">State actuation is done by first calling the Device.actuate() method,
+which calls Device._actuate(state) to change something in the lab, then
+calls Device.update(state) to register this new state with EMERGENT.
+When you write a driver inheriting from Device, you should reimplement
+this method to update your device to the specified state only - do not
+update any stored states such as Device.state, Input.state, or Control.state
+from this method.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>state</strong> (<em>dict</em>) -- Target state of the form {'param1':value1, 'param2':value2,...}.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="node.Device.actuate">
 <code class="descname">actuate</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#node.Device.actuate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Updates the physical and virtual state to a target state. The passed
-dict can contain one or all of the inputs: e.g. state={'X':1} updates
-only the 'X' input, while state={'X':1, 'Y':2} updates both 'X'
-and 'Y'.</p>
+<dd><p>Makes a physical device change in the lab with the _actuate() method, then registers this change with EMERGENT.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If a virtual state is passed in (i.e. all dict keys label virtual Input nodes),
+then the state will be converted to real using Device.virtual_to_real(),
+which must be implemented in any driver file which uses virtual inputs.
+After actuation of the real state, the equivalent virtual state is
+updated.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If a mixed state is passed in (with both real and virtual components),
+only the real components will be used.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>state</strong> (<em>dict</em>) -- Target state of the form {'param1':value1, 'param2':value2,...}.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="node.Device.add_input">
-<code class="descname">add_input</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#node.Device.add_input" title="Permalink to this definition">¶</a></dt>
+<code class="descname">add_input</code><span class="sig-paren">(</span><em>name</em>, <em>type='real'</em><span class="sig-paren">)</span><a class="headerlink" href="#node.Device.add_input" title="Permalink to this definition">¶</a></dt>
 <dd><p>Attaches an Input node with the specified name. This should correspond
 to a specific name in the _actuate() function of a non-abstract Device
 class: for example, the PicoAmp MEMS driver has inputs explicitly named
 'X' and 'Y' which are referenced in PicoAmp._actuate().</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="node.Device.get_missing_keys">
+<code class="descname">get_missing_keys</code><span class="sig-paren">(</span><em>state</em>, <em>keys</em><span class="sig-paren">)</span><a class="headerlink" href="#node.Device.get_missing_keys" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the state dict with any missing keys filled in from self.state.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This is useful when using virtual functions which depend on multiple
+inputs. Consider two inputs X and Y with two virtual inputs u=X+Y
+and v=X-Y. If we actuate just X or Y, the virtual inputs still need
+to know the value of the non-actuated input to update their state.
+This method pulls the latest value of any parameters specified in
+keys so that the virtual inputs can be calculated.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>state</strong> (<em>dict</em>) -- Target state, e.g. {'param1':value1, 'param2':value2}.</li>
+<li><strong>keys</strong> (<em>list</em>) -- List of parameters not contained in state, e.g. ['param3'].</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">State containing both specified changes and previous values, etc {'param1':value1,'param2':value2, 'param3':self.state['param3']}.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">state (dict)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="node.Device.get_type">
+<code class="descname">get_type</code><span class="sig-paren">(</span><em>state</em>, <em>type</em><span class="sig-paren">)</span><a class="headerlink" href="#node.Device.get_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the real/virtual components of the state according to the passed type.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>state</strong> (<em>dict</em>) -- Target state, e.g. {'param1':value1, 'param2':value2}.</li>
+<li><strong>type</strong> (<em>str</em>) -- Input node type ('real' or 'virtual').</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">State dict containing the real or virtual elements of state.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">new_state (dict)</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="attribute">
@@ -220,9 +322,42 @@ nodes.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="node.Device.is_type">
+<code class="descname">is_type</code><span class="sig-paren">(</span><em>state</em>, <em>type</em><span class="sig-paren">)</span><a class="headerlink" href="#node.Device.is_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks whether the state is real or virtual according to the passed in type.
+.. note:: is_type(state,'real')==False does not mean the state is virtual - it could be mixed!</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>state</strong> (<em>dict</em>) -- State dict, e.g. {'param1':value1, 'param2':value2}.</li>
+<li><strong>type</strong> (<em>str</em>) -- Input node type ('real' or 'virtual').</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">True if all elements of state are type; False otherwise.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">is_type (bool)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="node.Device.update">
 <code class="descname">update</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#node.Device.update" title="Permalink to this definition">¶</a></dt>
 <dd><p>Synchronously updates the state of the Input, Device, and Control.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>state</strong> (<em>dict</em>) -- New state, e.g. {'param1':value1, 'param2':value2}.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </dd></dl>
