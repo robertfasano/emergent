@@ -52,7 +52,7 @@ class LabJack(ProcessHandler):
                 register (str): a Modbus register on the LabJack.
                 value: the value to write to the register.
                 '''
-        self._command(register, value)
+        ljm.eWriteName(self.handle, register, value)
 
     def AIn(self, channel, num = 1):
         ''' Read a channel with optional averaging.
