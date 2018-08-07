@@ -22,7 +22,6 @@ class Node():
         ''' Initializes a Node with a name and optionally registers
             to a parent. '''
         self.name = name
-        self.type = None
         self.__class__.instances.append(weakref.proxy(self))
         self.children = {}
         if parent is not None:
@@ -138,12 +137,13 @@ class Control(Node):
         self.state_path = path+'/state/'
         self.sequence_path = path+'/sequence/'
         self.data_path = path+'/data/'
-
+        for p in [self.settings_path, self.state_path, self.sequence_path, self.data_path]:
+            pathlib.Path(p).mkdir(parents=True, exist_ok=True)
+            
         self.clock = Clock(self)
         self.historian = Historian(self)
         self.optimizer = Optimizer(self)
-        for p in [self.settings_path, self.state_path, self.sequence_path, self.data_path]:
-            pathlib.Path(p).mkdir(parents=True, exist_ok=True)
+
 
     def get_sequence(self):
         for i in self.inputs.values():
