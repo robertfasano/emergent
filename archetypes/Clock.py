@@ -95,3 +95,15 @@ class Clock(ProcessHandler):
             states.append((delays[i], state))
 
         self.parent.sequence = states
+
+    def prepare_stream(self, key):
+        ''' Converts the sequence of the input labeled by key to a LabJack stream
+            at 100 kS/s. '''
+        s = self.parent.inputs[key].sequence
+        data = np.zeros(int(100e3*self.parent.cycle_time))
+        for point in s:
+            t = point[0]
+            V = point[1]
+            data[int(t*100e3)::] = V
+
+        return data
