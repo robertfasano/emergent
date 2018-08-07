@@ -4,7 +4,7 @@ sys.path.append('O:/Public/Yb clock')
 from devices.genesys import Genesys
 from archetypes.node import Device
 from scipy.stats import linregress
-from scipy.optimize import minimize
+from scipy.optimize import newton
 import matplotlib.pyplot as plt
 plt.ion()
 import time
@@ -124,7 +124,7 @@ class CurrentDriver(Device):
                 state (dict): State dict containing target currents in amps, e.g. {'I1':50, 'I2':40}.
         '''
         for key in state.keys():
-            coil = key[1]
+            coil = int(key[1])
             self.set_current(coil, state[key])
 
 
@@ -152,10 +152,15 @@ class CurrentDriver(Device):
         I1 = state['I1']
         I2 = state['I2']
 
-        ''' Find root numerically for zero of B-field '''
-        res = minimize(fun=self.B, args=(I1,I2), x0=0)
-        z0 = res.x
-        grad = 3*MU0/2 * (I2*N2*R2**2*(z0-Z2)/(R2**2+(z0-Z2)**2)**(5/2)-I1*N1*R1**2*(z0-Z1)/(R1**2+(z0-Z1)**2)**(5/2))
+        ''' Find root numerically for zero of B-field. WARNING: if a zero
+            is not found (e.g. if the current disparity is too great), then we
+            set the result to zero.'''
+        try:
+            res = newton(func=self.B, args=(I1,I2), x0=0)
+        except RuntimeError:
+            res = 0
+        z0 = res
+        grad = -3*MU0/2 * (I2*N2*R2**2*(z0-Z2)/(R2**2+(z0-Z2)**2)**(5/2)-I1*N1*R1**2*(z0-Z1)/(R1**2+(z0-Z1)**2)**(5/2))
 
         ''' Convert units to mm and G/cm '''
         z0 *= 1000
@@ -180,7 +185,7 @@ class CurrentDriver(Device):
             Args:
                 state (dict): State dict with gradient in G/cm and zero position in mm, e.g. {'grad':50, 'zero':0}.
             Returns:
-                virtual_state (dict): State dict with real currents in amps, e.g. {'I1':50, 'I2':40}.
+                real_state (dict): State dict with real currents in amps, e.g. {'I1':50, 'I2':40}.
         '''
         state = self.get_missing_keys(state, ['grad', 'zero'])
         z0 = state['zero']
