@@ -109,19 +109,19 @@ class CurrentDriver(Device):
     def real_to_virtual(self, state):
         ''' Converts a real state with currents I1, I2 to a virtual state with a
             gradient and zero. '''
-            state = self.get_missing_keys(state, ['I1', 'I2'])
-            I1 = state['I1']
-            I2 = state['I2']
+        state = self.get_missing_keys(state, ['I1', 'I2'])
+        I1 = state['I1']
+        I2 = state['I2']
 
-            ''' Find root numerically for zero of B-field '''
-            res = minimize(fun=self.B, x0=0)
-            z0 = res.x
-            grad = 3*MU0/2 * (I2*N2*R2**2*(z0-Z2)/(R2**2+(z0-Z2)**2)**(5/2)-I1*N1*R1**2*(z0-Z1)/(R1**2+(z0-Z1)**2)**(5/2))
+        ''' Find root numerically for zero of B-field '''
+        res = minimize(fun=self.B, x0=0)
+        z0 = res.x
+        grad = 3*MU0/2 * (I2*N2*R2**2*(z0-Z2)/(R2**2+(z0-Z2)**2)**(5/2)-I1*N1*R1**2*(z0-Z1)/(R1**2+(z0-Z1)**2)**(5/2))
 
-            ''' Convert units to mm and G/cm '''
-            z0 *= 1000
-            grad *= 100
-            return {'zero':z0, 'grad':grad}
+        ''' Convert units to mm and G/cm '''
+        z0 *= 1000
+        grad *= 100
+        return {'zero':z0, 'grad':grad}
 
     def B(self, z):
         return MU0/2 * (N1*I1*R1**2/(R1**2+(z-Z1)**2)**(3/2)-N2*I2*R2**2/(R2**2+(z-Z2)**2)**(3/2))
@@ -129,18 +129,18 @@ class CurrentDriver(Device):
     def virtual_to_real(self, state):
         ''' Converts a virtual state with gradient and zero into a real state with
             currents I1, I2. '''
-            state = self.get_missing_keys(state, ['grad', 'zero'])
-            z0 = state['zero']
-            grad = state['grad']
+        state = self.get_missing_keys(state, ['grad', 'zero'])
+        z0 = state['zero']
+        grad = state['grad']
 
-            z0 /= 1000
-            grad /= 100
-            denom = (z0-Z1)*(R2**2+(z0-Z2)*(Z1-Z2))-R1**2*(z0-Z2)
-            alpha = 2/3/MU0 * (R1**2+(z0-Z1)**2)*(R2**2+(z0-Z2)**2)/denom
-            I1 = alpha * (R1**2+(z0-Z1)**2)**(3/2)/N1/R1**2 * grad
-            I2 = alpha * (R2**2+(z0-Z2)**2)**(3/2)/N2/R2**2 * grad
+        z0 /= 1000
+        grad /= 100
+        denom = (z0-Z1)*(R2**2+(z0-Z2)*(Z1-Z2))-R1**2*(z0-Z2)
+        alpha = 2/3/MU0 * (R1**2+(z0-Z1)**2)*(R2**2+(z0-Z2)**2)/denom
+        I1 = alpha * (R1**2+(z0-Z1)**2)**(3/2)/N1/R1**2 * grad
+        I2 = alpha * (R2**2+(z0-Z2)**2)**(3/2)/N2/R2**2 * grad
 
-            return {'I1':I1, 'I2':I2}
+        return {'I1':I1, 'I2':I2}
 
     def set_field(self, grad, z0):
         ''' Args: gradient in G/cm, z0 in mm. The zero position is relative
