@@ -148,7 +148,10 @@ class LabJack(ProcessHandler):
 
         self._command("STREAM_OUT0_ENABLE", 0)
         self._command("STREAM_OUT0_TARGET", 1000+2*channel)
-        self._command("STREAM_OUT0_BUFFER_SIZE", data.nbytes*2)
+        data_size = data.nbytes*2
+        buffer_exponent = np.ceil(1+np.log2(data_size))
+        buffer_size = 2**buffer_exponent
+        self._command("STREAM_OUT0_BUFFER_SIZE", buffer_size)
         self._command("STREAM_OUT0_ENABLE", 1)
 
         if loop:
