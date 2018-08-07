@@ -4,6 +4,7 @@ sys.path.append('O:/Public/Yb clock')
 from devices.genesys import Genesys
 from archetypes.node import Device
 from scipy.stats import linregress
+from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 plt.ion()
 import time
@@ -31,8 +32,11 @@ class CurrentDriver(Device):
 
         self.probe_coefficient = 2000/49.9
 
-        self.add_input('grad')
-        self.add_input('zero')
+        self.add_input('I1')
+        self.add_input('I2')
+
+        self.add_input('grad', type='virtual')
+        self.add_input('zero', type='virtual')
         self._connected = self._connect()
 
     def calibrate(self, coil, Vmin=1, Vmax=3, steps=100, delay = 1/100, plot = False):
@@ -79,23 +83,64 @@ class CurrentDriver(Device):
              print('Failed to connect to coils:', e)
              return 0
 
+    # def _actuate(self, state):
+    #     ''' Set the gradient and zero position of the magnetic field. '''
+    #     try:
+    #         grad = state['grad']
+    #     except KeyError:
+    #         grad = self.state['grad']
+    #     try:
+    #         zero = state['zero']
+    #     except KeyError:
+    #         zero = self.state['zero']
+    #     self.set_field(grad, zero)
+
     def _actuate(self, state):
-        ''' Set the gradient and zero position of the magnetic field. '''
-        try:
-            grad = state['grad']
-        except KeyError:
-            grad = self.state['grad']
-        try:
-            zero = state['zero']
-        except KeyError:
-            zero = self.state['zero']
-        self.set_field(grad, zero)
+        self.set_current(1, state['I1'])
+        self.set_current(2, state['I2'])
+
 
     def set_current(self, coil, current):
         ''' Sets the current of the targeted coil. 0-5V corresponds to 0-100 A. '''
         i = coil-1
         voltage = (current-self.intercept[i])/self.slope[i]
         self.labjack.AOut(i, voltage)
+
+    def real_to_virtual(self, state):
+        ''' Converts a real state with currents I1, I2 to a virtual state with a
+            gradient and zero. '''
+            state = self.get_missing_keys(state, ['I1', 'I2'])
+            I1 = state['I1']
+            I2 = state['I2']
+
+            ''' Find root numerically for zero of B-field '''
+            res = minimize(fun=self.B, x0=0)
+            z0 = res.x
+            grad = 3*MU0/2 * (I2*N2*R2**2*(z0-Z2)/(R2**2+(z0-Z2)**2)**(5/2)-I1*N1*R1**2*(z0-Z1)/(R1**2+(z0-Z1)**2)**(5/2))
+
+            ''' Convert units to mm and G/cm '''
+            z0 *= 1000
+            grad *= 100
+            return {'zero':z0, 'grad':grad}
+
+    def B(self, z):
+        return MU0/2 * (N1*I1*R1**2/(R1**2+(z-Z1)**2)**(3/2)-N2*I2*R2**2/(R2**2+(z-Z2)**2)**(3/2))
+
+    def virtual_to_real(self, state):
+        ''' Converts a virtual state with gradient and zero into a real state with
+            currents I1, I2. '''
+            state = self.get_missing_keys(state, ['grad', 'zero'])
+            z0 = state['zero']
+            grad = state['grad']
+
+            z0 /= 1000
+            grad /= 100
+            denom = (z0-Z1)*(R2**2+(z0-Z2)*(Z1-Z2))-R1**2*(z0-Z2)
+            alpha = 2/3/MU0 * (R1**2+(z0-Z1)**2)*(R2**2+(z0-Z2)**2)/denom
+            I1 = alpha * (R1**2+(z0-Z1)**2)**(3/2)/N1/R1**2 * grad
+            I2 = alpha * (R2**2+(z0-Z2)**2)**(3/2)/N2/R2**2 * grad
+
+            return {'I1':I1, 'I2':I2}
 
     def set_field(self, grad, z0):
         ''' Args: gradient in G/cm, z0 in mm. The zero position is relative
