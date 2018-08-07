@@ -51,19 +51,20 @@ class Input(Node):
         be accessed for a given type, e.g. Control.instances lists all Control
         nodes. '''
 
-    def __init__(self, name, parent):
+    def __init__(self, name, parent, type='real'):
         ''' Initializes an Input node. '''
         super().__init__(name, parent=parent)
+        self.type = type
         self.state = None
         self.sequence = None
         self.full_name = self.parent.name+'.'+self.name
         self.min = None
         self.max = None
 
-    def set(self, state):
+    def set(self, state, type='any'):
             ''' Calls the parent Device.actuate() function to change
                 self.state to a new value '''
-            self.parent.actuate({self.name:state})
+            self.parent.actuate({self.name:state}, type=type)
 
 class Device(Node):
     ''' Device nodes represent apparatus which can control the state of Input
@@ -79,13 +80,13 @@ class Device(Node):
         super().__init__(name, parent=parent)
         self.state = {}
 
-    def add_input(self, name):
+    def add_input(self, name, type='real'):
         ''' Attaches an Input node with the specified name. This should correspond
             to a specific name in the _actuate() function of a non-abstract Device
             class: for example, the PicoAmp MEMS driver has inputs explicitly named
             'X' and 'Y' which are referenced in PicoAmp._actuate().'''
 
-        input = Input(name, parent=self)
+        input = Input(name, parent=self, type=type)
         self.children[name] = input
         self.parent.inputs[input.full_name] = input
         self.parent.load(input.full_name)
@@ -99,12 +100,12 @@ class Device(Node):
             then the public method updates the virtual state. '''
         return
 
-    def actuate(self, state):
+    def actuate(self, state, type='any'):
         ''' Updates the physical and virtual state to a target state. The passed
             dict can contain one or all of the inputs: e.g. state={'X':1} updates
             only the 'X' input, while state={'X':1, 'Y':2} updates both 'X'
             and 'Y'. '''
-        self._actuate(state)
+        self._actuate(state, type=type)
         self.update(state)
 
     def update(self,state):
@@ -153,56 +154,18 @@ class Control(Node):
         ''' Returns a list of all methods tagged with the '@cost' decorator. '''
         return methodsWithDecorator(self.__class__, 'cost')
 
-    # def get_settings(self):
-    #     self.settings = {}
-    #     try:
-    #         with open(self.settings_path+self.name+'.txt', 'r') as file:
-    #             saved_settings=json.loads(file.readlines()[-1].split('\t')[1])
-    #         with open(self.state_path+self.name+'.txt', 'r') as file:
-    #             saved_state=json.loads(file.readlines()[-1].split('\t')[1])
-    #         loaded = 1
-    #     except FileNotFoundError:
-    #         loaded = 0
-    #
-    #     for i in self.inputs.keys():
-    #         try:
-    #             self.settings[i] = {'min': self.inputs[i].min, 'max': self.inputs[i].max}
-    #         except AttributeError:
-    #             resp = ''
-    #             saved = 0
-    #             if loaded:
-    #                 if i in saved_settings.keys() and i in saved_state.keys():
-    #                     saved = 1
-    #                     #print('Load from file? (y/n)')
-    #                     #resp = input()
-    #                     print('%s settings loaded from file.'%i)
-    #                     resp = 'y'
-    #                     if resp == 'y':
-    #                         for x in ['min', 'max']:
-    #                             setattr(self.inputs[i],x,saved_settings[i][x])
-    #                         self.settings[i] = saved_settings[i]
-    #                         self.state[i] = saved_state[i]
-    #                         self.inputs[i].value = self.state[i]
-    #             if resp == 'n' or not saved:
-    #                 print('Please enter initial value: ')
-    #                 self.inputs[i].value = float(input())
-    #                 print('Please enter min: ')
-    #                 self.inputs[i].min = float(input())
-    #                 print('Please enter max: ')
-    #                 self.inputs[i].max = float(input())
-    #
-    #                 self.save()
-    #                 self.get_settings()
-
-    def actuate(self, state, save=True):
+    def actuate(self, state, save=True, type='any'):
         ''' Updates all Inputs in the given state to the given values.
             Argument should have keys of the form 'Device.Input', e.g.
-            state={'MEMS.X':0} '''
+            state={'MEMS.X':0}. The type argument allows actuation of only
+            real or virtual inputs.  '''
         if not self.actuating:
             self.actuating = 1
 
             for i in state.keys():
-                self.inputs[i].set(state[i])
+                input = self.inputs[i]
+                if input.type == type or type == 'any':
+                    self.inputs[i].set(state[i], type=type)
             self.actuating = 0
             self.save(tag='actuate')
             if hasattr(self, 'window'):
@@ -264,5 +227,5 @@ class Control(Node):
         return state
 
     def onLoad(self):
-        self.actuate(self.state)
+        self.actuate(self.state, type='real')
         self.clock.prepare_sequence()
