@@ -31,9 +31,11 @@ class Clock(ProcessHandler):
         self._quit_thread(self.sync)
 
     def loop(self, stopped):
-        ''' Loops through the specified sequence. The argument states is a list
-        of tuples where the first element of each tuple is a delay and the second
-        is a target state.'''
+        ''' Loops through the specified sequence.
+
+            Args:
+                stopped (function): A boolean function passed in by ProcessHandler which switches from 0 to 1 after calling self._quit_thread.
+        '''
         i = 0
         while not stopped():
             delay = self.parent.master_sequence[i][0]
@@ -60,7 +62,11 @@ class Clock(ProcessHandler):
             time.sleep(delay)
 
     def sync(self, stopped):
-        ''' Keeps the Control state synced with the Clock state.  '''
+        ''' Keeps the Control state synced with the Clock state.
+
+            Args:
+                stopped (function): A boolean function passed in by ProcessHandler which switches from 0 to 1 after calling self._quit_thread.
+        '''
         while not stopped():
             parent_substate = dict((k, self.parent.state[k]) for k in self.state.keys())
             if self.state != parent_substate:
@@ -68,7 +74,16 @@ class Clock(ProcessHandler):
 
     def prepare_constant(self, value, key, N):
         ''' Sets the sequence labeled by key to N uniformly spaced setpoints of
-            constant value '''
+            constant value.
+
+            Notes:
+                This method is convenient when preparing an initial sequence for optimization.
+            Args:
+                value (float): constant setpoint of the sequence.
+                key (str): full_name of the target Input node.
+                N (int): number of setpoints in the sequence.
+
+            '''
         s = []
         for i in range(N):
             s.append([i/N, value])
@@ -98,7 +113,11 @@ class Clock(ProcessHandler):
 
     def prepare_stream(self, key):
         ''' Converts the sequence of the input labeled by key to a LabJack stream
-            at 100 kS/s. '''
+            at 100 kS/s. 
+
+            Args:
+                key (str): full_name of the target Input node.
+            '''
         s = self.parent.inputs[key].sequence
         data = np.zeros(int(100e3*self.parent.cycle_time))
         for point in s:
