@@ -87,6 +87,28 @@ input such as ``'deviceA.X'`` which label both the device and the state.
 #. ``Device.actuate()`` first calls ``Device._actuate()``, which is a private  function implemented for each separate device; this function changes the physical  state (e.g. by setting a voltage to a certain value) but does not change the virtual state.
 #. Next, ``Device.actuate()`` calls ``Device.update()``, which simultaneously updates the state of the Input, Device, and Control nodes.
 
+Virtual inputs
+---------------
+An important note must be made here about real inputs (settable quantities in the
+lab) vs. virtual inputs, which are functions of real inputs. For example, the
+CurrentDriver() class controls a current servo which takes analog voltages and
+outputs proportional currents into a pair of coils. Although the analog voltages
+are the real inputs, it is experimentally convenient to work with the gradient and
+zero position of the magnetic field coils instead, which are virtual inputs;
+the real and virtual inputs can be converted to and from each other using known
+calibration data and an analytical model for the magnetic field as a function of
+current.
+
+Another place where virtual inputs are useful is in PCA decomposition of a cost
+function. Often a coupled, many-variable cost function can be decomposed into
+uncoupled substates which can be separately optimized; the eigenvectors of the
+diagonalized covariance matrix constitute virtual inputs which are linear combinations
+of the real inputs.
+
+EMERGENT allows actuation in terms of either the virtual or real inputs (as long
+as the two aren't mixed within one call to actuate()). In the case of the
+CurrentDriver class, pointing ``actuate()`` at the virtual inputs will first
+convert them to real inputs before setting the physical variables.
 
 
 Sequencing
