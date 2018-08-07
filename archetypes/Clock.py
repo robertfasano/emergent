@@ -36,11 +36,11 @@ class Clock(ProcessHandler):
         is a target state.'''
         i = 0
         while not stopped():
-            delay = self.parent.sequence[i][0]
-            state = self.parent.sequence[i][1]
+            delay = self.parent.master_sequence[i][0]
+            state = self.parent.master_sequence[i][1]
             time.sleep(delay)
             self.state = state
-            i = (i+1)%len(self.parent.sequence)
+            i = (i+1)%len(self.parent.master_sequence)
 
     def run_once(self):
         ''' Prepare a sequence based on the input nodes with a total time T.
@@ -53,9 +53,9 @@ class Clock(ProcessHandler):
     def single_shot(self):
         ''' Executes the sequence once. '''
         i = 0
-        for i in range(len(self.parent.sequence)):
-            delay = self.parent.sequence[i][0]
-            state = self.parent.sequence[i][1]
+        for i in range(len(self.parent.master_sequence)):
+            delay = self.parent.master_sequence[i][0]
+            state = self.parent.master_sequence[i][1]
             self.state = state
             time.sleep(delay)
 
@@ -72,14 +72,14 @@ class Clock(ProcessHandler):
         s = []
         for i in range(N):
             s.append([i/N, value])
-        self.parent.sequences[key] = s
+        self.parent.sequence[key] = s
 
     def prepare_sequence(self):
         ''' Prepares a master sequence by combining sequences of all inputs. '''
         T = self.parent.cycle_time
         times = []
         for input in self.parent.inputs.values():
-            self.parent.sequences[input.full_name] = input.sequence
+            self.parent.sequence[input.full_name] = input.sequence
             times.extend([x[0]*T for x in input.sequence])
         times = np.unique(times)
 
@@ -94,7 +94,7 @@ class Clock(ProcessHandler):
                 state[input.full_name] = input.sequence[current_index][1]
             states.append((delays[i], state))
 
-        self.parent.sequence = states
+        self.parent.master_sequence = states
 
     def prepare_stream(self, key):
         ''' Converts the sequence of the input labeled by key to a LabJack stream
