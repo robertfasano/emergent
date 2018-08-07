@@ -14,6 +14,7 @@ class LabJack(ProcessHandler):
 
     def __init__(self, device = "ANY", connection = "ANY", devid = "ANY", arange = 10):
         ''' Attempt to connect to a LabJack.
+
             Args:
                 device (str): Device type ("ANY", "T7" are currently supported).
                 connection (str): Desired connection type ("ANY", "USB", "TCP", "ETHERNET", or "WIFI").
@@ -66,8 +67,13 @@ class LabJack(ProcessHandler):
         return np.mean(vals)
 
     def AOut(self, channel, value, HV=False):
-        ''' Output value (0-5V) on the specified channel. The HV flag allows the
-            LJTick-DAC addon board to be used to generate +/-10V. '''
+        ''' Output an analog voltage.
+
+            Args:
+                channel (int): number of the target DAC channel.
+                value (float): Voltage in volts.
+                HV (bool): If False, use a DAC channel (0-5 V); if True, use a TDAC channel with the LJTick-DAC accessory (+/-10 V).
+        '''
         if not HV:
             self._command('%s%i'%('DAC', channel), value)
         else:
@@ -119,6 +125,7 @@ class LabJack(ProcessHandler):
 
     def spi_write(self, data):
         ''' Writes a list of commands via SPI.
+
             Args:
                 data (list): a list of bytes to send through MOSI.
         '''
