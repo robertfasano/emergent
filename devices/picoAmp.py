@@ -55,7 +55,7 @@ class PicoAmp(Device):
         r = 0
         for i in [0, 8, 16]:
             lst.append(int(cmd[i:8+i],2))
-        r = self.labjack.spi_write(lst, verbose = False)
+        r = self.labjack.spi_write(lst)
 
     def digital(self, V):
         ''' Converts an analog voltage V to a 16-bit string for the DAC '''
