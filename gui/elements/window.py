@@ -11,6 +11,7 @@ from PyQt5.QtCore import *
 import json
 from archetypes.optimizer import Optimizer
 from gui.elements.optimizer import OptimizerLayout
+from gui.elements.sequencer import SequencerLayout
 from gui.elements.treeview import TreeLayout
 
 class MainFrame(QWidget):
@@ -30,3 +31,7 @@ class MainFrame(QWidget):
         ''' Create optimizer layout '''
         self.optimizer = OptimizerLayout(self)
         layout.addLayout(self.optimizer)
+
+        ''' Create sequencer layout '''
+        self.sequencer = SequencerLayout(self)
+        layout.addLayout(self.sequencer)
