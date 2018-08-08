@@ -22,13 +22,13 @@ class Sequencer(ProcessHandler):
         (very computationally quick) and another which actuates the Control node
         to keep in sync with the Clock state (more time-intensive).'''
         states = self.prepare_sequence()
-        self._run_thread(self.sync)
+        # self._run_thread(self.sync)
         self._run_thread(self.loop)
 
     def stop(self):
         ''' Terminates sequencing. '''
         self._quit_thread(self.loop)
-        self._quit_thread(self.sync)
+        # self._quit_thread(self.sync)
 
     def loop(self, stopped):
         ''' Loops through the specified sequence.
@@ -41,7 +41,8 @@ class Sequencer(ProcessHandler):
             delay = self.parent.master_sequence[i][0]
             state = self.parent.master_sequence[i][1]
             time.sleep(delay)
-            self.state = state
+            # self.state = state
+            self.parent.actuate(state)
             i = (i+1)%len(self.parent.master_sequence)
 
     def run_once(self):
