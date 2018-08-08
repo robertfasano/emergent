@@ -54,6 +54,7 @@ class LabJack(ProcessHandler):
                 '''
         ljm.eWriteName(self.handle, register, value)
 
+    ''' Analog I/O '''
     def AIn(self, channel, num = 1):
         ''' Read a channel with optional averaging.
 
@@ -78,6 +79,16 @@ class LabJack(ProcessHandler):
             self._command('%s%i'%('DAC', channel), value)
         else:
             self._command("TDAC%i"%channel, value)
+
+    ''' Digital I/O '''
+    def DOut(self, channel, state):
+        ''' Output a digital signal.
+
+            Args:
+                channel (str): a digital channel on the LabJack, e.g. 'FIO4'.
+                state (int): 1 or 0
+        '''
+        self._command(channel, state)
 
     def PWM(self, channel, frequency, duty_cycle):
         ''' Starts pulse width modulation on an FIO channel.
