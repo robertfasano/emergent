@@ -153,13 +153,15 @@ class LabJack(ProcessHandler):
                 half a buffer's worth of data each time the buffer is half full.
         '''
         try:
+            ''' Stop streaming if currently running '''
             ljm.eStreamStop(self.handle)
         except:
             pass
-        ljm.eWriteName(self.handle, "STREAM_OUT0_TARGET", 1000)
-        ljm.eWriteName(self.handle, "STREAM_OUT0_BUFFER_SIZE", 2**14)
-        ljm.eWriteName(self.handle, "STREAM_OUT0_ENABLE", 1)
+        buffer_size = 2**14
 
+        ljm.eWriteName(self.handle, "STREAM_OUT0_TARGET", 1000+channel*2)
+        ljm.eWriteName(self.handle, "STREAM_OUT0_BUFFER_SIZE", buffer_size)
+        ljm.eWriteName(self.handle, "STREAM_OUT0_ENABLE", 1)
         ljm.eWriteName(self.handle, "STREAM_TRIGGER_INDEX", 0)        # Ensure triggered stream is disabled.
         ljm.eWriteName(self.handle, "STREAM_CLOCK_SOURCE", 0)       # Enabling internally-clocked stream.
 
@@ -168,59 +170,14 @@ class LabJack(ProcessHandler):
         ljm.eWriteNames(self.handle, len(aNames), aNames, aValues)
 
 
-        aScanList = [4800]
-
-
-
-
-        ''' If we want to stream more than 2^14 points, we need to repeatedly
-            update half of the buffer. '''
-        buffer_size = 2**14
-        max_samples = int(buffer_size/2)
-        write_length = int(max_samples/2)
-        write_length = len(data)
-        print(write_length)
-        self._command("STREAM_OUT0_LOOP_SIZE", write_length)
-        subdata = data[0:write_length]
-
-        #ljm.eWriteNameArray(self.handle, 'STREAM_OUT0_BUFFER_F32', len(subdata), subdata)
-        target = ['STREAM_OUT0_BUFFER_F32'] * len(subdata)
-        ljm.eWriteNames(self.handle, len(subdata), target, list(subdata))
+        target = ['STREAM_OUT0_BUFFER_F32'] * len(data)
+        ljm.eWriteNames(self.handle, len(data), target, list(data))
+        self._command("STREAM_OUT0_LOOP_SIZE", len(data))
         ljm.eWriteName(self.handle, "STREAM_OUT0_SET_LOOP", 1)
 
-
-
+        aScanList = [4800]
         scanRate = ljm.eStreamStart(self.handle, 1,1, aScanList, scanRate)
         print("\nStream started with a scan rate of %0.0f Hz." % scanRate)
-
-        # while True:
-            # buffer = ljm.eReadName(self.handle, 'STREAM_OUT0_BUFFER_STATUS')
-            # print(buffer)
-        data_size = data.nbytes
-        buffer_exponent = np.ceil(1+np.log2(2*data_size))
-
-
-
-
-        # self._command("STREAM_OUT0_SET_LOOP", 1)
-#        self._command("STREAM_DATATYPE", 0)
-
-
-        # data = np.delete(data, range(write_length))
-        # while True:
-        #     buffer = ljm.eReadName(self.handle, 'STREAM_OUT0_BUFFER_STATUS')
-        #     print(buffer)
-        #     if buffer < write_length:
-        #         subdata = data[0:write_length]
-        #         data = np.delete(data, range(write_length))
-        #
-        #         print('updating stream')
-        #         self._command("STREAM_OUT0_BUFFER_F32", subdata)
-        #         self._command("STREAM_OUT0_LOOP_SIZE", write_length)
-        #         self._command("STREAM_OUT0_SET_LOOP", 1)
-        #
-        #         if len(subdata) < write_length:
-        #             break
 
     def sequence2stream(self, sequence, period, channels = 1):
         ''' Converts a sequence to a stream. The LabJack has two limitations:
