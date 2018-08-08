@@ -3,7 +3,7 @@ import os
 import weakref
 import pathlib
 import time
-from archetypes.clock import Clock
+from archetypes.sequencer import Sequencer
 from archetypes.historian import Historian
 from archetypes.optimizer import Optimizer
 from utility import methodsWithDecorator
@@ -260,7 +260,7 @@ class Control(Node):
         nodes. '''
 
     def __init__(self, name, parent = None, path = '.'):
-        """Initializes a Control node and attaches Clock, Historian, and Optimizer instances.
+        """Initializes a Control node and attaches Sequencer, Historian, and Optimizer instances.
 
         Args:
             name (str): node name. All Control nodes should have unique names.
@@ -282,7 +282,7 @@ class Control(Node):
         for p in [self.settings_path, self.state_path, self.sequence_path, self.data_path]:
             pathlib.Path(p).mkdir(parents=True, exist_ok=True)
 
-        self.clock = Clock(self)
+        self.sequencer = Sequencer(self)
         self.historian = Historian(self)
         self.optimizer = Optimizer(self)
 
@@ -400,4 +400,4 @@ class Control(Node):
             if device.virtual_inputs > 0:
                 device.update(device.real_to_virtual(device.state))
 
-        self.clock.prepare_sequence()
+        self.sequencer.prepare_sequence()

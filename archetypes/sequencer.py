@@ -3,9 +3,9 @@ import numpy as np
 from threading import Thread
 from archetypes.parallel import ProcessHandler
 
-class Clock(ProcessHandler):
-    ''' The Clock class attaches to a Control node to provide sequencing capabilities:
-        waveforms can be specified for any connected Input nodes, and the Clock
+class Sequencer(ProcessHandler):
+    ''' The Sequencer class attaches to a Control node to provide sequencing capabilities:
+        waveforms can be specified for any connected Input nodes, and the Sequencer
         combines all input sequences into a master sequence describing the
         state of all sequenced Input nodes at each point during the experimental
         cycle. '''
@@ -113,7 +113,7 @@ class Clock(ProcessHandler):
 
     def prepare_stream(self, key):
         ''' Converts the sequence of the input labeled by key to a LabJack stream
-            at 100 kS/s. 
+            at 100 kS/s.
 
             Args:
                 key (str): full_name of the target Input node.

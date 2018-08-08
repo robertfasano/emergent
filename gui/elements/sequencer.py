@@ -30,19 +30,19 @@ class SequencerLayout(QVBoxLayout):
         tree = self.parent.treeLayout.treeWidget
         item = tree.currentItem()
         control = item.root
-        control.clock.start()
+        control.sequencer.start()
 
     def stop(self):
         tree = self.parent.treeLayout.treeWidget
         item = tree.currentItem()
         control = item.root
-        control.clock.stop()
+        control.sequencer.stop()
 
     def update_input(self):
         ''' Updates the sequencer table to the currently selected input. '''
         tree = self.parent.treeLayout.treeWidget
         control = tree.currentItem().root
-        control.clock.prepare_sequence()
+        control.sequencer.prepare_sequence()
         ''' Only show active inputs based on real/virtual selection in tree '''
         seq = control.master_sequence
         self.table.clear()
