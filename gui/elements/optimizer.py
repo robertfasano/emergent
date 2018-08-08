@@ -14,18 +14,14 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
 
         self.addWidget(QLabel('Optimizer'))
         self.algorithm_box = QComboBox()
-        for control in self.parent.controls.values():
-            for item in control.optimizer.list_algorithms():
-                self.algorithm_box.addItem(item)
         self.addWidget(self.algorithm_box)
+        self.parent.treeLayout.treeWidget.itemSelectionChanged.connect(self.update_algorithm_display)
         self.algorithm_box.currentTextChanged.connect(self.update_algorithm)
+
         self.params_edit = QTextEdit('')
         self.addWidget(self.params_edit)
 
         self.cost_box = QComboBox()
-        for control in self.parent.controls.values():
-            for item in control.list_costs():
-                self.cost_box.addItem(item)
         self.addWidget(self.cost_box)
 
         self.optimizer_button = QPushButton('Go!')
@@ -37,11 +33,22 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         self.progress_bar.setMaximum(self.max_progress)
         self.addWidget(self.progress_bar)
 
-        self.update_algorithm()
         ''' Ensure that only Inputs are selectable '''
         for item in self.parent.treeLayout.get_all_items():
             if item.level != 2:
                 item.setFlags(Qt.ItemIsEnabled)
+
+    def update_algorithm_display(self):
+        ''' Updates the algorithm box with the methods available to the currently selected control. '''
+        tree = self.parent.treeLayout.treeWidget
+        control = tree.currentItem().root
+        self.algorithm_box.clear()
+        for item in control.optimizer.list_algorithms():
+            self.algorithm_box.addItem(item)
+        for item in control.list_costs():
+            self.cost_box.addItem(item)
+        self.update_algorithm()
+
 
     def update_progress_bar(self, progress):
         self.progress_bar.setValue(progress*self.max_progress)
@@ -51,6 +58,7 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
     def hyperparameter(self):
         control = self.parent.treeLayout.controls['control']
         control.optimizer.grid_optimize(control.state, control.cost_coupled)
+
     def optimize(self):
         # self._run_thread(self.start_optimizer, stoppable=False)
         self.start_optimizer()
@@ -71,20 +79,21 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
             self.parent.treeLayout.update_state(control.name)
 
     def update_algorithm(self):
-        f = getattr(Optimizer, self.algorithm_box.currentText())
-        ''' Read default params dict from source code and insert in self.params_edit. '''
-        args = inspect.signature(f).parameters
-        args = list(args.items())
-        arguments = []
-        for a in args:
-            name = a[0]
-            if name == 'params':
-                default = str(a[1])
-                if default == name:
-                    default = 'Enter'
-                else:
-                    default = default.split('=')[1]
-                    default = default.replace('{', '{\n')
-                    default = default.replace(',', ',\n')
-                    default = default.replace('}', '\n}')
-                    self.params_edit.setText(default)
+        if self.algorithm_box.currentText() is not '':
+            f = getattr(Optimizer, self.algorithm_box.currentText())
+            ''' Read default params dict from source code and insert in self.params_edit. '''
+            args = inspect.signature(f).parameters
+            args = list(args.items())
+            arguments = []
+            for a in args:
+                name = a[0]
+                if name == 'params':
+                    default = str(a[1])
+                    if default == name:
+                        default = 'Enter'
+                    else:
+                        default = default.split('=')[1]
+                        default = default.replace('{', '{\n')
+                        default = default.replace(',', ',\n')
+                        default = default.replace('}', '\n}')
+                        self.params_edit.setText(default)
