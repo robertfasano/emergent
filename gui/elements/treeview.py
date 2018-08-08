@@ -31,8 +31,8 @@ class MyTreeWidgetItem(QTreeWidgetItem):
         self.node.leaf = self
         self.root = self.get_root()
 
-        if isinstance(self.node, Device):
-            self.inputs = 'real'
+        if self.node.node_type == 'device':
+            self.inputs = 'virtual'
 
     def __repr__(self):
         try:
@@ -90,7 +90,7 @@ class TreeLayout(QHBoxLayout):
         self.expand(0)
         self.expand(1)
         for item in self.get_all_items():
-            if isinstance(item.node, Device):
+            if item.node.node_type == 'device':
                 self.toggle_inputs(item)
 
     def close_editor(self):
@@ -134,10 +134,10 @@ class TreeLayout(QHBoxLayout):
         dev.inputs = type
         for input in dev.node.children.values():
             if input.type == type:
-                input.leaf.setHidden(1)
+                input.leaf.setHidden(0)
         for input in dev.node.children.values():
             if input.type == old_type:
-                input.leaf.setHidden(0)
+                input.leaf.setHidden(1)
 
     def get_all_items(self):
         """Returns all QTreeWidgetItems in the given QTreeWidget."""
@@ -228,9 +228,11 @@ class TreeLayout(QHBoxLayout):
         globalPos = self.treeWidget.mapToGlobal(pos)
         menu = QMenu()
 
-        if isinstance(item.node, Device):
-            hide_virtual_inputs_action = QAction('Show %s inputs'%item.inputs, self)
-            hide_virtual_inputs_action.triggered.connect(functools.partial(self.toggle_inputs,self.treeWidget.currentItem()))
-            menu.addAction(hide_virtual_inputs_action)
+        if item.node.node_type == 'device':
+            if item.node.virtual_inputs > 0:
+                other_input_type = {'virtual':'real', 'real':'virtual'}[item.inputs]
+                hide_virtual_inputs_action = QAction('Show %s inputs'%other_input_type, self)
+                hide_virtual_inputs_action.triggered.connect(functools.partial(self.toggle_inputs,self.treeWidget.currentItem()))
+                menu.addAction(hide_virtual_inputs_action)
 
         selectedItem = menu.exec_(globalPos)
