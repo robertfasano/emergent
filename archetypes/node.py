@@ -67,6 +67,7 @@ class Input(Node):
         self.full_name = self.parent.name+'.'+self.name
         self.min = None
         self.max = None
+        self.node_type = 'input'
 
     def set(self, state):
         """Requests actuation from the parent Device.
@@ -104,6 +105,7 @@ class Device(Node):
         self.loaded = 0     # set to 1 after first state preparation
         self.real_inputs = 0
         self.virtual_inputs = 0
+        self.node_type = 'device'
 
     def add_input(self, name, type='real'):
         ''' Attaches an Input node with the specified name. This should correspond
@@ -284,6 +286,7 @@ class Control(Node):
         self.historian = Historian(self)
         self.optimizer = Optimizer(self)
 
+        self.node_type = 'control'
 
     def get_sequence(self):
         """Populates the self.sequence dict with sequences of all inputs."""
