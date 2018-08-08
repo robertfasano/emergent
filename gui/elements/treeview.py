@@ -69,7 +69,8 @@ class TreeLayout(QHBoxLayout):
         self.treeWidget.setHeaderLabels(["Node", "Value"])
         self.treeWidget.header().resizeSection(1,60)
         self.treeWidget.itemDoubleClicked.connect(self.open_editor)
-        self.treeWidget.itemSelectionChanged.connect(self.close_editor, Qt.UniqueConnection)
+        self.treeWidget.itemSelectionChanged.connect(self.close_editor)
+        self.treeWidget.itemSelectionChanged.connect(self.deselect_nonsiblings)
         self.treeWidget.setContextMenuPolicy(Qt.CustomContextMenu)
         self.treeWidget.customContextMenuRequested.connect(self.openMenu)
         self.addWidget(self.treeWidget)
@@ -125,7 +126,7 @@ class TreeLayout(QHBoxLayout):
                 self._generateTree(children[child], child_item, level = level+1)
 
     def toggle_inputs(self, dev):
-        ''' Switches from real to virtual inputs for the currently selected device.
+        ''' Switches from real to virtual inputs for the passed in device item.
         '''
         type = 'real'
         if dev.inputs == 'real':
@@ -208,6 +209,13 @@ class TreeLayout(QHBoxLayout):
             self.controls[control].actuate(state)
         except AttributeError:
             pass
+
+    def deselect_nonsiblings(self):
+        ''' Deselects items who are not siblings with the current item. '''
+        item = self.treeWidget.currentItem()
+        for i in self.get_all_items():
+            if i.parent() is not item.parent():
+                i.setSelected(0)
 
     def update_state(self, control):
         ''' Read Control node state and update GUI. '''
