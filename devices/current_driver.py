@@ -44,8 +44,8 @@ class CurrentDriver(Device):
         self.add_input('I1')
         self.add_input('I2')
 
-        self.add_input('grad', type='virtual')
-        self.add_input('zero', type='virtual')
+        self.add_input('grad', type='secondary')
+        self.add_input('zero', type='secondary')
         self._connected = self._connect()
 
     def calibrate(self, coil, Vmin=1, Vmax=3, steps=100, delay = 1/100, plot = False):
@@ -139,14 +139,14 @@ class CurrentDriver(Device):
         voltage = (current-self.intercept[i])/self.slope[i]
         self.labjack.AOut(i, voltage)
 
-    def real_to_virtual(self, state):
-        ''' Converts a real state with currents I1, I2 to a virtual state with a
+    def primary_to_secondary(self, state):
+        ''' Converts a primary state with currents I1, I2 to a secondary state with a
             gradient and zero.
 
             Args:
-                state (dict): State dict with real currents in amps, e.g. {'I1':50, 'I2':40}.
+                state (dict): State dict with primary currents in amps, e.g. {'I1':50, 'I2':40}.
             Returns:
-                virtual_state (dict): State dict with gradient in G/cm and zero position in mm, e.g. {'grad':50, 'zero':0}.
+                secondary_state (dict): State dict with gradient in G/cm and zero position in mm, e.g. {'grad':50, 'zero':0}.
         '''
         state = self.get_missing_keys(state, ['I1', 'I2'])
         I1 = state['I1']
@@ -178,14 +178,14 @@ class CurrentDriver(Device):
 
         return MU0/2 * (N1*I1*R1**2/(R1**2+(z-Z1)**2)**(3/2)-N2*I2*R2**2/(R2**2+(z-Z2)**2)**(3/2))
 
-    def virtual_to_real(self, state):
-        ''' Converts a virtual state with gradient and zero into a real state with
+    def secondary_to_primary(self, state):
+        ''' Converts a secondary state with gradient and zero into a primary state with
             currents I1, I2.
 
             Args:
                 state (dict): State dict with gradient in G/cm and zero position in mm, e.g. {'grad':50, 'zero':0}.
             Returns:
-                real_state (dict): State dict with real currents in amps, e.g. {'I1':50, 'I2':40}.
+                primary_state (dict): State dict with primary currents in amps, e.g. {'I1':50, 'I2':40}.
         '''
         state = self.get_missing_keys(state, ['grad', 'zero'])
         z0 = state['zero']

@@ -89,24 +89,55 @@ class Sequencer(ProcessHandler):
             s.append([i/N, value])
         self.parent.sequence[key] = s
 
+    def master_to_subsequence(self, full_name):
+        seq = []
+        times = [0]
+        delay = 0
+        states = []
+        for i in range(len(self.parent.master_sequence)):
+            point = self.parent.master_sequence[i]
+            state = point[1][full_name]
+            if i == 0:
+                states.append(state)
+                seq.append([0,state])
+            else:
+                if state != states[-1]:
+                    states.append(state)
+                    time = times[-1]+delay
+                    seq.append([time, state])
+                    times.append(time)
+                    delay = 0
+            delay += point[0]
+
+        del times[-1]
+
+        return seq
+        # self.parent.inputs[full_name].sequence = seq
+
     def prepare_sequence(self):
-        ''' Prepares a master sequence by combining sequences of all inputs. '''
+        ''' Prepares a master sequence by combining sequences of all active inputs.
+
+            Args:
+                type (str): 'primary' or 'secondary'
+        '''
         T = self.parent.cycle_time
         times = []
         for input in self.parent.inputs.values():
-            self.parent.sequence[input.full_name] = input.sequence
-            times.extend([x[0]*T for x in input.sequence])
+            if input.name in input.parent.state:
+                self.parent.sequence[input.full_name] = input.sequence
+                times.extend([x[0]*T for x in input.sequence])
         times = np.unique(times)
 
-        delays = np.append(np.array([T-np.sum(np.diff(times))]),np.diff(times))
+        delays = np.append(np.diff(times),np.array([T-np.sum(np.diff(times))]))
         states = []
         for i in range(len(times)):
             t = times[i]
             state = {}
             for input in self.parent.inputs.values():
-                input_times = [x[0]*T for x in input.sequence]
-                current_index = np.where(input_times <= t)[0][-1]
-                state[input.full_name] = input.sequence[current_index][1]
+                if input.name in input.parent.state:
+                    input_times = [x[0]*T for x in input.sequence]
+                    current_index = np.where(input_times <= t)[0][-1]
+                    state[input.full_name] = input.sequence[current_index][1]
             states.append((delays[i], state))
 
         self.parent.master_sequence = states

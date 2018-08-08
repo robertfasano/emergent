@@ -51,13 +51,13 @@ class Input(Node):
         be accessed for a given type, e.g. Control.instances lists all Control
         nodes. '''
 
-    def __init__(self, name, parent, type='real', speed = 'slow'):
+    def __init__(self, name, parent, type='primary', speed = 'slow'):
         """Initializes an Input node.
 
         Args:
             name (str): node name. Nodes which share a Device should have unique names.
             parent (str): name of parent Device node.
-            type (str): Specifies whether the Input node is 'real' (representing a directly controlled quantity) or 'virtual' (representing a derived quantity or superposition of real quantities).
+            type (str): Specifies whether the Input node is 'primary' (representing a directly controlled quantity) or 'secondary' (representing a derived quantity or superposition of primary quantities).
             speed (str): Specified whether the Input node is 'slow' (using state-actuation for sequencing) or 'fast' (using burst streaming from a LabJack).
         """
         super().__init__(name, parent=parent)
@@ -73,15 +73,15 @@ class Input(Node):
         """Requests actuation from the parent Device.
 
         Note:
-            Virtual nodes can only be updated after the first state preparation.
+            secondary nodes can only be updated after the first state preparation.
             During network initialization, the Control node loads the previous
-            states of the real nodes and actuates them; after this is finished,
-            the virtual states are computed and updated.
+            states of the primary nodes and actuates them; after this is finished,
+            the secondary states are computed and updated.
 
         Args:
             state (float): Target value.
         """
-        if self.type is 'real' or self.parent.loaded:
+        if self.type is 'primary' or self.parent.loaded:
             self.parent.actuate({self.name:state})
 
 class Device(Node):
@@ -103,11 +103,73 @@ class Device(Node):
         super().__init__(name, parent=parent)
         self.state = {}
         self.loaded = 0     # set to 1 after first state preparation
-        self.real_inputs = 0
-        self.virtual_inputs = 0
+        self.primary_inputs = 0
+        self.secondary_inputs = 0
         self.node_type = 'device'
+        self.input_type = 'primary'
 
-    def add_input(self, name, type='real'):
+    def use_inputs(self, type):
+        ''' Switches between primary and secondary input representations.
+
+            Args:
+                type (str): 'primary' or 'secondary'
+        '''
+        assert type in ['primary', 'secondary']
+        if type == self.input_type:
+            return
+
+        ''' Get new state representation '''
+        if type == 'secondary':
+            new_state = self.primary_to_secondary(self.state)
+        elif type == 'primary':
+            new_state = self.secondary_to_primary(self.state)
+
+        ''' Convert master sequence '''
+        new_sequence = []
+        for i in range(len(self.parent.master_sequence)):
+            point = self.parent.master_sequence[i]
+            delay = point[0]
+            state = point[1]
+            dev_state = {}
+            for full_name in state.keys():
+                if full_name.split('.')[0] == self.name:
+                    name = full_name.split('.')[1]
+                    dev_state[name] = state[full_name]
+            state = dev_state
+
+            if type == 'secondary':
+                new = self.primary_to_secondary(state)
+            else:
+                new = self.secondary_to_primary(state)
+            new_sequence.append([delay, new])
+            for name in self.state.keys():
+                full_name = self.name + '.' + name
+                del self.parent.master_sequence[i][1][full_name]
+            for name in new_state.keys():
+                full_name = self.name + '.' + name
+                self.parent.master_sequence[i][1][full_name] = new[name]
+
+        ''' Change representation in parent control node '''
+        for key in self.state.keys():
+            full_name = self.name + '.' + key
+            del self.parent.state[full_name]
+        for key in new_state.keys():
+            full_name = self.name + '.' + key
+            self.parent.state[full_name] = new_state[key]
+            self.children[key].state = new_state[key]
+
+        ''' Update self '''
+        self.state = new_state
+        self.input_type = type
+
+        ''' Convert subsequence - must be done after changing self.state '''
+        for name in new_state.keys():
+            full_name = self.name + '.' + name
+            seq = self.parent.sequencer.master_to_subsequence(full_name)
+            self.parent.inputs[full_name].sequence = seq
+
+
+    def add_input(self, name, type='primary'):
         ''' Attaches an Input node with the specified name. This should correspond
             to a specific name in the _actuate() function of a non-abstract Device
             class: for example, the PicoAmp MEMS driver has inputs explicitly named
@@ -117,12 +179,12 @@ class Device(Node):
         self.children[name] = input
         self.parent.inputs[input.full_name] = input
         self.parent.load(input.full_name)
-        self.state[name] = self.children[name].state
 
-        if type == 'real':
-            self.real_inputs += 1
-        elif type == 'virtual':
-            self.virtual_inputs += 1
+        if type == 'primary':
+            self.state[name] = self.children[name].state
+            self.primary_inputs += 1
+        elif type == 'secondary':
+            self.secondary_inputs += 1
 
     def _actuate(self, state):
         """Private placeholder for the device-specific driver.
@@ -145,49 +207,41 @@ class Device(Node):
         """Makes a physical device change in the lab with the _actuate() method, then registers this change with EMERGENT.
 
         Note:
-            If a virtual state is passed in (i.e. all dict keys label virtual Input nodes),
-            then the state will be converted to real using Device.virtual_to_real(),
-            which must be implemented in any driver file which uses virtual inputs.
-            After actuation of the real state, the equivalent virtual state is
+            If a secondary state is passed in (i.e. all dict keys label secondary Input nodes),
+            then the state will be converted to primary using Device.secondary_to_primary(),
+            which must be implemented in any driver file which uses secondary inputs.
+            After actuation of the primary state, the equivalent secondary state is
             updated.
 
         Note:
-            If a mixed state is passed in (with both real and virtual components),
-            only the real components will be used.
+            If a mixed state is passed in (with both primary and secondary components),
+            only the primary components will be used.
 
 
         Args:
             state (dict): Target state of the form {'param1':value1, 'param2':value2,...}.
         """
 
+        isPrimary = self.is_type(state, 'primary')
+        isSecondary = self.is_type(state, 'secondary')
+        assert not (isPrimary and isSecondary)
 
-        ''' First prepare a pure real state. If the passed state is mixed between
-            real and virtual components, only the real components will be used. '''
-        real = self.is_type(state, 'real')
-        virtual = self.is_type(state, 'virtual')
-        if real and virtual:
-            state = self.get_type(state, 'real')
-            virtual = False
-            print('WARNING: only real components are being used of a mixed real/virtual state.')
-        if virtual:
-            state = self.virtual_to_real(state)
-
-        ''' Now actuate and update '''
-        self._actuate(state)
+        if isPrimary:
+            self._actuate(state)
+        elif isSecondary:
+            self._actuate(self.secondary_to_primary(state))
         self.update(state)
-        if self.loaded and self.virtual_inputs > 0:
-            self.update(self.real_to_virtual(state))
 
     def get_missing_keys(self, state, keys):
         """Returns the state dict with any missing keys filled in from self.state.
 
         Note:
-            This is useful when using virtual functions which depend on multiple
-            inputs. Consider two inputs X and Y with two virtual inputs u=X+Y
-            and v=X-Y. If we actuate just X or Y, the virtual inputs still need
+            This is useful when using secondary functions which depend on multiple
+            inputs. Consider two inputs X and Y with two secondary inputs u=X+Y
+            and v=X-Y. If we actuate just X or Y, the secondary inputs still need
             to know the value of the non-actuated input to update their state.
             This method pulls the latest value of any parameters specified in
-            keys so that the virtual inputs can be calculated.
+            keys so that the secondary inputs can be calculated.
 
         Args:
             state (dict): Target state, e.g. {'param1':value1, 'param2':value2}.
@@ -205,14 +259,14 @@ class Device(Node):
         return total_state
 
     def get_type(self, state, type):
-        """Returns the real/virtual components of the state according to the passed type.
+        """Returns the primary/secondary components of the state according to the passed type.
 
         Args:
             state (dict): Target state, e.g. {'param1':value1, 'param2':value2}.
-            type (str): Input node type ('real' or 'virtual').
+            type (str): Input node type ('primary' or 'secondary').
 
         Returns:
-            new_state (dict): State dict containing the real or virtual elements of state.
+            new_state (dict): State dict containing the primary or secondary elements of state.
         """
         new_state = {}
         for key in state.keys():
@@ -221,13 +275,13 @@ class Device(Node):
         return new_state
 
     def is_type(self, state, type):
-        """Checks whether the state is real or virtual according to the passed in type.
+        """Checks whether the state is primary or secondary according to the passed in type.
         Note:
-            is_type(state,'real')==False does not mean the state is virtual - it could be mixed!
+            is_type(state,'primary')==False does not mean the state is secondary - it could be mixed!
 
         Args:
             state (dict): State dict, e.g. {'param1':value1, 'param2':value2}.
-            type (str): Input node type ('real' or 'virtual').
+            type (str): Input node type ('primary' or 'secondary').
 
         Returns:
             is_type (bool): True if all elements of state are type; False otherwise.
@@ -325,13 +379,25 @@ class Control(Node):
         """
         state = {}
         state['cycle_time'] = self.cycle_time
+
+        ''' Convert any secondary inputs to primary before saving '''
+        converted = []
+        for dev in self.children.values():
+            if dev.input_type == 'secondary':
+                dev.use_inputs('primary')
+                converted.append(dev)
         for input in self.inputs.values():
+            if input.type is 'secondary':
+                continue
             full_name = input.full_name
             state[full_name] = {}
             state[full_name]['state'] = self.state[full_name]
             state[full_name]['settings'] = self.settings[full_name]
             state[full_name]['sequence'] = self.sequence[full_name]
 
+        ''' Convert back '''
+        for dev in converted:
+            dev.use_inputs('secondary')
         filename = self.state_path + self.name + '.txt'
         write_newline = os.path.isfile(filename)
 
@@ -346,6 +412,9 @@ class Control(Node):
         Args:
             full_name (str): Specifies the Input node and its parent device, e.g. 'deviceA.input1'.
         """
+        if self.inputs[full_name].type is 'secondary':
+            return
+
         filename = self.state_path + self.name + '.txt'
         try:
             with open(filename, 'r') as file:
@@ -394,10 +463,11 @@ class Control(Node):
 
     def onLoad(self):
         """Tasks to be carried out after all Devices and Inputs are initialized."""
+        print('Post-load state:',self.state)
         self.actuate(self.state)
         for device in self.children.values():
             device.loaded = 1
-            if device.virtual_inputs > 0:
-                device.update(device.real_to_virtual(device.state))
+            # if device.secondary_inputs > 0:
+            #     device.update(device.primary_to_secondary(device.state))
 
         self.sequencer.prepare_sequence()

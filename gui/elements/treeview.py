@@ -32,7 +32,7 @@ class MyTreeWidgetItem(QTreeWidgetItem):
         self.root = self.get_root()
 
         if self.node.node_type == 'device':
-            self.inputs = 'virtual'
+            self.inputs = 'secondary'
 
     def __repr__(self):
         try:
@@ -126,16 +126,19 @@ class TreeLayout(QHBoxLayout):
                 self._generateTree(children[child], child_item, level = level+1)
 
     def toggle_inputs(self, dev):
-        ''' Switches from real to virtual inputs for the passed in device item.
+        ''' Switches from primary to secondary inputs for the passed in device item.
         '''
-        type = 'real'
-        if dev.inputs == 'real':
-            type = 'virtual'
+        type = 'primary'
+        if dev.inputs == 'primary':
+            type = 'secondary'
         old_type = dev.inputs
         dev.inputs = type
+        dev.node.use_inputs(type)
         for input in dev.node.children.values():
             if input.type == type:
                 input.leaf.setHidden(0)
+                input.leaf.setText(1,str(input.state))
+
         for input in dev.node.children.values():
             if input.type == old_type:
                 input.leaf.setHidden(1)
@@ -237,10 +240,10 @@ class TreeLayout(QHBoxLayout):
         menu = QMenu()
 
         if item.node.node_type == 'device':
-            if item.node.virtual_inputs > 0:
-                other_input_type = {'virtual':'real', 'real':'virtual'}[item.inputs]
-                hide_virtual_inputs_action = QAction('Show %s inputs'%other_input_type, self)
-                hide_virtual_inputs_action.triggered.connect(functools.partial(self.toggle_inputs,self.treeWidget.currentItem()))
-                menu.addAction(hide_virtual_inputs_action)
+            if item.node.secondary_inputs > 0:
+                other_input_type = {'secondary':'primary', 'primary':'secondary'}[item.inputs]
+                hide_secondary_inputs_action = QAction('Show %s inputs'%other_input_type, self)
+                hide_secondary_inputs_action.triggered.connect(functools.partial(self.toggle_inputs,self.treeWidget.currentItem()))
+                menu.addAction(hide_secondary_inputs_action)
 
         selectedItem = menu.exec_(globalPos)
