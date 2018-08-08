@@ -29,7 +29,6 @@ class Clock(ProcessHandler):
         ''' Terminates sequencing. '''
         self._quit_thread(self.loop)
         self._quit_thread(self.sync)
-        print('Sequence stopped.')
 
     def loop(self, stopped):
         ''' Loops through the specified sequence.
