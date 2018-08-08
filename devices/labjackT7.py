@@ -221,3 +221,41 @@ class LabJack(ProcessHandler):
         #
         #         if len(subdata) < write_length:
         #             break
+
+    def sequence2stream(self, sequence, period, channels = 1):
+        ''' Converts a sequence to a stream. The LabJack has two limitations:
+            a maximum stream rate of 100 kS/s and a maximum sample count of
+            2^13-1. This method computes a cutoff period based on these two
+            restrictions; above the cutoff, the speed will be lowered to accommodate
+            longer sequences with equal numbers of samples, while below the cutoff,
+            the number of samples will be lowered while the speed is kept at max.
+
+            Args:
+                sequence (list): A list of tuples describing all changes in a setpoint; e.g. [(0,0), (0.5,1)] describes a setpoint which is switched from 0 to 1 at t=0.5.
+                period (float): The total sequence duration.
+                channels (int): Number of channels which will be simultaneously streamed; the maximum sampling rate is reduced by this factor.
+
+            Returns:
+                stream (array): A list of points which will be output at the calculated sampling rate.
+                speed (float): Stream rate in samples/second.
+        '''
+        buffer_size = 2**14
+        max_samples = int(buffer_size/2)-1
+        max_speed = 100000 / channels
+        cutoff = max_samples / max_speed
+
+        if period >= cutoff:
+            samples = max_samples
+            speed = samples/period
+        else:
+            speed = max_speed
+            samples = period*speed
+
+        stream = np.zeros(samples)
+
+        for point in s:
+            t = point[0]
+            V = point[1]
+            stream[int(t*samples)::] = V
+
+        return stream, speed
