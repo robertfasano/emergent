@@ -11,6 +11,8 @@ from PyQt5.QtCore import *
 import json
 from archetypes.optimizer import Optimizer
 from gui.elements.optimizer import OptimizerLayout
+from archetypes.node import Control, Device, Input
+import functools
 
 class MyTreeWidget(QTreeWidget):
     def __init__(self, parent):
@@ -28,6 +30,15 @@ class MyTreeWidgetItem(QTreeWidgetItem):
         self.level = level
         self.node.leaf = self
         self.root = self.get_root()
+
+        if isinstance(self.node, Device):
+            self.inputs = 'real'
+
+    def __repr__(self):
+        try:
+            return self.node.full_name
+        except AttributeError:
+            return self.node.name
 
     def get_root(self):
         root = self.node
@@ -78,6 +89,9 @@ class TreeLayout(QHBoxLayout):
             self.update_state(control)
         self.expand(0)
         self.expand(1)
+        for item in self.get_all_items():
+            if isinstance(item.node, Device):
+                self.toggle_inputs(item)
 
     def close_editor(self):
         ''' Disable editing after the user clicks another node. '''
@@ -101,10 +115,7 @@ class TreeLayout(QHBoxLayout):
 
     def _generateTree(self, children, parent, level = 1):
         ''' Recursively add nodes to build the full network. '''
-        ch = {1: 'devices', 2: 'inputs'}
-
         for child in sorted(children):
-            # object = getattr(parent.node, ch[level])[child]
             object = parent.node.children[child]
 
             child_item = MyTreeWidgetItem([child], object, level)
@@ -112,6 +123,21 @@ class TreeLayout(QHBoxLayout):
 
             if isinstance(children, dict):
                 self._generateTree(children[child], child_item, level = level+1)
+
+    def toggle_inputs(self, dev):
+        ''' Switches from real to virtual inputs for the currently selected device.
+        '''
+        type = 'real'
+        if dev.inputs == 'real':
+            type = 'virtual'
+        old_type = dev.inputs
+        dev.inputs = type
+        for input in dev.node.children.values():
+            if input.type == type:
+                input.leaf.setHidden(1)
+        for input in dev.node.children.values():
+            if input.type == old_type:
+                input.leaf.setHidden(0)
 
     def get_all_items(self):
         """Returns all QTreeWidgetItems in the given QTreeWidget."""
@@ -198,13 +224,13 @@ class TreeLayout(QHBoxLayout):
             self.editorOpen = 1
 
     def openMenu(self, pos):
-        level = self.get_selected_level()
-        globalPos = self.mapToGlobal(pos)
+        item = self.treeWidget.itemAt(pos)
+        globalPos = self.treeWidget.mapToGlobal(pos)
         menu = QMenu()
 
-        # if level == 0:
-        #     optimize_action = QAction('Optimize', self)
-        #     optimize_action.triggered.connect(self.optimizerWindow.show)
-        #     menu.addAction(optimize_action)
+        if isinstance(item.node, Device):
+            hide_virtual_inputs_action = QAction('Show %s inputs'%item.inputs, self)
+            hide_virtual_inputs_action.triggered.connect(functools.partial(self.toggle_inputs,self.treeWidget.currentItem()))
+            menu.addAction(hide_virtual_inputs_action)
 
         selectedItem = menu.exec_(globalPos)
