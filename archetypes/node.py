@@ -346,24 +346,26 @@ class Control(Node):
         Args:
             full_name (str): Specifies the Input node and its parent device, e.g. 'deviceA.input1'.
         """
-        filename = self.settings_path + self.name + '.txt'
+        filename = self.state_path + self.name + '.txt'
         try:
             with open(filename, 'r') as file:
                 state = json.loads(file.readlines()[-1].split('\t')[1])
         except FileNotFoundError:
             state = {}
+            print('State file not found for Control node %s, creating one now.'%self.name)
 
         ''' Load variables into control '''
         try:
             self.settings[full_name] = state[full_name]['settings']
             self.state[full_name] = state[full_name]['state']
             self.sequence[full_name] = state[full_name]['sequence']
-            self.cycle_time = state[full_name]['cycle_time']
+            self.cycle_time = state['cycle_time']
         except KeyError:
             self.settings[full_name] = {'min':0, 'max':1}
             self.state[full_name] = 0
             self.sequence[full_name] = [[0,0]]
             self.cycle_time = 0
+            print('Could not retrieve settings for input %s; creating new settings.'%full_name)
 
         ''' Update sequence of inputs '''
         self.inputs[full_name].sequence = self.sequence[full_name]
