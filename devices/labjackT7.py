@@ -259,3 +259,23 @@ class LabJack(ProcessHandler):
             stream[int(t*samples)::] = V
 
         return stream, speed
+
+    def resample(self, wave, period, channels = 1):
+        ''' Resamples a waveform with a given period into the optimal stream.
+
+            Args:
+                wave (array): An array of values describing a waveform.
+                period (float): The total sequence duration.
+                channels (int): Number of channels which will be simultaneously streamed; the maximum sampling rate is reduced by this factor.
+
+            Returns:
+                stream (array): A list of points which will be output at the calculated sampling rate.
+                speed (float): Stream rate in samples/second.
+        '''
+        seq = []
+        for i in range(len(wave)):
+            t = i*period/len(wave)
+            x = wave[i]
+            seq.append((t, x))
+
+        return sequence2stream(seq, period, channels)
