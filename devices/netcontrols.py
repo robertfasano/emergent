@@ -11,7 +11,6 @@ class NetControls(Device, ProcessHandler):
         self.add_input('Z')
         self._connected = self._connect()
 
-
     def _connect(self):
         self.serial = Serial(port = self.port, baudrate = 38400, encoding = 'ascii', parity = PARITY_NONE, stopbits = STOPBITS_ONE, bytesize = EIGHTBITS, timeout = 1, name = 'NetControls driver')
 
@@ -19,6 +18,8 @@ class NetControls(Device, ProcessHandler):
             self.axis = 1
             self._initialize()
             self.zero = self.state['Z']      # controller thinks it's at zero when restarted, so move relative to last position
+            print('Feedthrough thinks its position is', self.zero, 'please enter real position.')
+            self.zero = input()
             # self.position = self.zero
             self._set_load_error(5000)
             self.set_velocity(10000)
