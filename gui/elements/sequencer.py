@@ -26,6 +26,7 @@ class SequencerLayout(QVBoxLayout):
         self.buttonsLayout.addWidget(self.stop_button)
 
         self.addLayout(self.buttonsLayout)
+
     def start(self):
         tree = self.parent.treeLayout.treeWidget
         item = tree.currentItem()
@@ -43,7 +44,8 @@ class SequencerLayout(QVBoxLayout):
         tree = self.parent.treeLayout.treeWidget
         control = tree.currentItem().root
         control.sequencer.prepare_sequence()
-        ''' Only show active inputs based on real/virtual selection in tree '''
+
+        ''' Only show active inputs based on primary/secondary selection in tree '''
         seq = control.master_sequence
         self.table.clear()
         self.table.setRowCount(0)
@@ -52,7 +54,6 @@ class SequencerLayout(QVBoxLayout):
         item.setText('Time')
         self.table.setVerticalHeaderItem(0,item)
         first_loop = True
-
         for point in seq:
             col = self.table.columnCount()
             self.table.insertColumn(col)
