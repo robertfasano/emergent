@@ -5,6 +5,24 @@ from archetypes.optimizer import Optimizer
 import inspect
 import json
 
+class MyTableWidgetItem(QTableWidgetItem):
+    def __init__(self, node, parent=None):
+        super().__init__()
+        self.parent = parent
+        self.node = node
+
+
+class MyTableWidget(QTableWidget):
+    def __init__(self, parent=None):
+        super().__init__()
+        self.parent = parent
+
+    def keyPressEvent(self, event):
+         key = event.key()
+
+         if key == Qt.Key_Return or key == Qt.Key_Enter:
+             self.parent.update_item()
+
 class SequencerLayout(QVBoxLayout):
     def __init__(self, parent):
         QVBoxLayout.__init__(self)
@@ -12,9 +30,10 @@ class SequencerLayout(QVBoxLayout):
 
         self.addWidget(QLabel('Sequencer'))
 
-        self.table = QTableWidget()
+        self.table = MyTableWidget(self)
         self.addWidget(self.table)
         self.parent.treeLayout.treeWidget.itemSelectionChanged.connect(self.update_input)
+        self.table.itemDoubleClicked.connect(self.open_editor)
 
         self.buttonsLayout = QHBoxLayout()
         self.start_button = QPushButton('Start')
@@ -26,6 +45,10 @@ class SequencerLayout(QVBoxLayout):
         self.buttonsLayout.addWidget(self.stop_button)
 
         self.addLayout(self.buttonsLayout)
+
+    def open_editor(self):
+        ''' Allow the currently-selected node to be edited. '''
+        self.table.openPersistentEditor(self.table.currentItem())
 
     def start(self):
         tree = self.parent.treeLayout.treeWidget
@@ -72,8 +95,25 @@ class SequencerLayout(QVBoxLayout):
                     item.setText(key)
                     self.table.setVerticalHeaderItem(row,item)
 
-                    item = QTableWidgetItem()
+                    item = MyTableWidgetItem(node=input.node, parent=self)
                     item.setText(str(point[1][key]))
                     self.table.setItem(row, col, item)
                     row += 1
             first_loop = False
+
+    def update_item(self):
+        ''' Update sequence when Enter is pressed. '''
+        try:
+            currentItem = self.table.currentItem()
+            row = self.table.currentRow()
+            col = self.table.currentColumn()
+            control = currentItem.node.parent.parent
+            self.table.closePersistentEditor(currentItem)
+
+            control.master_sequence[col][1][currentItem.node.full_name] = float(currentItem.text())
+            for full_name in control.state:
+                seq = control.sequencer.master_to_subsequence(full_name)
+                control.inputs[full_name].sequence = seq
+                control.sequence[full_name] = seq
+        except AttributeError:
+            pass
