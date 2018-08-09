@@ -2,6 +2,7 @@ import time
 import numpy as np
 from threading import Thread
 from archetypes.parallel import ProcessHandler
+import sched
 
 class Sequencer(ProcessHandler):
     ''' The Sequencer class attaches to a Control node to provide sequencing capabilities:
@@ -16,19 +17,20 @@ class Sequencer(ProcessHandler):
         self.state = {}
         self.cycle_time = None
 
+        self.timer = sched.scheduler(time.time, time.sleep)
+        self.pointer = 0
+
     def start(self):
         ''' Prepares and runs the master sequence. To reduce timing jitter,
         two threads are used: one which updates the internal Clock state at all times
         (very computationally quick) and another which actuates the Control node
         to keep in sync with the Clock state (more time-intensive).'''
         states = self.prepare_sequence()
-        # self._run_thread(self.sync)
         self._run_thread(self.loop)
 
     def stop(self):
         ''' Terminates sequencing. '''
         self._quit_thread(self.loop)
-        # self._quit_thread(self.sync)
 
     def loop(self, stopped):
         ''' Loops through the specified sequence.
@@ -36,14 +38,16 @@ class Sequencer(ProcessHandler):
             Args:
                 stopped (function): A boolean function passed in by ProcessHandler which switches from 0 to 1 after calling self._quit_thread.
         '''
-        i = 0
-        while not stopped():
-            delay = self.parent.master_sequence[i][0]
-            state = self.parent.master_sequence[i][1]
-            time.sleep(delay)
-            # self.state = state
+        self.timer.enter(0, 1, self.iteration, (stopped,))
+        self.timer.run()
+
+    def iteration(self, stopped):
+        if not stopped():
+            delay = self.parent.master_sequence[self.pointer][0]
+            state = self.parent.master_sequence[self.pointer][1]
             self.parent.actuate(state)
-            i = (i+1)%len(self.parent.master_sequence)
+            self.pointer = (self.pointer+1)%len(self.parent.master_sequence)
+            self.timer.enter(delay, 1, self.iteration, (stopped,))
 
     def run_once(self):
         ''' Prepare a sequence based on the input nodes with a total time T.
@@ -61,17 +65,6 @@ class Sequencer(ProcessHandler):
             state = self.parent.master_sequence[i][1]
             self.state = state
             time.sleep(delay)
-
-    def sync(self, stopped):
-        ''' Keeps the Control state synced with the Clock state.
-
-            Args:
-                stopped (function): A boolean function passed in by ProcessHandler which switches from 0 to 1 after calling self._quit_thread.
-        '''
-        while not stopped():
-            parent_substate = dict((k, self.parent.state[k]) for k in self.state.keys())
-            if self.state != parent_substate:
-                self.parent.actuate(self.state)
 
     def prepare_constant(self, value, key, N):
         ''' Sets the sequence labeled by key to N uniformly spaced setpoints of
