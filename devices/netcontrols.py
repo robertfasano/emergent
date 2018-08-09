@@ -1,10 +1,10 @@
 from protocols.serial import Serial, PARITY_NONE, STOPBITS_ONE, EIGHTBITS
 import numpy as np
 from archetypes.node import Device
-from archetypes.Parallel import ProcessHandler
+from archetypes.parallel import ProcessHandler
 
 class NetControls(Device, ProcessHandler):
-    def __init__(self, port = 'COM11', parent = None):
+    def __init__(self, name, port = 'COM11', parent = None):
         Device.__init__(self, name = name, parent = parent)
         ProcessHandler.__init__(self)
         self.port = port
@@ -17,20 +17,16 @@ class NetControls(Device, ProcessHandler):
         if self.serial._connected:
             self.axis = 1
             self._initialize()
-            self.zero = self.state['Z']      # controller thinks it's at zero when restarted, so move relative to last position
-            print('Feedthrough thinks its position is', self.zero, 'please enter real position.')
-            self.zero = input()
-            # self.position = self.zero
+            self.zero = self.parent.state[self.name+'.'+'Z']
             self._set_load_error(5000)
             self.set_velocity(10000)
             return 1
 
     def _actuate(self, state):
-        self._run_thread(self.set_position, args=state['Z'], stoppable = False)
-
+        # self.set_position(state['Z'])
+        self._run_thread(self.set_position, args=(state['Z'],),stoppable=False)
     def set_position(self, z):
         z = np.clip(z, 0, 75)
-
         z -= self.zero
         z *= 10**4
         r = self.command(cmd = 'p', val = int(z))
