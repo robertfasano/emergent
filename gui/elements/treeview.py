@@ -252,4 +252,12 @@ class TreeLayout(QHBoxLayout):
                 hide_secondary_inputs_action.triggered.connect(functools.partial(self.toggle_inputs,self.treeWidget.currentItem()))
                 menu.addAction(hide_secondary_inputs_action)
 
+        elif item.node.node_type == 'input':
+            sequence_action = QAction('Add to sequencer')
+            def add_to_sequencer(node):
+                node.sequenced = 1
+                self.window.sequencer.update_input()
+
+            sequence_action.triggered.connect(functools.partial(add_to_sequencer,item.node))
+            menu.addAction(sequence_action)
         selectedItem = menu.exec_(globalPos)
