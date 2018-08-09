@@ -3,6 +3,7 @@ import numpy as np
 from threading import Thread
 from archetypes.parallel import ProcessHandler
 import sched
+import logging as log 
 
 class Sequencer(ProcessHandler):
     ''' The Sequencer class attaches to a Control node to provide sequencing capabilities:
@@ -26,6 +27,9 @@ class Sequencer(ProcessHandler):
         (very computationally quick) and another which actuates the Control node
         to keep in sync with the Clock state (more time-intensive).'''
         states = self.prepare_sequence()
+        if len(self.parent.master_sequence) == 0:
+            log.warn('Add inputs to Sequencer before starting sequence.')
+            return
         self._run_thread(self.loop)
 
     def stop(self):
@@ -117,9 +121,10 @@ class Sequencer(ProcessHandler):
         T = self.parent.cycle_time
         times = []
         for input in self.parent.inputs.values():
-            if input.name in input.parent.state:
-                self.parent.sequence[input.full_name] = input.sequence
-                times.extend([x[0]*T for x in input.sequence])
+            if input.sequenced:
+                if input.name in input.parent.state:
+                    self.parent.sequence[input.full_name] = input.sequence
+                    times.extend([x[0]*T for x in input.sequence])
         times = np.unique(times)
 
         delays = np.append(np.diff(times),np.array([T-np.sum(np.diff(times))]))
@@ -128,10 +133,11 @@ class Sequencer(ProcessHandler):
             t = times[i]
             state = {}
             for input in self.parent.inputs.values():
-                if input.name in input.parent.state:
-                    input_times = [x[0]*T for x in input.sequence]
-                    current_index = np.where(input_times <= t)[0][-1]
-                    state[input.full_name] = input.sequence[current_index][1]
+                if input.sequenced:
+                    if input.name in input.parent.state:
+                        input_times = [x[0]*T for x in input.sequence]
+                        current_index = np.where(input_times <= t)[0][-1]
+                        state[input.full_name] = input.sequence[current_index][1]
             states.append((delays[i], state))
 
         self.parent.master_sequence = states
