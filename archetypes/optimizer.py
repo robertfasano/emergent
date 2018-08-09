@@ -244,8 +244,6 @@ class Optimizer():
         ''' Performs a random sampling of the cost function at N points within
             the specified bounds. '''
         points = np.random.uniform(size=(points,len(state.keys())))
-        print(points)
-        print(points.shape)
         costs = []
         for point in points:
             target = self.array2dict(point, state)
@@ -367,29 +365,12 @@ class Optimizer():
                    args = (state, cost),
                    method=params['method'],
                    tol = params['tol'])
-        print(res)
         if params['plot']:
             self.plot_optimization(lbl = params['method'])
 
         self.parent.save(tag='optimize')
 
         return None, None
-
-    # @algorithm
-    # def scipy_minimize(self, state, cost, params={'method':'L-BFGS-B', 'plot':0, 'tol':1e-7}, update=None):
-    #     ''' Runs a specified scipy minimization method on the target axes and cost. '''
-    #     state, bounds = self.initialize_optimizer(state)
-    #     X = self.dict2array(state)
-    #     keys = list(state.keys())
-    #     res = minimize(fun=self.cost_array,
-    #                x0=X,
-    #                bounds=bounds,
-    #                args = (keys, cost),
-    #                method=params['method'],
-    #                tol = params['tol'])
-    #     if params['plot']:
-    #         self.plot_optimization(lbl = params['method'])
-    #     return None, None
 
     @algorithm
     def simplex(self, state, cost, params={'plot':0, 'tol':1e-7}, update=None):
