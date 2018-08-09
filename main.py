@@ -9,6 +9,19 @@ from gui.elements.window import MainFrame
 from archetypes.node import Control
 import numpy as np
 sys.path.append('networks/%s'%sys.argv[1])
+import logging as log
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument("path")
+parser.add_argument("-v", "--verbose", help="increase output verbosity",
+                    action="store_true")
+
+args = parser.parse_args()
+if args.verbose:
+    log.basicConfig(level=log.DEBUG)
+else:
+    log.basicConfig(level=log.INFO)
 
 ''' Import network '''
 from network import *
