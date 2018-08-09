@@ -7,8 +7,22 @@ import inspect
 from archetypes.sequencer import Sequencer
 from archetypes.historian import Historian
 from archetypes.optimizer import Optimizer
+from PyQt5.QtWidgets import QWidget
+from PyQt5.QtCore import pyqtSignal, QObject
 from utility import methodsWithDecorator
 import logging as log
+
+class ActuateSignal(QObject):
+    signal = pyqtSignal(float)
+
+    def __init__(self):
+        super().__init__()
+
+    def connect(self, func):
+        self.signal.connect(func)
+
+    def emit(self, state):
+        self.signal.emit(state)
 
 class Node():
     ''' The Node class is the core building block of the EMERGENT network,
@@ -76,6 +90,8 @@ class Input(Node):
         self.min = None
         self.max = None
         self.node_type = 'input'
+        self.actuate_signal = ActuateSignal()
+
 
     def set(self, state):
         """Requests actuation from the parent Device.
@@ -91,6 +107,9 @@ class Input(Node):
         """
         if self.type is 'primary' or self.parent.loaded:
             self.parent.actuate({self.name:state})
+        if self.parent.loaded:
+            self.actuate_signal.emit(state)
+
 
 class Device(Node):
     ''' Device nodes represent apparatus which can control the state of Input
@@ -374,8 +393,8 @@ class Control(Node):
             self.actuating = 0
             if save:
                 self.save(tag='actuate')
-            if hasattr(self, 'window'):
-                self.window.update_state(self.name)
+            # if hasattr(self, 'window'):
+            #     self.window.update_state(self.name)
         else:
             log.warn('Actuate blocked by already running actuation.')
 
