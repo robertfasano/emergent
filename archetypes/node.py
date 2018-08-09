@@ -172,10 +172,12 @@ class Device(Node):
             new_sequence.append([delay, new])
             for name in self.state.keys():
                 full_name = self.name + '.' + name
-                del self.parent.master_sequence[i][1][full_name]
+                if self.children[name].sequenced:
+                    del self.parent.master_sequence[i][1][full_name]
             for name in new_state.keys():
                 full_name = self.name + '.' + name
-                self.parent.master_sequence[i][1][full_name] = new[name]
+                if self.children[name].sequenced:
+                    self.parent.master_sequence[i][1][full_name] = new[name]
 
         ''' Change representation in parent control node '''
         for key in self.state.keys():
