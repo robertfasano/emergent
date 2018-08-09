@@ -11,7 +11,7 @@ from PyQt5.QtCore import *
 import json
 from archetypes.optimizer import Optimizer
 from gui.elements.optimizer import OptimizerLayout
-from archetypes.node import Control, Device, Input
+from archetypes.node import Control, Device, Input, ActuateSignal
 import functools
 
 class MyTreeWidget(QTreeWidget):
@@ -24,15 +24,17 @@ class MyTreeWidget(QTreeWidget):
             self.parent.update_editor()
 
 class MyTreeWidgetItem(QTreeWidgetItem):
-    def __init__(self, name, node, level):
+    def __init__(self, name, node, level, app):
         super().__init__(name)
         self.node = node
         self.level = level
         self.node.leaf = self
         self.root = self.get_root()
-
+        self.app = app
         if self.node.node_type == 'device':
             self.inputs = 'secondary'
+        elif self.node.node_type == 'input':
+            self.node.actuate_signal.connect(self.onActuateSignal)
 
     def __repr__(self):
         try:
@@ -47,6 +49,10 @@ class MyTreeWidgetItem(QTreeWidgetItem):
                 root = root.parent
             except AttributeError:
                 return root
+
+    def onActuateSignal(self, state):
+        self.setText(1, str(state))
+        self.app.processEvents()
 
 class TreeLayout(QHBoxLayout):
     def __init__(self, tree, controls, window):
@@ -79,7 +85,7 @@ class TreeLayout(QHBoxLayout):
         root_labels = list(self.tree.keys())
         roots = []
         for r in root_labels:
-            roots.append(MyTreeWidgetItem([r, ''], self.controls[r], 0))
+            roots.append(MyTreeWidgetItem([r, ''], self.controls[r], 0, self.window.app))
         self.treeWidget.insertTopLevelItems(0, roots)
 
         for i in range(len(root_labels)):
@@ -119,7 +125,7 @@ class TreeLayout(QHBoxLayout):
         for child in sorted(children):
             object = parent.node.children[child]
 
-            child_item = MyTreeWidgetItem([child], object, level)
+            child_item = MyTreeWidgetItem([child], object, level, self.window.app)
             parent.addChild(child_item)
 
             if isinstance(children, dict):
