@@ -14,14 +14,20 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument("path")
-parser.add_argument("-v", "--verbose", help="increase output verbosity",
-                    action="store_true")
-
+parser.add_argument("-v", "--verbose", help="Increase output verbosity", action="store_true")
+parser.add_argument("-s", "--simulation", help="Start the network in simulation mode", action = "store_true")
 args = parser.parse_args()
 if args.verbose:
     log.basicConfig(level=log.DEBUG)
 else:
     log.basicConfig(level=log.INFO)
+
+if args.simulation:
+    log.warn('Starting %s network in simulation mode.'%args.path)
+else:
+    log.info('Starting %s network.'%args.path)
+global simulation
+simulation = args.simulation
 
 ''' Import network '''
 from network import *
@@ -38,6 +44,10 @@ for control in controls:
         tree[control.name][device.name] = []
         for input in device.children.values():
             tree[control.name][device.name].append(input.name)
+
+
+
+
 controls_dict = {}
 for c in controls:
     controls_dict[c.name] = c
