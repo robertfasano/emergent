@@ -47,7 +47,7 @@ class Node():
     def __getattribute__(self, name):
         returned = object.__getattribute__(self, name)
         if inspect.isfunction(returned) or inspect.ismethod(returned):
-            logging.debug('called %s', returned.__name__)
+            log.debug('called %s', returned.__name__)
         return returned
 
 class Input(Node):
