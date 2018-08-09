@@ -89,6 +89,7 @@ class Input(Node):
         self.full_name = self.parent.name+'.'+self.name
         self.min = None
         self.max = None
+        self.sequenced = 0
         self.node_type = 'input'
         self.actuate_signal = ActuateSignal()
 
