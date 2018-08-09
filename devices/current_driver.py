@@ -158,6 +158,7 @@ class CurrentDriver(Device):
             set the result to zero.'''
         try:
             res = newton(func=self.B, args=(I1,I2), x0=0)
+            log.warn('CurrentDriver zero could not be calculated.')
         except RuntimeError:
             res = 0
         z0 = res
