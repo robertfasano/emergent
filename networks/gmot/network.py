@@ -12,13 +12,13 @@ devid = '470016934'
 labjack_cooling = LabJack(devid=devid)
 autoAlign_cooling = AutoAlign(name='autoAlign_cooling', labjack=labjack_cooling, path='networks/%s'%sys.argv[1])
 mems_cooling = PicoAmp('mems_cooling', labjack_cooling, parent=autoAlign_cooling)
-servo_cooling = IntensityServo('servo_cooling', labjack_cooling, 0, 1, parent = autoAlign_cooling)
+servo_cooling = IntensityServo('servo_cooling', labjack_cooling, 1, 0, parent = autoAlign_cooling)
 
 devid = '470016970'
 labjack_slowing = LabJack(devid=devid)
 autoAlign_slowing = AutoAlign(name='autoAlign_slowing', labjack=labjack_slowing, path='networks/%s'%sys.argv[1])
 mems_slowing = PicoAmp('mems_slowing', labjack_slowing, parent=autoAlign_slowing)
-servo_slowing = IntensityServo('servo_slowing', labjack_slowing, 0, 1, parent = autoAlign_slowing)
+servo_slowing = IntensityServo('servo_slowing', labjack_slowing, 1, 0, parent = autoAlign_slowing)
 
 
 ''' Define MOT control hub '''
