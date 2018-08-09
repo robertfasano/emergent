@@ -106,18 +106,6 @@ class CurrentDriver(Device):
              log.error('Failed to connect to coils:', e)
              return 0
 
-    # def _actuate(self, state):
-    #     ''' Set the gradient and zero position of the magnetic field. '''
-    #     try:
-    #         grad = state['grad']
-    #     except KeyError:
-    #         grad = self.state['grad']
-    #     try:
-    #         zero = state['zero']
-    #     except KeyError:
-    #         zero = self.state['zero']
-    #     self.set_field(grad, zero)
-
     def _actuate(self, state):
         ''' Set the current of each coil.
 
@@ -127,8 +115,6 @@ class CurrentDriver(Device):
         for key in state.keys():
             coil = int(key[1])
             self.set_current(coil, state[key])
-
-
 
     def set_current(self, coil, current):
         ''' Sets the current of the targeted coil based on the IV calibration.
