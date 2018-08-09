@@ -5,6 +5,7 @@ from archetypes.optimizer import Optimizer
 from archetypes.parallel import ProcessHandler
 import inspect
 import json
+import logging as log
 
 class OptimizerLayout(QVBoxLayout, ProcessHandler):
     def __init__(self, parent):
@@ -72,10 +73,10 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         cost = getattr(control, self.cost_box.currentText())
         state = self.parent.treeLayout.get_selected_state()
         if state == {}:
-            print('Please select at least one Input node for optimization.')
+            log.warn('Please select at least one Input node for optimization.')
         else:
             points, cost = func(state, cost, params, self.update_progress_bar)
-            print('Optimization complete!')
+            log.info('Optimization complete!')
             self.parent.treeLayout.update_state(control.name)
 
     def update_algorithm(self):

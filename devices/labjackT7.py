@@ -8,6 +8,7 @@ from scipy.stats import linregress
 import time
 from threading import Thread
 from archetypes.parallel import ProcessHandler
+import logging as log
 
 class LabJack(ProcessHandler):
     ''' Python interface for the LabJack T7. '''
@@ -34,16 +35,16 @@ class LabJack(ProcessHandler):
             self.handle = ljm.openS(self.device, self.connection, self.devid)
             self._command('AIN_ALL_RANGE', self.arange)
             info = ljm.getHandleInfo(self.handle)
-            print('Connected to LabJack (%i).'%(info[2]))
+            log.info('Connected to LabJack (%i).'%(info[2]))
             self.clock = 80e6       # internal clock frequency
             deviceType = info[0]
             return 1
             if deviceType != ljm.constants.dtT7:
-                print('Only the LabJack T7 is supported.')
+                log.error('Only the LabJack T7 is supported.')
                 return 0
 
         except:
-            print('Failed to connect to LabJack (%s).'%self.devid)
+            log.error('Failed to connect to LabJack (%s).'%self.devid)
 
     def _command(self, register, value):
         ''' Writes a value to a specified register.
@@ -113,7 +114,7 @@ class LabJack(ProcessHandler):
             self._command("DIO%i_EF_CONFIG_A"%channel, config_a); 	# Configure duty cycle
             self._command("DIO%i_EF_ENABLE"%channel, 1); 	# Enable the EF system, PWM wave is now being outputted
         except Exception as e:
-            print(e)
+            log.warn(e)
 
     ''' SPI methods '''
     def spi_initialize(self, mode = 3, CLK=0, CS=1,MOSI=2, MISO=3):  #, CS, CLK, MISO, MOSI):
@@ -188,7 +189,7 @@ class LabJack(ProcessHandler):
 
         aScanList = [4800]
         scanRate = ljm.eStreamStart(self.handle, 1,1, aScanList, scanRate)
-        print("\nStream started with a scan rate of %0.0f Hz." % scanRate)
+        log.info("\nStream started with a scan rate of %0.0f Hz." % scanRate)
 
     def sequence2stream(self, sequence, period, channels = 1):
         ''' Converts a sequence to a stream. The LabJack has two limitations:

@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import json
-
+import logging as log 
 
 class Historian():
     ''' The Historian class attaches to a Control node to provide a history of
@@ -51,6 +51,6 @@ class Historian():
                     if tag not in l.split('\t')[2]:
                         new_lines.append(l)
                 except IndexError:
-                    print('WARNING: wrong format detected in file:', l)
+                    log.warn('Wrong format detected in file:', l)
             with open(p, 'w') as file:
                 file.writelines(new_lines)

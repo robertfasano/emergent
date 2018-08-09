@@ -3,10 +3,12 @@ import os
 import weakref
 import pathlib
 import time
+import inspect
 from archetypes.sequencer import Sequencer
 from archetypes.historian import Historian
 from archetypes.optimizer import Optimizer
 from utility import methodsWithDecorator
+import logging as log
 
 class Node():
     ''' The Node class is the core building block of the EMERGENT network,
@@ -41,6 +43,12 @@ class Node():
         ''' Register self with parent node. '''
         self.parent = parent
         parent.children[self.name] = self
+
+    def __getattribute__(self, name):
+        returned = object.__getattribute__(self, name)
+        if inspect.isfunction(returned) or inspect.ismethod(returned):
+            logging.debug('called %s', returned.__name__)
+        return returned
 
 class Input(Node):
     ''' Input nodes represent physical variables which may affect the outcome of
@@ -369,7 +377,7 @@ class Control(Node):
             if hasattr(self, 'window'):
                 self.window.update_state(self.name)
         else:
-            print('Actuate blocked by already running actuation.')
+            log.warn('Actuate blocked by already running actuation.')
 
     def save(self, tag = ''):
         """Aggregates the self.state, self.settings, self.cycle_time, and self.sequence variables into a single dict and saves to file.
@@ -421,7 +429,7 @@ class Control(Node):
                 state = json.loads(file.readlines()[-1].split('\t')[1])
         except FileNotFoundError:
             state = {}
-            print('State file not found for Control node %s, creating one now.'%self.name)
+            log.warn('State file not found for Control node %s, creating one now.'%self.name)
 
         ''' Load variables into control '''
         try:
@@ -434,7 +442,7 @@ class Control(Node):
             self.state[full_name] = 0
             self.sequence[full_name] = [[0,0]]
             self.cycle_time = 0
-            print('Could not retrieve settings for input %s; creating new settings.'%full_name)
+            log.warn('Could not retrieve settings for input %s; creating new settings.'%full_name)
 
         ''' Update sequence of inputs '''
         self.inputs[full_name].sequence = self.sequence[full_name]
@@ -463,7 +471,6 @@ class Control(Node):
 
     def onLoad(self):
         """Tasks to be carried out after all Devices and Inputs are initialized."""
-        print('Post-load state:',self.state)
         self.actuate(self.state)
         for device in self.children.values():
             device.loaded = 1

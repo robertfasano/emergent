@@ -8,6 +8,7 @@ from scipy.optimize import newton
 import matplotlib.pyplot as plt
 plt.ion()
 import time
+import logging as log
 
 #Constants
 MU0 = 4*np.pi*1e-7
@@ -102,7 +103,7 @@ class CurrentDriver(Device):
              self.calibrate(2)
              return 1
         except Exception as e:
-             print('Failed to connect to coils:', e)
+             log.error('Failed to connect to coils:', e)
              return 0
 
     # def _actuate(self, state):

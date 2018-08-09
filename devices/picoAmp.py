@@ -7,6 +7,7 @@ import os
 char = {'nt': '\\', 'posix': '/'}[os.name]
 sys.path.append(char.join(os.getcwd().split(char)[0:-1]))
 from utility import dev
+import logging as log
 
 @dev
 class PicoAmp(Device):
@@ -28,7 +29,7 @@ class PicoAmp(Device):
             self.labjack.spi_initialize(mode=0, CLK = 0, CS = 1, MISO = 3, MOSI = 2)
             self._initialize()
         else:
-            print('Error: could not initialize PicoAmp - LabJack not connected!')
+            log.error('Error: could not initialize PicoAmp - LabJack not connected!')
 
     def _initialize(self):
         ''' Initializes the DAC and sets the bias voltage on all four channels to 80 V. '''
