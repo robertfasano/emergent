@@ -5,6 +5,10 @@ class MOT(Control):
         super().__init__(name, parent = parent, path=path)
         self.labjack = labjack
 
+        ''' Power PMT '''
+        self.labjack.AOut(3,-5, HV=True)
+        self.labjack.AOut(2,5, HV=True)
+
     def stream(self, period = 1, amplitude = 0.1):
         key='coils.I1'
         self.cycle_time = period
