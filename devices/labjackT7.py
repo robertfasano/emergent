@@ -149,7 +149,7 @@ class LabJack(ProcessHandler):
         self._command("SPI_GO", 1)  # Do the SPI communications
 
     ''' Streaming methods '''
-    def prepare_streambust(self, channel):
+    def prepare_streamburst(self, channel):
         self.aScanList = ljm.namesToAddresses(1, ['AIN%i'%channel])[0]  # Scan list addresses for streamBurst
         self._command("STREAM_TRIGGER_INDEX", 0) # disable triggered stream
         self._command("STREAM_CLOCK_SOURCE", 0)  # enable internal clock
@@ -177,7 +177,7 @@ class LabJack(ProcessHandler):
         if operation is None:
             return aData
         else:
-            return getattr(np, operation)(adata)
+            return getattr(np, operation)(aData)
 
     def stream_out(self, channel, data, scanRate, loop = False):
         ''' Streams data at 100 kS/s.
