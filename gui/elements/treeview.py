@@ -251,5 +251,10 @@ class TreeLayout(QHBoxLayout):
                 hide_secondary_inputs_action = QAction('Show %s inputs'%other_input_type, self)
                 hide_secondary_inputs_action.triggered.connect(functools.partial(self.toggle_inputs,self.treeWidget.currentItem()))
                 menu.addAction(hide_secondary_inputs_action)
-
+            for option in item.node.options:
+                action = QAction(option)
+                func = item.node.options[option]
+                action.triggered.connect(func)
+                menu.addAction(action)
+                
         selectedItem = menu.exec_(globalPos)
