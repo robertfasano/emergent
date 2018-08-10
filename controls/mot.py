@@ -20,9 +20,9 @@ class MOT(Control):
 
         self.actuate({'coils.grad':0, 'coils.zero':0})
         time.sleep(0.1)
-        low = self.labjack.streamburst(scanRate=10000, numScans=2500, operation = 'mean')
+        low = self.labjack.streamburst(duration=0.1, operation = 'mean')
         self.actuate(state)
         time.sleep(0.1)
-        high = self.labjack.streamburst(scanRate=10000, numScans=2500, operation = 'mean')
+        high = self.labjack.streamburst(duration=0.1, operation = 'mean')
 
         return high-low

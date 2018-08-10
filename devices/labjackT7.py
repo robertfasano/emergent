@@ -159,10 +159,20 @@ class LabJack(ProcessHandler):
         numFrames = len(aNames)
         ljm.eWriteNames(self.handle, numFrames, aNames, aValues)
 
-    def streamburst(self, scanRate, numScans, operation = None):
+        self._command('STREAM_BUFFER_SIZE_BYTES', 2**14)
+
+    def streamburst(self, duration, operation = None):
         ''' Performs a burst stream and optionally performs a numpy array operation
-            on the result. '''
-        scanRate, aData = ljm.streamBurst(self.handle, 1, self.aScanList, scanRate, numScans)
+            on the result.
+
+            Args:
+                duration (float): number of seconds to stream. Scan rate will be
+                automatically adjusted to avoid overfilling the buffer.
+
+                '''
+        max_samples = 2**13-1
+        scanRate = np.min([max_samples / duration, 100e3])
+        scanRate, aData = ljm.streamBurst(self.handle, 1, self.aScanList, scanRate, max_samples)
 
         if operation is None:
             return aData
