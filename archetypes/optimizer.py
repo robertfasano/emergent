@@ -202,6 +202,7 @@ class Optimizer():
                 unnorm[i] = s_unnorm
         return unnorm
 
+
     ''' Sampling methods '''
     def sample(self, state, cost, method='random_sampling', points = 1, bounds = None):
         ''' Returns a list of points sampled with the specified method, as well as
@@ -285,11 +286,16 @@ class Optimizer():
         else:
             ''' Generate search grid '''
             points, costs = self.grid_sampling(state, cost, params['steps'], update=update)
-
         ''' Plot result if desired '''
         ax = None
         if params['plot'] and len(state) is 2:
-            ax = self.plot_2D(points, costs)
+            names = list(state.keys())
+            limits = {}
+            for name in names:
+                limits[name] = {}
+                limits[name]['min'] = self.parent.settings[name]['min']
+                limits[name]['max'] = self.parent.settings[name]['max']
+            ax = self.plot_2D(points, costs, limits = limits)
         best_point = self.array2dict(points[np.argmin(costs)], state)
         self.actuate(self.unnormalize(best_point))
 
@@ -436,18 +442,29 @@ class Optimizer():
 
 
     ''' Visualization methods '''
-    def plot_2D(self, points, costs):
+    def plot_2D(self, points, costs, normalized_cost = False, limits = None):
         ''' Interpolates and plots a cost function sampled at an array of points. '''
         plt.figure()
+        points = points.copy()
         ordinate_index = 0
         abscissa_index = 1
+        if limits is not None:
+            names = list(limits.keys())
+            for i in [0,1]:
+                points[:,i] = limits[names[i]]['min'] + points[:,i]*(limits[names[i]]['max']-limits[names[i]]['min'])
         ordinate_mesh, abscissa_mesh = np.meshgrid(points[:,ordinate_index], points[:, abscissa_index])
         normalized_costs = -1*(costs - np.min(costs))/(np.max(costs)-np.min(costs)) + 1
-        cost_grid = griddata(points[:,[ordinate_index, abscissa_index]], normalized_costs, (ordinate_mesh,abscissa_mesh))
+        if normalized_cost:
+            cost_grid = griddata(points[:,[ordinate_index, abscissa_index]], normalized_costs, (ordinate_mesh,abscissa_mesh))
+        else:
+            cost_grid = griddata(points[:,[ordinate_index, abscissa_index]], costs, (ordinate_mesh,abscissa_mesh))
         plot = plt.pcolormesh(ordinate_mesh, abscissa_mesh, cost_grid, cmap='gist_rainbow')
         plt.colorbar(plot)
-        plt.savefig('driftmesh' + str(time.time()) + '.png')
+        # plt.savefig('driftmesh' + str(time.time()) + '.png')
         ax = plt.gca()
+        if limits is not None:
+            plt.xlabel(names[0])
+            plt.ylabel(names[1])
 
         return ax
 
