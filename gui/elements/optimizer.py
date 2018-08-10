@@ -46,6 +46,7 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         self.algorithm_box.clear()
         for item in control.optimizer.list_algorithms():
             self.algorithm_box.addItem(item)
+        self.cost_box.clear()
         for item in control.list_costs():
             self.cost_box.addItem(item)
         self.update_algorithm()
