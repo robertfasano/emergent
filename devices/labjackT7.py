@@ -149,6 +149,26 @@ class LabJack(ProcessHandler):
         self._command("SPI_GO", 1)  # Do the SPI communications
 
     ''' Streaming methods '''
+    def prepare_streambust(self, channel):
+        self.aScanList = ljm.namesToAddresses(1, ['AIN%i'%channel])[0]  # Scan list addresses for streamBurst
+        self._command("STREAM_TRIGGER_INDEX", 0) # disable triggered stream
+        self._command("STREAM_CLOCK_SOURCE", 0)  # enable internal clock
+        aNames = ["AIN_ALL_NEGATIVE_CH", "AIN0_RANGE", "AIN1_RANGE",
+                  "STREAM_SETTLING_US", "STREAM_RESOLUTION_INDEX"]
+        aValues = [ljm.constants.GND, 10.0, 10.0, 0, 0]
+        numFrames = len(aNames)
+        ljm.eWriteNames(self.handle, numFrames, aNames, aValues)
+
+    def streamburst(self, scanRate, numScans, operation = None):
+        ''' Performs a burst stream and optionally performs a numpy array operation
+            on the result. '''
+        scanRate, aData = ljm.streamBurst(self.handle, 1, self.aScanList, scanRate, numScans)
+
+        if operation is None:
+            return aData
+        else:
+            return getattr(np, operation)(adata)
+
     def stream_out(self, channel, data, scanRate, loop = False):
         ''' Streams data at 100 kS/s.
 
