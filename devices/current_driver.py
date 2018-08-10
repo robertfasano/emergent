@@ -3,6 +3,7 @@ import numpy as np
 sys.path.append('O:/Public/Yb clock')
 from devices.genesys import Genesys
 from archetypes.node import Device
+from archetypes.parallel import ProcessHandler
 from scipy.stats import linregress
 from scipy.optimize import newton
 import matplotlib.pyplot as plt
@@ -19,7 +20,7 @@ R2 = 0.083645
 Z2 = 0.037488
 N2 = 48.869121
 
-class CurrentDriver(Device):
+class CurrentDriver(Device, ProcessHandler):
     ''' Current driver for quadrupole coils using two TDK Genesys programmable
         power supplies and a bespoke current servo board. '''
 
@@ -33,7 +34,8 @@ class CurrentDriver(Device):
                 parent (str): Name of the parent Control node.
                 labjack (archetypes.labjackT7.LabJack): LabJack instance to use.
         '''
-        super().__init__(name=name, parent = parent)
+        Device.__init__(name=name, parent = parent)
+        ProcessHandler.__init__()
         self.port1 = port1
         self.port2 = port2
         self.labjack = labjack
@@ -90,18 +92,35 @@ class CurrentDriver(Device):
         current = self.labjack.AIn(i) * self.probe_coefficient #make sure monitor probes plugged in
         return current
 
-    def _connect(self):
-        ''' Connect to and initialize the power supplies, then run IV calibration for each coil. '''
-        try:
-             self.psu1 = Genesys(name='psu1', port = self.port1)
-             self.psu2 = Genesys(name='psu2', port = self.port2)
-             for psu in [self.psu1, self.psu2]:
-                 psu.set_current(80)
-                 psu.set_voltage(6)
+    def _connect_to_psu(self, coil):
+        ''' Connects to the Genesys power supply for coil 1 or 2. '''
+        psu = Genesys(name='psu%i'%coil, port = getattr(self, 'port%i'%coil))
+        setattr(self, 'psu%i'%coil, psu)
+        psu.set_current(80)
+        psu.set_voltage(6)
+        self.calibrate(coil)
 
-             self.calibrate(1)
-             self.calibrate(2)
-             return 1
+    # def _connect(self):
+    #     ''' Connect to and initialize the power supplies, then run IV calibration for each coil. '''
+    #     try:
+    #          self.psu1 = Genesys(name='psu1', port = self.port1)
+    #          self.psu2 = Genesys(name='psu2', port = self.port2)
+    #          for psu in [self.psu1, self.psu2]:
+    #              psu.set_current(80)
+    #              psu.set_voltage(6)
+    #
+    #          self.calibrate(1)
+    #          self.calibrate(2)
+    #          return 1
+    #     except Exception as e:
+    #          log.error('Failed to connect to coils:', e)
+    #          return 0
+
+    def __connect(self):
+        try:
+            for coil in [1,2]:
+                self._run_thread(target=self._connect_to_psu, args=(coil,), stoppable = False)
+            return 1
         except Exception as e:
              log.error('Failed to connect to coils:', e)
              return 0
