@@ -34,8 +34,8 @@ class CurrentDriver(Device, ProcessHandler):
                 parent (str): Name of the parent Control node.
                 labjack (archetypes.labjackT7.LabJack): LabJack instance to use.
         '''
-        Device.__init__(name=name, parent = parent)
-        ProcessHandler.__init__()
+        Device.__init__(self, name=name, parent = parent)
+        ProcessHandler.__init__(self)
         self.port1 = port1
         self.port2 = port2
         self.labjack = labjack
@@ -116,10 +116,12 @@ class CurrentDriver(Device, ProcessHandler):
     #          log.error('Failed to connect to coils:', e)
     #          return 0
 
-    def __connect(self):
+    def _connect(self):
         try:
             for coil in [1,2]:
-                self._run_thread(target=self._connect_to_psu, args=(coil,), stoppable = False)
+                # self._run_thread(target=self._connect_to_psu, args=(coil,), stoppable = False)
+                self._connect_to_psu(coil)
+
             return 1
         except Exception as e:
              log.error('Failed to connect to coils:', e)
