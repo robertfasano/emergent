@@ -43,6 +43,7 @@ class Node():
         if parent is not None:
             self.register(parent)
         self.root = self.get_root()
+        self.options = {}
 
     def get_root(self):
         ''' Returns the root Control node of any branch. '''
