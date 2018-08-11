@@ -12,8 +12,7 @@ class IntensityServo(Device):
         self.lock(0)
 
         ''' Option to switch gain on/off '''
-        other_state = {1:'off', 0:'on'}[self.integrator]
-        func_description = 'Turn integrator %s'%other_state
+        func_description = 'Toggle integrator'
         func = functools.partial(self.lock, 1-self.integrator)
 
         self.options = {func_description:func}
@@ -36,3 +35,11 @@ class IntensityServo(Device):
         '''
         self.integrator = state
         self.labjack.AOut(self.lock_channel, (1-state)*3.3)
+
+    def autolock(self, frac = 0.9):
+        ''' Locks the servo to the specified fraction of the unlocked power. '''
+        self.lock(0)
+        time.sleep(1)
+        unlocked_power = self.labjack.AIn(0)
+        self._actuate({'V':frac*unlocked_power})
+        self.lock(1)
