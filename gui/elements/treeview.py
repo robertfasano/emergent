@@ -11,7 +11,7 @@ from PyQt5.QtCore import *
 import json
 from archetypes.optimizer import Optimizer
 from gui.elements.optimizer import OptimizerLayout
-from archetypes.node import Control, Device, Input, ActuateSignal
+from archetypes.node import Control, Device, Input, ActuateSignal, SettingsSignal
 import functools
 
 class NodeTree(QTreeWidget):
@@ -25,8 +25,8 @@ class NodeTree(QTreeWidget):
         self.last_item = None
 
         self.setSelectionMode(QAbstractItemView.MultiSelection)
-        self.setColumnCount(2)
-        self.setHeaderLabels(["Node", "Value"])
+        self.setColumnCount(4)
+        self.setHeaderLabels(["Node", "Value", "Min", "Max"])
         self.header().resizeSection(1,60)
         self.customContextMenuRequested.connect(self.openMenu)
         self.setContextMenuPolicy(Qt.CustomContextMenu)
@@ -57,6 +57,10 @@ class NodeTree(QTreeWidget):
             if item.node.node_type == 'device':
                 self.toggle_inputs(item)
 
+        self.setColumnWidth(0,125)
+        for i in [1,2,3]:
+            self.setColumnWidth(i,50)
+
     def _generateTree(self, children, parent, level = 1):
         ''' Recursively add nodes to build the full network. '''
         for child in sorted(children):
@@ -71,11 +75,12 @@ class NodeTree(QTreeWidget):
     def close_editor(self):
         ''' Disable editing after the user clicks another node. '''
         try:
+            col = self.currentIndex().column()
             self.last_item = self.current_item
             self.current_item = self.currentItem()
             if self.editorOpen:
-                self.last_item.setText(1,self.currentValue)
-            self.closePersistentEditor(self.last_item, 1)
+                self.last_item.setText(col,self.currentValue)
+            self.closePersistentEditor(self.last_item, col)
             self.editorOpen = 0
         except AttributeError:
             pass
@@ -92,7 +97,6 @@ class NodeTree(QTreeWidget):
         items = self.get_all_items()
         items = [x for x in items if x.level==layer]
         for item in items:
-            print('expanding', item)
             item.setExpanded(True)
 
     def get_all_items(self):
@@ -131,17 +135,28 @@ class NodeTree(QTreeWidget):
     def update_editor(self):
         ''' Send actuate command and disable editing after the user presses return or clicks another node. '''
         try:
+            col = self.currentIndex().column()
             self.last_item = self.current_item
             self.current_item = self.currentItem()
-            self.closePersistentEditor(self.last_item, 1)
+            self.closePersistentEditor(self.last_item, col)
             self.editorOpen = 0
             input = self.last_item.text(0)
             device = self.last_item.parent().text(0)
             key = device + '.' + input
-            value = self.current_item.text(1)
-            state = {key: float(value)}
-            control = self.current_item.parent().parent().text(0)
-            self.controls[control].actuate(state)
+            value = self.current_item.text(col)
+
+            control_name = self.current_item.parent().parent().text(0)
+            control = self.controls[control_name]
+
+            if col == 1:
+                state = {key: float(value)}
+                control.actuate(state)
+
+            elif col == 2:
+                control.settings[self.current_item.node.full_name]['min'] = float(value)
+            elif col == 3:
+                control.settings[self.current_item.node.full_name]['max'] = float(value)
+
         except AttributeError:
             pass
 
@@ -154,7 +169,7 @@ class NodeTree(QTreeWidget):
         self.current_item = self.currentItem()
         self.currentValue = self.current_item.text(1)
         col = self.currentIndex().column()
-        if col == 1:
+        if col > 0:
             self.openPersistentEditor(self.currentItem(), col)
             self.editorOpen = 1
 
@@ -205,6 +220,11 @@ class NodeWidget(QTreeWidgetItem):
             self.inputs = 'secondary'
         elif self.node.node_type == 'input':
             self.node.actuate_signal.connect(self.onActuateSignal)
+            self.node.settings_signal.connect(self.onSettingsSignal)
+
+            if self.node.type == 'primary':
+                self.setText(2, str(self.root.settings[self.node.full_name]['min']))
+                self.setText(3,str(self.root.settings[self.node.full_name]['max']))
 
     def __repr__(self):
         try:
@@ -222,3 +242,7 @@ class NodeWidget(QTreeWidgetItem):
 
     def onActuateSignal(self, state):
         self.setText(1, str('%.1f'%state))
+
+    def onSettingsSignal(self, d):
+        self.setText(2, str('%.1f'%float(d['min'])))
+        self.setText(3, str('%.1f'%float(d['max'])))

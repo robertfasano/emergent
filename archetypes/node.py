@@ -24,6 +24,18 @@ class ActuateSignal(QObject):
     def emit(self, state):
         self.signal.emit(state)
 
+class SettingsSignal(QObject):
+    signal = pyqtSignal(dict)
+
+    def __init__(self):
+        super().__init__()
+
+    def connect(self, func):
+        self.signal.connect(func)
+
+    def emit(self, sequence):
+        self.signal.emit(sequence)
+
 class Node():
     ''' The Node class is the core building block of the EMERGENT network,
     providing useful organizational methods which are passed on to the Input,
@@ -75,7 +87,8 @@ class Input(Node):
         nodes. '''
 
     def __init__(self, name, parent, type='primary', speed = 'slow'):
-        """Initializes an Input node.
+        """Initializes an Input node, which is never directly used but instead
+            offers a useful internal representation of a state.
 
         Args:
             name (str): node name. Nodes which share a Device should have unique names.
@@ -93,6 +106,27 @@ class Input(Node):
         self.sequenced = 0
         self.node_type = 'input'
         self.actuate_signal = ActuateSignal()
+        self.settings_signal = SettingsSignal()
+
+    def set_settings(self, d):
+        if 'max' in d:
+            self.max = d['max']
+        if 'min' in d:
+            self.min = d['min']
+        self.parent.parent.settings[self.full_name] = d
+        self.settings_signal.emit({'min':self.min, 'max':self.max})
+
+    def set_sequence(self, sequence):
+        ''' Sets the sequence of an Input and pushes changes upstream.
+
+            Args:
+                sequence (list): a list of lists, each containing a time and a value.
+        '''
+        self.sequence = sequence
+        self.sequenced = 1      # enable sequenced output
+        self.parent.parent.sequence[self.full_name] = sequence
+        self.parent.parent.sequencer.prepare_sequence()
+        self.sequence_signal.emit(self.parent.parent.master_sequence)
 
 class Device(Node):
     ''' Device nodes represent apparatus which can control the state of Input
@@ -170,6 +204,25 @@ class Device(Node):
             self.parent.state[full_name] = new_state[key]
             self.children[key].state = new_state[key]
 
+        ''' Convert settings '''
+        min = {}
+        max = {}
+        for key in self.state.keys():
+            full_name = self.name + '.' + key
+            min[key] = self.parent.settings[full_name]['min']
+            max[key] = self.parent.settings[full_name]['max']
+        if type is 'primary':
+            min_new = self.secondary_to_primary(min)
+            max_new = self.secondary_to_primary(max)
+        else:
+            min_new = self.primary_to_secondary(min)
+            max_new = self.primary_to_secondary(max)
+        for key in min_new:
+            self.children[key].set_settings({'min':min_new[key],'max':max_new[key]})
+        for key in self.state.keys():
+            full_name = self.name + '.' + key
+            del self.parent.settings[full_name]
+
         ''' Update self '''
         self.state = new_state
         self.input_type = type
@@ -179,7 +232,6 @@ class Device(Node):
             full_name = self.name + '.' + name
             seq = self.parent.sequencer.master_to_subsequence(full_name)
             self.parent.inputs[full_name].sequence = seq
-
 
     def add_input(self, name, type='primary'):
         ''' Attaches an Input node with the specified name. This should correspond
@@ -228,7 +280,6 @@ class Device(Node):
         Note:
             If a mixed state is passed in (with both primary and secondary components),
             only the primary components will be used.
-
 
         Args:
             state (dict): Target state of the form {'param1':value1, 'param2':value2,...}.
@@ -308,14 +359,13 @@ class Device(Node):
 
         Args:
             state (dict): New state, e.g. {'param1':value1, 'param2':value2}.
-
         """
-        for key in state.keys():
-            self.state[key] = state[key]    # update Device
-            self.children[key].state = state[key]   # update Input
-            parent_key = self.name+'.'+key
-            self.parent.state[parent_key] = state[key]   # update Control
-            self.children[key].actuate_signal.emit(state[key])
+        for input_name in state:
+            self.state[input_name] = state[input_name]    # update Device
+            input = self.children[input_name]
+            input.state = state[input_name]   # update Input
+            self.parent.state[input.full_name] = state[input_name]   # update Control
+            input.actuate_signal.emit(state[input_name])   # emit Qt signal
 
 class Control(Node):
     ''' The Control node oversees connected Devices, allowing the Inputs to be
@@ -384,7 +434,6 @@ class Control(Node):
                 state = dev_states[dev_name]
                 dev.actuate(state)
 
-
             self.actuating = 0
             if save:
                 self.save(tag='actuate')
@@ -446,6 +495,7 @@ class Control(Node):
         ''' Load variables into control '''
         try:
             self.settings[full_name] = state[full_name]['settings']
+            self.inputs[full_name].set_settings(state[full_name]['settings'])
             self.state[full_name] = state[full_name]['state']
             self.sequence[full_name] = state[full_name]['sequence']
             self.cycle_time = state['cycle_time']
