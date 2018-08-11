@@ -87,10 +87,31 @@ input such as ``'deviceA.X'`` which label both the device and the state.
 #. ``Device.actuate()`` first calls ``Device._actuate()``, which is a private  function implemented for each separate device; this function changes the physical  state (e.g. by setting a voltage to a certain value) but does not change the virtual state.
 #. Next, ``Device.actuate()`` calls ``Device.update()``, which simultaneously updates the state of the Input, Device, and Control nodes.
 
-Virtual inputs
----------------
-An important note must be made here about real inputs (settable quantities in the
-lab) vs. virtual inputs, which are functions of real inputs. For example, the
+Primary and secondary inputs
+-----------------------------
+A useful feature is the ability to represent a Device state in terms of multiple
+sets of inputs. Perhaps you have an apparatus which converts a voltage setpoint into
+a current; in this case, it is convenient to be able to choose either the voltage
+or the current and have the other quantity update automatically. We refer to the
+voltage as a primary input and the current as a secondary input; secondary
+input nodes can be created by passing the keyword argument ``type='virtual'``
+into the constructor.
+
+Currently only one set of secondary inputs can be constructed. The secondary inputs
+are related to the primary inputs by a pair of methods ``primary_to_secondary`` and
+``secondary`` which must be implemented in the Device driver class. Only
+one set of inputs can be active at once, and can be chosen by calling
+``Device.use_inputs(type)``, where type can be ```primary``` or ```secondary```.
+When this method is called, the current representation will be converted into the
+other representation and the state dicts of the Device and Control nodes will be
+updated accordingly. Note that no actuation is done, since the two states are
+physically identical.
+
+When the Device.actuate() method is called, the current input type of the Device
+is checked.
+
+An important note must be made here about real (primary) inputs (settable quantities in the
+lab) vs. virtual (secondary) inputs, which are functions of real inputs. For example, the
 CurrentDriver() class controls a current servo which takes analog voltages and
 outputs proportional currents into a pair of coils. Although the analog voltages
 are the real inputs, it is experimentally convenient to work with the gradient and
@@ -99,11 +120,7 @@ the real and virtual inputs can be converted to and from each other using known
 calibration data and an analytical model for the magnetic field as a function of
 current.
 
-Another place where virtual inputs are useful is in PCA decomposition of a cost
-function. Often a coupled, many-variable cost function can be decomposed into
-uncoupled substates which can be separately optimized; the eigenvectors of the
-diagonalized covariance matrix constitute virtual inputs which are linear combinations
-of the real inputs.
+
 
 EMERGENT allows actuation in terms of either the virtual or real inputs (as long
 as the two aren't mixed within one call to actuate()). In the case of the
