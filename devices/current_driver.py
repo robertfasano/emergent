@@ -51,6 +51,11 @@ class CurrentDriver(Device, ProcessHandler):
         self.add_input('zero', type='secondary')
         self._connected = self._connect()
 
+        ''' Wave options '''
+        self.options = {'Start wave':self.wave}
+        self.options['Stop wave'] = self.labjack.stream_stop()
+
+
     def calibrate(self, coil, Vmin=1, Vmax=3, steps=100, delay = 1/100, plot = False):
         ''' Measure and fit the IV curve of the FETs.
 
@@ -100,28 +105,11 @@ class CurrentDriver(Device, ProcessHandler):
         psu.set_voltage(6)
         self.calibrate(coil)
 
-    # def _connect(self):
-    #     ''' Connect to and initialize the power supplies, then run IV calibration for each coil. '''
-    #     try:
-    #          self.psu1 = Genesys(name='psu1', port = self.port1)
-    #          self.psu2 = Genesys(name='psu2', port = self.port2)
-    #          for psu in [self.psu1, self.psu2]:
-    #              psu.set_current(80)
-    #              psu.set_voltage(6)
-    #
-    #          self.calibrate(1)
-    #          self.calibrate(2)
-    #          return 1
-    #     except Exception as e:
-    #          log.error('Failed to connect to coils:', e)
-    #          return 0
-
     def _connect(self):
         try:
             for coil in [1,2]:
                 # self._run_thread(target=self._connect_to_psu, args=(coil,), stoppable = False)
                 self._connect_to_psu(coil)
-
             return 1
         except Exception as e:
              log.error('Failed to connect to coils:', e)
@@ -216,29 +204,35 @@ class CurrentDriver(Device, ProcessHandler):
                 gradient (float): Magnetic field gradient at the zero position, in G/cm.
                 z0 (float): offset of the zero position from the center of the coils in mm, along the axis pointing from coil 1 to coil 2.
             '''
-        z0 /= 1000
-        grad /= 100
-        denom = (z0-Z1)*(R2**2+(z0-Z2)*(Z1-Z2))-R1**2*(z0-Z2)
-        alpha = 2/3/MU0 * (R1**2+(z0-Z1)**2)*(R2**2+(z0-Z2)**2)/denom
-        I1 = alpha * (R1**2+(z0-Z1)**2)**(3/2)/N1/R1**2 * grad
-        I2 = alpha * (R2**2+(z0-Z2)**2)**(3/2)/N2/R2**2 * grad
-        self.set_current(1, I1)
-        self.set_current(2, I2)
+        state = self.secondary_to_primary({'grad':grad, 'zero':z0})
+        self.set_current(1, state['I1'])
+        self.set_current(2, state['I2'])
 
-    def wave(self, frequency=1, duty_cycle=.5, reps=50, grad=50, z0=5):
-        """Square pulse the B-field between 0 and a set configuration."""
-        i = 0
-        loop = True
-        while loop:
-            i = i + 1
-            if i == reps:
-                self.set_field(0, z0)
-                loop = False
-                print('done pulsing b-fields')
-            elif i % 2:
-                self.set_field(grad, z0)
-                time.sleep(1/frequency*duty_cycle)
-            else:
-                self.set_current(1, 0)
-                self.set_current(2, 0)
-                time.sleep(1/frequency*(1-duty_cycle))
+    # def wave(self, frequency=1, duty_cycle=.5, reps=50, grad=50, z0=5):
+    #     """Square pulse the B-field between 0 and a set configuration."""
+    #     i = 0
+    #     loop = True
+    #     while loop:
+    #         i = i + 1
+    #         if i == reps:
+    #             self.set_field(0, z0)
+    #             loop = False
+    #             print('done pulsing b-fields')
+    #         elif i % 2:
+    #             self.set_field(grad, z0)
+    #             time.sleep(1/frequency*duty_cycle)
+    #         else:
+    #             self.set_current(1, 0)
+    #             self.set_current(2, 0)
+    #             time.sleep(1/frequency*(1-duty_cycle))
+
+    def wave(self, frequency=1, grad = 50, z0 = 0):
+        state = secondary_to_primary({'grad':grad, 'zero':zero})
+        sequence = {}
+        stream = {}
+        for i in [1,2]:
+            V = (state['I%i'%i]-self.intercept[i])/self.slope[i]
+            seq = [[0,0], [1/frequency/2,V]]
+            stream['I%i'%i], scanRate = self.labjack.sequence2stream(seq, 1/frequency, 2)
+        data = np.array([stream['I1'],stream['I2']]).T
+        self.labjack.stream_out([0,1], data, scanRate, loop = True):
