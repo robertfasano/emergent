@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import json
-import logging as log 
+import logging as log
 
 class Historian():
     ''' The Historian class attaches to a Control node to provide a history of
@@ -9,8 +9,6 @@ class Historian():
     def __init__(self, parent):
         self.parent = parent
         self.state_path = self.parent.state_path + self.parent.name + '.txt'
-        self.settings_path = self.parent.settings_path + self.parent.name + '.txt'
-        self.sequence_path = self.parent.sequence_path + self.parent.name + '.txt'
 
     def load(self):
         ''' Loads all historical state data and returns a dataframe. '''
