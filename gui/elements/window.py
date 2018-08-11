@@ -12,7 +12,7 @@ import json
 from archetypes.optimizer import Optimizer
 from gui.elements.optimizer import OptimizerLayout
 from gui.elements.sequencer import SequencerLayout
-from gui.elements.treeview import TreeLayout
+from gui.elements.treeview import NodeTree
 import os
 import psutil
 
@@ -39,7 +39,9 @@ class MainFrame(QMainWindow):
         self.timer.start(5*1000)
 
         ''' Create QTreeWidget '''
-        self.treeLayout = TreeLayout(tree, controls, self)
+        self.treeLayout = QHBoxLayout()
+        self.treeWidget = NodeTree(tree, controls, self)
+        self.treeLayout.addWidget(self.treeWidget)
         layout.addLayout(self.treeLayout)
 
         ''' Create optimizer layout '''
