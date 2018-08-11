@@ -235,4 +235,4 @@ class CurrentDriver(Device, ProcessHandler):
             seq = [[0,0], [1/frequency/2,V]]
             stream['I%i'%i], scanRate = self.labjack.sequence2stream(seq, 1/frequency, 2)
         data = np.array([stream['I1'],stream['I2']]).T
-        self.labjack.stream_out([0,1], data, scanRate, loop = True):
+        self.labjack.stream_out([0,1], data, scanRate, loop = True)
