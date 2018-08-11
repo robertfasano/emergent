@@ -165,8 +165,8 @@ class CurrentDriver(Device, ProcessHandler):
             set the result to zero.'''
         try:
             res = newton(func=self.B, args=(I1,I2), x0=0)
-            log.warn('CurrentDriver zero could not be calculated.')
         except RuntimeError:
+            log.warn('CurrentDriver zero could not be calculated.')
             res = 0
         z0 = res
         grad = -3*MU0/2 * (I2*N2*R2**2*(z0-Z2)/(R2**2+(z0-Z2)**2)**(5/2)-I1*N1*R1**2*(z0-Z1)/(R1**2+(z0-Z1)**2)**(5/2))
