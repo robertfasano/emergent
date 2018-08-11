@@ -208,24 +208,6 @@ class CurrentDriver(Device, ProcessHandler):
         self.set_current(1, state['I1'])
         self.set_current(2, state['I2'])
 
-    # def wave(self, frequency=1, duty_cycle=.5, reps=50, grad=50, z0=5):
-    #     """Square pulse the B-field between 0 and a set configuration."""
-    #     i = 0
-    #     loop = True
-    #     while loop:
-    #         i = i + 1
-    #         if i == reps:
-    #             self.set_field(0, z0)
-    #             loop = False
-    #             print('done pulsing b-fields')
-    #         elif i % 2:
-    #             self.set_field(grad, z0)
-    #             time.sleep(1/frequency*duty_cycle)
-    #         else:
-    #             self.set_current(1, 0)
-    #             self.set_current(2, 0)
-    #             time.sleep(1/frequency*(1-duty_cycle))
-
     def wave(self, frequency=1, grad = 50, z0 = 0):
         state = secondary_to_primary({'grad':grad, 'zero':zero})
         sequence = {}
