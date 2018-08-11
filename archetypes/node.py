@@ -486,7 +486,5 @@ class Control(Node):
         self.actuate(self.state)
         for device in self.children.values():
             device.loaded = 1
-            # if device.secondary_inputs > 0:
-            #     device.update(device.primary_to_secondary(device.state))
 
         self.sequencer.prepare_sequence()
