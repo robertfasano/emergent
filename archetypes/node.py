@@ -136,7 +136,6 @@ class Device(Node):
         self.secondary_inputs = 0
         self.node_type = 'device'
         self.input_type = 'primary'
-        self.options = {}
 
     def use_inputs(self, type):
         ''' Switches between primary and secondary input representations.
