@@ -94,25 +94,6 @@ class Input(Node):
         self.node_type = 'input'
         self.actuate_signal = ActuateSignal()
 
-
-    def set(self, state):
-        """Requests actuation from the parent Device.
-
-        Note:
-            secondary nodes can only be updated after the first state preparation.
-            During network initialization, the Control node loads the previous
-            states of the primary nodes and actuates them; after this is finished,
-            the secondary states are computed and updated.
-
-        Args:
-            state (float): Target value.
-        """
-        if self.type is 'primary' or self.parent.loaded:
-            self.parent.actuate({self.name:state})
-        if self.parent.loaded:
-            self.actuate_signal.emit(state)
-
-
 class Device(Node):
     ''' Device nodes represent apparatus which can control the state of Input
         nodes, such as a synthesizer or motorized actuator. '''
@@ -334,6 +315,7 @@ class Device(Node):
             self.children[key].state = state[key]   # update Input
             parent_key = self.name+'.'+key
             self.parent.state[parent_key] = state[key]   # update Control
+            self.children[key].actuate_signal.emit(state[key])
 
 class Control(Node):
     ''' The Control node oversees connected Devices, allowing the Inputs to be
@@ -391,14 +373,24 @@ class Control(Node):
         """
         if not self.actuating:
             self.actuating = 1
+            ''' Aggregate states by device '''
+            dev_states = {}
+            for full_name in state:
+                dev_name = full_name.split('.')[0]
+                if dev_name not in dev_states:
+                    dev_states[dev_name] = {}
+                input_name = full_name.split('.')[1]
+                dev_states[dev_name][input_name] = state[full_name]
+            ''' Send states to devices '''
+            for dev_name in dev_states:
+                dev = self.children[dev_name]
+                state = dev_states[dev_name]
+                dev.actuate(state)
 
-            for i in state.keys():
-                self.inputs[i].set(state[i])
+
             self.actuating = 0
             if save:
                 self.save(tag='actuate')
-            # if hasattr(self, 'window'):
-            #     self.window.update_state(self.name)
         else:
             log.warn('Actuate blocked by already running actuation.')
 
