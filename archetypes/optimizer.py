@@ -422,11 +422,12 @@ class Optimizer():
         return None, None
 
     @algorithm
-    def neural_network(self, state, cost, params={'layers':10, 'neurons':64, 'optimizer':'adam', 'activation':'erf', 'initial_points':100, 'cycles':500, 'samples':1000}):
+    def neural_network(self, state, cost, params={'layers':10, 'neurons':64, 'optimizer':'adam', 'activation':'erf', 'initial_points':100, 'cycles':500, 'samples':1000, 'plot':0}, update = None):
         X, bounds = self.initialize_optimizer(state)
         norm_state = self.array2state(X,state)
-        NeuralNetwork(norm_state, cost, bounds, params=params)
+        NeuralNetwork(self, norm_state, cost, bounds, params=params, update = update)
 
+        return None, None
     # ''' Hyperparameter optimization '''
     # def hypercost(self, params, args):
     #     ''' Returns the optimization time for a given algorithm, cost, and initial state '''

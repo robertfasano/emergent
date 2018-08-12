@@ -21,10 +21,12 @@ tf.logging.set_verbosity(tf.logging.WARN)
 # repeat until minimum cost is determined
 
 class NeuralNetwork():
-    def __init__(self, state, cost, bounds, params={'layers':10, 'neurons':64, 'optimizer':'adam', 'activation':'erf', 'initial_points':100, 'cycles':500, 'samples':1000}):
+    def __init__(self, parent, state, cost, bounds, params={'layers':10, 'neurons':64, 'optimizer':'adam', 'activation':'erf', 'initial_points':100, 'cycles':500, 'samples':1000, 'plot':0}, update = None):
         self.cost = cost
+        self.parent = parent
         self.params = params
         self.bounds = bounds
+        self.update = update
         hidden_units = np.ones(params['layers']) * params['neurons']
         optimizer = {'adam':tf.train.AdamOptimizer()}[params['optimizer']]
         activation_fn = {'erf':tf.erf}[params['activation']]
@@ -50,7 +52,7 @@ class NeuralNetwork():
     def append(self, sample, X, y):
         ''' Appends a new sample to old observations'''
         sample = np.atleast_2d(sample)
-        state = self.array2state(sample[0], self.state)
+        state = self.parent.array2state(sample[0], self.state)
 
         X = np.append(X, sample, axis=0)
         y = np.append(y, self.cost(state))
@@ -70,7 +72,7 @@ class NeuralNetwork():
     def optimize(self, online = True):
         ''' Start by randomly sampling the parameter space '''
         X = np.array(np.random.uniform(self.bounds[:,0], self.bounds[:,1], size=(1,len(self.state))))
-        state = self.array2state(X[0], self.state)
+        state = self.parent.array2state(X[0], self.state)
         y = [self.cost(state)]
         for i in range(self.params['initial_points']):
             sample = np.random.uniform(self.bounds[:,0], self.bounds[:,1], size=(1,len(self.state)))
@@ -89,7 +91,20 @@ class NeuralNetwork():
         self.estimator.train(input_fn=self.get_input_fn(X,y), max_steps=100)
 
         ''' Monte Carlo sampling of modeled cost surface to identify best point '''
-        X_pred, y_pred = self.sample()
+        # X_pred, y_pred = self.sample()
+
+        N = len(self.state)
+        grid = []
+        for n in range(N):
+            space = np.linspace(self.bounds[n][0], self.bounds[n][1], int(np.sqrt(self.params['samples'])))
+            grid.append(space)
+        grid = np.array(grid)
+        points = np.transpose(np.meshgrid(*[grid[n] for n in range(N)])).reshape(-1,N)
+        costs = self.predict(points)
+        if self.params['plot']:
+            self.parent.plot_2D(points, costs)
+        y_pred = np.min(costs)
+        X_pred = points[np.argmin(costs)]
 
         return X, y, X_pred, y_pred
 
@@ -98,7 +113,19 @@ class NeuralNetwork():
         X_pred = np.random.uniform(self.bounds[:,0], self.bounds[:,1], size=(self.params['samples'],len(self.state)))
         y_pred = self.predict(X_pred)
         X_pred = X_pred[np.argmin(y_pred)]
-        state = self.array2state(X_pred, self.state)
+        state = self.parent.array2state(X_pred, self.state)
         y_pred = self.cost(state)
 
         return X_pred, y_pred
+
+    def plot(self):
+        ''' Calculate the cost function over the predicted surface and plot. '''
+        N = len(self.state)
+        grid = []
+        for n in range(N):
+            space = np.linspace(self.bounds[n][0], self.bounds[n][1], 10)
+            grid.append(space)
+        grid = np.array(grid)
+        points = np.transpose(np.meshgrid(*[grid[n] for n in range(N)])).reshape(-1,N)
+        costs = self.predict(points)
+        self.parent.plot_2D(points, costs)
