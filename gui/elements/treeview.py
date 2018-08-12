@@ -66,7 +66,7 @@ class NodeTree(QTreeWidget):
         for child in sorted(children):
             object = parent.node.children[child]
 
-            child_item = NodeWidget([child], object, level)
+            child_item = NodeWidget([child.replace('_',' ')], object, level)
             parent.addChild(child_item)
 
             if isinstance(children, dict):
