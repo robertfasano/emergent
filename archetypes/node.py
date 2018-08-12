@@ -393,7 +393,9 @@ class Control(Node):
         self.sequence = {}
         self.actuating = 0
         self.state_path = path+'/state/'
-        for p in [self.state_path]:
+        self.data_path = path+'/data/'
+
+        for p in [self.state_path, self.data_path]:
             pathlib.Path(p).mkdir(parents=True, exist_ok=True)
 
         self.sequencer = Sequencer(self)
