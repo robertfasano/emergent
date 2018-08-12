@@ -6,6 +6,7 @@ from devices.picoAmp import PicoAmp
 from devices.current_driver import CurrentDriver
 from devices.intensity_servo import IntensityServo
 from devices.netcontrols import NetControls
+from devices.novatech import Novatech
 from __main__ import *
 
 ''' Define autoAlign '''
@@ -29,7 +30,7 @@ labjack_MOT = LabJack(devid=devid)
 mot = MOT(name='MOT', labjack=labjack_MOT,path='networks/%s'%sys.argv[1])
 coils = CurrentDriver('coils', 'COM13', 'COM18', parent = mot, labjack = labjack_MOT)
 feedthrough = NetControls('feedthrough', 'COM11', parent = mot)
-
+novatech = Novatech('novatech', 'COM19', parent = mot)
 ''' Run post-load routine '''
 for c in Control.instances:
     c.onLoad()
