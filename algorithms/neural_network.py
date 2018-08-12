@@ -20,10 +20,11 @@ tf.logging.set_verbosity(tf.logging.WARN)
 # feed these predictions to the experiment and sample new points to add to the training data
 # repeat until minimum cost is determined
 
-class neural_network():
-    def __init__(self, state, cost, params={'layers':10, 'neurons':64, 'optimizer':'adam', 'activation':'erf', 'initial_points':100, 'cycles':500, 'samples':1000}):
+class NeuralNetwork():
+    def __init__(self, state, cost, bounds, params={'layers':10, 'neurons':64, 'optimizer':'adam', 'activation':'erf', 'initial_points':100, 'cycles':500, 'samples':1000}):
         self.cost = cost
         self.params = params
+        self.bounds = bounds
         hidden_units = np.ones(params['layers']) * params['neurons']
         optimizer = {'adam':tf.train.AdamOptimizer()}[params['optimizer']]
         activation_fn = {'erf':tf.erf}[params['activation']]
@@ -35,25 +36,17 @@ class neural_network():
                                         optimizer=optimizer,
                                         activation_fn=activation_fn
                                         )
-        
+
         X, y, X_pred, y_pred = self.optimize(online = False)
         print('Converged to point',X_pred,'with cost',y_pred,'.')
-        
+
     def get_input_fn(self, X, y, epochs = None, shuffle = True):
         return tf.estimator.inputs.numpy_input_fn(
             x={"x": X},
             y=y,
             num_epochs=epochs,
             shuffle=shuffle)
-        
-    def array2state(self, arr, d):
-        ''' Converts a numpy array into a state dict with the specified keys. '''
-        keys = list(d.keys())
-        state = {}
-        for i in range(len(keys)):
-            state[keys[i]] = arr[i]
-        return state   
-    
+
     def append(self, sample, X, y):
         ''' Appends a new sample to old observations'''
         sample = np.atleast_2d(sample)
@@ -61,7 +54,7 @@ class neural_network():
 
         X = np.append(X, sample, axis=0)
         y = np.append(y, self.cost(state))
-    
+
         return X, y
 
     def predict(self, X_pred):
@@ -73,16 +66,16 @@ class neural_network():
             return y_pred
         else:
             return -y_pred[0]
-        
+
     def optimize(self, online = True):
         ''' Start by randomly sampling the parameter space '''
-        X = np.array(np.random.uniform(bounds[:,0], bounds[:,1], size=(1,len(self.state))))
+        X = np.array(np.random.uniform(self.bounds[:,0], self.bounds[:,1], size=(1,len(self.state))))
         state = self.array2state(X[0], self.state)
         y = [self.cost(state)]
         for i in range(self.params['initial_points']):
-            sample = np.random.uniform(bounds[:,0], bounds[:,1], size=(1,len(self.state)))
+            sample = np.random.uniform(self.bounds[:,0], self.bounds[:,1], size=(1,len(self.state)))
             X, y = self.append(sample, X, y)
-    
+
         ''' Now iterate in closed loop '''
         for i in range(self.params['cycles']):
             if online:
@@ -90,41 +83,22 @@ class neural_network():
                 self.estimator.train(input_fn=self.get_input_fn(X,y), steps=10)
                 X_new, y_pred = self.sample()
             else:
-                X_new = np.random.uniform(bounds[:,0], bounds[:,1], size=(1,len(self.state)))
-    
+                X_new = np.random.uniform(self.bounds[:,0], self.bounds[:,1], size=(1,len(self.state)))
+
             X, y = self.append(X_new, X, y)
         self.estimator.train(input_fn=self.get_input_fn(X,y), max_steps=100)
-        
+
         ''' Monte Carlo sampling of modeled cost surface to identify best point '''
         X_pred, y_pred = self.sample()
-    
+
         return X, y, X_pred, y_pred
-        
+
     def sample(self):
         ''' Perform Monte Carlo sampling of the modeled cost surface to identify best point '''
-        X_pred = np.random.uniform(bounds[:,0], bounds[:,1], size=(self.params['samples'],len(self.state)))
+        X_pred = np.random.uniform(self.bounds[:,0], self.bounds[:,1], size=(self.params['samples'],len(self.state)))
         y_pred = self.predict(X_pred)
         X_pred = X_pred[np.argmin(y_pred)]
         state = self.array2state(X_pred, self.state)
         y_pred = self.cost(state)
-        
+
         return X_pred, y_pred
-    
-def cost(state, theta=0):
-    x=state['X']*np.cos(theta) - state['Y']*np.sin(theta)
-    y=state['X']*np.sin(theta) + state['Y']*np.cos(theta)
-    x0 = 0.3
-    y0 = 0.6
-    return -np.exp(-(x-0.5)**2/x0**2)*np.exp(-(y-0.5)**2/y0**2)
-
-
-state = {'X':0,'Y':0}
-bounds = np.array(list(itertools.repeat([0,1], len(state))))
-
-neural_network(state, cost)
-
-
-
-
-
-
