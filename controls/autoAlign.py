@@ -14,7 +14,7 @@ class AutoAlign(Control):
     def __init__(self, name, labjack, parent = None, path='.'):
         super().__init__(name, parent = parent, path=path)
         self.labjack = labjack
-
+        self.options = {'optimize':self.optimize}
     def readADC(self, num = 10, delay = 0):
         ''' Reads the transmitted power from Labjack channel AIN0 with an optional
             delay. num samplings can be averaged together to improve the signal to
@@ -27,3 +27,8 @@ class AutoAlign(Control):
         ''' Moves to the target alignment and measures the transmitted power. '''
         self.actuate(state)
         return -self.readADC()
+
+    def optimize(self):
+        state = self.get_substate(['MEMS.X','MEMS.Y'])
+        params = {'plot':0, 'tol':4e-3}
+        self.optimizer.simplex(state, self.measure_power, params)

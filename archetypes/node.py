@@ -24,6 +24,18 @@ class ActuateSignal(QObject):
     def emit(self, state):
         self.signal.emit(state)
 
+class SettingsSignal(QObject):
+    signal = pyqtSignal(dict)
+
+    def __init__(self):
+        super().__init__()
+
+    def connect(self, func):
+        self.signal.connect(func)
+
+    def emit(self, sequence):
+        self.signal.emit(sequence)
+
 class Node():
     ''' The Node class is the core building block of the EMERGENT network,
     providing useful organizational methods which are passed on to the Input,
@@ -43,6 +55,7 @@ class Node():
         if parent is not None:
             self.register(parent)
         self.root = self.get_root()
+        self.options = {}
 
     def get_root(self):
         ''' Returns the root Control node of any branch. '''
@@ -74,7 +87,8 @@ class Input(Node):
         nodes. '''
 
     def __init__(self, name, parent, type='primary', speed = 'slow'):
-        """Initializes an Input node.
+        """Initializes an Input node, which is never directly used but instead
+            offers a useful internal representation of a state.
 
         Args:
             name (str): node name. Nodes which share a Device should have unique names.
@@ -92,25 +106,27 @@ class Input(Node):
         self.sequenced = 0
         self.node_type = 'input'
         self.actuate_signal = ActuateSignal()
+        self.settings_signal = SettingsSignal()
 
+    def set_settings(self, d):
+        if 'max' in d:
+            self.max = d['max']
+        if 'min' in d:
+            self.min = d['min']
+        self.parent.parent.settings[self.full_name] = d
+        self.settings_signal.emit({'min':self.min, 'max':self.max})
 
-    def set(self, state):
-        """Requests actuation from the parent Device.
+    def set_sequence(self, sequence):
+        ''' Sets the sequence of an Input and pushes changes upstream.
 
-        Note:
-            secondary nodes can only be updated after the first state preparation.
-            During network initialization, the Control node loads the previous
-            states of the primary nodes and actuates them; after this is finished,
-            the secondary states are computed and updated.
-
-        Args:
-            state (float): Target value.
-        """
-        if self.type is 'primary' or self.parent.loaded:
-            self.parent.actuate({self.name:state})
-        if self.parent.loaded:
-            self.actuate_signal.emit(state)
-
+            Args:
+                sequence (list): a list of lists, each containing a time and a value.
+        '''
+        self.sequence = sequence
+        self.sequenced = 1      # enable sequenced output
+        self.parent.parent.sequence[self.full_name] = sequence
+        self.parent.parent.sequencer.prepare_sequence()
+        self.sequence_signal.emit(self.parent.parent.master_sequence)
 
 class Device(Node):
     ''' Device nodes represent apparatus which can control the state of Input
@@ -135,7 +151,6 @@ class Device(Node):
         self.secondary_inputs = 0
         self.node_type = 'device'
         self.input_type = 'primary'
-        self.options = {}
 
     def use_inputs(self, type):
         ''' Switches between primary and secondary input representations.
@@ -189,6 +204,25 @@ class Device(Node):
             self.parent.state[full_name] = new_state[key]
             self.children[key].state = new_state[key]
 
+        ''' Convert settings '''
+        min = {}
+        max = {}
+        for key in self.state.keys():
+            full_name = self.name + '.' + key
+            min[key] = self.parent.settings[full_name]['min']
+            max[key] = self.parent.settings[full_name]['max']
+        if type is 'primary':
+            min_new = self.secondary_to_primary(min)
+            max_new = self.secondary_to_primary(max)
+        else:
+            min_new = self.primary_to_secondary(min)
+            max_new = self.primary_to_secondary(max)
+        for key in min_new:
+            self.children[key].set_settings({'min':min_new[key],'max':max_new[key]})
+        for key in self.state.keys():
+            full_name = self.name + '.' + key
+            del self.parent.settings[full_name]
+
         ''' Update self '''
         self.state = new_state
         self.input_type = type
@@ -198,7 +232,6 @@ class Device(Node):
             full_name = self.name + '.' + name
             seq = self.parent.sequencer.master_to_subsequence(full_name)
             self.parent.inputs[full_name].sequence = seq
-
 
     def add_input(self, name, type='primary'):
         ''' Attaches an Input node with the specified name. This should correspond
@@ -247,7 +280,6 @@ class Device(Node):
         Note:
             If a mixed state is passed in (with both primary and secondary components),
             only the primary components will be used.
-
 
         Args:
             state (dict): Target state of the form {'param1':value1, 'param2':value2,...}.
@@ -327,13 +359,13 @@ class Device(Node):
 
         Args:
             state (dict): New state, e.g. {'param1':value1, 'param2':value2}.
-
         """
-        for key in state.keys():
-            self.state[key] = state[key]    # update Device
-            self.children[key].state = state[key]   # update Input
-            parent_key = self.name+'.'+key
-            self.parent.state[parent_key] = state[key]   # update Control
+        for input_name in state:
+            self.state[input_name] = state[input_name]    # update Device
+            input = self.children[input_name]
+            input.state = state[input_name]   # update Input
+            self.parent.state[input.full_name] = state[input_name]   # update Control
+            input.actuate_signal.emit(state[input_name])   # emit Qt signal
 
 class Control(Node):
     ''' The Control node oversees connected Devices, allowing the Inputs to be
@@ -360,11 +392,8 @@ class Control(Node):
         self.settings = {}
         self.sequence = {}
         self.actuating = 0
-        self.settings_path =path+'/settings/'
         self.state_path = path+'/state/'
-        self.sequence_path = path+'/sequence/'
-        self.data_path = path+'/data/'
-        for p in [self.settings_path, self.state_path, self.sequence_path, self.data_path]:
+        for p in [self.state_path]:
             pathlib.Path(p).mkdir(parents=True, exist_ok=True)
 
         self.sequencer = Sequencer(self)
@@ -391,14 +420,23 @@ class Control(Node):
         """
         if not self.actuating:
             self.actuating = 1
+            ''' Aggregate states by device '''
+            dev_states = {}
+            for full_name in state:
+                dev_name = full_name.split('.')[0]
+                if dev_name not in dev_states:
+                    dev_states[dev_name] = {}
+                input_name = full_name.split('.')[1]
+                dev_states[dev_name][input_name] = state[full_name]
+            ''' Send states to devices '''
+            for dev_name in dev_states:
+                dev = self.children[dev_name]
+                state = dev_states[dev_name]
+                dev.actuate(state)
 
-            for i in state.keys():
-                self.inputs[i].set(state[i])
             self.actuating = 0
             if save:
                 self.save(tag='actuate')
-            # if hasattr(self, 'window'):
-            #     self.window.update_state(self.name)
         else:
             log.warn('Actuate blocked by already running actuation.')
 
@@ -457,6 +495,7 @@ class Control(Node):
         ''' Load variables into control '''
         try:
             self.settings[full_name] = state[full_name]['settings']
+            self.inputs[full_name].set_settings(state[full_name]['settings'])
             self.state[full_name] = state[full_name]['state']
             self.sequence[full_name] = state[full_name]['sequence']
             self.cycle_time = state['cycle_time']
@@ -497,7 +536,5 @@ class Control(Node):
         self.actuate(self.state)
         for device in self.children.values():
             device.loaded = 1
-            # if device.secondary_inputs > 0:
-            #     device.update(device.primary_to_secondary(device.state))
 
         self.sequencer.prepare_sequence()

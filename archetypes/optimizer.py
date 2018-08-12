@@ -380,7 +380,7 @@ class Optimizer():
         return None, None
 
     @algorithm
-    def simplex(self, state, cost, params={'plot':0, 'tol':1e-7}, update=None):
+    def simplex(self, state, cost, params={'plot':0, 'tol':4e-3}, update=None):
         ''' Nelder-Mead algorithm from scipy.optimize. '''
         X, bounds = self.initialize_optimizer(state)
         res = minimize(fun=self.cost_from_array,

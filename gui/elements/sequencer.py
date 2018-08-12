@@ -32,9 +32,9 @@ class SequencerLayout(QVBoxLayout):
 
         self.table = MyTableWidget(self)
         self.addWidget(self.table)
-        self.parent.treeLayout.treeWidget.itemSelectionChanged.connect(self.update_input)
-        self.table.itemDoubleClicked.connect(self.open_editor)
+        self.parent.treeWidget.itemSelectionChanged.connect(self.update_input)
 
+        self.table.itemDoubleClicked.connect(self.open_editor)
         self.buttonsLayout = QHBoxLayout()
         self.start_button = QPushButton('Start')
         self.start_button.clicked.connect(self.start)
@@ -51,20 +51,20 @@ class SequencerLayout(QVBoxLayout):
         self.table.openPersistentEditor(self.table.currentItem())
 
     def start(self):
-        tree = self.parent.treeLayout.treeWidget
+        tree = self.parent.treeWidget
         item = tree.currentItem()
         control = item.root
         control.sequencer.start()
 
     def stop(self):
-        tree = self.parent.treeLayout.treeWidget
+        tree = self.parent.treeWidget
         item = tree.currentItem()
         control = item.root
         control.sequencer.stop()
 
     def update_input(self):
         ''' Updates the sequencer table to the currently selected input. '''
-        tree = self.parent.treeLayout.treeWidget
+        tree = self.parent.treeWidget
         control = tree.currentItem().root
         control.sequencer.prepare_sequence()
 
@@ -85,7 +85,7 @@ class SequencerLayout(QVBoxLayout):
             self.table.setHorizontalHeaderItem(col,item)
             row = 0
             for key in point[1].keys():
-                input = self.parent.treeLayout.get_input(key)
+                input = self.parent.treeWidget.get_input(key)
                 device = input.parent()
                 input_type = input.node.type
                 if input_type == device.inputs:
