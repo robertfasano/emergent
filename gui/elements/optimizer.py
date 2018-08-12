@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import (QComboBox, QLabel, QTextEdit, QPushButton, QVBoxLayout,
-        QWidget, QProgressBar, qApp)
+        QWidget, QProgressBar, qApp, QHBoxLayout, QCheckBox)
 from PyQt5.QtCore import *
 from archetypes.optimizer import Optimizer
 from archetypes.parallel import ProcessHandler
@@ -21,6 +21,18 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
 
         self.params_edit = QTextEdit('')
         self.addWidget(self.params_edit)
+
+        plotLayout = QHBoxLayout()
+        self.plot_label = QLabel('Plot result')
+        self.plot_checkbox = QCheckBox()
+        plotLayout.addWidget(self.plot_label)
+        plotLayout.addWidget(self.plot_checkbox)
+        self.save_label = QLabel('Save plot')
+        self.save_checkbox = QCheckBox()
+        plotLayout.addWidget(self.save_label)
+        plotLayout.addWidget(self.save_checkbox)
+
+        self.addLayout(plotLayout)
 
         self.cost_box = QComboBox()
         self.addWidget(self.cost_box)
@@ -65,6 +77,9 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         func = getattr(control.optimizer, self.algorithm_box.currentText().replace(' ','_'))
         params = self.params_edit.toPlainText().replace('\n','').replace("'", '"')
         params = json.loads(params)
+        params['plot']=self.plot_checkbox.isChecked()
+        params['save']=self.save_checkbox.isChecked()
+
         cost = getattr(control, self.cost_box.currentText())
         state = self.parent.treeWidget.get_selected_state()
         if state == {}:

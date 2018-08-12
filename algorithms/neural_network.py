@@ -118,7 +118,7 @@ class NeuralNetwork():
 
         return X_pred, y_pred
 
-    def plot(self):
+    def plot(self, save = False):
         ''' Calculate the cost function over the predicted surface and plot. '''
         N = len(self.state)
         grid = []
@@ -128,4 +128,4 @@ class NeuralNetwork():
         grid = np.array(grid)
         points = np.transpose(np.meshgrid(*[grid[n] for n in range(N)])).reshape(-1,N)
         costs = self.predict(points)
-        self.parent.plot_2D(points, costs)
+        self.parent.plot_2D(points, costs, save)

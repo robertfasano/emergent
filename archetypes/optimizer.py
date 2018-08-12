@@ -278,7 +278,7 @@ class Optimizer():
         points, cost = func(state, cost, params)
 
     @algorithm
-    def grid_search(self, state, cost, params={'plot':0, 'loadExisting':0, 'steps':10}, update=None):
+    def grid_search(self, state, cost, params={'loadExisting':0, 'steps':10}, update=None):
         ''' An N-dimensional grid search (brute force) optimizer. '''
         arr, bounds = self.initialize_optimizer(state)
         if params['loadExisting']:
@@ -296,7 +296,7 @@ class Optimizer():
                 limits[name] = {}
                 limits[name]['min'] = self.parent.settings[name]['min']
                 limits[name]['max'] = self.parent.settings[name]['max']
-            ax = self.plot_2D(points, costs, limits = limits)
+            ax = self.plot_2D(points, costs, limits = limits, save=params['save'])
         best_point = self.array2dict(points[np.argmin(costs)], state)
         self.actuate(self.unnormalize(best_point))
 
@@ -330,7 +330,7 @@ class Optimizer():
         return b*mu-(1-b)*sigma
 
     @algorithm
-    def gaussian_process(self, state, cost, params={'batch_size':10,'presampled': 15, 'iterations':10, 'plot':0},update=None):
+    def gaussian_process(self, state, cost, params={'batch_size':10,'presampled': 15, 'iterations':10},update=None):
         ''' Online Gaussian process regression. Batch sampling is done with
             points with varying trade-off of optimization vs. exploration. '''
         X, bounds = self.initialize_optimizer(state)
@@ -356,13 +356,13 @@ class Optimizer():
         if params['plot']:
             self.plot_optimization(lbl = 'Gaussian Processing')
 
-        self.parent.save(tag='optimize')
+        self.parent.save(tag='optimize', save=params['save'])
 
         return X, c
 
 
     @algorithm
-    def scipy_minimize(self, state, cost, params={'method':'L-BFGS-B', 'plot':0, 'tol':1e-7}, update=None):
+    def scipy_minimize(self, state, cost, params={'method':'L-BFGS-B', 'tol':1e-7}, update=None):
         ''' Runs a specified scipy minimization method on the target axes and cost. '''
         arr, bounds = self.initialize_optimizer(state)
         keys = list(state.keys())
@@ -373,14 +373,14 @@ class Optimizer():
                    method=params['method'],
                    tol = params['tol'])
         if params['plot']:
-            self.plot_optimization(lbl = params['method'])
+            self.plot_optimization(lbl = params['method'], save=params['save'])
 
         self.parent.save(tag='optimize')
 
         return None, None
 
     @algorithm
-    def simplex(self, state, cost, params={'plot':0, 'tol':4e-3}, update=None):
+    def simplex(self, state, cost, params={'tol':4e-3}, update=None):
         ''' Nelder-Mead algorithm from scipy.optimize. '''
         X, bounds = self.initialize_optimizer(state)
         res = minimize(fun=self.cost_from_array,
@@ -390,14 +390,14 @@ class Optimizer():
                    tol = params['tol'])
         #simplex for SKL is res = minimize(fun = cost,x0 = X.reshape(1, -1), method = 'Nelder-Mead', tol = 1e7)
         if params['plot']:
-            self.plot_optimization(lbl = 'simplex')
+            self.plot_optimization(lbl = 'simplex', save=params['save'])
 
         self.parent.save(tag='optimize')
 
         return None, None
 
     @algorithm
-    def differential_evolution(self, state, cost, params={'strategy':'best1bin', 'plot':0, 'popsize':15, 'tol':0.01, 'mutation': 1,'recombination':0.7}, update=None):
+    def differential_evolution(self, state, cost, params={'strategy':'best1bin', 'popsize':15, 'tol':0.01, 'mutation': 1,'recombination':0.7}, update=None):
         ''' Differential evolution algorithm from scipy.optimize. '''
         X, bounds = self.initialize_optimizer(state)
         keys = list(state.keys())
@@ -415,14 +415,14 @@ class Optimizer():
         #                               recombination = params['recombination'],
         #                               popsize = int(params['popsize']))
         if params['plot']:
-            self.plot_optimization(lbl = params['strategy'])
+            self.plot_optimization(lbl = params['strategy'], save=params['save'])
 
         self.parent.save(tag='optimize')
 
         return None, None
 
     @algorithm
-    def neural_network(self, state, cost, params={'layers':10, 'neurons':64, 'optimizer':'adam', 'activation':'erf', 'initial_points':100, 'cycles':500, 'samples':1000, 'plot':0}, update = None):
+    def neural_network(self, state, cost, params={'layers':10, 'neurons':64, 'optimizer':'adam', 'activation':'erf', 'initial_points':100, 'cycles':500, 'samples':1000}, update = None):
         X, bounds = self.initialize_optimizer(state)
         norm_state = self.array2state(X,state)
         NeuralNetwork(self, norm_state, cost, bounds, params=params, update = update)
@@ -450,8 +450,9 @@ class Optimizer():
 
 
     ''' Visualization methods '''
-    def plot_2D(self, points, costs, normalized_cost = False, limits = None):
+    def plot_2D(self, points, costs, normalized_cost = False, limits = None, save = False):
         ''' Interpolates and plots a cost function sampled at an array of points. '''
+        print(save)
         plt.figure()
         points = points.copy()
         ordinate_index = 0
@@ -468,7 +469,8 @@ class Optimizer():
             cost_grid = griddata(points[:,[ordinate_index, abscissa_index]], costs, (ordinate_mesh,abscissa_mesh))
         plot = plt.pcolormesh(ordinate_mesh, abscissa_mesh, cost_grid, cmap='gist_rainbow')
         plt.colorbar(plot)
-        # plt.savefig('driftmesh' + str(time.time()) + '.png')
+        if save:
+            plt.savefig(self.parent.data_path + str(time.time()) + '.png')
         ax = plt.gca()
         if limits is not None:
             plt.xlabel(names[0])
@@ -477,7 +479,7 @@ class Optimizer():
         return ax
 
     def plot_optimization(self, func=None, lbl = None, yscl = 'linear',
-                          ylbl = 'Optimization Function', xlbl = 'Time (s)'):
+                          ylbl = 'Optimization Function', xlbl = 'Time (s)', save = False):
         ''' Plots an optimization time series stored in self.history. '''
         if func is None:
             func = self.history
@@ -488,6 +490,8 @@ class Optimizer():
         plt.xlabel(xlbl)
         plt.legend()
         plt.show()
+        if save:
+            plt.savefig(self.parent.data_path + str(time.time()) + '.png')
 
     def plot_history_slice(self, i):
         ''' Plots a slice of the ith element of the history. '''
