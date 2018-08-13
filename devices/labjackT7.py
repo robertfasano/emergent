@@ -209,15 +209,26 @@ class LabJack(ProcessHandler):
         aValues = [0, 0]
         ljm.eWriteNames(self.handle, len(aNames), aNames, aValues)
         aScanList = []
-        for i in range(len(channels)):
-            self._command("STREAM_OUT%i_TARGET"%i, 1000+i*2)
-            self._command("STREAM_OUT%i_BUFFER_SIZE"%i, buffer_size)
-            self._command("STREAM_OUT%i_ENABLE"%i, 1)
-            target = ['STREAM_OUT%i_BUFFER_F32'%i] * len(data[:,i])
-            ljm.eWriteNames(self.handle, len(data[:,i]), target, list(data[:,i]))
-            self._command("STREAM_OUT%i_LOOP_SIZE"%i, len(data[:,i]))
-            self._command("STREAM_OUT%i_SET_LOOP"%i, 1)
-            aScanList.append(4800+i)
+        if len(channels) > 1:
+            for i in range(len(channels)):
+                self._command("STREAM_OUT%i_TARGET"%i, 1000+i*2)
+                self._command("STREAM_OUT%i_BUFFER_SIZE"%i, buffer_size)
+                self._command("STREAM_OUT%i_ENABLE"%i, 1)
+                target = ['STREAM_OUT%i_BUFFER_F32'%i] * len(data[:,i])
+                ljm.eWriteNames(self.handle, len(data[:,i]), target, list(data[:,i]))
+                self._command("STREAM_OUT%i_LOOP_SIZE"%i, len(data[:,i]))
+                self._command("STREAM_OUT%i_SET_LOOP"%i, 1)
+                aScanList.append(4800+i)
+        else:
+            i = channels[0]
+            self._command("STREAM_OUT0_TARGET", 1000+i*2)
+            self._command("STREAM_OUT0_BUFFER_SIZE", buffer_size)
+            self._command("STREAM_OUT0_ENABLE", 1)
+            target = ['STREAM_OUT0_BUFFER_F32'] * len(data)
+            ljm.eWriteNames(self.handle, len(data), target, list(data))
+            self._command("STREAM_OUT0_LOOP_SIZE", len(data))
+            self._command("STREAM_OUT0_SET_LOOP", 1)
+            aScanList.append(4800)
         scanRate = ljm.eStreamStart(self.handle, 1,len(aScanList), aScanList, scanRate)
         log.info("\nStream started with a scan rate of %0.0f Hz." % scanRate)
 
