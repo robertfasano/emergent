@@ -181,7 +181,7 @@ class LabJack(ProcessHandler):
 
     def stream_stop(self):
         ljm.eStreamStop(self.handle)
-        
+
     def stream_out(self, channels, data, scanRate, loop = False):
         ''' Streams data at 100 kS/s.
 
@@ -207,7 +207,7 @@ class LabJack(ProcessHandler):
         self._command("STREAM_CLOCK_SOURCE", 0)       # Enabling internally-clocked stream.
         aNames = ["STREAM_SETTLING_US", "STREAM_RESOLUTION_INDEX"]
         aValues = [0, 0]
-        self._command(len(aNames), aNames, aValues)
+        ljm.eWriteNames(self.handle, len(aNames), aNames, aValues)
         aScanList = []
         for i in range(len(channels)):
             self._command("STREAM_OUT%i_TARGET"%i, 1000+i*2)
@@ -217,7 +217,7 @@ class LabJack(ProcessHandler):
             ljm.eWriteNames(self.handle, len(data[:,i]), target, list(data[:,i]))
             self._command("STREAM_OUT%i_LOOP_SIZE"%i, len(data[:,i]))
             self._command("STREAM_OUT%i_SET_LOOP"%i, 1)
-            aScanList.append([4800+i])
+            aScanList.append(4800+i)
         scanRate = ljm.eStreamStart(self.handle, 1,1, aScanList, scanRate)
         log.info("\nStream started with a scan rate of %0.0f Hz." % scanRate)
 
@@ -252,7 +252,7 @@ class LabJack(ProcessHandler):
 
         stream = np.zeros(samples)
 
-        for point in s:
+        for point in sequence:
             t = point[0]
             V = point[1]
             stream[int(t*samples)::] = V
