@@ -52,8 +52,8 @@ class CurrentDriver(Device, ProcessHandler):
         self._connected = self._connect()
 
         ''' Wave options '''
-        self.options = {'Start wave':self.wave}
-        self.options['Stop wave'] = self.labjack.stream_stop()
+        self.options['Start wave']=self.wave
+        self.options['Stop wave'] = self.labjack.stream_stop
 
 
     def calibrate(self, coil, Vmin=1, Vmax=3, steps=100, delay = 1/100, plot = False):
@@ -208,12 +208,23 @@ class CurrentDriver(Device, ProcessHandler):
         self.set_current(1, state['I1'])
         self.set_current(2, state['I2'])
 
-    def wave(self, frequency=1, grad = 50, z0 = 0):
-        state = secondary_to_primary({'grad':grad, 'zero':zero})
+
+    def pulse(self, N=20, A=10, T=1):
+        i=0
+        for j in range(N):
+            i = (i+1)%2
+            self.set_current(2,i*A)
+            time.sleep(T/2)
+
+    def wave(self):
+        frequency = 1
+        grad = 50
+        zero = 0
+        state = self.secondary_to_primary({'grad':grad, 'zero':zero})
         sequence = {}
         stream = {}
         for i in [1,2]:
-            V = (state['I%i'%i]-self.intercept[i])/self.slope[i]
+            V = (state['I%i'%i]-self.intercept[i-1])/self.slope[i-1]
             seq = [[0,0], [1/frequency/2,V]]
             stream['I%i'%i], scanRate = self.labjack.sequence2stream(seq, 1/frequency, 2)
         data = np.array([stream['I1'],stream['I2']]).T
