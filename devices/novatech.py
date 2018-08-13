@@ -14,6 +14,7 @@ class Novatech(Device):
         self.add_input('f3')
         self.frequency = {}
         self.amplitude = {}
+
     def _connect(self):
         self.serial = Serial(
                 port=self.port,
@@ -26,6 +27,10 @@ class Novatech(Device):
                 name = 'Novatech DDS'
             )
         return self.serial._connected
+
+    def _actuate(self, state):
+        for name in state:
+            self.set_frequency(int(name[1]), state[name])
 
     def set_amplitude(self,ch, V):
         self.amplitude[ch] = V
