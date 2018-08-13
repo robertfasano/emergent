@@ -9,9 +9,9 @@ class Novatech(Device):
         super().__init__(name='novatech', parent = parent)
         self.port = port
         self._connected = self._connect()
+        self.add_input('f0')
         self.add_input('f1')
         self.add_input('f2')
-        self.add_input('f3')
         self.frequency = {}
         self.amplitude = {}
 
