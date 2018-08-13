@@ -184,11 +184,12 @@ class NodeTree(QTreeWidget):
                 hide_secondary_inputs_action = QAction('Show %s inputs'%other_input_type, self)
                 hide_secondary_inputs_action.triggered.connect(functools.partial(self.toggle_inputs,self.currentItem()))
                 menu.addAction(hide_secondary_inputs_action)
+        actions = {}
         for option in item.node.options:
-            action = QAction(option)
+            actions[option] = QAction(option)
             func = item.node.options[option]
-            action.triggered.connect(func)
-            menu.addAction(action)
+            actions[option].triggered.connect(func)
+            menu.addAction(actions[option])
 
         selectedItem = menu.exec_(globalPos)
 
