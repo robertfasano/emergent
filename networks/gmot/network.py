@@ -30,7 +30,7 @@ labjack_MOT = LabJack(devid=devid)
 mot = MOT(name='MOT', labjack=labjack_MOT,path='networks/%s'%sys.argv[1])
 coils = CurrentDriver('coils', 'COM13', 'COM18', parent = mot, labjack = labjack_MOT)
 feedthrough = NetControls('feedthrough', 'COM11', parent = mot)
-novatech = Novatech('novatech', 'COM19', parent = mot)
+novatech = Novatech('novatech', 'COM7', parent = mot)
 ''' Run post-load routine '''
 for c in Control.instances:
     c.onLoad()
