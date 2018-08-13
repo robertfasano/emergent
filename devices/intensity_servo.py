@@ -43,3 +43,12 @@ class IntensityServo(Device):
         unlocked_power = self.labjack.AIn(0)
         self._actuate({'V':frac*unlocked_power})
         self.lock(1)
+
+    def wave(self, frequency = 1, channel = 0):
+        ''' Switch between 0 and the current setpoint. '''
+        sequence = {}
+        stream = {}
+        V = self.state['f%i'%channel]
+        seq = [[0,0], [1/frequency/2,V]]
+        stream, scanRate = self.labjack.sequence2stream(seq, 1/frequency, 1)
+        self.labjack.stream_out(0, stream, scanRate, loop = True)
