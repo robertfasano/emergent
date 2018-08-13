@@ -218,7 +218,7 @@ class LabJack(ProcessHandler):
             self._command("STREAM_OUT%i_LOOP_SIZE"%i, len(data[:,i]))
             self._command("STREAM_OUT%i_SET_LOOP"%i, 1)
             aScanList.append(4800+i)
-        scanRate = ljm.eStreamStart(self.handle, 1,1, aScanList, scanRate)
+        scanRate = ljm.eStreamStart(self.handle, 1,len(aScanList), aScanList, scanRate)
         log.info("\nStream started with a scan rate of %0.0f Hz." % scanRate)
 
     def sequence2stream(self, sequence, period, channels = 1):
@@ -242,7 +242,6 @@ class LabJack(ProcessHandler):
         max_samples = int(buffer_size/2)-1
         max_speed = 100000 / channels
         cutoff = max_samples / max_speed
-
         if period >= cutoff:
             samples = max_samples
             speed = samples/period
@@ -250,13 +249,12 @@ class LabJack(ProcessHandler):
             speed = max_speed
             samples = period*speed
 
-        stream = np.zeros(samples)
+        stream = np.zeros(int(samples))
 
         for point in sequence:
             t = point[0]
             V = point[1]
-            stream[int(t*samples)::] = V
-
+            stream[int(t/period*samples)::] = V
         return stream, speed
 
     def resample(self, wave, period, channels = 1):
