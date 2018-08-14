@@ -36,31 +36,32 @@ State representation
 ---------------------
 Each physical degree of freedom is represented by an :doc:`/architecture/input` node; in this case, there are two nodes labeled ``X`` and ``Y`` which
 represent the tip and tilt of the mirror. The ``Input.state`` attribute stores a
-float representing the instantaneous state of the input.
+float representing the instantaneous state of the input. Input nodes are attached
+to :doc:`/architecture/device` nodes which represent the physical actuator, such as the voltage control
+board for the MEMS. The Device node stores the state of all of its attached inputs
+in a dict of the form ``Device.state = {'X'-60, 'Y':1}``. Note that the keys of
+the dict correspond to whatever the ``Input.name`` variable is. State changes
+are initiated by :doc:`/architecture/control` nodes, which interface with one or many devices to
+control the macroscopic state of the experiment. The Control node stores the
+state similarly to the Device node, but with an additional tag in each dict key
+corresponding to each device's ``name`` parameter; for example, ``Control.state =  {'MEMS.X'-60, 'MEMS.Y':1}``.
+To change the state, call ``Control.actuate(state)``, where the argument is a
+dictionary containing one or more inputs to update. The ``actuate`` method will
+separate the state of the Control node into separate substates for each linked
+Device node, then call each ``Device.actuate(substate)`` method to produce the
+physical change. More explicitly, the physical change is carried out by
+``Device._actuate(substate)``, which is a special method called by ``Device.actuate(substate)``
+which should be separately implemented for each device driver according to the
+manufacturer's control scheme. Afterwards, the ``Device.update(state)`` simultaneously updates
+the internal state representations of the Input, Device, and Control nodes to
+keep the network synchronized.
 
-The ``Input.set(state)`` method updates the state of the input to the
-argument by requesting a new state from the parent :doc:`/architecture/device` node. Device nodes
-represent physical actuators such as the MEMS voltage control board; the Device
-stores the state of its inputs in a dictionary with the example format
-``Device.state = {'X':1, 'Y':2}``.
-
-When the Input node requests a new state, the ``Device.actuate(state)`` method
-is called. This does two things: first, the ``Device._actuate(state)`` method
-updates the physical state (the real tip/tilt), in this case via SPI commands
-to a DAC on the MEMS driver board (note that the ``Device.actuate()`` method is
-a property of the core Device class, while the private ``Device._actuate()``
-method must be implemented separately for each device). Next, the ``Device.update(state)``
-method is called. This keeps the virtual state synchronized with the physical
-state by simultaneously updating the state variables of the Input, Device, and Control
-nodes.
-
-The :doc:`/architecture/control` node oversees the entire experiment by issuing commands to the inputs
+As well as distributing user-initiated commands, the :doc:`/architecture/control`
+node oversees the entire experiment by issuing commands to the inputs
 during optimization algorithms. It contains methods, tagged with the @cost decorator,
-which prepare and evaluate a target state. The state of the Control node is
-represented similarly to the Device node, but the dictionary keys also include
-the device names; for example, the Control node called ``autoAlign`` is connected
-to a ``MEMS`` Device node which has two inputs ``X`` and ``Y``, so the state is
-``Control.state = {'MEMS.X':1, 'MEMS.Y':2}``.
+which prepare and evaluate a target state, and closed-loop operation between the
+Control node and an attached Optimizer module can quickly determine the correct
+input states to minimize a given cost function.
 
 Optimization
 -------------
@@ -70,11 +71,15 @@ typical optimization sequence:
 1. The initial state :math:`X` is represented through a dict ``state``, and is passed into the :doc:`/archetypes/optimizer` module along with a cost function ``cost``.
 2. The cost function :math:`\mathcal F[X]` is evaluated by calling ``cost(state)``.
 
-	a. ``Control.actuate(state)`` calls the ``Input.set(state)`` method on every input in the state vector.
-	b. Each Input node requests a new state from the Device node.
-	c. The Device node runs ``Device.actuate(state)`` to update the physical state.
+	a. ``Control.actuate(state)`` distributes commands to linked Device nodes.
+	b. The Device node runs ``Device._actuate(state)`` to update the physical state.
+	c. The Device node updates the internal state representation of the Input, Device, and Control nodes.
 	d. A physical measurement of :math:`\mathcal F[X]` is made.
 3. The learner updates its knowledge of the cost landscape :math:`\mathcal F[X]`, suggests a new state :math:`X`, and returns to step 2.
+
+Note that in the code we often use ``state`` to refer to a dictionary (or a single
+value in the case of an Input node), whereas the variable ``X`` refers to an
+array representation of the dictionary.
 
 Example: fiber alignment
 -------------------------
