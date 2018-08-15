@@ -70,10 +70,9 @@ typical optimization sequence:
 1. The initial state :math:`X` is represented through a dict ``state``, and is passed into the :doc:`/archetypes/optimizer` module along with a cost function ``cost``.
 2. The cost function :math:`\mathcal F[X]` is evaluated by calling ``cost(state)``.
 
-	a. ``Control.actuate(state)`` calls the ``Input.set(state)`` method on every input in the state vector.
-	b. Each Input node requests a new state from the Device node.
-	c. The Device node runs ``Device.actuate(state)`` to update the physical state.
-	d. A physical measurement of :math:`\mathcal F[X]` is made.
+	a. ``Control.actuate(state)`` decomposes the state and passes each substate to the Device.actuate() method.
+	b. The Device node runs ``Device.actuate(state)`` to update the physical state.
+	c. A physical measurement of :math:`\mathcal F[X]` is made.
 3. The learner updates its knowledge of the cost landscape :math:`\mathcal F[X]`, suggests a new state :math:`X`, and returns to step 2.
 
 Example: fiber alignment
