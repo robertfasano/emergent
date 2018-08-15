@@ -33,15 +33,21 @@ class LabJack(ProcessHandler):
     def _connect(self):
         try:
             self.handle = ljm.openS(self.device, self.connection, self.devid)
-            self._command('AIN_ALL_RANGE', self.arange)
+            print('got handle')
             info = ljm.getHandleInfo(self.handle)
+            print('got info')
+
+            self.deviceType = info[0]
+            if self.deviceType == ljm.constants.dtT7:
+#                log.error('Only the LabJack T7 is supported.')
+#                return 0
+
+                self._command('AIN_ALL_RANGE', self.arange)
+                print('set range')
             log.info('Connected to LabJack (%i).'%(info[2]))
             self.clock = 80e6       # internal clock frequency
-            deviceType = info[0]
+
             return 1
-            if deviceType != ljm.constants.dtT7:
-                log.error('Only the LabJack T7 is supported.')
-                return 0
 
         except:
             log.error('Failed to connect to LabJack (%s).'%self.devid)
@@ -152,7 +158,8 @@ class LabJack(ProcessHandler):
     def prepare_streamburst(self, channel):
         self.aScanList = ljm.namesToAddresses(1, ['AIN%i'%channel])[0]  # Scan list addresses for streamBurst
         self._command("STREAM_TRIGGER_INDEX", 0) # disable triggered stream
-        self._command("STREAM_CLOCK_SOURCE", 0)  # enable internal clock
+        if self.deviceType == ljm.constants.dtT7:
+            self._command("STREAM_CLOCK_SOURCE", 0)  # enable internal clock
         aNames = ["AIN_ALL_NEGATIVE_CH", "AIN0_RANGE", "AIN1_RANGE",
                   "STREAM_SETTLING_US", "STREAM_RESOLUTION_INDEX"]
         aValues = [ljm.constants.GND, 10.0, 10.0, 0, 0]
@@ -183,7 +190,7 @@ class LabJack(ProcessHandler):
         ljm.eStreamStop(self.handle)
 
     def stream_out(self, channels, data, scanRate, loop = False):
-        ''' Streams data at 100 kS/s.
+        ''' Streams data at a given scan rate..
 
             Args:
                 channels (list)): DAC channels to use; can use DAC0, DAC1, or both.
@@ -204,7 +211,8 @@ class LabJack(ProcessHandler):
             pass
         buffer_size = 2**14
         self._command("STREAM_TRIGGER_INDEX", 0)        # Ensure triggered stream is disabled.
-        self._command("STREAM_CLOCK_SOURCE", 0)       # Enabling internally-clocked stream.
+        if self.deviceType == ljm.constants.dtT7:
+            self._command("STREAM_CLOCK_SOURCE", 0)       # Enabling internally-clocked stream.
         aNames = ["STREAM_SETTLING_US", "STREAM_RESOLUTION_INDEX"]
         aValues = [0, 0]
         ljm.eWriteNames(self.handle, len(aNames), aNames, aValues)
@@ -251,7 +259,11 @@ class LabJack(ProcessHandler):
         '''
         buffer_size = 2**14
         max_samples = int(buffer_size/2)-1
-        max_speed = 100000 / channels
+        if self.deviceType == ljm.constants.dtT7:
+            max_speed = 100000 / channels
+        elif self.deviceType == ljm.constants.dtT4:
+            max_speed = 40000 / channels
+
         cutoff = max_samples / max_speed
         if period >= cutoff:
             samples = max_samples
@@ -286,4 +298,12 @@ class LabJack(ProcessHandler):
             x = wave[i]
             seq.append((t, x))
 
-        return sequence2stream(seq, period, channels)
+        return self.sequence2stream(seq, period, channels)
+
+
+if __name__ == '__main__':
+    devid='440010734'
+    lj = LabJack(devid=devid)
+    seq = [[0,0], [0.5,1]]
+    stream, speed = lj.sequence2stream(seq, 1, 1)
+    lj.stream_out([0], stream, speed)
