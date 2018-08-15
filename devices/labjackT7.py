@@ -33,17 +33,13 @@ class LabJack(ProcessHandler):
     def _connect(self):
         try:
             self.handle = ljm.openS(self.device, self.connection, self.devid)
-            print('got handle')
             info = ljm.getHandleInfo(self.handle)
-            print('got info')
 
             self.deviceType = info[0]
             if self.deviceType == ljm.constants.dtT7:
 #                log.error('Only the LabJack T7 is supported.')
 #                return 0
-
                 self._command('AIN_ALL_RANGE', self.arange)
-                print('set range')
             log.info('Connected to LabJack (%i).'%(info[2]))
             self.clock = 80e6       # internal clock frequency
 
