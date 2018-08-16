@@ -11,6 +11,8 @@ from PyQt5.QtWidgets import QWidget
 from PyQt5.QtCore import pyqtSignal, QObject
 from utility import methodsWithDecorator
 import logging as log
+import pandas as pd
+import datetime
 
 class ActuateSignal(QObject):
     signal = pyqtSignal(float)
@@ -360,11 +362,13 @@ class Device(Node):
         Args:
             state (dict): New state, e.g. {'param1':value1, 'param2':value2}.
         """
+        t = datetime.datetime.now()
         for input_name in state:
             self.state[input_name] = state[input_name]    # update Device
             input = self.children[input_name]
             input.state = state[input_name]   # update Input
             self.parent.state[input.full_name] = state[input_name]   # update Control
+            self.parent.update_dataframe(self, t, input.full_name, input.state)
             input.actuate_signal.emit(state[input_name])   # emit Qt signal
 
 class Control(Node):
@@ -394,6 +398,7 @@ class Control(Node):
         self.actuating = 0
         self.state_path = path+'/state/'
         self.data_path = path+'/data/'
+        self.dataframe = {}
 
         for p in [self.state_path, self.data_path]:
             pathlib.Path(p).mkdir(parents=True, exist_ok=True)
@@ -477,6 +482,13 @@ class Control(Node):
                 file.write('\n')
             file.write('%f\t%s\t%s'%(time.time(),json.dumps(state), tag))
 
+        ''' Save dataframes to csv '''
+        for input in self.inputs:
+            self.dataframe[input].to_csv(self.data_path+input+'.csv')
+
+    def update_dataframe(self, t, full_name, state):
+        self.dataframe[full_name].loc[t, 'state'] = state
+
     def load(self, full_name):
         """Loads the last saved state and attempts to reinitialize previous values for the Input node specified by full_name. If the input did not exist in the last state, then it is initialized with default values.
 
@@ -510,6 +522,13 @@ class Control(Node):
 
         ''' Update sequence of inputs '''
         self.inputs[full_name].sequence = self.sequence[full_name]
+
+        ''' Load dataframe '''
+        try:
+            self.dataframe[full_name] = pd.read_csv(self.data_path+full_name+'.csv')
+        except FileNotFoundError:
+            self.dataframe[full_name] = pd.DataFrame()
+
 
     def get_subsequence(self, keys):
         """Returns a sequence dict containing only the specified keys.
