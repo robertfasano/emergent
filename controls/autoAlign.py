@@ -7,6 +7,7 @@ import os
 char = {'nt': '\\', 'posix': '/'}[os.name]
 sys.path.append(char.join(os.getcwd().split(char)[0:-1]))
 from utility import cost
+import datetime
 
 class AutoAlign(Control):
     ''' Control node for automated fiber alignment. A Labjack T7 is used both for
@@ -28,8 +29,8 @@ class AutoAlign(Control):
         self.actuate(state)
         cost = -self.readADC()
         t = datetime.datetime.now()
-        for input in self.inputs:
-            self.update_dataframe(t, input.full_name, input.state)
+        for full_name in self.inputs:
+            self.update_dataframe(t, full_name, self.inputs[full_name].state)
         self.update_cost(t, cost)
         return cost
 
