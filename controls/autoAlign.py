@@ -29,9 +29,8 @@ class AutoAlign(Control):
         cost = -self.readADC()
         t = datetime.datetime.now()
         for input in self.inputs:
-            self.update_dataframe(self, t, input.full_name, input.state)
+            self.update_dataframe(t, input.full_name, input.state)
         self.update_cost(t, cost)
-        self.save(tag='cost', cost = cost)
         return cost
 
     def optimize(self):
