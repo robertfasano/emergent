@@ -26,7 +26,13 @@ class AutoAlign(Control):
     def measure_power(self, state):
         ''' Moves to the target alignment and measures the transmitted power. '''
         self.actuate(state)
-        return -self.readADC()
+        cost = -self.readADC()
+        t = datetime.datetime.now()
+        for input in self.inputs:
+            self.update_dataframe(self, t, input.full_name, input.state)
+        self.update_cost(t, cost)
+        self.save(tag='cost', cost = cost)
+        return cost
 
     def optimize(self):
         state = self.get_substate(['MEMS.X','MEMS.Y'])
