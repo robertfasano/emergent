@@ -6,12 +6,13 @@ class MOT(Control):
     def __init__(self, name, labjack, parent = None, path='.'):
         super().__init__(name, parent = parent, path=path)
         self.labjack = labjack
-        self.labjack.prepare_streamburst(channel=2)
+        # self.labjack.prepare_streamburst(channel=2)
 
         ''' Power PMT '''
-        self.labjack.AOut(3,-5, HV=True)
-        self.labjack.AOut(2,5, HV=True)
-
+        # self.labjack.AOut(3,-5, HV=True)
+        # self.labjack.AOut(2,5, HV=True)
+        self.labjack.AOut(7,-5, HV=True)
+        self.labjack.AOut(6,5, HV=True)
     def stream(self, period = 1, amplitude = 0.1):
         key='coils.I1'
         self.cycle_time = period
@@ -27,10 +28,10 @@ class MOT(Control):
         # self.actuate({'coils.I1':0, 'coils.I2':0})
         self.actuate({'coils.grad':0, 'coils.zero':0})
 
-        time.sleep(0.075)
+        time.sleep(0.1)
         low = self.labjack.streamburst(duration=0.05, operation = 'mean')
         self.actuate(state)
-        time.sleep(0.075)
+        time.sleep(0.1)
         high = self.labjack.streamburst(duration=0.05, operation = 'mean')
 
         return -(high-low)
