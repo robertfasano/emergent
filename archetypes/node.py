@@ -442,8 +442,8 @@ class Control(Node):
                 dev.actuate(state)
 
             self.actuating = 0
-            if save:
-                self.save(tag='actuate')
+            # if save:
+            #     self.save(tag='actuate')
         else:
             log.warn('Actuate blocked by already running actuation.')
 
@@ -482,7 +482,7 @@ class Control(Node):
                 file.write('\n')
             file.write('%f\t%s\t%s'%(time.time(),json.dumps(state), tag))
 
-        if tag == 'cost':
+        if tag == 'optimize':
             ''' Save dataframes to csv '''
             for input in self.inputs:
                 self.dataframe[input].to_csv(self.data_path+input+'.csv')
