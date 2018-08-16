@@ -531,12 +531,12 @@ class Control(Node):
 
         ''' Load dataframe '''
         try:
-            self.dataframe[full_name] = pd.read_csv(self.data_path+full_name+'.csv')
+            self.dataframe[full_name] = pd.read_csv(self.data_path+full_name+'.csv', index_col=0)
         except FileNotFoundError:
             self.dataframe[full_name] = pd.DataFrame()
         if self.dataframe['cost'] is None:
             try:
-                self.dataframe['cost'] = pd.read_csv(self.data_path+'cost''+'.csv')
+                self.dataframe['cost'] = pd.read_csv(self.data_path+'cost'+'.csv', index_col=0)
             except FileNotFoundError:
                 self.dataframe['cost'] = pd.Series()
 
