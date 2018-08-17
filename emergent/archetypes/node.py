@@ -507,8 +507,9 @@ class Control(Node):
         except FileNotFoundError:
             self.dataframe[full_name] = pd.DataFrame()
             self.state[full_name] = 0
+            self.settings[full_name] = {}
             for setting in ['min', 'max']:
-                self.settings[full_name] = 0
+                self.settings[full_name][setting] = 0
             log.warn('Could not find csv for input %s; creating new settings.'%full_name)
 
         if self.dataframe['cost'] is None:
