@@ -42,12 +42,12 @@ class LabJack(ProcessHandler):
         self.arange = arange
         self._connected = 0
         self.averaging_array = []
-        self._connected = self._connect()
 
         ''' Define a FIFO queue running in a separate thread so that multiple
             simultaneous threads can share a LabJack without interference. '''
         self.queue = FIFO()
         self._run_thread(self.queue.run)
+        self._connected = self._connect()
 
     def _connect(self):
         try:
