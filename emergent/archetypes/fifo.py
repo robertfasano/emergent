@@ -1,27 +1,31 @@
 import queue
+import time
 
 class Message():
     """abstract message class"""
-    def __init__(self, *args, **kwargs):
+    def __init__(self, id, *args, **kwargs):
         self.args = args
         self.kwargs = kwargs
+        self.id = id
 
 class FIFO(queue.Queue):
     def __init__(self):
         super().__init__()
+        self.buffer = {}
 
-    def add(self, func, *args, **kwargs):
+    def add(self, func, id, *args, **kwargs):
         ''' Adds a function with optional positional and keyword arguments to the queue. '''
         class msg(Message):
             def run(self):
-                func(*self.args)
-        self.put(msg(*args, **kwargs))
+                return func(*self.args)
+        self.put(msg(id, *args, **kwargs))
 
 
     def next(self):
         ''' Retrieves and executes the next function on a FIFO basis. '''
         msg = self.get()
-        msg.run()
+        r = msg.run()
+        self.buffer[msg.id] = r
 
     def run(self, stopped):
         while not stopped():
@@ -30,9 +34,16 @@ class FIFO(queue.Queue):
 if __name__ == '__main__':
     import decorator
     @decorator.decorator
-    def add(func, *args, **kwargs):
+    def wait(func, *args, **kwargs):
         obj = args[0]
-        getattr(obj, 'queue').add(func, *args, **kwargs)
+        id = time.time()
+        q = getattr(obj, 'queue')
+        q.add(func, id, *args, **kwargs)
+        while True:
+            try:
+                return q.buffer[id]
+            except KeyError:
+                continue
 
     from emergent.archetypes.parallel import ProcessHandler
     class TestClass(ProcessHandler):
@@ -41,7 +52,7 @@ if __name__ == '__main__':
             self.queue = FIFO()
             self._run_thread(self.queue.run)
 
-        @add
+        @wait
         def foo(self, string):
-            print(string)
+            return string
     c = TestClass()
