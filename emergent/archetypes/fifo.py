@@ -1,5 +1,6 @@
 import queue
 import time
+import logging as log
 
 class Message():
     """abstract message class"""
@@ -18,6 +19,7 @@ class FIFO(queue.Queue):
         class msg(Message):
             def run(self):
                 return func(*self.args)
+        log.debug('Added %s to queue with id %f.'%(func, id))
         self.put(msg(id, *args, **kwargs))
 
 
