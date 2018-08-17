@@ -32,11 +32,19 @@ simulation = args.simulation
 
 ''' Import network '''
 # from network import *
-importlib.import_module('emergent.networks.%s'%sys.argv[1]+'.network')
-
+network = importlib.import_module('emergent.networks.%s'%sys.argv[1]+'.network')
+if "__all__" in network.__dict__:
+    names = network.__dict__["__all__"]
+else:
+    names = [x for x in network.__dict__ if not x.startswith("_")]
+globals().update({k: getattr(network, k) for k in names})
 ''' Do stuff '''
-importlib.import_module('emergent.networks.%s'%sys.argv[1]+'.process')
-
+process = importlib.import_module('emergent.networks.%s'%sys.argv[1]+'.process')
+if "__all__" in process.__dict__:
+    names = process.__dict__["__all__"]
+else:
+    names = [x for x in process.__dict__ if not x.startswith("_")]
+globals().update({k: getattr(process, k) for k in names})
 
 ''' Gather nodes '''
 tree = {}
