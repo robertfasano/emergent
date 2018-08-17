@@ -85,7 +85,7 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         if state == {}:
             log.warn('Please select at least one Input node for optimization.')
         else:
-            points, cost = func(state, cost, params, self.update_progress_bar)
+            func(state, cost, params, self.update_progress_bar)
             log.info('Optimization complete!')
 
     def update_algorithm(self):
