@@ -36,9 +36,8 @@ class LabJack(ProcessHandler):
             info = ljm.getHandleInfo(self.handle)
 
             self.deviceType = info[0]
+            assert self.deviceType in [ljm.constants.dtT7, ljm.constants.dtT4]
             if self.deviceType == ljm.constants.dtT7:
-#                log.error('Only the LabJack T7 is supported.')
-#                return 0
                 self._command('AIN_ALL_RANGE', self.arange)
             log.info('Connected to LabJack (%i).'%(info[2]))
             self.clock = 80e6       # internal clock frequency
@@ -295,11 +294,3 @@ class LabJack(ProcessHandler):
             seq.append((t, x))
 
         return self.sequence2stream(seq, period, channels)
-
-
-if __name__ == '__main__':
-    devid='440010734'
-    lj = LabJack(devid=devid)
-    seq = [[0,0], [0.5,1]]
-    stream, speed = lj.sequence2stream(seq, 1, 1)
-    lj.stream_out([0], stream, speed)
