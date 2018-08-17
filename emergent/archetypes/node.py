@@ -462,7 +462,7 @@ class Control(Node):
         for key in keys:
             state[key] = self.state[key]
         return state
-        
+
     def list_costs(self):
         """Returns a list of all methods tagged with the '@cost' decorator."""
         return methodsWithDecorator(self.__class__, 'cost')
@@ -486,14 +486,9 @@ class Control(Node):
 
         ''' Load variables into control '''
         try:
-            self.settings[full_name] = state[full_name]['settings']
-            self.inputs[full_name].set_settings(state[full_name]['settings'])
-            self.state[full_name] = state[full_name]['state']
             self.sequence[full_name] = state[full_name]['sequence']
             self.cycle_time = state['cycle_time']
         except KeyError:
-            self.settings[full_name] = {'min':0, 'max':1}
-            self.state[full_name] = 0
             self.sequence[full_name] = [[0,0]]
             self.cycle_time = 0
             log.warn('Could not retrieve settings for input %s; creating new settings.'%full_name)
@@ -504,13 +499,26 @@ class Control(Node):
         ''' Load dataframe '''
         try:
             self.dataframe[full_name] = pd.read_csv(self.data_path+full_name+'.csv', index_col=0)
+            self.state[full_name] = self.dataframe[full_name]['state'].iloc[-1]
+            self.settings[full_name] = {}
+            for setting in ['min', 'max']:
+                self.settings[full_name][setting] = self.dataframe[full_name][setting].iloc[-1]
+            self.inputs[full_name].set_settings(self.settings[full_name])
         except FileNotFoundError:
             self.dataframe[full_name] = pd.DataFrame()
+            self.state[full_name] = 0
+            for setting in ['min', 'max']:
+                self.settings[full_name] = 0
+            log.warn('Could not find csv for input %s; creating new settings.'%full_name)
+
         if self.dataframe['cost'] is None:
             try:
                 self.dataframe['cost'] = pd.read_csv(self.data_path+'cost'+'.csv', index_col=0)
             except FileNotFoundError:
                 self.dataframe['cost'] = pd.Series()
+
+
+
 
     def save(self, tag = ''):
         """Aggregates the self.state, self.settings, self.cycle_time, and self.sequence variables into a single dict and saves to file.
@@ -560,6 +568,8 @@ class Control(Node):
         if self.inputs[full_name].type is 'secondary':
             return
         self.dataframe[full_name].loc[t, 'state'] = state
+        for setting in ['min', 'max']:
+            self.dataframe[full_name].loc[t, setting] = self.settings[full_name][setting]
 
     def update_cost(self, t, cost):
         self.dataframe['cost'].loc[t] = cost
