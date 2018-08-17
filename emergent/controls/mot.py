@@ -34,4 +34,10 @@ class MOT(Control):
         time.sleep(0.1)
         high = self.labjack.streamburst(duration=0.05, operation = 'mean')
 
-        return -(high-low)
+        return -(high-low
+
+    def wave(self, frequency=2):
+        V = 3.3
+        seq = [[0,0], [1/frequency/2,V]]
+        stream, scanRate = self.labjack.sequence2stream(seq, 1/frequency, 1)
+        self.labjack.stream_out([0], stream, scanRate, loop = True)
