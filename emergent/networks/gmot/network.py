@@ -24,14 +24,18 @@ mems_slowing = PicoAmp('MEMS', labjack_slowing, parent=slowing)
 devid = '440010734'     # T4
 labjack_MOT = LabJack(devid=devid)
 mot = MOT(name='MOT', labjack=labjack_MOT,path='networks/%s'%sys.argv[1])
-coils = CurrentDriver('coils', 'COM13', 'COM18', parent = mot, labjack = labjack_MOT)
 feedthrough = NetControls('feedthrough', 'COM11', parent = mot)
 novatech = Novatech('novatech', 'COM7', parent = mot)
 servo = IntensityServo('servo', None, '440010742', parent = mot)
 
-devid = '470016973'    # T7
-labjack_MEMS = LabJack(devid=devid)
-mems = PicoAmp('MEMS', labjack_MEMS, parent=mot, comm='analog')
+devid='440010680'
+labjack_coils = LabJack(devid=devid)
+coils = CurrentDriver('coils', 'COM33', 'COM38', parent = mot, labjack = labjack_coils)
+
+
+# devid = '470016973'    # T7
+# labjack_MEMS = LabJack(devid=devid)
+# mems = PicoAmp('MEMS', labjack_MEMS, parent=mot, comm='analog')
 
 ''' Run post-load routine '''
 for c in Control.instances:
