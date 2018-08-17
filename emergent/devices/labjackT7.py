@@ -90,7 +90,6 @@ class LabJack(ProcessHandler):
             vals.append(ljm.eReadName(self.handle, 'AIN%i'%channel))
         return np.mean(vals)
 
-    @queue
     def AOut(self, channel, value, HV=False):
         ''' Output an analog voltage.
 
@@ -105,7 +104,6 @@ class LabJack(ProcessHandler):
             self._command("TDAC%i"%channel, value)
 
     ''' Digital I/O '''
-    @queue
     def DOut(self, channel, state):
         ''' Output a digital signal.
 
@@ -115,7 +113,6 @@ class LabJack(ProcessHandler):
         '''
         self._command(channel, state)
 
-    @queue
     def PWM(self, channel, frequency, duty_cycle):
         ''' Starts pulse width modulation on an FIO channel.
 
@@ -142,7 +139,6 @@ class LabJack(ProcessHandler):
             log.warn(e)
 
     ''' SPI methods '''
-    @queue
     def spi_initialize(self, mode = 3, CLK=0, CS=1,MOSI=2, MISO=3):  #, CS, CLK, MISO, MOSI):
         ''' Initializes the SPI bus using several FIO ports.
 
@@ -161,7 +157,6 @@ class LabJack(ProcessHandler):
         self._command("SPI_SPEED_THROTTLE", 0)        # Valid speed throttle values are 1 to 65536 where 0 = 65536 ~ 800 kHz
         self._command("SPI_OPTIONS", 0)               # Enabling active low clock select pin
 
-    @queue
     def spi_write(self, data):
         ''' Writes a list of commands via SPI.
 
@@ -176,7 +171,6 @@ class LabJack(ProcessHandler):
         self._command("SPI_GO", 1)  # Do the SPI communications
 
     ''' Streaming methods '''
-    @queue
     def prepare_streamburst(self, channel):
         self.aScanList = ljm.namesToAddresses(1, ['AIN%i'%channel])[0]  # Scan list addresses for streamBurst
         self._command("STREAM_TRIGGER_INDEX", 0) # disable triggered stream
@@ -190,7 +184,6 @@ class LabJack(ProcessHandler):
 
         self._command('STREAM_BUFFER_SIZE_BYTES', 2**14)
 
-    @queue
     def streamburst(self, duration, operation = None):
         ''' Performs a burst stream and optionally performs a numpy array operation
             on the result.
@@ -213,7 +206,6 @@ class LabJack(ProcessHandler):
     def stream_stop(self):
         ljm.eStreamStop(self.handle)
 
-    @queue
     def stream_out(self, channels, data, scanRate, loop = False):
         ''' Streams data at a given scan rate..
 
