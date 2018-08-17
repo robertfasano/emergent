@@ -578,6 +578,7 @@ class Control(Node):
         """Tasks to be carried out after all Devices and Inputs are initialized."""
         self.actuate(self.state)
         for device in self.children.values():
+            device._connected = device._connect()
             device.loaded = 1
 
         self.sequencer.prepare_sequence()

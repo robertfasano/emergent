@@ -8,7 +8,7 @@ class Novatech(Device):
     def __init__(self, name, port, parent = None):
         super().__init__(name='novatech', parent = parent)
         self.port = port
-        self._connected = self._connect()
+        # self._connected = self._connect()
         self.add_input('f0')
         self.add_input('f1')
         self.add_input('f2')

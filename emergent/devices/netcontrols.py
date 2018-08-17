@@ -9,7 +9,7 @@ class NetControls(Device, ProcessHandler):
         ProcessHandler.__init__(self)
         self.port = port
         self.add_input('Z')
-        self._connected = self._connect()
+        # self._connected = self._connect()
 
     def _connect(self):
         self.serial = Serial(port = self.port, baudrate = 38400, encoding = 'ascii', parity = PARITY_NONE, stopbits = STOPBITS_ONE, bytesize = EIGHTBITS, timeout = 1, name = 'NetControls driver')

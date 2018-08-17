@@ -22,7 +22,7 @@ class PicoAmp(Device):
         self.add_input('X')
         self.add_input('Y')
 
-        self._connect()
+        # self._connect()
 
     def _connect(self):
         ''' Initializes the PicoAmp via SPI. '''

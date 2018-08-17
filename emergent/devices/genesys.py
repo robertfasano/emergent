@@ -14,7 +14,7 @@ class Genesys(Device):
         self.addr = 6
         self._connected = 0
 
-        self._connect()
+        # self._connect()
 
     def _connect(self):
         ''' Establish a serial connection over USB and enable output. '''

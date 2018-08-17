@@ -49,7 +49,7 @@ class CurrentDriver(Device, ProcessHandler):
 
         self.add_input('grad', type='secondary')
         self.add_input('zero', type='secondary')
-        self._connected = self._connect()
+        # self._connected = self._connect()
 
         ''' Wave options '''
         self.options['Start wave']=self.wave
@@ -83,8 +83,6 @@ class CurrentDriver(Device, ProcessHandler):
             plt.xlabel('Setpoint (V)')
             plt.ylabel('Current (I)')
             plt.show()
-        #self._save()
-        #self._actuate(self.state)           # return to initial state
         self.labjack.AOut(coil-1, 0)
 
     def measure_current(self, coil):
@@ -100,6 +98,7 @@ class CurrentDriver(Device, ProcessHandler):
     def _connect_to_psu(self, coil):
         ''' Connects to the Genesys power supply for coil 1 or 2. '''
         psu = Genesys(name='psu%i'%coil, port = getattr(self, 'port%i'%coil))
+        psu._connect()
         setattr(self, 'psu%i'%coil, psu)
         psu.set_current(80)
         psu.set_voltage(6)
