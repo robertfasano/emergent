@@ -433,8 +433,6 @@ class Control(Node):
                 dev.actuate(state)
 
             self.actuating = 0
-            # if save:
-            #     self.save(tag='actuate')
         else:
             log.warn('Actuate blocked by already running actuation.')
 

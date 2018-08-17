@@ -231,7 +231,6 @@ class Optimizer():
         costs = []
         for point in points:
             costs.append(self.cost_from_array(point, state, cost))
-
             if update is not None:
                 update(len(costs)/len(points))
 
@@ -287,6 +286,7 @@ class Optimizer():
         else:
             ''' Generate search grid '''
             points, costs = self.grid_sampling(state, cost, params['steps'], update=update)
+
         ''' Plot result if desired '''
         ax = None
         if params['plot'] and len(state) is 2:
@@ -300,7 +300,6 @@ class Optimizer():
         best_point = self.array2dict(points[np.argmin(costs)], state)
         self.actuate(self.unnormalize(best_point))
 
-        self.parent.save(tag='optimize')
         return points, costs
 
     def gp_next_sample(self, X, bounds, b, cost, gaussian_process, restarts=25):
@@ -452,7 +451,6 @@ class Optimizer():
     ''' Visualization methods '''
     def plot_2D(self, points, costs, normalized_cost = False, limits = None, save = False):
         ''' Interpolates and plots a cost function sampled at an array of points. '''
-        print(save)
         plt.figure()
         points = points.copy()
         ordinate_index = 0
