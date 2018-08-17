@@ -39,6 +39,9 @@ class IntensityServo(Device):
             ch = [0, 1, 0, 1][channel]
             lj.AOut(ch, state[name])
 
+    def _connect(self):
+        return
+        
     def lock(self, channel, state):
         ''' Turns the integrator on or off. Digital high = off.
 
