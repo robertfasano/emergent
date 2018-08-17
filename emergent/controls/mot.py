@@ -6,7 +6,7 @@ class MOT(Control):
     def __init__(self, name, labjack, parent = None, path='.'):
         super().__init__(name, parent = parent, path=path)
         self.labjack = labjack
-        # self.labjack.prepare_streamburst(channel=2)
+        self.labjack.prepare_streamburst(channel=0)
 
         ''' Power PMT '''
         # self.labjack.AOut(3,-5, HV=True)
