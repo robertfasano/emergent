@@ -1,6 +1,8 @@
 import inspect
 import importlib
 import os
+import datetime
+import decorator
 
 def methodsWithDecorator(cls, decoratorName):
     methods = []
@@ -16,11 +18,20 @@ def methodsWithDecorator(cls, decoratorName):
 def dev(func):
     return func
 
-def cost(func):
-    return func
+@decorator.decorator
+def cost(func, *args, **kwargs):
+    c = func(*args, **kwargs)
+    t = datetime.datetime.now()
+    for full_name in args[0].inputs:
+        args[0].update_dataframe(t, full_name, args[0].inputs[full_name].state)
+    args[0].update_cost(t, c)
 
-def algorithm(func):
-    return func
+    return c
+
+@decorator.decorator
+def algorithm(func, *args, **kwargs):
+    func(*args, **kwargs)
+    args[0].parent.save(tag='optimize')
 
 def get_classes(directory, decoratorName):
     classes = {}
