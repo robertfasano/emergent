@@ -6,7 +6,6 @@ class TestControl(Control):
         def __init__(self, name, parent=None, path = '.'):
                 super().__init__(name, parent, path=path)
 
-        @cost
         def cost_coupled(self, state):
             return self.cost_uncoupled(state, theta=30*np.pi/180)
 
@@ -18,16 +17,12 @@ class TestControl(Control):
                 y=self.state['deviceA.X']*np.sin(theta) + self.state['deviceA.Y']*np.cos(theta)
             except KeyError:
                 primary = self.children['deviceA'].secondary_to_primary(self.state)
-                print(primary)
                 x=primary['X']*np.cos(theta) - primary['Y']*np.sin(theta)
                 y=primary['X']*np.sin(theta) + primary['Y']*np.cos(theta)
             x0 = 0.3
             y0 = 0.6
             cost =  -np.exp(-(x-0.5)**2/x0**2)*np.exp(-(y-0.5)**2/y0**2)
-            t = datetime.datetime.now()
-            for full_name in self.inputs:
-                self.update_dataframe(t, full_name, self.inputs[full_name].state)
-            self.update_cost(t, cost)
+
             return cost
 
         @cost
