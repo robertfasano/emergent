@@ -15,7 +15,14 @@ import decorator
 @decorator.decorator
 def queue(func, *args, **kwargs):
     obj = args[0]
-    getattr(obj, 'queue').add(func, *args, **kwargs)
+    id = time.time()
+    q = getattr(obj, 'queue')
+    q.add(func, id, *args, **kwargs)
+    while True:
+        try:
+            return q.buffer[id]
+        except KeyError:
+            continue
 
 class LabJack(ProcessHandler):
     ''' Python interface for the LabJack T7. '''
@@ -70,6 +77,7 @@ class LabJack(ProcessHandler):
         ljm.eWriteName(self.handle, register, value)
 
     ''' Analog I/O '''
+    @queue
     def AIn(self, channel, num = 1):
         ''' Read a channel with optional averaging.
 
@@ -82,6 +90,7 @@ class LabJack(ProcessHandler):
             vals.append(ljm.eReadName(self.handle, 'AIN%i'%channel))
         return np.mean(vals)
 
+    @queue
     def AOut(self, channel, value, HV=False):
         ''' Output an analog voltage.
 
@@ -96,6 +105,7 @@ class LabJack(ProcessHandler):
             self._command("TDAC%i"%channel, value)
 
     ''' Digital I/O '''
+    @queue
     def DOut(self, channel, state):
         ''' Output a digital signal.
 
@@ -105,6 +115,7 @@ class LabJack(ProcessHandler):
         '''
         self._command(channel, state)
 
+    @queue
     def PWM(self, channel, frequency, duty_cycle):
         ''' Starts pulse width modulation on an FIO channel.
 
@@ -131,6 +142,7 @@ class LabJack(ProcessHandler):
             log.warn(e)
 
     ''' SPI methods '''
+    @queue
     def spi_initialize(self, mode = 3, CLK=0, CS=1,MOSI=2, MISO=3):  #, CS, CLK, MISO, MOSI):
         ''' Initializes the SPI bus using several FIO ports.
 
@@ -149,6 +161,7 @@ class LabJack(ProcessHandler):
         self._command("SPI_SPEED_THROTTLE", 0)        # Valid speed throttle values are 1 to 65536 where 0 = 65536 ~ 800 kHz
         self._command("SPI_OPTIONS", 0)               # Enabling active low clock select pin
 
+    @queue
     def spi_write(self, data):
         ''' Writes a list of commands via SPI.
 
@@ -163,6 +176,7 @@ class LabJack(ProcessHandler):
         self._command("SPI_GO", 1)  # Do the SPI communications
 
     ''' Streaming methods '''
+    @queue
     def prepare_streamburst(self, channel):
         self.aScanList = ljm.namesToAddresses(1, ['AIN%i'%channel])[0]  # Scan list addresses for streamBurst
         self._command("STREAM_TRIGGER_INDEX", 0) # disable triggered stream
@@ -176,6 +190,7 @@ class LabJack(ProcessHandler):
 
         self._command('STREAM_BUFFER_SIZE_BYTES', 2**14)
 
+    @queue
     def streamburst(self, duration, operation = None):
         ''' Performs a burst stream and optionally performs a numpy array operation
             on the result.
@@ -194,9 +209,11 @@ class LabJack(ProcessHandler):
         else:
             return getattr(np, operation)(aData)
 
+    @queue
     def stream_stop(self):
         ljm.eStreamStop(self.handle)
 
+    @queue
     def stream_out(self, channels, data, scanRate, loop = False):
         ''' Streams data at a given scan rate..
 
@@ -248,6 +265,7 @@ class LabJack(ProcessHandler):
         scanRate = ljm.eStreamStart(self.handle, 1,len(aScanList), aScanList, scanRate)
         log.info("\nStream started with a scan rate of %0.0f Hz." % scanRate)
 
+    @queue
     def sequence2stream(self, sequence, period, channels = 1):
         ''' Converts a sequence to a stream. The LabJack has two limitations:
             a maximum stream rate of 100 kS/s and a maximum sample count of
@@ -288,6 +306,7 @@ class LabJack(ProcessHandler):
             stream[int(t/period*samples)::] = V
         return stream, speed
 
+    @queue
     def resample(self, wave, period, channels = 1):
         ''' Resamples a waveform with a given period into the optimal stream.
 
