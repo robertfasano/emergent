@@ -409,15 +409,6 @@ class Control(Node):
 
         self.node_type = 'control'
 
-    def get_sequence(self):
-        """Populates the self.sequence dict with sequences of all inputs."""
-        for i in self.inputs.values():
-            self.sequence[i.full_name] = i.sequence
-
-    def list_costs(self):
-        """Returns a list of all methods tagged with the '@cost' decorator."""
-        return methodsWithDecorator(self.__class__, 'cost')
-
     def actuate(self, state, save=True):
         """Updates all Inputs in the given state to the given values and optionally logs the state.
 
@@ -447,58 +438,36 @@ class Control(Node):
         else:
             log.warn('Actuate blocked by already running actuation.')
 
-    def save(self, tag = ''):
-        """Aggregates the self.state, self.settings, self.cycle_time, and self.sequence variables into a single dict and saves to file.
+    def get_sequence(self):
+        """Populates the self.sequence dict with sequences of all inputs."""
+        for i in self.inputs.values():
+            self.sequence[i.full_name] = i.sequence
+
+    def get_subsequence(self, keys):
+        """Returns a sequence dict containing only the specified keys.
 
         Args:
-            tag (str): Label written to the third column of the log file which describes where the state was saved from, e.g. 'actuate' or 'optimize'.
+            keys (list): full_name variables of Input nodes to retrieve, e.g. ['deviceA.input1', 'deviceB.input1'].
+        """
+        sequence = {}
+        for key in keys:
+            sequence[key] = self.sequence[key]
+        return sequence
+
+    def get_substate(self, keys):
+        """Returns a state dict containing only the specified keys.
+
+        Args:
+            keys (list): full_name variables of Input nodes to retrieve, e.g. ['deviceA.input1', 'deviceB.input1'].
         """
         state = {}
-        state['cycle_time'] = self.cycle_time
-
-        ''' Convert any secondary inputs to primary before saving '''
-        converted = []
-        for dev in self.children.values():
-            if dev.input_type == 'secondary':
-                dev.use_inputs('primary')
-                converted.append(dev)
-        for input in self.inputs.values():
-            if input.type is 'secondary':
-                continue
-            full_name = input.full_name
-            state[full_name] = {}
-            state[full_name]['state'] = self.state[full_name]
-            state[full_name]['settings'] = self.settings[full_name]
-            state[full_name]['sequence'] = self.sequence[full_name]
-
-        ''' Convert back '''
-        for dev in converted:
-            dev.use_inputs('secondary')
-        filename = self.state_path + self.name + '.txt'
-        write_newline = os.path.isfile(filename)
-
-        with open(filename, 'a') as file:
-            if write_newline:
-                file.write('\n')
-            file.write('%f\t%s\t%s'%(time.time(),json.dumps(state), tag))
-
-        if tag == 'optimize':
-            ''' Save dataframes to csv '''
-            for full_name in self.inputs:
-                input = self.inputs[full_name]
-                if input.type is 'secondary':
-                    continue
-                self.dataframe[full_name].to_csv(self.data_path+full_name+'.csv')
-            self.dataframe['cost'].to_csv(self.data_path+'cost'+'.csv')
-
-
-    def update_dataframe(self, t, full_name, state):
-        if self.inputs[full_name].type is 'secondary':
-            return
-        self.dataframe[full_name].loc[t, 'state'] = state
-
-    def update_cost(self, t, cost):
-        self.dataframe['cost'].loc[t] = cost
+        for key in keys:
+            state[key] = self.state[key]
+        return state
+        
+    def list_costs(self):
+        """Returns a list of all methods tagged with the '@cost' decorator."""
+        return methodsWithDecorator(self.__class__, 'cost')
 
     def load(self, full_name):
         """Loads the last saved state and attempts to reinitialize previous values for the Input node specified by full_name. If the input did not exist in the last state, then it is initialized with default values.
@@ -545,28 +514,57 @@ class Control(Node):
             except FileNotFoundError:
                 self.dataframe['cost'] = pd.Series()
 
-
-    def get_subsequence(self, keys):
-        """Returns a sequence dict containing only the specified keys.
-
-        Args:
-            keys (list): full_name variables of Input nodes to retrieve, e.g. ['deviceA.input1', 'deviceB.input1'].
-        """
-        sequence = {}
-        for key in keys:
-            sequence[key] = self.sequence[key]
-        return sequence
-
-    def get_substate(self, keys):
-        """Returns a state dict containing only the specified keys.
+    def save(self, tag = ''):
+        """Aggregates the self.state, self.settings, self.cycle_time, and self.sequence variables into a single dict and saves to file.
 
         Args:
-            keys (list): full_name variables of Input nodes to retrieve, e.g. ['deviceA.input1', 'deviceB.input1'].
+            tag (str): Label written to the third column of the log file which describes where the state was saved from, e.g. 'actuate' or 'optimize'.
         """
         state = {}
-        for key in keys:
-            state[key] = self.state[key]
-        return state
+        state['cycle_time'] = self.cycle_time
+
+        ''' Convert any secondary inputs to primary before saving '''
+        converted = []
+        for dev in self.children.values():
+            if dev.input_type == 'secondary':
+                dev.use_inputs('primary')
+                converted.append(dev)
+        for input in self.inputs.values():
+            if input.type is 'secondary':
+                continue
+            full_name = input.full_name
+            state[full_name] = {}
+            state[full_name]['state'] = self.state[full_name]
+            state[full_name]['settings'] = self.settings[full_name]
+            state[full_name]['sequence'] = self.sequence[full_name]
+
+        ''' Convert back '''
+        for dev in converted:
+            dev.use_inputs('secondary')
+        filename = self.state_path + self.name + '.txt'
+        write_newline = os.path.isfile(filename)
+
+        with open(filename, 'a') as file:
+            if write_newline:
+                file.write('\n')
+            file.write('%f\t%s\t%s'%(time.time(),json.dumps(state), tag))
+
+        if tag == 'optimize':
+            ''' Save dataframes to csv '''
+            for full_name in self.inputs:
+                input = self.inputs[full_name]
+                if input.type is 'secondary':
+                    continue
+                self.dataframe[full_name].to_csv(self.data_path+full_name+'.csv')
+            self.dataframe['cost'].to_csv(self.data_path+'cost'+'.csv')
+
+    def update_dataframe(self, t, full_name, state):
+        if self.inputs[full_name].type is 'secondary':
+            return
+        self.dataframe[full_name].loc[t, 'state'] = state
+
+    def update_cost(self, t, cost):
+        self.dataframe['cost'].loc[t] = cost
 
     def onLoad(self):
         """Tasks to be carried out after all Devices and Inputs are initialized."""
