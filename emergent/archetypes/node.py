@@ -556,14 +556,15 @@ class Control(Node):
                 file.write('\n')
             file.write('%f\t%s\t%s'%(time.time(),json.dumps(state), tag))
 
-        if tag == 'optimize':
-            ''' Save dataframes to csv '''
-            for full_name in self.inputs:
-                input = self.inputs[full_name]
-                if input.type is 'secondary':
-                    continue
-                self.dataframe[full_name].to_csv(self.data_path+full_name+'.csv')
-            self.dataframe['cost'].to_csv(self.data_path+'cost'+'.csv')
+        ''' Save dataframes to csv '''
+        t= datetime.datetime.now()
+        for full_name in self.inputs:
+            input = self.inputs[full_name]
+            if input.type is 'secondary':
+                continue
+            self.update_dataframe(t, full_name, input.state)
+            self.dataframe[full_name].to_csv(self.data_path+full_name+'.csv')
+        self.dataframe['cost'].to_csv(self.data_path+self.name+'_cost'+'.csv')
 
     def update_dataframe(self, t, full_name, state):
         if self.inputs[full_name].type is 'secondary':
