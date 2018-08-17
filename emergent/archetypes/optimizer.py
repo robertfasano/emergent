@@ -37,14 +37,18 @@ class Optimizer():
         self.parent = control_node
         self.actuate = self.parent.actuate
 
-    def sequence2array(self, sequence):
-        ''' Convert an experimental sequence to an array of setpoints. '''
-        arr = []
-        for key in sequence.keys():
-            s = sequence[key]
-            for i in range(len(s)):
-                arr.append(s[i][1])
-        return arr
+    ''' State conversion functions '''
+    def array2dict(self, arr, initial):
+        ''' Converts the array back to the form of the initial object. '''
+
+        initial_type = self.sequence_or_state(initial)
+
+        if initial_type == 'sequence':
+            target = self.array2sequence(arr, initial)
+        elif initial_type =='state':
+            target = self.array2state(arr, initial)
+
+        return target
 
     def array2sequence(self, arr, sequence):
         ''' Updates setpoints in a sequence with values from an array. '''
@@ -64,12 +68,25 @@ class Optimizer():
             state[keys[i]] = arr[i]
         return state
 
-    def state2array(self, state):
-        ''' Converts a state dict into a numpy array. '''
-        arr = np.array([])
-        for i in range(len(state.keys())):
-            arr = np.append(arr, state[list(state.keys())[i]])
-        return arr
+    def cost_from_array(self, arr, d, cost):
+        ''' Converts the array back to the form of d (e.g. sequence or state),
+            unnormalizes it, and returns cost evaluated on the result. '''
+        target = self.array2dict(arr, d)
+        target = self.unnormalize(target)
+
+        c = cost(target)
+
+        ''' Update history '''
+        t = time.time()
+        type = self.sequence_or_state(target)
+        if type == 'sequence':
+            for key in target.keys():
+                s = target[key]
+                for i in range(len(s)):
+                    col = key+str(i)
+                    self.history.loc[t,col] = s[i][1]
+        self.history.loc[t,'cost']=-c
+        return c
 
     def dict2array(self, d):
         d_type = self.sequence_or_state(d)
@@ -81,30 +98,14 @@ class Optimizer():
 
         return arr
 
-    def array2dict(self, arr, initial):
-        ''' Converts the array back to the form of the initial object. '''
-
-        initial_type = self.sequence_or_state(initial)
-
-        if initial_type == 'sequence':
-            target = self.array2sequence(arr, initial)
-        elif initial_type =='state':
-            target = self.array2state(arr, initial)
-
-        return target
-
-    def _cost(self, state, cost):
-        ''' Unnormalizes the state dict, computes the cost, and logs. '''
-        c = cost(self.unnormalize(state))
-        self.history.loc[time.time()] = -c
-        return c
-
-    def cost_array(self, X, state, cost):
-        ''' Converts a normalized array into a state dict and evaluates cost. '''
-        state = self.array2dict(X, state)
-        c = self._cost(state, cost)
-        self.history.loc[time.time()] = -c
-        return c
+    def sequence2array(self, sequence):
+        ''' Convert an experimental sequence to an array of setpoints. '''
+        arr = []
+        for key in sequence.keys():
+            s = sequence[key]
+            for i in range(len(s)):
+                arr.append(s[i][1])
+        return arr
 
     def sequence_or_state(self, d):
         d_type = type(list(d.values())[0])
@@ -112,6 +113,20 @@ class Optimizer():
             return 'sequence'
         else:
             return 'state'
+
+    def state2array(self, state):
+        ''' Converts a state dict into a numpy array. '''
+        arr = np.array([])
+        for i in range(len(state.keys())):
+            arr = np.append(arr, state[list(state.keys())[i]])
+        return arr
+
+    ''' Logistics functions '''
+    def _cost(self, state, cost):
+        ''' Unnormalizes the state dict, computes the cost, and logs. '''
+        c = cost(self.unnormalize(state))
+        self.history.loc[time.time()] = -c
+        return c
 
     def initialize_optimizer(self, state):
         ''' Creates a history dataframe to log the optimization. Normalizes the
@@ -140,26 +155,6 @@ class Optimizer():
             state = self.dict2array(state)
             bounds = np.array(list(itertools.repeat([0,1], len(state))))
             return state, bounds
-
-    def cost_from_array(self, arr, d, cost):
-        ''' Converts the array back to the form of d (e.g. sequence or state),
-            unnormalizes it, and returns cost evaluated on the result. '''
-        target = self.array2dict(arr, d)
-        target = self.unnormalize(target)
-
-        c = cost(target)
-
-        ''' Update history '''
-        t = time.time()
-        type = self.sequence_or_state(target)
-        if type == 'sequence':
-            for key in target.keys():
-                s = target[key]
-                for i in range(len(s)):
-                    col = key+str(i)
-                    self.history.loc[t,col] = s[i][1]
-        self.history.loc[t,'cost']=-c
-        return c
 
     def list_algorithms(self):
         ''' Returns a list of all methods tagged with the '@algorithm' decorator '''
@@ -270,12 +265,6 @@ class Optimizer():
         dist_matrix = dijkstra(G)
 
     ''' Optimization routines '''
-    def optimize(self, state, cost, method, params = None, plot = True):
-        ''' Runs a targeted optimization routine on the cost function in the
-            space spanned by the state dict. '''
-        func = getattr(self, method)
-        points, cost = func(state, cost, params)
-
     @algorithm
     def grid_search(self, state, cost, params={'loadExisting':0, 'steps':10}, update=None):
         ''' An N-dimensional grid search (brute force) optimizer. '''
@@ -387,7 +376,7 @@ class Optimizer():
                    args = (state, cost),
                    method='Nelder-Mead',
                    tol = params['tol'])
-        #simplex for SKL is res = minimize(fun = cost,x0 = X.reshape(1, -1), method = 'Nelder-Mead', tol = 1e7)
+
         if params['plot']:
             self.plot_optimization(lbl = 'simplex', save=params['save'])
 
@@ -408,11 +397,6 @@ class Optimizer():
                    mutation = params['mutation'],
                    recombination = params['recombination'],
                    popsize = params['popsize'])
-        # res = differential_evolution(func=self.cost_array,
-        #                               bounds=bounds,
-        #                               args = (keys, cost),
-        #                               recombination = params['recombination'],
-        #                               popsize = int(params['popsize']))
         if params['plot']:
             self.plot_optimization(lbl = params['strategy'], save=params['save'])
 
@@ -427,6 +411,7 @@ class Optimizer():
     #     NeuralNetwork(self, norm_state, cost, bounds, params=params, update = update)
     #
     #     return None, None
+    
     # ''' Hyperparameter optimization '''
     # def hypercost(self, params, args):
     #     ''' Returns the optimization time for a given algorithm, cost, and initial state '''
