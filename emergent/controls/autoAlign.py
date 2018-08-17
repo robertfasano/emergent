@@ -1,6 +1,6 @@
 import time
-from devices.labjackT7 import LabJack
-from archetypes.node import Control
+from emergent.devices.labjackT7 import LabJack
+from emergent.archetypes.node import Control
 import numpy as np
 import sys
 import os

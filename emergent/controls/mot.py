@@ -1,4 +1,4 @@
-from archetypes.node import Control
+from emergent.archetypes.node import Control
 import time
 from utility import cost
 
