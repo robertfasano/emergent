@@ -8,7 +8,14 @@ from scipy.stats import linregress
 import time
 from threading import Thread
 from emergent.archetypes.parallel import ProcessHandler
+from emergent.archetypes.fifo import FIFO
 import logging as log
+import decorator
+
+@decorator.decorator
+def queue(func, *args, **kwargs):
+    obj = args[0]
+    getattr(obj, 'queue').add(func, *args, **kwargs)
 
 class LabJack(ProcessHandler):
     ''' Python interface for the LabJack T7. '''
@@ -30,6 +37,11 @@ class LabJack(ProcessHandler):
         self.averaging_array = []
         self._connected = self._connect()
 
+        ''' Define a FIFO queue running in a separate thread so that multiple
+            simultaneous threads can share a LabJack without interference. '''
+        self.queue = FIFO()
+        self._run_thread(self.queue.run)
+
     def _connect(self):
         try:
             self.handle = ljm.openS(self.device, self.connection, self.devid)
@@ -47,6 +59,7 @@ class LabJack(ProcessHandler):
         except:
             log.error('Failed to connect to LabJack (%s).'%self.devid)
 
+    @queue
     def _command(self, register, value):
         ''' Writes a value to a specified register.
 
