@@ -56,7 +56,7 @@ class CurrentDriver(Device, ProcessHandler):
         self.options['Stop wave'] = self.labjack.stream_stop
 
 
-    def calibrate(self, coil, Vmin=1, Vmax=3, steps=100, delay = 1/100, plot = False):
+    def calibrate(self, coil, Vmin=1.5, Vmax=3, steps=10, delay = 5/100, plot = False):
         ''' Measure and fit the IV curve of the FETs.
 
             Args:
