@@ -186,7 +186,7 @@ class NodeTree(QTreeWidget):
                 menu.addAction(hide_secondary_inputs_action)
         actions = {}
         for option in item.node.options:
-            actions[option] = QAction(option)
+            actions[option] = QAction(option, self)
             func = item.node.options[option]
             actions[option].triggered.connect(func)
             menu.addAction(actions[option])
