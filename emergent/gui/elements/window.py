@@ -39,10 +39,14 @@ class MainFrame(QMainWindow):
         self.timer.start(5*1000)
 
         ''' Create QTreeWidget '''
-        self.treeLayout = QHBoxLayout()
+        self.treeLayout = QVBoxLayout()
         self.treeWidget = NodeTree(tree, controls, self)
         self.treeLayout.addWidget(self.treeWidget)
         layout.addLayout(self.treeLayout)
+
+        self.saveButton = QPushButton('Save')
+        self.saveButton.clicked.connect(self.save)
+        self.treeLayout.addWidget(self.saveButton)
 
         ''' Create optimizer layout '''
         self.optimizer = OptimizerLayout(self)
@@ -57,3 +61,7 @@ class MainFrame(QMainWindow):
         cpu = 'CPU usage: %.2f%%'%psutil.cpu_percent()
 
         self.systemStats.setText(mem + '  |  ' + cpu)
+
+    def save(self):
+        for c in self.controls.values():
+            c.save()
