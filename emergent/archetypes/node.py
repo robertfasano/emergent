@@ -559,13 +559,16 @@ class Control(Node):
         ''' Save dataframes to csv '''
         t= datetime.datetime.now()
         for full_name in self.inputs:
-            input = self.inputs[full_name]
-            if input.type is 'secondary':
-                continue
-            self.update_dataframe(t, full_name, input.state)
-            self.dataframe[full_name].to_csv(self.data_path+full_name+'.csv')
+            self.save_dataframe(t, full_name)
         self.dataframe['cost'].to_csv(self.data_path+self.name+'_cost'+'.csv')
 
+    def save_dataframe(self, t, full_name):
+        input = self.inputs[full_name]
+        if input.type is 'secondary':
+            return
+        self.update_dataframe(t, full_name, input.state)
+        self.dataframe[full_name].to_csv(self.data_path+full_name+'.csv')
+        
     def update_dataframe(self, t, full_name, state):
         if self.inputs[full_name].type is 'secondary':
             return
