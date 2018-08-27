@@ -77,6 +77,7 @@ class CurrentDriver(Device, ProcessHandler):
         self.slope[coil-1] = fit[0]
         self.intercept[coil-1] = fit[1]
 
+        plot = True
         if plot:
             plt.figure()
             plt.plot(V, I)
@@ -215,10 +216,7 @@ class CurrentDriver(Device, ProcessHandler):
             self.set_current(2,i*A)
             time.sleep(T/2)
 
-    def wave(self):
-        frequency = 1
-        grad = 50
-        zero = 0
+    def wave(self, frequency = 2, grad = 50, zero = 0):
         state = self.secondary_to_primary({'grad':grad, 'zero':zero})
         sequence = {}
         stream = {}
