@@ -8,3 +8,7 @@ costs.txt
 points.txt
 examples/basic/data/*
 docs/build/*
+build/*
+EMERGENT.egg-info/*
+dist/*
+networks/example/data/*
