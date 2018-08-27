@@ -194,7 +194,11 @@ class LabJack(ProcessHandler):
 
                 '''
         max_samples = 2**13-1
-        scanRate = np.min([max_samples / duration, 100e3])
+        if self.deviceType == ljm.constants.dtT7:
+            max_speed = 100000
+        elif self.deviceType == ljm.constants.dtT4:
+            max_speed = 40000
+        scanRate = np.min([max_samples / duration, max_speed])
         scanRate, aData = ljm.streamBurst(self.handle, 1, self.aScanList, scanRate, max_samples)
 
         if operation is None:
