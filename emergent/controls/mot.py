@@ -56,3 +56,39 @@ class MOT(Control):
         seq = [[0,0], [1/frequency/2,V]]
         stream, scanRate = self.labjack.sequence2stream(seq, 1/frequency, 1)
         self.labjack.stream_out([0], stream, scanRate, loop = True)
+
+    def align(self, dim=2, numpoints = 10):
+        import msvcrt
+
+        xmin = -3
+        xmax = 3
+        ''' Form search grid '''
+        grid = []
+        for n in range(dim):
+            space = np.linspace(xmin, xmax, numpoints)
+            grid.append(space)
+        grid = np.array(grid)
+        points = np.transpose(np.meshgrid(*[grid[n] for n in range(dim)])).reshape(-1,dim)
+
+        ''' Start at origin and step through points with manual actuation '''
+        X = np.zeros(dim)
+
+        for point in points:
+            ''' Generate next point '''
+            diff = point-X
+            X = point
+            ''' Give instructions to user and wait for keypress '''
+            instructions = ''
+            for ax in range(dim):
+                ax_instructions = 'Axis %i: -%f\t'%(ax, diff[ax])
+                instructions.append(ax_instructions)
+            print(instructions)
+            msvcrt.getch()          # wait for keypress
+            ''' Measure cost and write to file '''
+            cost = self.pulsed_cost()
+            with open(self.data_path+'manual_alignment.txt', 'a') as file:
+                string = ''
+                for ax in range(dim):
+                    string.append('%f\t'%X[ax])
+                string.append('%f\n'%cost)
+                file.write(string)
