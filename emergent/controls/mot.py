@@ -3,16 +3,23 @@ import time
 from utility import cost
 
 class MOT(Control):
-    def __init__(self, name, labjack, parent = None, path='.'):
+    def __init__(self, name, parent = None, path='.'):
         super().__init__(name, parent = parent, path=path)
-        self.labjack = labjack
-        self.labjack.prepare_streamburst(channel=0)
+        # self.labjack = labjack
+        # self.labjack.prepare_streamburst(channel=0)
 
         ''' Power PMT '''
         # self.labjack.AOut(3,-5, HV=True)
         # self.labjack.AOut(2,5, HV=True)
-        self.labjack.AOut(7,-5, HV=True)
+        # self.labjack.AOut(7,-5, HV=True)
+        # self.labjack.AOut(6,5, HV=True)
+
+    def add_labjack(self, labjack):
+        self.labjack = labjack
+        self.labjack.prepare_streamburst(channel=0)
+        self.labjack.AOut(7,-5,HV=True)
         self.labjack.AOut(6,5, HV=True)
+        
     def stream(self, period = 1, amplitude = 0.1):
         key='coils.I1'
         self.cycle_time = period
@@ -60,6 +67,7 @@ class MOT(Control):
 
     def align(self, dim=2, numpoints = 10):
         import msvcrt
+        import numpy as np
 
         xmin = -3
         xmax = 3
@@ -79,17 +87,18 @@ class MOT(Control):
             diff = point-X
             X = point
             ''' Give instructions to user and wait for keypress '''
+            print('Next point:', X)
             instructions = ''
             for ax in range(dim):
-                ax_instructions = 'Axis %i: -%f\t'%(ax, diff[ax])
-                instructions.append(ax_instructions)
+                ax_instructions = 'Axis %i change: -%f\t'%(ax, diff[ax])
+                instructions += ax_instructions
             print(instructions)
             msvcrt.getch()          # wait for keypress
             ''' Measure cost and write to file '''
-            cost = self.pulsed_cost()
+            cost = self.pulsed_slowing(state=None)
             with open(self.data_path+'manual_alignment.txt', 'a') as file:
                 string = ''
                 for ax in range(dim):
-                    string.append('%f\t'%X[ax])
-                string.append('%f\n'%cost)
+                    string += '%f\t'%X[ax]
+                string += '%f\n'%cost
                 file.write(string)
