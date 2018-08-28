@@ -27,7 +27,7 @@ def queue(func, *args, **kwargs):
 class LabJack(ProcessHandler):
     ''' Python interface for the LabJack T7. '''
 
-    def __init__(self, device = "ANY", connection = "ANY", devid = "ANY", arange = 10):
+    def __init__(self, device = "ANY", connection = "ANY", devid = "ANY", arange = 10, name = 'LabJack'):
         ''' Attempt to connect to a LabJack.
 
             Args:
@@ -40,6 +40,7 @@ class LabJack(ProcessHandler):
         self.connection = connection
         self.devid = devid
         self.arange = arange
+        self.name = name
         self._connected = 0
         self.averaging_array = []
 
@@ -60,6 +61,17 @@ class LabJack(ProcessHandler):
                 self._command('AIN_ALL_RANGE', self.arange)
             log.info('Connected to LabJack (%i).'%(info[2]))
             self.clock = 80e6       # internal clock frequency
+
+            self.input_channels = ['AIN0', 'AIN1', 'AIN2', 'AIN3']
+            if self.deviceType == ljm.constants.dtT4:
+                self.digital_channels = ['FIO4', 'FIO5','FIO6','FIO7']
+            else:
+                self.digital_channels = ['FIO0', 'FIO1', 'FIO2', 'FIO3']
+            self.output_channels = ['DAC0', 'DAC1']
+            self.channels = {}
+            for channels in [self.input_channels, self.digital_channels, self.output_channels]:
+                for ch in channels:
+                    self.channels[ch] = 0
 
             return 1
 
