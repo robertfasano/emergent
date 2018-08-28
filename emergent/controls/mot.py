@@ -22,10 +22,11 @@ class MOT(Control):
         self.labjack.stream_out(0, data)
 
     @cost
-    def pulsed_slowing(self, state):
+    def pulsed_slowing(self, state = None):
         ''' Toggle between high and low magnetic field; measure mean fluorescence
             in both cases and return the difference. '''
-        self.actuate(state)
+        if state is not None:
+            self.actuate(state)
         self.labjack.AOut(0,0)
         time.sleep(0.05)
         self.labjack.AOut(1, 0) # output DC level for subtraction with SRS
