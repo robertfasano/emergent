@@ -246,7 +246,7 @@ class LabJack(ProcessHandler, Device):
     def stream_stop(self):
         ljm.eStreamStop(self.handle)
 
-    def stream_out(self, channels, data, scanRate, loop = False):
+    def stream_out(self, channels, data, scanRate, loop = False, trigger = None):
         ''' Streams data at a given scan rate..
 
             Args:
@@ -267,7 +267,23 @@ class LabJack(ProcessHandler, Device):
         except:
             pass
         buffer_size = 2**14
-        self._command("STREAM_TRIGGER_INDEX", 0)        # Ensure triggered stream is disabled.
+        if trigger is None:
+            self._command("STREAM_TRIGGER_INDEX", 0)        # Ensure triggered stream is disabled.
+        else:
+            # self._command('DIO%i_EF_ENABLE'%trigger, 0)
+            # self._command('DIO%i_EF_INDEX'%trigger, 3)
+            # self._command('DIO%i_EF_ENABLE'%trigger, 1)
+            channel = 'DIO%i'%trigger
+            aNames = ["%s_EF_ENABLE"%channel, "%s_EF_INDEX"%channel,
+                      "%s_EF_OPTIONS"%channel, "%s_EF_VALUE_A"%channel,
+                      "%s_EF_ENABLE"%channel]
+            aValues = [0, 3, 0, 2, 1]
+            ljm.eWriteNames(self.handle, len(aNames), aNames, aValues)
+
+            # trigger on PWM for test
+            # self.PWM(2, .1, 50)
+            self._command('STREAM_TRIGGER_INDEX', 2000+trigger)
+
         if self.deviceType == ljm.constants.dtT7:
             self._command("STREAM_CLOCK_SOURCE", 0)       # Enabling internally-clocked stream.
         aNames = ["STREAM_SETTLING_US", "STREAM_RESOLUTION_INDEX"]
@@ -358,3 +374,12 @@ class LabJack(ProcessHandler, Device):
             seq.append((t, x))
 
         return self.sequence2stream(seq, period, channels)
+
+if __name__ == '__main__':
+    lj = LabJack(devid='470016973')
+    sequence = [(0,0), (0.05,1)]
+    period = .1
+    stream, speed = lj.sequence2stream(sequence, period)
+    lj.stream_out([0], stream, speed, trigger = 0)
+    for i in range(100):
+        lj.DOut(2,i%2)
