@@ -44,5 +44,9 @@ class Serial():
             log.error('Serial exception: %s. Closing port %s.'%(e, self.port))
             self.close()
 
+    def read(self):
+        reply = self.ser.readline()
+        return reply.decode()
+        
     def close(self):
         self.ser.close()
