@@ -17,7 +17,7 @@ class NetControls(Device, ProcessHandler):
         if self.serial._connected:
             self.axis = 1
             self._initialize()
-            self.zero = self.parent.state[self.name+'.'+'Z']
+            self.zero = self.parent.state[self.name]['Z']
             self._set_load_error(5000)
             self.set_velocity(10000)
             return 1
