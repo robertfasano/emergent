@@ -50,13 +50,14 @@ class Agilis(Device, ProcessHandler):
             index = indices[input]
             mirror = int(input[1])
             axis = {'X':1,'Y':2}[input[0]]
-
+            if self.state[input] is None:
+                self.state[input] = state[input]
             step = state[input] - self.state[input]
             unnorm_step = step/2 * (1+self.range[input]/self.step_size)
             if step != 0:
                 self.relative_move(mirror, axis, unnorm_step)
                 print('step:', step, 'unnorm_step:', unnorm_step)
-
+        self.wait_until_stopped(axis)
     def clear_buffer(self):
         time.sleep(.1)
         while True:
