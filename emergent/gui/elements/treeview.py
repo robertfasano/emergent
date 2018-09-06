@@ -242,8 +242,8 @@ class NodeWidget(QTreeWidgetItem):
                 return root
 
     def onActuateSignal(self, state):
-        self.setText(1, str('%.1f'%state))
+        self.setText(1, str('%.2f'%state))
 
     def onSettingsSignal(self, d):
-        self.setText(2, str('%.1f'%float(d['min'])))
-        self.setText(3, str('%.1f'%float(d['max'])))
+        self.setText(2, str('%.2f'%float(d['min'])))
+        self.setText(3, str('%.2f'%float(d['max'])))
