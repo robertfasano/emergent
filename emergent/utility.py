@@ -33,7 +33,7 @@ def getChar():
             getChar._func=_ttyRead
 
     return getChar._func()
-    
+
 def methodsWithDecorator(cls, decoratorName):
     methods = []
     sourcelines = inspect.getsourcelines(cls)[0]
@@ -52,8 +52,9 @@ def dev(func):
 def cost(func, *args, **kwargs):
     c = func(*args, **kwargs)
     t = datetime.datetime.now()
-    for full_name in args[0].inputs:
-        args[0].update_dataframe(t, full_name, args[0].inputs[full_name].state)
+    for dev_name in args[0].inputs:
+        for input in args[0].inputs[dev_name]:
+            args[0].update_dataframe(t, dev_name, input, args[0].inputs[dev_name][input].state)
     args[0].update_cost(t, c)
 
     return c

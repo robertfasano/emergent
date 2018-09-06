@@ -120,7 +120,9 @@ class NodeTree(QTreeWidget):
         for i in items:
             input = i.node
             dev = input.parent
-            state[dev.name + '.' + input.name] = input.state
+            if dev.name not in state:
+                state[dev.name] = {}
+            state[dev.name][input.name] = input.state
 
         return state
 
@@ -147,15 +149,15 @@ class NodeTree(QTreeWidget):
 
             control_name = self.current_item.parent().parent().text(0)
             control = self.controls[control_name]
-
+            input = self.current_item.node.name
+            device = self.current_item.node.parent.name
             if col == 1:
-                state = {key: float(value)}
+                state = {device:{input: float(value)}}
                 control.actuate(state)
-
             elif col == 2:
-                control.settings[self.current_item.node.full_name]['min'] = float(value)
+                control.settings[device][input]['min'] = float(value)
             elif col == 3:
-                control.settings[self.current_item.node.full_name]['max'] = float(value)
+                control.settings[device][input]['max'] = float(value)
 
         except AttributeError:
             pass
@@ -217,6 +219,7 @@ class NodeWidget(QTreeWidgetItem):
         self.level = level
         self.node.leaf = self
         self.root = self.get_root()
+
         if self.node.node_type == 'device':
             self.inputs = 'secondary'
         elif self.node.node_type == 'input':
@@ -224,12 +227,15 @@ class NodeWidget(QTreeWidgetItem):
             self.node.settings_signal.connect(self.onSettingsSignal)
 
             if self.node.type == 'primary':
-                self.setText(2, str(self.root.settings[self.node.full_name]['min']))
-                self.setText(3,str(self.root.settings[self.node.full_name]['max']))
+                name = self.node.name
+                device = self.node.parent.name
+                self.setText(2, str(self.root.settings[device][name]['min']))
+                self.setText(3,str(self.root.settings[device][name]['max']))
 
     def __repr__(self):
         try:
-            return self.node.full_name
+            full_name = self.node.parent.name + '.' + self.node.name
+            return full_name
         except AttributeError:
             return self.node.name
 

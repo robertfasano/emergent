@@ -40,10 +40,9 @@ class Optimizer():
     ''' State conversion functions '''
     def array2dict(self, arr, initial):
         ''' Converts the array back to the form of the initial object. '''
-
         initial_type = self.sequence_or_state(initial)
-
-        if initial_type == 'sequence':
+        # initial_type = 'state'
+        if initial_type == 'sequence': # deprecated
             target = self.array2sequence(arr, initial)
         elif initial_type =='state':
             target = self.array2state(arr, initial)
@@ -52,6 +51,7 @@ class Optimizer():
 
     def array2sequence(self, arr, sequence):
         ''' Updates setpoints in a sequence with values from an array. '''
+        # deprecated
         i = 0
         for key in sequence.keys():
             s = sequence[key]
@@ -62,10 +62,13 @@ class Optimizer():
 
     def array2state(self, arr, d):
         ''' Converts a numpy array into a state dict with the specified keys. '''
-        keys = list(d.keys())
         state = {}
-        for i in range(len(keys)):
-            state[keys[i]] = arr[i]
+        i = 0
+        for dev in d:
+            state[dev] = {}
+            for input in d[dev]:
+                state[dev][input] = arr[i]
+                i += 1
         return state
 
     def cost_from_array(self, arr, d, cost):
@@ -117,8 +120,9 @@ class Optimizer():
     def state2array(self, state):
         ''' Converts a state dict into a numpy array. '''
         arr = np.array([])
-        for i in range(len(state.keys())):
-            arr = np.append(arr, state[list(state.keys())[i]])
+        for dev in state:
+            for input in state[dev]:
+                arr = np.append(arr, state[dev][input])
         return arr
 
     ''' Logistics functions '''
@@ -134,15 +138,21 @@ class Optimizer():
             bounds array. '''
         initial_type = self.sequence_or_state(state)
         if initial_type == 'state':
-            cols = list(state.keys())
-            cols.append('cost')
-            self.history = pd.DataFrame(index = [], columns = cols)
+            num_items = 0
+            cols = []
+            for dev in state:
+                for input in state[dev]:
+                    cols.append(dev+'.'+input)
+                    num_items += 1
             state = self.normalize(state)
-            bounds = np.array(list(itertools.repeat([0,1], len(state.keys()))))
+            cols.append('cost')
+            self.history = pd.DataFrame(columns=cols)
+            bounds = np.array(list(itertools.repeat([0,1], num_items)))
             state = self.dict2array(state)
             return state, bounds
 
         elif initial_type == 'sequence':
+            # deprecated
             cols = []
             for key in state.keys():
                 sequence = state[key]
@@ -166,17 +176,19 @@ class Optimizer():
         type = self.sequence_or_state(unnorm)
         norm = {}
 
-        for i in unnorm.keys():
-            min = self.parent.settings[i]['min']
-            max = self.parent.settings[i]['max']
-            if type == 'state':
-                norm[i] = (unnorm[i] - min)/(max-min)
-            elif type == 'sequence':
-                s = unnorm[i]
-                s_norm = []
-                for j in range(len(s)):
-                    s_norm.append([s[j][0], (s[j][1] - min)/(max-min)])
-                norm[i] = s_norm
+        for dev in unnorm:
+            norm[dev] = {}
+            for i in unnorm[dev]:
+                min = self.parent.settings[dev][i]['min']
+                max = self.parent.settings[dev][i]['max']
+                if type == 'state':
+                    norm[dev][i] = (unnorm[dev][i] - min)/(max-min)
+                elif type == 'sequence':        # deprecated
+                    s = unnorm[i]
+                    s_norm = []
+                    for j in range(len(s)):
+                        s_norm.append([s[j][0], (s[j][1] - min)/(max-min)])
+                    norm[i] = s_norm
         return norm
 
     def unnormalize(self, norm):
@@ -184,18 +196,19 @@ class Optimizer():
             max and min parameter values. '''
         type = self.sequence_or_state(norm)
         unnorm = {}
-
-        for i in norm.keys():
-            min = self.parent.settings[i]['min']
-            max = self.parent.settings[i]['max']
-            if type == 'state':
-                unnorm[i] = min + norm[i] * (max-min)
-            elif type == 'sequence':
-                s = norm[i]
-                s_unnorm = []
-                for j in range(len(s)):
-                    s_unnorm.append([s[j][0], min+s[j][1]*(max-min)])
-                unnorm[i] = s_unnorm
+        for dev in norm:
+            unnorm[dev] = {}
+            for i in norm[dev]:
+                min = self.parent.settings[dev][i]['min']
+                max = self.parent.settings[dev][i]['max']
+                if type == 'state':
+                    unnorm[dev][i] = min + norm[dev][i] * (max-min)
+                elif type == 'sequence':    # deprecated
+                    s = norm[i]
+                    s_unnorm = []
+                    for j in range(len(s)):
+                        s_unnorm.append([s[j][0], min+s[j][1]*(max-min)])
+                    unnorm[i] = s_unnorm
         return unnorm
 
 
@@ -278,13 +291,14 @@ class Optimizer():
 
         ''' Plot result if desired '''
         ax = None
-        if params['plot'] and len(state) is 2:
-            names = list(state.keys())
+        if params['plot'] and len(arr) is 2:
             limits = {}
-            for name in names:
-                limits[name] = {}
-                limits[name]['min'] = self.parent.settings[name]['min']
-                limits[name]['max'] = self.parent.settings[name]['max']
+            for dev in state:
+                for name in state[dev]:
+                    full_name = name+'.'+dev
+                    limits[full_name] = {}
+                    limits[full_name]['min'] = self.parent.settings[dev][name]['min']
+                    limits[full_name]['max'] = self.parent.settings[dev][name]['max']
             ax = self.plot_2D(points, costs, limits = limits, save=params['save'])
         best_point = self.array2dict(points[np.argmin(costs)], state)
         self.actuate(self.unnormalize(best_point))
@@ -411,7 +425,7 @@ class Optimizer():
     #     NeuralNetwork(self, norm_state, cost, bounds, params=params, update = update)
     #
     #     return None, None
-    
+
     # ''' Hyperparameter optimization '''
     # def hypercost(self, params, args):
     #     ''' Returns the optimization time for a given algorithm, cost, and initial state '''

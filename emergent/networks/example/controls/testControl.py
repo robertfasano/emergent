@@ -13,8 +13,8 @@ class TestControl(Control):
         def cost_uncoupled(self, state, theta=0):
             self.actuate(state)
             try:
-                x=self.state['deviceA.X']*np.cos(theta) - self.state['deviceA.Y']*np.sin(theta)
-                y=self.state['deviceA.X']*np.sin(theta) + self.state['deviceA.Y']*np.cos(theta)
+                x=self.state['deviceA']['X']*np.cos(theta) - self.state['deviceA']['Y']*np.sin(theta)
+                y=self.state['deviceA']['X']*np.sin(theta) + self.state['deviceA']['Y']*np.cos(theta)
             except KeyError:
                 primary = self.children['deviceA'].secondary_to_primary(self.state)
                 x=primary['X']*np.cos(theta) - primary['Y']*np.sin(theta)

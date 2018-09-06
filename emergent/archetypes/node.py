@@ -147,6 +147,9 @@ class Device(Node):
         """
         super().__init__(name, parent=parent)
         self.state = {}
+        self.parent.state[self.name] = {}
+        self.parent.settings[self.name] = {}
+
         self.loaded = 0     # set to 1 after first state preparation
         self.primary_inputs = 0
         self.secondary_inputs = 0
@@ -223,9 +226,9 @@ class Device(Node):
         self.input_type = type
 
         ''' Convert subsequence - must be done after changing self.state '''
-        for name in new_state:
-            seq = self.parent.sequencer.master_to_subsequence(dev, input)
-            self.parent.inputs[self.name][name].sequence = seq
+        # for name in new_state:
+        #     seq = self.parent.sequencer.master_to_subsequence(dev, input)
+        #     self.parent.inputs[self.name][name].sequence = seq
 
     def add_input(self, name, type='primary'):
         ''' Attaches an Input node with the specified name. This should correspond
@@ -234,6 +237,8 @@ class Device(Node):
             'X' and 'Y' which are referenced in PicoAmp._actuate().'''
         input = Input(name, parent=self, type=type)
         self.children[name] = input
+        if self.name not in self.parent.inputs:
+            self.parent.inputs[self.name] = {}
         self.parent.inputs[self.name][name] = input
         self.parent.load(self.name, name)
         if type == 'primary':
@@ -306,11 +311,11 @@ class Device(Node):
             state (dict): State containing both specified changes and previous values, etc {'param1':value1,'param2':value2, 'param3':self.state['param3']}.
         """
         total_state = {}
-        for key in keys:
+        for input in self.state:
             try:
-                total_state[key] = state[key]
+                total_state[input] = state[input]
             except KeyError:
-                total_state[key] = self.state[key]
+                total_state[input] = self.state[input]
         return total_state
 
     def get_type(self, state, type):
@@ -435,64 +440,69 @@ class Control(Node):
             sequence[key] = self.sequence[key]
         return sequence
 
-    def get_substate(self, keys):
+    def get_substate(self, substate):
         """Returns a state dict containing only the specified keys.
 
         Args:
             keys (list): full_name variables of Input nodes to retrieve, e.g. ['deviceA.input1', 'deviceB.input1'].
         """
         state = {}
-        for key in keys:
-            state[key] = self.state[key]
+        for dev in substate:
+            state[dev] = {}
+            for input in dev:
+                state[dev][input] = self.state[dev][input]
+        # for key in keys:
+        #     state[key] = self.state[key]
         return state
 
     def list_costs(self):
         """Returns a list of all methods tagged with the '@cost' decorator."""
         return methodsWithDecorator(self.__class__, 'cost')
 
-    def load(self, full_name):
+    def load(self, device, name):
         """Loads the last saved state and attempts to reinitialize previous values for the Input node specified by full_name. If the input did not exist in the last state, then it is initialized with default values.
 
         Args:
             full_name (str): Specifies the Input node and its parent device, e.g. 'deviceA.input1'.
         """
-        if self.inputs[full_name].type is 'secondary':
+        if self.inputs[device][name].type is 'secondary':
             return
 
-        filename = self.state_path + self.name + '.txt'
-        try:
-            with open(filename, 'r') as file:
-                state = json.loads(file.readlines()[-1].split('\t')[1])
-        except FileNotFoundError:
-            state = {}
-            log.warn('State file not found for Control node %s, creating one now.'%self.name)
-
-        ''' Load variables into control '''
-        try:
-            self.sequence[full_name] = state[full_name]['sequence']
-            self.cycle_time = state['cycle_time']
-        except KeyError:
-            self.sequence[full_name] = [[0,0]]
-            self.cycle_time = 0
-            log.warn('Could not retrieve settings for input %s; creating new settings.'%full_name)
+        # filename = self.state_path + self.name + '.txt'
+        # try:
+        #     with open(filename, 'r') as file:
+        #         state = json.loads(file.readlines()[-1].split('\t')[1])
+        # except FileNotFoundError:
+        #     state = {}
+        #     log.warn('State file not found for Control node %s, creating one now.'%self.name)
+        #
+        # ''' Load variables into control '''
+        full_name = device + '.' + name
+        # try:
+        #     self.sequence[full_name] = state[full_name]['sequence']
+        #     self.cycle_time = state['cycle_time']
+        # except KeyError:
+        #     self.sequence[full_name] = [[0,0]]
+        #     self.cycle_time = 0
+        #     log.warn('Could not retrieve settings for input %s; creating new settings.'%full_name)
 
         ''' Update sequence of inputs '''
-        self.inputs[full_name].sequence = self.sequence[full_name]
-
+        # self.inputs[device][name].sequence = self.sequence[full_name]
+        self.cycle_time = 0
         ''' Load dataframe '''
         try:
             self.dataframe[full_name] = pd.read_csv(self.data_path+full_name+'.csv', index_col=0)
-            self.state[full_name] = self.dataframe[full_name]['state'].iloc[-1]
-            self.settings[full_name] = {}
+            self.state[device][name] = self.dataframe[full_name]['state'].iloc[-1]
+            self.settings[device][name] = {}
             for setting in ['min', 'max']:
-                self.settings[full_name][setting] = self.dataframe[full_name][setting].iloc[-1]
-            self.inputs[full_name].set_settings(self.settings[full_name])
+                self.settings[device][name][setting] = self.dataframe[full_name][setting].iloc[-1]
+            self.inputs[device][name].set_settings(self.settings[device][name])
         except FileNotFoundError:
             self.dataframe[full_name] = pd.DataFrame()
-            self.state[full_name] = 0
-            self.settings[full_name] = {}
+            self.state[device][name] = 0
+            self.settings[device][name] = {}
             for setting in ['min', 'max']:
-                self.settings[full_name][setting] = 0
+                self.settings[device][name][setting] = 0
             log.warn('Could not find csv for input %s; creating new settings.'%full_name)
 
         if self.dataframe['cost'] is None:
@@ -507,54 +517,59 @@ class Control(Node):
         Args:
             tag (str): Label written to the third column of the log file which describes where the state was saved from, e.g. 'actuate' or 'optimize'.
         """
-        state = {}
-        state['cycle_time'] = self.cycle_time
-
-        ''' Convert any secondary inputs to primary before saving '''
-        converted = []
-        for dev in self.children.values():
-            if dev.input_type == 'secondary':
-                dev.use_inputs('primary')
-                converted.append(dev)
-        for input in self.inputs.values():
-            if input.type is 'secondary':
-                continue
-            full_name = input.full_name
-            state[full_name] = {}
-            state[full_name]['state'] = self.state[full_name]
-            state[full_name]['settings'] = self.settings[full_name]
-            state[full_name]['sequence'] = self.sequence[full_name]
-
-        ''' Convert back '''
-        for dev in converted:
-            dev.use_inputs('secondary')
-        filename = self.state_path + self.name + '.txt'
-        write_newline = os.path.isfile(filename)
-
-        with open(filename, 'a') as file:
-            if write_newline:
-                file.write('\n')
-            file.write('%f\t%s\t%s'%(time.time(),json.dumps(state), tag))
+        # state = {}
+        # state['cycle_time'] = self.cycle_time
+        #
+        # ''' Convert any secondary inputs to primary before saving '''
+        # converted = []
+        # for dev in self.children.values():
+        #     if dev.input_type == 'secondary':
+        #         dev.use_inputs('primary')
+        #         converted.append(dev)
+        # for dev in self.inputs:
+        #     state[dev] = {}
+        #     for input in self.inputs[dev].values():
+        #         if input.type is 'secondary':
+        #             continue
+        #         full_name = dev + '.' + input.name
+        #         state[dev][input.name] = {}
+        #         state[dev][input.name]['state'] = self.state[dev][input.name]
+        #         state[dev][input.name]['settings'] = self.settings[dev][input.name]
+        #         # state[dev][input.name]['sequence'] = self.sequence[full_name]
+        #
+        # ''' Convert back '''
+        # for dev in converted:
+        #     dev.use_inputs('secondary')
+        # filename = self.state_path + self.name + '.txt'
+        # write_newline = os.path.isfile(filename)
+        #
+        # with open(filename, 'a') as file:
+        #     if write_newline:
+        #         file.write('\n')
+        #     file.write('%f\t%s\t%s'%(time.time(),json.dumps(state), tag))
 
         ''' Save dataframes to csv '''
         t= datetime.datetime.now()
-        for full_name in self.inputs:
-            self.save_dataframe(t, full_name)
+        for dev in self.inputs:
+            for input in self.inputs[dev]:
+                self.save_dataframe(t, dev, input)
         self.dataframe['cost'].to_csv(self.data_path+self.name+'_cost'+'.csv')
 
-    def save_dataframe(self, t, full_name):
-        input = self.inputs[full_name]
+    def save_dataframe(self, t, dev, input_name):
+        full_name = dev + '.' + input_name
+        input = self.inputs[dev][input_name]
         if input.type is 'secondary':
             return
-        self.update_dataframe(t, full_name, input.state)
+        self.update_dataframe(t, dev, input_name, input.state)
         self.dataframe[full_name].to_csv(self.data_path+full_name+'.csv')
 
-    def update_dataframe(self, t, full_name, state):
-        if self.inputs[full_name].type is 'secondary':
+    def update_dataframe(self, t, dev, input_name, state):
+        if self.inputs[dev][input_name].type is 'secondary':
             return
+        full_name = dev + '.' + input_name
         self.dataframe[full_name].loc[t, 'state'] = state
         for setting in ['min', 'max']:
-            self.dataframe[full_name].loc[t, setting] = self.settings[full_name][setting]
+            self.dataframe[full_name].loc[t, setting] = self.settings[dev][input_name][setting]
 
     def update_cost(self, t, cost):
         self.dataframe['cost'].loc[t] = cost
