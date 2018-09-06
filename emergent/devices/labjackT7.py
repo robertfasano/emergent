@@ -83,8 +83,8 @@ class LabJack(ProcessHandler, Device):
 
             return 1
 
-        except:
-            log.error('Failed to connect to LabJack (%s).'%(self.devid))
+        except Exception as e:
+            log.error('Failed to connect to LabJack (%s): %s.'%(self.devid, e))
 
     def _actuate(self, state):
         for key in state:
