@@ -97,8 +97,12 @@ class Agilis(Device, ProcessHandler):
                 except Exception as e:
                     print(e)
                     print(self.command('TE?'))
+        target_parent_state = {}
         for input in self.state:
             self.state[input] = 0
+            self.parent.state[self.name + '.' + input] = 0
+            target_parent_state[self.name+'.'+input] = 0
+        self.parent.actuate(target_parent_state)
 
     def command(self, cmd, reply = True):
         r = self.serial.command(cmd, suffix = '\r\n', reply = reply)
