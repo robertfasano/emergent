@@ -181,22 +181,40 @@ class Agilis(Device, ProcessHandler):
                 step /= 2
                 print('Decreasing step')
 
-            elif command == 's':
-                self.relative_move(1, 1, step = step)
-            elif command == 'w':
-                self.relative_move(1, 1, step = -step)
-            elif command == 'a':
-                self.relative_move(1, 2, step = -step)
-            elif command == 'd':
-                self.relative_move(1, 2, step = step)
-            elif command == 'k':
-                self.relative_move(2, 1, step = -step)
-            elif command == 'i':
-                self.relative_move(2, 1, step = step)
-            elif command == 'l':
-                self.relative_move(2, 2, step = -step)
             elif command == 'j':
-                self.relative_move(2, 2, step = step)
+                input = 'X1'
+                sign = 1
+                # self.relative_move(1, 1, step = step)
+            elif command == 'l':
+                # self.relative_move(1, 1, step = -step)
+                input = 'X1'
+                sign = -1
+            elif command == 'k':
+                input = 'Y1'
+                sign = -1
+                # self.relative_move(1, 2, step = -step)
+            elif command == 'i':
+                input = 'Y1'
+                sign = 1
+                # self.relative_move(1, 2, step = step)
+            elif command == 'd':
+                input = 'X2'
+                sign = -1
+                # self.relative_move(2, 1, step = -step)
+            elif command == 'a':
+                input = 'X2'
+                sign = 1
+                # self.relative_move(2, 1, step = step)
+            elif command == 's':
+                input = 'Y2'
+                sign = -1
+                # self.relative_move(2, 2, step = -step)
+            elif command == 'w':
+                input = 'Y2'
+                sign = 1
+                # self.relative_move(2, 2, step = step)
+            if sign is not None:
+                self.parent.actuate({self.name+'.'+input:self.state[input]+sign*step})
 
     def zero(self):
         for mirror in [1,2]:
