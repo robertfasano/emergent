@@ -1,6 +1,8 @@
 from emergent.archetypes.node import Control
 import time
 from utility import cost
+from scipy.stats import linregress
+import numpy as np
 
 class MOT(Control):
     def __init__(self, name, parent = None, path='.'):
@@ -19,7 +21,7 @@ class MOT(Control):
         self.labjack.prepare_streamburst(channel=0)
         self.labjack.AOut(7,-5,HV=True)
         self.labjack.AOut(6,5, HV=True)
-        
+
     def stream(self, period = 1, amplitude = 0.1):
         key='coils.I1'
         self.cycle_time = period
@@ -34,29 +36,52 @@ class MOT(Control):
             in both cases and return the difference. '''
         if state is not None:
             self.actuate(state)
-        self.labjack.AOut(0,0)
+        self.labjack.DOut(4,0)
         time.sleep(0.05)
         self.labjack.AOut(1, 0) # output DC level for subtraction with SRS
         low = self.labjack.streamburst(duration=0.05, operation = 'mean')
         self.labjack.AOut(1, low) # output DC level for subtraction with SRS
-        self.labjack.AOut(0,3.3)
+        self.labjack.DOut(4,1)
         time.sleep(0.05)
         high = self.labjack.streamburst(duration=0.05, operation = 'mean')
         return -high    # low is subtracted out by SRS
 
     @cost
-    def pulsed_field(self, state):
+    def pulsed_field_mean(self, state):
         ''' Toggle between high and low magnetic field; measure mean fluorescence
             in both cases and return the difference. '''
-        self.actuate({'coils.I1':0, 'coils.I2':0})
-        time.sleep(0.05)
-        self.labjack.AOut(1, 0) # output DC level for subtraction with SRS
-        low = self.labjack.streamburst(duration=0.1, operation = 'mean')
-        self.labjack.AOut(1, low) # output DC level for subtraction with SRS
         self.actuate(state)
-        time.sleep(0.05)
-        high = self.labjack.streamburst(duration=0.1, operation = 'mean')
+        self.actuate({'coils':{'I1':0, 'I2':0})
+        time.sleep(0.075)
+        self.labjack.AOut(1, 0) # output DC level for subtraction with SRS
+        low = self.labjack.streamburst(duration=0.2, operation = 'mean')
+        self.actuate({'coils':{'I1':70, 'I2':70})
+        self.labjack.AOut(1, low) # output DC level for subtraction with SRS
+        time.sleep(0.075)
+        high = self.labjack.streamburst(duration=0.2, operation = 'mean')
+
         return -high    # low is subtracted out by SRS
+
+    @cost
+    def pulsed_field_slope(self, state):
+        ''' Toggle between high and low magnetic field; measure mean fluorescence
+            in both cases and return the difference. '''
+        self.actuate(state)
+        self.actuate({'coils':{'I1':0, 'I2':0})
+        time.sleep(0.075)
+        self.labjack.AOut(1, 0) # output DC level for subtraction with SRS
+        low = self.labjack.streamburst(duration=0.2, operation = 'mean')
+        self.actuate({'coils':{'I1':70, 'I2':70})
+        self.labjack.AOut(1, low) # output DC level for subtraction with SRS
+        time.sleep(0.075)
+        # high = self.labjack.streamburst(duration=0.2, operation = 'ptp')
+        data = self.labjack.streamburst(duration=0.2, operation = None)
+        axis = np.linspace(0,.2,len(data))
+
+        slope, intercept, r, p, err = linregress(axis, data)
+        z = slope/err
+        print('Slope:', slope, 'uncertainty:', err, 'z:',z)
+        return -z    # low is subtracted out by SRS
 
 
     def wave(self, frequency=2):
@@ -65,12 +90,12 @@ class MOT(Control):
         stream, scanRate = self.labjack.sequence2stream(seq, 1/frequency, 1)
         self.labjack.stream_out([0], stream, scanRate, loop = True)
 
-    def align(self, dim=2, numpoints = 10):
+    def align(self, dim=2, numpoints = 10, span = 10):
         import msvcrt
         import numpy as np
 
-        xmin = -3
-        xmax = 3
+        xmin = -span/2
+        xmax = span/2
         ''' Form search grid '''
         grid = []
         for n in range(dim):
@@ -95,7 +120,8 @@ class MOT(Control):
             print(instructions)
             msvcrt.getch()          # wait for keypress
             ''' Measure cost and write to file '''
-            cost = self.pulsed_slowing(state=None)
+            state = {'coils':{'I1':62.9, 'I2':65.5}}
+            cost = self.pulsed_field(state)
             with open(self.data_path+'manual_alignment.txt', 'a') as file:
                 string = ''
                 for ax in range(dim):
