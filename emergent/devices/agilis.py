@@ -4,19 +4,18 @@ import numpy as np
 from emergent.protocols import serial
 import serial as ser
 from emergent.archetypes.node import Device
+from emergent.archetypes.parallel import ProcessHandler
 from emergent.utility import getChar
 import time
 
-class Agilis(Device):
+class Agilis(Device, ProcessHandler):
     def __init__(self, port, name = 'agilis', parent = None, connect = False):
         if parent is not None:
             Device.__init__(self, name, parent = parent)
+            ProcessHandler.__init__(self)
             self.zero = {}
             for input in ['X1','Y1','X2','Y2']:
                 self.add_input(input)
-                self.zero[input] = self.children[input].state
-                if self.zero[input] is None:
-                    self.zero[input] = 0
         self.port = port
         self._connected = 0
         if connect:
@@ -164,10 +163,13 @@ class Agilis(Device):
         self.saved_positions[index] = self.get_position(mirror='all')
 
     def walk(self):
-        print('Entering walk mode.')
-        step = 100
+        self._run_thread(self.walk_thread, stoppable = False)
 
+    def walk_thread(self):
+        print('Entering walk mode.')
+        step = .05
         while True:
+            sign = None
             command = getChar().decode('ASCII')
             if command.lower() in ['q', 'quit', 'exit']:
                 break
