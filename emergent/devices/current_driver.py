@@ -39,8 +39,8 @@ class CurrentDriver(Device, ProcessHandler):
         self.port1 = port1
         self.port2 = port2
         self.labjack = labjack
-        self.slope = [0,0]
-        self.intercept = [0,0]
+        self.slope = [26.2895, 26.0752]
+        self.intercept = [-1.9746,-4.5531]
 
         self.probe_coefficient = 2000/49.9
 
@@ -103,7 +103,7 @@ class CurrentDriver(Device, ProcessHandler):
         setattr(self, 'psu%i'%coil, psu)
         psu.set_current(80)
         psu.set_voltage(6)
-        self.calibrate(coil)
+        # self.calibrate(coil)
 
     def _connect(self):
         try:

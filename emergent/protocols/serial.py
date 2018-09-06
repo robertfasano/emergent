@@ -1,5 +1,5 @@
 import serial
-import logging as log 
+import logging as log
 PARITY_NONE = serial.PARITY_NONE
 STOPBITS_ONE = serial.STOPBITS_ONE
 EIGHTBITS = serial.EIGHTBITS
@@ -24,22 +24,29 @@ class Serial():
 
             if self.ser.isOpen():
                 self.ser.close()
-    #        if self.ser.isOpen() != 1:
             self.ser.open()
             self._connected = 1
         except serial.serialutil.SerialException:
             log.error('Could not open %s on port %s.'%(self.name, self.port))
 
     def command(self, cmd, output = False, reply = True, suffix = '\r'):
-        cmd += suffix
-        self.ser.write(cmd.encode(self.encoding))
-        if reply:
-            reply = self.ser.readline()
-            if output:
-                print('Sent: %s'%cmd.encode(self.encoding))
-                print('Received: %s'%reply.decode())
+        try:
+            cmd += suffix
+            self.ser.write(cmd.encode(self.encoding))
+            if reply:
+                reply = self.ser.readline()
+                if output:
+                    print('Sent: %s'%cmd.encode(self.encoding))
+                    print('Received: %s'%reply.decode())
 
-            return reply.decode()
+                return reply.decode()
+        except Exception as e:
+            log.error('Serial exception: %s. Closing port %s.'%(e, self.port))
+            self.close()
 
+    def read(self):
+        reply = self.ser.readline()
+        return reply.decode()
+        
     def close(self):
         self.ser.close()

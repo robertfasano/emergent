@@ -9,6 +9,7 @@ import time
 from threading import Thread
 from emergent.archetypes.parallel import ProcessHandler
 from emergent.archetypes.fifo import FIFO
+from emergent.archetypes.node import Device
 import logging as log
 import decorator
 
@@ -24,10 +25,10 @@ def queue(func, *args, **kwargs):
         except KeyError:
             continue
 
-class LabJack(ProcessHandler):
+class LabJack(ProcessHandler, Device):
     ''' Python interface for the LabJack T7. '''
 
-    def __init__(self, device = "ANY", connection = "ANY", devid = "ANY", arange = 10):
+    def __init__(self, device = "ANY", connection = "ANY", devid = "ANY", arange = 10, name = 'LabJack', parent = None):
         ''' Attempt to connect to a LabJack.
 
             Args:
@@ -35,11 +36,15 @@ class LabJack(ProcessHandler):
                 connection (str): Desired connection type ("ANY", "USB", "TCP", "ETHERNET", or "WIFI").
                 devid (str): Serial number, which can be found on the underside of the LabJack.
                 arange (float): analog input range.'''
-        super().__init__()
+        ProcessHandler.__init__(self)
+        self.parent = parent
+        if parent is not None:
+            Device.__init__(self, name, parent)
         self.device = device
         self.connection = connection
         self.devid = devid
         self.arange = arange
+        self.name = name
         self._connected = 0
         self.averaging_array = []
 
@@ -50,6 +55,8 @@ class LabJack(ProcessHandler):
         self._connected = self._connect()
 
     def _connect(self):
+        if self._connected:
+            return
         try:
             self.handle = ljm.openS(self.device, self.connection, self.devid)
             info = ljm.getHandleInfo(self.handle)
@@ -61,10 +68,37 @@ class LabJack(ProcessHandler):
             log.info('Connected to LabJack (%i).'%(info[2]))
             self.clock = 80e6       # internal clock frequency
 
+            if self.parent is not None:
+                self.input_channels = ['AIN0', 'AIN1', 'AIN2', 'AIN3']
+                if self.deviceType == ljm.constants.dtT4:
+                    self.digital_channels = ['FIO4', 'FIO5','FIO6','FIO7']
+                else:
+                    self.digital_channels = ['FIO0', 'FIO1', 'FIO2', 'FIO3']
+                self.output_channels = ['DAC0', 'DAC1']
+                self.channels = {}
+                # for channels in [self.input_channels, self.digital_channels, self.output_channels]:
+                for channels in [self.output_channels]:
+                    for ch in channels:
+                        self.add_input(ch)
+
             return 1
 
         except:
-            log.error('Failed to connect to LabJack (%s).'%self.devid)
+            log.error('Failed to connect to LabJack (%s).'%(self.devid))
+
+    def _actuate(self, state):
+        for key in state:
+            prefix = key[0:3]
+            channel = int(key[3])
+            value = float(state[key])
+            if prefix == 'DAC':
+                self.AOut(channel, value)
+                self.channels[key] = value
+            elif prefix == 'FIO':
+                self.DOut(channel, value)
+                self.channels[key] = value
+            elif prefix == 'AIN':
+                self.channels[key] = self.AIn(channel)
 
     @queue
     def _command(self, register, value):
@@ -111,6 +145,8 @@ class LabJack(ProcessHandler):
                 channel (str): a digital channel on the LabJack, e.g. 'FIO4'.
                 state (int): 1 or 0
         '''
+        if type(channel) is int:
+            channel = 'FIO%i'%channel
         self._command(channel, state)
 
     def PWM(self, channel, frequency, duty_cycle):
@@ -210,7 +246,7 @@ class LabJack(ProcessHandler):
     def stream_stop(self):
         ljm.eStreamStop(self.handle)
 
-    def stream_out(self, channels, data, scanRate, loop = False):
+    def stream_out(self, channels, data, scanRate, loop = False, trigger = None):
         ''' Streams data at a given scan rate..
 
             Args:
@@ -231,7 +267,23 @@ class LabJack(ProcessHandler):
         except:
             pass
         buffer_size = 2**14
-        self._command("STREAM_TRIGGER_INDEX", 0)        # Ensure triggered stream is disabled.
+        if trigger is None:
+            self._command("STREAM_TRIGGER_INDEX", 0)        # Ensure triggered stream is disabled.
+        else:
+            # self._command('DIO%i_EF_ENABLE'%trigger, 0)
+            # self._command('DIO%i_EF_INDEX'%trigger, 3)
+            # self._command('DIO%i_EF_ENABLE'%trigger, 1)
+            channel = 'DIO%i'%trigger
+            aNames = ["%s_EF_ENABLE"%channel, "%s_EF_INDEX"%channel,
+                      "%s_EF_OPTIONS"%channel, "%s_EF_VALUE_A"%channel,
+                      "%s_EF_ENABLE"%channel]
+            aValues = [0, 3, 0, 2, 1]
+            ljm.eWriteNames(self.handle, len(aNames), aNames, aValues)
+
+            # trigger on PWM for test
+            # self.PWM(2, .1, 50)
+            self._command('STREAM_TRIGGER_INDEX', 2000+trigger)
+
         if self.deviceType == ljm.constants.dtT7:
             self._command("STREAM_CLOCK_SOURCE", 0)       # Enabling internally-clocked stream.
         aNames = ["STREAM_SETTLING_US", "STREAM_RESOLUTION_INDEX"]
@@ -322,3 +374,12 @@ class LabJack(ProcessHandler):
             seq.append((t, x))
 
         return self.sequence2stream(seq, period, channels)
+
+if __name__ == '__main__':
+    lj = LabJack(devid='470016973')
+    sequence = [(0,0), (0.05,1)]
+    period = .1
+    stream, speed = lj.sequence2stream(sequence, period)
+    lj.stream_out([0], stream, speed, trigger = 0)
+    for i in range(100):
+        lj.DOut(2,i%2)
