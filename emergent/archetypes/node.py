@@ -102,7 +102,6 @@ class Input(Node):
         self.type = type
         self.state = None
         self.sequence = None
-        self.full_name = self.parent.name+'.'+self.name
         self.min = None
         self.max = None
         self.sequenced = 0
@@ -115,7 +114,7 @@ class Input(Node):
             self.max = d['max']
         if 'min' in d:
             self.min = d['min']
-        self.parent.parent.settings[self.full_name] = d
+        self.parent.parent.settings[self.parent.name][self.name] = d
         self.settings_signal.emit({'min':self.min, 'max':self.max})
 
     def set_sequence(self, sequence):
@@ -126,7 +125,7 @@ class Input(Node):
         '''
         self.sequence = sequence
         self.sequenced = 1      # enable sequenced output
-        self.parent.parent.sequence[self.full_name] = sequence
+        self.parent.parent.sequence[self.parent.name][self.name] = sequence
         self.parent.parent.sequencer.prepare_sequence()
         self.sequence_signal.emit(self.parent.parent.master_sequence)
 
@@ -177,10 +176,10 @@ class Device(Node):
             delay = point[0]
             state = point[1]
             dev_state = {}
-            for full_name in state.keys():
-                if full_name.split('.')[0] == self.name:
-                    name = full_name.split('.')[1]
-                    dev_state[name] = state[full_name]
+            for dev_name in state:
+                if dev_name == self.name:
+                    for input in state[dev_name]:
+                        dev_state[input] = state[dev_name][input]
             state = dev_state
 
             if type == 'secondary':
@@ -189,30 +188,25 @@ class Device(Node):
                 new = self.secondary_to_primary(state)
             new_sequence.append([delay, new])
             for name in self.state.keys():
-                full_name = self.name + '.' + name
                 if self.children[name].sequenced:
-                    del self.parent.master_sequence[i][1][full_name]
+                    del self.parent.master_sequence[i][1][self.name][name]
             for name in new_state.keys():
-                full_name = self.name + '.' + name
                 if self.children[name].sequenced:
-                    self.parent.master_sequence[i][1][full_name] = new[name]
+                    self.parent.master_sequence[i][1][self.name][name] = new[name]
 
         ''' Change representation in parent control node '''
         for key in self.state.keys():
-            full_name = self.name + '.' + key
-            del self.parent.state[full_name]
+            del self.parent.state[self.name][key]
         for key in new_state.keys():
-            full_name = self.name + '.' + key
-            self.parent.state[full_name] = new_state[key]
+            self.parent.state[self.name][key] = new_state[key]
             self.children[key].state = new_state[key]
 
         ''' Convert settings '''
         min = {}
         max = {}
         for key in self.state.keys():
-            full_name = self.name + '.' + key
-            min[key] = self.parent.settings[full_name]['min']
-            max[key] = self.parent.settings[full_name]['max']
+            min[key] = self.parent.settings[self.name][key]['min']
+            max[key] = self.parent.settings[self.name][key]['max']
         if type is 'primary':
             min_new = self.secondary_to_primary(min)
             max_new = self.secondary_to_primary(max)
@@ -222,30 +216,26 @@ class Device(Node):
         for key in min_new:
             self.children[key].set_settings({'min':min_new[key],'max':max_new[key]})
         for key in self.state.keys():
-            full_name = self.name + '.' + key
-            del self.parent.settings[full_name]
+            del self.parent.settings[self.name][key]
 
         ''' Update self '''
         self.state = new_state
         self.input_type = type
 
         ''' Convert subsequence - must be done after changing self.state '''
-        for name in new_state.keys():
-            full_name = self.name + '.' + name
-            seq = self.parent.sequencer.master_to_subsequence(full_name)
-            self.parent.inputs[full_name].sequence = seq
+        for name in new_state:
+            seq = self.parent.sequencer.master_to_subsequence(dev, input)
+            self.parent.inputs[self.name][name].sequence = seq
 
     def add_input(self, name, type='primary'):
         ''' Attaches an Input node with the specified name. This should correspond
             to a specific name in the _actuate() function of a non-abstract Device
             class: for example, the PicoAmp MEMS driver has inputs explicitly named
             'X' and 'Y' which are referenced in PicoAmp._actuate().'''
-
         input = Input(name, parent=self, type=type)
         self.children[name] = input
-        self.parent.inputs[input.full_name] = input
-        self.parent.load(input.full_name)
-
+        self.parent.inputs[self.name][name] = input
+        self.parent.load(self.name, name)
         if type == 'primary':
             self.state[name] = self.children[name].state
             self.primary_inputs += 1
@@ -367,7 +357,7 @@ class Device(Node):
             self.state[input_name] = state[input_name]    # update Device
             input = self.children[input_name]
             input.state = state[input_name]   # update Input
-            self.parent.state[input.full_name] = state[input_name]   # update Control
+            self.parent.state[self.name][input_name] = state[input_name]   # update Control
             input.actuate_signal.emit(state[input_name])   # emit Qt signal
 
 class Control(Node):
@@ -420,26 +410,19 @@ class Control(Node):
             self.actuating = 1
             ''' Aggregate states by device '''
             dev_states = {}
-            for full_name in state:
-                dev_name = full_name.split('.')[0]
-                if dev_name not in dev_states:
-                    dev_states[dev_name] = {}
-                input_name = full_name.split('.')[1]
-                dev_states[dev_name][input_name] = state[full_name]
-            ''' Send states to devices '''
-            for dev_name in dev_states:
+            for dev_name in state:
                 dev = self.children[dev_name]
-                state = dev_states[dev_name]
-                dev.actuate(state)
-
+                dev_state = state[dev_name]
+                dev.actuate(dev_state)
             self.actuating = 0
         else:
             log.warn('Actuate blocked by already running actuation.')
 
     def get_sequence(self):
         """Populates the self.sequence dict with sequences of all inputs."""
-        for i in self.inputs.values():
-            self.sequence[i.full_name] = i.sequence
+        for dev in self.inputs:
+            for input in self.inputs[dev]:
+                self.sequence[dev][input] = self.inputs[dev][input]
 
     def get_subsequence(self, keys):
         """Returns a sequence dict containing only the specified keys.
@@ -518,9 +501,6 @@ class Control(Node):
             except FileNotFoundError:
                 self.dataframe['cost'] = pd.Series()
 
-
-
-
     def save(self, tag = ''):
         """Aggregates the self.state, self.settings, self.cycle_time, and self.sequence variables into a single dict and saves to file.
 
@@ -568,7 +548,7 @@ class Control(Node):
             return
         self.update_dataframe(t, full_name, input.state)
         self.dataframe[full_name].to_csv(self.data_path+full_name+'.csv')
-        
+
     def update_dataframe(self, t, full_name, state):
         if self.inputs[full_name].type is 'secondary':
             return
@@ -585,6 +565,4 @@ class Control(Node):
             device._connected = device._connect()
             device.loaded = 1
         self.actuate(self.state)
-
-
         self.sequencer.prepare_sequence()
