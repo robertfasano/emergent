@@ -468,27 +468,8 @@ class Control(Node):
         if self.inputs[device][name].type is 'secondary':
             return
 
-        # filename = self.state_path + self.name + '.txt'
-        # try:
-        #     with open(filename, 'r') as file:
-        #         state = json.loads(file.readlines()[-1].split('\t')[1])
-        # except FileNotFoundError:
-        #     state = {}
-        #     log.warn('State file not found for Control node %s, creating one now.'%self.name)
-        #
-        # ''' Load variables into control '''
         full_name = device + '.' + name
-        # try:
-        #     self.sequence[full_name] = state[full_name]['sequence']
-        #     self.cycle_time = state['cycle_time']
-        # except KeyError:
-        #     self.sequence[full_name] = [[0,0]]
-        #     self.cycle_time = 0
-        #     log.warn('Could not retrieve settings for input %s; creating new settings.'%full_name)
 
-        ''' Update sequence of inputs '''
-        # self.inputs[device][name].sequence = self.sequence[full_name]
-        self.cycle_time = 0
         ''' Load dataframe '''
         try:
             self.dataframe[full_name] = pd.read_csv(self.data_path+full_name+'.csv', index_col=0)
@@ -512,42 +493,11 @@ class Control(Node):
                 self.dataframe['cost'] = pd.Series()
 
     def save(self, tag = ''):
-        """Aggregates the self.state, self.settings, self.cycle_time, and self.sequence variables into a single dict and saves to file.
+        """Aggregates the self.state and self.settings variables into a dataframe and saves to csv.
 
         Args:
             tag (str): Label written to the third column of the log file which describes where the state was saved from, e.g. 'actuate' or 'optimize'.
         """
-        # state = {}
-        # state['cycle_time'] = self.cycle_time
-        #
-        # ''' Convert any secondary inputs to primary before saving '''
-        # converted = []
-        # for dev in self.children.values():
-        #     if dev.input_type == 'secondary':
-        #         dev.use_inputs('primary')
-        #         converted.append(dev)
-        # for dev in self.inputs:
-        #     state[dev] = {}
-        #     for input in self.inputs[dev].values():
-        #         if input.type is 'secondary':
-        #             continue
-        #         full_name = dev + '.' + input.name
-        #         state[dev][input.name] = {}
-        #         state[dev][input.name]['state'] = self.state[dev][input.name]
-        #         state[dev][input.name]['settings'] = self.settings[dev][input.name]
-        #         # state[dev][input.name]['sequence'] = self.sequence[full_name]
-        #
-        # ''' Convert back '''
-        # for dev in converted:
-        #     dev.use_inputs('secondary')
-        # filename = self.state_path + self.name + '.txt'
-        # write_newline = os.path.isfile(filename)
-        #
-        # with open(filename, 'a') as file:
-        #     if write_newline:
-        #         file.write('\n')
-        #     file.write('%f\t%s\t%s'%(time.time(),json.dumps(state), tag))
-
         ''' Save dataframes to csv '''
         t= datetime.datetime.now()
         for dev in self.inputs:
