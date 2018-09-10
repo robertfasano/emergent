@@ -10,18 +10,20 @@ import time
 
 class Agilis(Device, ProcessHandler):
     def __init__(self, port, name = 'agilis', parent = None, connect = False):
+        self.mirrors = [1]
         if parent is not None:
             Device.__init__(self, name, parent = parent)
             ProcessHandler.__init__(self)
             self.zero = {}
-            for input in ['X1','Y1','X2','Y2']:
-                self.add_input(input)
+            for mirror in self.mirrors:
+                for input in ['X%i'%mirror, 'Y%i'%mirror]:
+                    self.add_input(input)
         self.port = port
         self._connected = 0
         if connect:
             self._connected = self._connect()
         self.mirror=None
-        self.range = {'X1':377150, 'Y1':310100, 'X2':250800, 'Y2':250550}
+        self.range = {'X1':377150, 'Y1':310100}
 
     def _connect(self):
         self.serial = serial.Serial(port = self.port, baudrate = 921600, parity = ser.PARITY_NONE, stopbits = ser.STOPBITS_ONE, bytesize = ser.EIGHTBITS, timeout = 1, encoding = 'ascii', name = 'Agilis')
@@ -29,10 +31,9 @@ class Agilis(Device, ProcessHandler):
             self.command('RS')
             self.command('MR')
             self.saved_positions = {}
-            self.mirrors = [1,2]
             self._connected = 1
             self.step_size = 50
-            for mirror in [1,2]:
+            for mirror in self.mirrors:
                 self.set_channel(mirror)
                 for axis in [1,2]:
                     self.command('%sSU+%i'%(axis, self.step_size))
@@ -65,7 +66,7 @@ class Agilis(Device, ProcessHandler):
                 break
 
     def calibrate(self):
-        for mirror in [1,2]:
+        for mirror in self.mirrors:
             self.set_channel(mirror)
             for axis in [1,2]:
                 try:
