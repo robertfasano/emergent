@@ -98,11 +98,11 @@ class Agilis(Device, ProcessHandler):
                 except Exception as e:
                     print(e)
                     print(self.command('TE?'))
-        target_parent_state = {}
+        target_parent_state = {self.name:{}}
         for input in self.state:
             self.state[input] = 0
-            self.parent.state[self.name + '.' + input] = 0
-            target_parent_state[self.name+'.'+input] = 0
+            self.parent.state[self.name][input] = 0
+            target_parent_state[self.name][input] = 0
         self.parent.actuate(target_parent_state)
 
     def command(self, cmd, reply = True):
@@ -220,7 +220,7 @@ class Agilis(Device, ProcessHandler):
                 sign = 1
                 # self.relative_move(2, 2, step = step)
             if sign is not None:
-                self.parent.actuate({self.name+'.'+input:self.state[input]+sign*step})
+                self.parent.actuate({self.name:{input:self.state[input]+sign*step}})
 
     def zero(self):
         for mirror in [1,2]:
