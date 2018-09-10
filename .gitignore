@@ -1,14 +1,12 @@
 __pycache__
-
 .DS_Store
-
 *.pyc
 control.txt
 costs.txt
 points.txt
-examples/basic/data/*
 docs/build/*
 build/*
 EMERGENT.egg-info/*
 dist/*
-networks/example/data/*
+emergent/networks/example/data/*
+emergent/networks/gmot/data/*
