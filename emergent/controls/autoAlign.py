@@ -29,8 +29,9 @@ class AutoAlign(Control):
         self.actuate(state)
         cost = -self.readADC()
         t = datetime.datetime.now()
-        for full_name in self.inputs:
-            self.update_dataframe(t, full_name, self.inputs[full_name].state)
+        for name in self.inputs['MEMS']:
+            input = self.inputs['MEMS'][name]
+            self.update_dataframe(t, 'MEMS', name, input.state)
         self.update_cost(t, cost)
         return cost
 
