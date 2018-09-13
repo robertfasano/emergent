@@ -216,8 +216,8 @@ class CurrentDriver(Device, ProcessHandler):
             self.set_current(2,i*A)
             time.sleep(T/2)
 
-    def wave(self, frequency = 2, grad = 50, zero = 0):
-        state = self.secondary_to_primary({'grad':grad, 'zero':zero})
+    def wave(self, frequency = 2, I1=65, I2=65):
+        state = {'I1':I1, 'I2':I2}
         sequence = {}
         stream = {}
         for i in [1,2]:
