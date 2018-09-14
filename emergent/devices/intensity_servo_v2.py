@@ -61,7 +61,9 @@ class IntensityServo(Device):
         lj = [self.labjack[0], self.labjack[0], self.labjack[1], self.labjack[1]][channel]
         ch = [0, 1, 0, 1][channel]
         unlocked_power = lj.AIn(ch)
-        self._actuate({'V%i'%channel:frac*unlocked_power})
+        # self._actuate({'V%i'%channel:frac*unlocked_power})
+        state = {self.name: {'V%i'%channel:frac*unlocked_power}}
+        self.parent.actuate(state)
         self.lock(channel, 1)
 
     def wave(self, channel, frequency = 1):
