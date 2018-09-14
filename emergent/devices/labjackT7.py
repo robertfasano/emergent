@@ -174,6 +174,9 @@ class LabJack(ProcessHandler, Device):
         except Exception as e:
             log.warn(e)
 
+    def PWM_stop(self, channel):
+        self._command("DIO%i_EF_ENABLE"%channel, 0)
+
     ''' SPI methods '''
     def spi_initialize(self, mode = 3, CLK=0, CS=1,MOSI=2, MISO=3):  #, CS, CLK, MISO, MOSI):
         ''' Initializes the SPI bus using several FIO ports.
