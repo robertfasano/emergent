@@ -83,22 +83,24 @@ class MOT(Control):
     def pulsed_field_slope(self, state):
         ''' Toggle between high and low magnetic field; measure mean fluorescence
             in both cases and return the difference. '''
+        self.children['coils'].disable_setpoint(1)
+        # self.labjack.AOut(1, 0) # output DC level for subtraction with SRS
+        # low = self.labjack.streamburst(duration=0.1, operation = 'mean')
+        # self.labjack.AOut(1, low) # output DC level for subtraction with SRS
+        time.sleep(0.2)
         self.actuate(state)
-        self.actuate({'coils':{'I1':0, 'I2':0})
-        time.sleep(0.075)
-        self.labjack.AOut(1, 0) # output DC level for subtraction with SRS
-        low = self.labjack.streamburst(duration=0.2, operation = 'mean')
-        self.actuate({'coils':{'I1':70, 'I2':70})
-        self.labjack.AOut(1, low) # output DC level for subtraction with SRS
-        time.sleep(0.075)
-        # high = self.labjack.streamburst(duration=0.2, operation = 'ptp')
-        data = self.labjack.streamburst(duration=0.2, operation = None)
-        axis = np.linspace(0,.2,len(data))
+        self.children['coils'].enable_setpoint(1)
+        time.sleep(0.05)
+        data = self.labjack.streamburst(duration=0.4, operation = None)
+        axis = np.linspace(0,.4,len(data))
 
         slope, intercept, r, p, err = linregress(axis, data)
         z = slope/err
-        print('Slope:', slope, 'uncertainty:', err, 'z:',z)
-        return -z    # low is subtracted out by SRS
+        return -slope
+        # if z > 2:
+        #     return -slope    # low is subtracted out by SRS
+        # else:
+        #     return 0
 
 
     def wave(self, frequency=2):
