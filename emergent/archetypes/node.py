@@ -390,6 +390,7 @@ class Control(Node):
         self.settings = {}
         self.sequence = {}
         self.actuating = 0
+        self.cycle_time = 0
         self.state_path = path+'/state/'
         self.data_path = path+'/data/'
         self.dataframe = {}
