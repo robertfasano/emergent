@@ -29,7 +29,7 @@ concerned with determining the state vector :math:`X(t)` which minimizes or maxi
 Steady-state optimization
 ===========================
 To make this formalism more intuitive, let's first study an experiment with a
-memoryless cost functional :math:`\mathcal F[X(T)]]``, where the measurement depends on the input
+memoryless functional :math:`\mathcal F[X(T)]]``, where the measurement depends on the input
 state at time :math:`T` but not the history. Let's see how EMERGENT describes this process.
 
 State representation
@@ -58,24 +58,24 @@ keep the network synchronized.
 
 As well as distributing user-initiated commands, the :doc:`/architecture/control`
 node oversees the entire experiment by issuing commands to the inputs
-during optimization algorithms. It contains methods, tagged with the @cost decorator,
+during optimization algorithms. It contains methods, tagged with the @experiment decorator,
 which prepare and evaluate a target state, and closed-loop operation between the
 Control node and an attached Optimizer module can quickly determine the correct
-input states to minimize a given cost function.
+input states to minimize a given experimental result.
 
 Optimization
 -------------
 To make the connection clear between the code and the formalism, here is the
 typical optimization sequence:
 
-1. The initial state :math:`X` is represented through a dict ``state``, and is passed into the :doc:`/archetypes/optimizer` module along with a cost function ``cost``.
-2. The cost function :math:`\mathcal F[X]` is evaluated by calling ``cost(state)``.
+1. The initial state :math:`X` is represented through a dict ``state``, and is passed into the :doc:`/archetypes/optimizer` module along with a function ``experiment``.
+2. The function :math:`\mathcal F[X]` is evaluated by calling ``experiment(state)``.
 
 	a. ``Control.actuate(state)`` distributes commands to linked Device nodes.
 	b. The Device node runs ``Device._actuate(state)`` to update the physical state.
 	c. The Device node updates the internal state representation of the Input, Device, and Control nodes.
 	d. A physical measurement of :math:`\mathcal F[X]` is made.
-3. The learner updates its knowledge of the cost landscape :math:`\mathcal F[X]`, suggests a new state :math:`X`, and returns to step 2.
+3. The learner updates its knowledge of the experimental landscape :math:`\mathcal F[X]`, suggests a new state :math:`X`, and returns to step 2.
 
 Note that in the code we often use ``state`` to refer to a dictionary (or a single
 value in the case of an Input node), whereas the variable ``X`` refers to an
@@ -95,7 +95,7 @@ maximizes the measurement :math:`M`. This is an example of a convex optimization
 where the local minimum is also the global minimum.
 
 And the results: the graphs below show a real fiber alignment routine run by EMERGENT. The left
-graph plots the simplex trajectory over the independently measured cost landscape,
+graph plots the simplex trajectory over the independently measured experimental landscape,
 while the right graph shows a time series of the optimization, demonstrating
 convergence in several seconds.
 
@@ -107,10 +107,10 @@ convergence in several seconds.
 
 Time-dependent optimization
 ==============================
-Turning now to a more complicated time-dependent cost functional, we consider
+Turning now to a more complicated time-dependent functional, we consider
 the problem of magneto-optical trapping, in which atoms are trapped at the zero
 of a quadrupole magnetic field in a red-detuned laser beam. The problem can be
-formulated as a memoryless cost functional depending on parameters such as the
+formulated as a memoryless functional depending on parameters such as the
 field strength and laser detuning, but the trapping can be improved by adding a
 time-dependent ramp such that the Doppler and Zeeman shifts keep the beam resonant
 while the atoms cool. In this case we are tasked with determining not the
@@ -118,14 +118,14 @@ steady-state parameter values but instead the ramp shape which maximizes the
 number of trapped atoms. Algorithmic optimization of atom cooling has been
 achieved through parameterized ramps, where each of the :math:`d` inputs :math:`x(t)` is stepped
 discretely through :math:`N` steps :math:`(t_1,...,t_N)`; the :math:`N` setpoints of each parameter are used
-as inputs into a regressor which interpolates the :math:`Nd`-dimensional cost landscape
+as inputs into a regressor which interpolates the :math:`Nd`-dimensional landscape
 to search for a minimum. Unlike the simple fiber coupling example, these problems
-possess very complex, high-dimensional cost landscapes which may have many local
+possess very complex, high-dimensional landscapes which may have many local
 minima as well as high shot-to-shot noise, so deterministic convex solvers such
 as gradient descent algorithms are unlikely to find the global minimum. A solution
 is to use stochastic optimization algorithms, such as differential evolution or
 stochastic artificial neural networks. Here the objective is to model rather than
-simply explore the cost landscape, and to use information gained in each cycle
+simply explore the landscape, and to use information gained in each cycle
 to improve the determination of the global maximum.
 
 Sequence representation
@@ -177,8 +177,8 @@ For an example of a time dependent optimization problem, consider the 1D functio
 
 which qualitatively reproduces the required behavior to
 optimize a MOT - the functional is maximized for the ramp :math:`x=1/t`. If we were naive
-to the form of the cost function, we could algorithmically maximize the function.
-We discretize the inputs as :math:`x_i=x(t_i)` and compute the cost function as
+to the functional form of the experimental result, we could algorithmically maximize the function.
+We discretize the inputs as :math:`x_i=x(t_i)` and approximate the function as
 
 .. math:: \mathcal M(T) = \frac{T}{N}\sum_{i=1}^N \frac{1}{1+(1-x_it_i)^2},
 
@@ -193,15 +193,15 @@ handle states or sequences interchangeably - if you pass in a state like
 optimization, whereas a sequence like ``{'X':[(0,0),(0.5,1)], 'Y':[(0,2), (0.5,3)]}``
 is represented in array form as ``[0,1,2,3]``. After this, the algorithm doesn't
 care if it's working with a state or sequence - it simply passes this array into
-a cost function which actuates a state or runs a sequence and returns a result.
+a function which actuates a state or runs a sequence and returns a result.
 
 
 Subspace decoupling
 ====================
-The sophisticated algorithms contained in the EMERGENT library can optimize cost
+The sophisticated algorithms contained in the EMERGENT library can optimize
 functions of many degrees of freedom, but most powerful of all is the ability to
 avoid this through subspace identification and dimensional reduction. By using
-principal component analysis, EMERGENT will be able to project the cost landscape
+principal component analysis, EMERGENT will be able to project the landscape
 onto a set of orthogonal virtual inputs, hence decomposing a high-dimensional
 coupled optimization problem into many lower-dimensional problems. To see the
 power of this, consider a grid search algorithm which searches for an optimum
@@ -214,7 +214,7 @@ optimizations which can be performed independently, requiring only :math:`Nd` st
 In doing so, we replace the physical inputs with virtual inputs, which are linear
 combinations of the original ones.
 
-For example, consider a cost landscape consisting of a stretched two-variable
+For example, consider an experimental landscape consisting of a stretched two-variable
 Gaussian which is rotated by 30 degrees about the :math:`z` axis. The effects of
 the coupling are evident: performing a line search in :math:`x` or :math:`y`
 alone will not in general find the maximum, since by changing one variable we
