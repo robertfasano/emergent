@@ -15,7 +15,8 @@ class IntensityServo(Device):
     def __init__(self, name, id1, id2, parent = None):
         super().__init__(name, parent = parent)
         self.labjack = []
-        self.labjack.append(LabJack(devid=id1))
+        self.labjack.append(None)
+        # self.labjack.append(LabJack(devid=id1))
         self.labjack.append(LabJack(devid=id2))
 
         # for ch in [0,1,2,3]:
