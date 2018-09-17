@@ -448,7 +448,8 @@ class Optimizer():
 
 
     ''' Visualization methods '''
-    def plot_2D(self, points, costs, normalized_cost = False, limits = None, save = False):
+    def plot_2D(self, points, costs, normalized_cost = False, limits = None,
+                save = False, color_map='viridis_r'):
         ''' Interpolates and plots a cost function sampled at an array of points. '''
         plt.figure()
         points = points.copy()
@@ -464,7 +465,7 @@ class Optimizer():
             cost_grid = griddata(points[:,[ordinate_index, abscissa_index]], normalized_costs, (ordinate_mesh,abscissa_mesh))
         else:
             cost_grid = griddata(points[:,[ordinate_index, abscissa_index]], costs, (ordinate_mesh,abscissa_mesh))
-        plot = plt.pcolormesh(ordinate_mesh, abscissa_mesh, cost_grid, cmap='gist_rainbow')
+        plot = plt.pcolormesh(ordinate_mesh, abscissa_mesh, cost_grid, cmap=color_map)
         plt.colorbar(plot)
         if save:
             plt.savefig(self.parent.data_path + str(time.time()) + '.png')
