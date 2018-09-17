@@ -27,13 +27,12 @@ mot = MOT(name='MOT', path='networks/%s'%sys.argv[1])
 labjack_MOT = LabJack(devid=devid, name='labjack', parent=mot)
 mot.add_labjack(labjack_MOT)
 feedthrough = NetControls('feedthrough', 'COM11', parent = mot)
-novatech = Novatech('novatech', 'COM7', parent = mot)
-#servo = IntensityServo('servo', None, '440010742', parent = mot)
-agilis = Agilis('COM15', 'agilis', parent=mot)
+# novatech = Novatech('novatech', 'COM32', parent = mot)
+servo = IntensityServo('servo', None, '440010742', parent = mot)
+# agilis = Agilis('COM15', 'agilis', parent=mot)
 devid='440010680'
 labjack_coils = LabJack(devid=devid, name = 'labjack')
 coils = CurrentDriver('coils', 'COM13', 'COM18', parent = mot,labjack = labjack_coils)
-
 
 # devid = '470016973'    # T7
 # labjack_MEMS = LabJack(devid=devid)
@@ -42,3 +41,6 @@ coils = CurrentDriver('coils', 'COM13', 'COM18', parent = mot,labjack = labjack_
 ''' Run post-load routine '''
 for c in Control.instances:
     c.onLoad()
+
+''' Run specific processes '''
+servo.autolock(2)       # lock slowing beam at 90% max power
