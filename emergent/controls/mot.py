@@ -53,26 +53,25 @@ class MOT(Control):
             in both cases and return the difference. '''
         if state is not None:
             self.actuate(state)
-        self.labjack.DOut(4,0)
+        state = self.state['servo']['V2']
+        self.children['servo']._actuate({'V2':0.2})
         time.sleep(0.05)
         self.labjack.AOut(1, 0) # output DC level for subtraction with SRS
-        low = self.labjack.streamburst(duration=0.05, operation = 'mean')
+        low = self.labjack.streamburst(duration=0.200, operation = 'mean')
         self.labjack.AOut(1, low) # output DC level for subtraction with SRS
-        self.labjack.DOut(4,1)
-        time.sleep(0.05)
-        high = self.labjack.streamburst(duration=0.05, operation = 'mean')
+        self.children['servo']._actuate({'V2':state})
+        high = self.labjack.streamburst(duration=0.2, operation = 'mean')
         return -high    # low is subtracted out by SRS
 
     @cost
     def pulsed_field_mean(self, state):
         ''' Toggle between high and low magnetic field; measure mean fluorescence
             in both cases and return the difference. '''
-        self.actuate(state)
-        self.actuate({'coils':{'I1':0, 'I2':0})
+        self.actuate({'coils':{'I1':0, 'I2':0}})
         time.sleep(0.075)
         self.labjack.AOut(1, 0) # output DC level for subtraction with SRS
         low = self.labjack.streamburst(duration=0.2, operation = 'mean')
-        self.actuate({'coils':{'I1':70, 'I2':70})
+        self.actuate(state)
         self.labjack.AOut(1, low) # output DC level for subtraction with SRS
         time.sleep(0.075)
         high = self.labjack.streamburst(duration=0.2, operation = 'mean')
