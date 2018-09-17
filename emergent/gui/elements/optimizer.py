@@ -1,11 +1,12 @@
 from PyQt5.QtWidgets import (QComboBox, QLabel, QTextEdit, QPushButton, QVBoxLayout,
-        QWidget, QProgressBar, qApp, QHBoxLayout, QCheckBox)
+        QWidget, QProgressBar, qApp, QHBoxLayout, QCheckBox, QTabWidget, QLineEdit)
 from PyQt5.QtCore import *
 from emergent.archetypes.optimizer import Optimizer
 from emergent.archetypes.parallel import ProcessHandler
 import inspect
 import json
 import logging as log
+import time
 
 class OptimizerLayout(QVBoxLayout, ProcessHandler):
     def __init__(self, parent):
@@ -13,15 +14,26 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         ProcessHandler.__init__(self)
         self.parent = parent
 
-        self.addWidget(QLabel('Optimizer'))
+        self.addWidget(QLabel('Experiments'))
+        self.cost_box = QComboBox()
+        self.addWidget(self.cost_box)
+
+        self.tabWidget = QTabWidget()
+
+        ''' Create optimizer tab '''
+        self.optimizeTab = QWidget()
+        self.optimizeTabLayout = QVBoxLayout()
+        self.optimizeTab.setLayout(self.optimizeTabLayout)
+        self.tabWidget.addTab(self.optimizeTab, 'Optimize')
+        self.addWidget(self.tabWidget)
+
         self.algorithm_box = QComboBox()
-        self.addWidget(self.algorithm_box)
-        self.parent.treeWidget.itemSelectionChanged.connect(self.update_algorithm_display)
-        self.algorithm_box.currentTextChanged.connect(self.update_algorithm)
+        self.optimizeTabLayout.addWidget(self.algorithm_box)
 
         self.params_edit = QTextEdit('')
-        self.addWidget(self.params_edit)
+        self.optimizeTabLayout.addWidget(self.params_edit)
 
+        ''' Plot options buttons '''
         plotLayout = QHBoxLayout()
         self.plot_label = QLabel('Plot result')
         self.plot_checkbox = QCheckBox()
@@ -31,20 +43,63 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         self.save_checkbox = QCheckBox()
         plotLayout.addWidget(self.save_label)
         plotLayout.addWidget(self.save_checkbox)
+        self.optimizeTabLayout.addLayout(plotLayout)
 
-        self.addLayout(plotLayout)
-
-        self.cost_box = QComboBox()
-        self.addWidget(self.cost_box)
+        self.parent.treeWidget.itemSelectionChanged.connect(self.update_algorithm_display)
+        self.algorithm_box.currentTextChanged.connect(self.update_algorithm)
 
         self.optimizer_button = QPushButton('Go!')
         self.optimizer_button.clicked.connect(self.optimize)
-        self.addWidget(self.optimizer_button)
+        self.optimizeTabLayout.addWidget(self.optimizer_button)
 
         self.progress_bar = QProgressBar()
         self.max_progress = 100
         self.progress_bar.setMaximum(self.max_progress)
-        self.addWidget(self.progress_bar)
+        self.optimizeTabLayout.addWidget(self.progress_bar)
+
+
+        ''' Create Run tab '''
+        self.runTab = QWidget()
+        self.runTabLayout = QVBoxLayout()
+        self.runTab.setLayout(self.runTabLayout)
+        self.tabWidget.addTab(self.runTab, 'Run')
+
+        self.runIterationsLayout = QHBoxLayout()
+        self.runIterationsLayout.addWidget(QLabel('Iterations'))
+        self.runIterationsComboBox = QComboBox()
+        for power in range(8):
+            self.runIterationsComboBox.addItem(str(2**power))
+        self.runIterationsLayout.addWidget(self.runIterationsComboBox)
+        self.runTabLayout.addLayout(self.runIterationsLayout)
+
+        self.runDelayLayout = QHBoxLayout()
+        self.runDelayLayout.addWidget(QLabel('Delay (ms)'))
+        self.runDelayEdit = QLineEdit('0')
+        self.runDelayLayout.addWidget(self.runDelayEdit)
+        self.runTabLayout.addLayout(self.runDelayLayout)
+
+        self.runProcessingLayout = QHBoxLayout()
+        self.runProcessingLayout.addWidget(QLabel('Operation (n/c)'))
+        self.runProcessingComboBox = QComboBox()
+        for item in ['mean', 'stdev', 'peak-to-peak', 'slope']:
+            self.runProcessingComboBox.addItem(item)
+        self.runProcessingLayout.addWidget(self.runProcessingComboBox)
+        self.runTabLayout.addLayout(self.runProcessingLayout)
+
+        self.runButtonsLayout = QHBoxLayout()
+        self.runExperimentButton = QPushButton('Run')
+        self.runExperimentButton.clicked.connect(self.start_experiment)
+        self.runButtonsLayout.addWidget(self.runExperimentButton)
+        self.stopExperimentButton = QPushButton('Stop')
+        self.stopExperimentButton.clicked.connect(self.stop_experiment)
+        self.runButtonsLayout.addWidget(self.stopExperimentButton)
+        self.runTabLayout.addLayout(self.runButtonsLayout)
+
+        self.runResultLayout = QHBoxLayout()
+        self.runResultLayout.addWidget(QLabel('Result'))
+        self.runResultEdit = QLineEdit('')
+        self.runResultLayout.addWidget(self.runResultEdit)
+        self.runTabLayout.addLayout(self.runResultLayout)
 
     def update_algorithm_display(self):
         ''' Updates the algorithm box with the methods available to the currently selected control. '''
@@ -70,6 +125,27 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
     def optimize(self):
         # self._run_thread(self.start_optimizer, stoppable=False)
         self.start_optimizer()
+
+    def run_experiment(self, stopped):
+        control = self.parent.treeWidget.get_selected_control()
+        experiment = getattr(control, self.cost_box.currentText())
+        iterations = int(self.runIterationsComboBox.currentText())
+        delay = float(self.runDelayEdit.text())
+        operation = self.runProcessingComboBox.currentText()
+        count = 0
+        while not stopped() and count < iterations:
+            state = control.state
+            result = experiment(state)
+            self.runResultEdit.setText(str(result))
+            qApp.processEvents(QEventLoop.ExcludeUserInputEvents)
+            count += 1
+            time.sleep(delay/1000)
+
+    def start_experiment(self):
+        self._run_thread(self.run_experiment)
+
+    def stop_experiment(self):
+        self._quit_thread(self.run_experiment)
 
     def start_optimizer(self):
         ''' Call chosen optimization routine with user-selected cost function and parameters '''
