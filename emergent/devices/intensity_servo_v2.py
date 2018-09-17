@@ -1,7 +1,7 @@
 from emergent.archetypes.node import Device
 from emergent.devices.labjackT7 import LabJack
 import functools
-
+import time
 class IntensityServo(Device):
     ''' Device driver for a four-channel intensity servo with an embedded pair of
         LabJack T4 DAQs for control.
