@@ -11,7 +11,7 @@ from PyQt5.QtCore import *
 import json
 from emergent.archetypes.optimizer import Optimizer
 from emergent.gui.elements.optimizer import OptimizerLayout
-from emergent.gui.elements.sequencer import SequencerLayout
+# from emergent.gui.elements.sequencer import SequencerLayout
 from emergent.gui.elements.treeview import NodeTree
 import os
 import psutil
@@ -53,8 +53,8 @@ class MainFrame(QMainWindow):
         layout.addLayout(self.optimizer)
 
         ''' Create sequencer layout '''
-        self.sequencer = SequencerLayout(self)
-        layout.addLayout(self.sequencer)
+        # self.sequencer = SequencerLayout(self)
+        # layout.addLayout(self.sequencer)
 
     def get_system_stats(self):
         mem = 'Memory usage: %.2f GB'%(psutil.Process(os.getpid()).memory_info()[0]/2.**30)
