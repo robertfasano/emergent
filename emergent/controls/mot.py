@@ -7,20 +7,37 @@ import numpy as np
 class MOT(Control):
     def __init__(self, name, parent = None, path='.'):
         super().__init__(name, parent = parent, path=path)
-        # self.labjack = labjack
-        # self.labjack.prepare_streamburst(channel=0)
-
-        ''' Power PMT '''
-        # self.labjack.AOut(3,-5, HV=True)
-        # self.labjack.AOut(2,5, HV=True)
-        # self.labjack.AOut(7,-5, HV=True)
-        # self.labjack.AOut(6,5, HV=True)
 
     def add_labjack(self, labjack):
         self.labjack = labjack
         self.labjack.prepare_streamburst(channel=0)
         self.labjack.AOut(7,-5,HV=True)
         self.labjack.AOut(6,5, HV=True)
+        self.set_offset(0)
+
+    def set_offset(self, offset):
+        self.offset = offset
+        self.labjack.AOut(1,offset)
+
+    def center_signal(self, threshold = .010, gain = .1):
+        ''' Applies an offset with DAC1 to zero the signal received on AIN0. '''
+        signal = 0
+        oscillation_count = 0
+        while True:
+            last_signal = signal
+            signal = self.labjack.AIn(0)
+            if np.sign(last_signal) != np.sign(signal):
+                oscillation_count += 1
+            else:
+                oscillation_count = 0
+            if oscillation_count > 2:
+                gain *= .5
+            if np.abs(signal) < threshold:
+                break
+            print('offset: %f to %f'%(self.offset, self.offset+gain))
+
+            self.set_offset(self.offset+gain*signal)
+            print('signal:',signal)
 
     def stream(self, period = 1, amplitude = 0.1):
         key='coils.I1'
