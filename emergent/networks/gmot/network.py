@@ -1,6 +1,6 @@
 from emergent.archetypes.node import Control
 from emergent.controls.autoAlign import AutoAlign
-from emergent.controls.mot import MOT
+from emergent.networks.gmot.controls.mot import MOT
 from emergent.devices.labjackT7 import LabJack
 from emergent.devices.picoAmp import PicoAmp
 from emergent.devices.current_driver import CurrentDriver
