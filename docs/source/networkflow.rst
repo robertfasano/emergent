@@ -4,7 +4,7 @@ Network flow
 
 In this page we describe the overall control flow of EMERGENT, including network
 construction and initialization, state and sequence actuation, and optimization.
-We will follow the example network in ``emergent/examples/basic``.
+We will follow the example network in ``emergent/networks/example``.
 
 Network construction
 ======================
@@ -23,7 +23,7 @@ The first argument to the node initializer is the ``name`` 'control', which will
 label the node within the network tree. It doesn't have to be the same as the
 variable name, but it may be helpful. The second argument is the path of our
 network directory - to start emergent, we will run ``main.py`` in the root
-directory with the argument ``basic`` to specify this network.
+directory with the argument ``example`` to specify this network.
 
 When a Control node is initialized, it first calls its parent initializer,
 ``Node.__init__(name, parent)``, which does five things:
