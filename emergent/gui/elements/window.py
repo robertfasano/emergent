@@ -15,11 +15,12 @@ from emergent.gui.elements.optimizer import OptimizerLayout
 from emergent.gui.elements.treeview import NodeTree
 import os
 import psutil
+import sys
 
 class MainFrame(QMainWindow):
     def __init__(self, app, tree, controls):
         QMainWindow.__init__(self)
-        self.setWindowTitle('EMERGENT')
+        self.setWindowTitle('EMERGENT: %s'%sys.argv[1])
         with open('gui/stylesheet.txt',"r") as file:
             self.setStyleSheet(file.read())
         self.controls = controls
