@@ -244,8 +244,6 @@ class Optimizer():
 
         points = np.array(points)
         costs = np.array(costs)
-        np.savetxt('costs.txt', costs)
-        np.savetxt('points.txt', points)
 
         return points, costs
 
@@ -279,15 +277,11 @@ class Optimizer():
 
     ''' Optimization routines '''
     @algorithm
-    def grid_search(self, state, cost, params={'loadExisting':0, 'steps':10}, update=None):
+    def grid_search(self, state, cost, params={'steps':10}, update=None):
         ''' An N-dimensional grid search (brute force) optimizer. '''
         arr, bounds = self.initialize_optimizer(state)
-        if params['loadExisting']:
-            costs = np.loadtxt('costs.txt')
-            points = np.loadtxt('points.txt')
-        else:
-            ''' Generate search grid '''
-            points, costs = self.grid_sampling(state, cost, params['steps'], update=update)
+        ''' Generate search grid '''
+        points, costs = self.grid_sampling(state, cost, params['steps'], update=update)
 
         ''' Plot result if desired '''
         ax = None
