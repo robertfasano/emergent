@@ -2,6 +2,7 @@ from emergent.archetypes.node import Control
 import time
 from utility import cost
 from scipy.stats import linregress
+from scipy.optimize import curve_fit
 import numpy as np
 
 class MOT(Control):
@@ -101,6 +102,35 @@ class MOT(Control):
         # else:
         #     return 0
 
+    @cost
+    def pulsed_field_fit(self, state):
+        ''' Toggle between high and low magnetic field; stream in the resulting
+            fluorescent waveform and fit it to determine the capture rate.'''
+        pulse_time = 0.8
+        self.children['coils'].disable_setpoint(1)
+        time.sleep(0.2)
+        self.actuate(state)
+
+        data = self.labjack.streamburst(duration=pulse_time, operation = None)
+        t = np.linspace(0,pulse_time,len(data))
+        self.children['coils'].enable_setpoint(1)
+
+        p0 = [np.max(data), 0, pulse_time, 0.5, 40e-3, 1e-4]
+        popt, pcov = curve_fit(wave, t, data, p0=p0)
+        A_actual, t0_actual, tp_actual, tau_trap_actual, tau_field_actual, capture_rate_actual = popt
+
+        return -capture_rate_actual
+
+    def pulsed_field_model(t, A, t0, tp, tau_trap, tau_field, capture_rate, noise = 0):
+        square = np.heaviside(t-t0,0) * np.heaviside(-(t-t0-tp),0)
+        rising_induction = 1-np.exp(-(t-t0)/tau_field)
+        falling_induction = np.exp(-(t-t0-tp)/tau_field)*np.heaviside(t-t0-tp,0)
+        loading = tau_trap*capture_rate * (1-np.exp(-(t-t0)/tau_trap)) * square
+        peak = A + tau_trap*capture_rate*(1-np.exp(-tp/tau_trap))
+
+        fluorescence = (A*square*rising_induction+loading)+peak*falling_induction*np.heaviside(t-tp-t0,0)
+        fluorescence *= (1+np.random.normal(0,noise,len(fluorescence)))
+        return fluorescence
 
     def wave(self, frequency=2):
         V = 3.3
