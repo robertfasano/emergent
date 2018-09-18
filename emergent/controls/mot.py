@@ -125,9 +125,9 @@ class MOT(Control):
         time.sleep(0.2)
         self.actuate(state)
 
+        self.children['coils'].enable_setpoint(1)
         data = self.labjack.streamburst(duration=pulse_time, operation = None)
         t = np.linspace(0,pulse_time,len(data))
-        self.children['coils'].enable_setpoint(1)
 
         p0 = [np.max(data), 0, pulse_time, 0.5, 40e-3, 1e-4]
         popt, pcov = curve_fit(wave, t, data, p0=p0)
