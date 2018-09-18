@@ -98,7 +98,6 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Examples</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#simple-network">Simple network</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#state-access-and-actuation">State access and actuation</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#state-recall">State recall</a></li>
 </ul>
 </li>
 </ul>
@@ -172,9 +171,9 @@
 <h1>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="simple-network">
 <h2>Simple network<a class="headerlink" href="#simple-network" title="Permalink to this headline">¶</a></h2>
-<p>A full example for a simple network can be found in emergent/examples/basic.py.
+<p>A full example for a simple network can be found in emergent/networks/example.py.
 In this example, a single Control node oversees two Device nodes, one with inputs
-'X' and 'Y' and another with input 'Z'. Take a moment to look through the code
+'X' and 'Y' and another with inputs 'X' and 'Y'. Take a moment to look through the code
 required to initialize the network: in <code class="docutils literal notranslate"><span class="pre">network.py</span></code>, we have simply imported
 and instantiated the objects defined in the <code class="docutils literal notranslate"><span class="pre">devices</span></code> and <code class="docutils literal notranslate"><span class="pre">controls</span></code> folder.
 EMERGENT hooks up the network under the hood - all you have to do is define the
@@ -184,19 +183,27 @@ is defined through its <code class="docutils literal notranslate"><span class="p
 You can start EMERGENT with this network from the root directory (<code class="docutils literal notranslate"><span class="pre">emergent</span></code>)
 by running</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">ipython</span>
-<span class="o">%</span><span class="n">run</span> <span class="n">main</span> <span class="n">basic</span>
+<span class="o">%</span><span class="n">run</span> <span class="n">main</span> <span class="n">example</span>
 </pre></div>
 </div>
-<p>Once EMERGENT launches, a GUI will open. The left pane displays the network tree;
-Inputs can be changed by double-clicking on their values, entering a new value,
-and pressing the Enter key.</p>
-<p>The right pane allows optimization of selected inputs. With one or more inputs
-selected in the left pane, you can choose an algorithm from the drop-down menu,
-edit the parameters passed into the algorithm, and choose a cost function to
-optimize.</p>
+<p>Once EMERGENT launches, a GUI will open. The left pane displays the network tree,
+with top-level Control nodes overseeing one or more Device nodes, each of which
+having one or more Input node. The state of a Device can be changed by double-clicking
+on one of its Input nodes, entering a new value, and pressing the Enter key.</p>
+<p>The right pane lets you run and/or optimize experiments. The drop-down menu at
+the top is automatically populated with all functions tagged with the &#64;experiment
+decorator within the currently selected Control node. You can run an experiment
+from the Run tab with a chosen number of iterations and delay between each loop.
+Experiments return data in an array, and the post-processing menu allows different
+quantities to be output; for example, with the same experiment you may wish to view
+the mean, standard deviation, or slope of all of the data gathered.</p>
+<p>The Optimize tab gives experimental control to EMERGENT with the goal of minimizing
+the result of the given experiment. With one or more inputs selected in the network
+tree and a target experiment, you can choose an optimization algorithm from the
+lower drop-down menu.</p>
 <p>Let's try tuning the <code class="docutils literal notranslate"><span class="pre">deviceA</span></code> inputs to optimize the <code class="docutils literal notranslate"><span class="pre">cost_coupled</span></code> function
-using the <code class="docutils literal notranslate"><span class="pre">grid_search</span></code> algorithm and 30 steps per axis. Make sure to set
-<code class="docutils literal notranslate"><span class="pre">plot:1</span></code> to display the output.</p>
+using the <code class="docutils literal notranslate"><span class="pre">grid_search</span></code> algorithm and 30 steps per axis. Make sure to click the
+plot checkbox to display the output.</p>
 <img alt="_images/examples_grid_search.png" src="_images/examples_grid_search.png" />
 <p>When you click the Go! button, the parameter space will be sampled uniformly and
 the inputs will be set to the best discovered point:</p>
@@ -210,29 +217,19 @@ from the command line.</p>
 <div class="section" id="state-access-and-actuation">
 <h3>State access and actuation<a class="headerlink" href="#state-access-and-actuation" title="Permalink to this headline">¶</a></h3>
 <p>In this example, we will assume that the inputs are initialized to 0.
-There are three ways that the state of one or more inputs can be changed.
-First, we could act directly on the Input node:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">deviceA</span><span class="o">.</span><span class="n">children</span><span class="p">[</span><span class="s1">&#39;X&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="n">deviceA</span><span class="o">.</span><span class="n">state</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="n">control</span><span class="o">.</span><span class="n">state</span><span class="p">)</span>
-</pre></div>
-</div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">}</span>
-<span class="p">{</span><span class="s1">&#39;deviceA.X&#39;</span><span class="p">:</span><span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;deviceA.Y&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;deviceB.X&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;deviceB.Y&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">}</span>
-</pre></div>
-</div>
-<p>We can act on one or more inputs of a single device by passing in a target state to the <code class="docutils literal notranslate"><span class="pre">Device.actuate()</span></code> method:</p>
+There are two ways that the state of one or more inputs can be changed.
+First, we could act on a Device node with the <code class="docutils literal notranslate"><span class="pre">Device.actuate()</span></code> method:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">deviceA</span><span class="o">.</span><span class="n">actuate</span><span class="p">({</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">:</span><span class="mi">1</span><span class="p">})</span>
 <span class="k">print</span><span class="p">(</span><span class="n">deviceA</span><span class="o">.</span><span class="n">state</span><span class="p">)</span>
 <span class="k">print</span><span class="p">(</span><span class="n">control</span><span class="o">.</span><span class="n">state</span><span class="p">)</span>
 </pre></div>
 </div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">:</span><span class="mi">1</span><span class="p">}</span>
-<span class="p">{</span><span class="s1">&#39;deviceA.X&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;deviceA.Y&#39;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;deviceB.X&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;deviceB.Y&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">}</span>
+<span class="p">{</span><span class="s1">&#39;deviceA&#39;</span><span class="p">:{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span><span class="s1">&#39;.Y&#39;</span><span class="p">:</span><span class="mi">1</span><span class="p">},</span> <span class="s1">&#39;deviceB&#39;</span><span class="p">:{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">}}</span>
 </pre></div>
 </div>
 <p>We can also act on any number of inputs across any number of devices through the <code class="docutils literal notranslate"><span class="pre">Control.actuate()</span></code> method:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">control</span><span class="o">.</span><span class="n">actuate</span><span class="p">({</span><span class="s1">&#39;deviceA.X&#39;</span><span class="p">:</span><span class="mi">7</span><span class="p">,</span> <span class="s1">&#39;deviceA.Y&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;deviceB.X&#39;</span><span class="p">:</span><span class="mi">13</span><span class="p">})</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">control</span><span class="o">.</span><span class="n">actuate</span><span class="p">({</span><span class="s1">&#39;deviceA&#39;</span><span class="p">:{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="mi">7</span><span class="p">,</span><span class="s1">&#39;.Y&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">},</span> <span class="s1">&#39;deviceB&#39;</span><span class="p">:{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="mi">13</span><span class="p">}})</span>
 <span class="k">print</span><span class="p">(</span><span class="n">deviceA</span><span class="o">.</span><span class="n">state</span><span class="p">)</span>
 <span class="k">print</span><span class="p">(</span><span class="n">deviceB</span><span class="o">.</span><span class="n">state</span><span class="p">)</span>
 <span class="k">print</span><span class="p">(</span><span class="n">control</span><span class="o">.</span><span class="n">state</span><span class="p">)</span>
@@ -240,18 +237,11 @@ First, we could act directly on the Input node:</p>
 </div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="mi">7</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">}</span>
 <span class="p">{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="mi">13</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">}</span>
-<span class="p">{</span><span class="s1">&#39;deviceA.X&#39;</span><span class="p">:</span><span class="mi">7</span><span class="p">,</span> <span class="s1">&#39;deviceA.Y&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;deviceB.X&#39;</span><span class="p">:</span><span class="mi">13</span><span class="p">,</span> <span class="s1">&#39;deviceB.Y&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">}</span>
+<span class="p">{</span><span class="s1">&#39;deviceA&#39;</span><span class="p">:{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="mi">7</span><span class="p">,</span><span class="s1">&#39;.Y&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">},</span> <span class="s1">&#39;deviceB&#39;</span><span class="p">:{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="mi">13</span><span class="p">}}</span>
 </pre></div>
 </div>
 <p>No matter which method we use, the result is the same: the value of each targeted
 Input node is changed, and both <code class="docutils literal notranslate"><span class="pre">device.state</span></code> and <code class="docutils literal notranslate"><span class="pre">control.state</span></code> are updated.</p>
-</div>
-<div class="section" id="state-recall">
-<h3>State recall<a class="headerlink" href="#state-recall" title="Permalink to this headline">¶</a></h3>
-<p>The current state of our Control node can be saved by running <code class="docutils literal notranslate"><span class="pre">control.save()</span></code>.
-This stores the state dict in <code class="docutils literal notranslate"><span class="pre">basic/settings/control.txt</span></code>. The state can be
-recovered at a later time by running <code class="docutils literal notranslate"><span class="pre">control.load()</span></code>, which will read the state
-dict into memory and update included Input nodes to the loaded state.</p>
 </div>
 </div>
 </div>

@@ -138,7 +138,6 @@ Table of Contents
    self
    architecture
    optimization
-   networkflow
    examples
    archetypes
    devices

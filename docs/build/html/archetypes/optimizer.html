@@ -215,12 +215,6 @@ persistent positioning, first light acquisition, and realtime optimization</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="optimizer.Optimizer.cost_array">
-<code class="descname">cost_array</code><span class="sig-paren">(</span><em>X</em>, <em>state</em>, <em>cost</em><span class="sig-paren">)</span><a class="headerlink" href="#optimizer.Optimizer.cost_array" title="Permalink to this definition">¶</a></dt>
-<dd><p>Converts a normalized array into a state dict and evaluates cost.</p>
-</dd></dl>
-
-<dl class="method">
 <dt id="optimizer.Optimizer.cost_from_array">
 <code class="descname">cost_from_array</code><span class="sig-paren">(</span><em>arr</em>, <em>d</em>, <em>cost</em><span class="sig-paren">)</span><a class="headerlink" href="#optimizer.Optimizer.cost_from_array" title="Permalink to this definition">¶</a></dt>
 <dd><p>Converts the array back to the form of d (e.g. sequence or state),
@@ -234,7 +228,7 @@ unnormalizes it, and returns cost evaluated on the result.</p>
 
 <dl class="method">
 <dt id="optimizer.Optimizer.differential_evolution">
-<code class="descname">differential_evolution</code><span class="sig-paren">(</span><em>state</em>, <em>cost</em>, <em>params={'mutation': 1</em>, <em>'plot': 0</em>, <em>'popsize': 15</em>, <em>'recombination': 0.7</em>, <em>'strategy': 'best1bin'</em>, <em>'tol': 0.01}</em>, <em>update=None</em><span class="sig-paren">)</span><a class="headerlink" href="#optimizer.Optimizer.differential_evolution" title="Permalink to this definition">¶</a></dt>
+<code class="descname">differential_evolution</code><span class="sig-paren">(</span><em>state</em>, <em>cost</em>, <em>params={'mutation': 1</em>, <em>'popsize': 15</em>, <em>'recombination': 0.7</em>, <em>'strategy': 'best1bin'</em>, <em>'tol': 0.01}</em>, <em>update=None</em><span class="sig-paren">)</span><a class="headerlink" href="#optimizer.Optimizer.differential_evolution" title="Permalink to this definition">¶</a></dt>
 <dd><p>Differential evolution algorithm from scipy.optimize.</p>
 </dd></dl>
 
@@ -249,7 +243,7 @@ in the path decision. NOTE: not yet tested.</p>
 
 <dl class="method">
 <dt id="optimizer.Optimizer.gaussian_process">
-<code class="descname">gaussian_process</code><span class="sig-paren">(</span><em>state</em>, <em>cost</em>, <em>params={'batch_size': 10</em>, <em>'iterations': 10</em>, <em>'plot': 0</em>, <em>'presampled': 15}</em>, <em>update=None</em><span class="sig-paren">)</span><a class="headerlink" href="#optimizer.Optimizer.gaussian_process" title="Permalink to this definition">¶</a></dt>
+<code class="descname">gaussian_process</code><span class="sig-paren">(</span><em>state</em>, <em>cost</em>, <em>params={'batch_size': 10</em>, <em>'iterations': 10</em>, <em>'presampled': 15}</em>, <em>update=None</em><span class="sig-paren">)</span><a class="headerlink" href="#optimizer.Optimizer.gaussian_process" title="Permalink to this definition">¶</a></dt>
 <dd><p>Online Gaussian process regression. Batch sampling is done with
 points with varying trade-off of optimization vs. exploration.</p>
 </dd></dl>
@@ -277,7 +271,7 @@ space spanned by the passed-in state dict.</p>
 
 <dl class="method">
 <dt id="optimizer.Optimizer.grid_search">
-<code class="descname">grid_search</code><span class="sig-paren">(</span><em>state</em>, <em>cost</em>, <em>params={'loadExisting': 0</em>, <em>'plot': 0</em>, <em>'steps': 10}</em>, <em>update=None</em><span class="sig-paren">)</span><a class="headerlink" href="#optimizer.Optimizer.grid_search" title="Permalink to this definition">¶</a></dt>
+<code class="descname">grid_search</code><span class="sig-paren">(</span><em>state</em>, <em>cost</em>, <em>params={'loadExisting': 0</em>, <em>'steps': 10}</em>, <em>update=None</em><span class="sig-paren">)</span><a class="headerlink" href="#optimizer.Optimizer.grid_search" title="Permalink to this definition">¶</a></dt>
 <dd><p>An N-dimensional grid search (brute force) optimizer.</p>
 </dd></dl>
 
@@ -303,15 +297,8 @@ saved in the parent Control node.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="optimizer.Optimizer.optimize">
-<code class="descname">optimize</code><span class="sig-paren">(</span><em>state</em>, <em>cost</em>, <em>method</em>, <em>params=None</em>, <em>plot=True</em><span class="sig-paren">)</span><a class="headerlink" href="#optimizer.Optimizer.optimize" title="Permalink to this definition">¶</a></dt>
-<dd><p>Runs a targeted optimization routine on the cost function in the
-space spanned by the state dict.</p>
-</dd></dl>
-
-<dl class="method">
 <dt id="optimizer.Optimizer.plot_2D">
-<code class="descname">plot_2D</code><span class="sig-paren">(</span><em>points</em>, <em>costs</em><span class="sig-paren">)</span><a class="headerlink" href="#optimizer.Optimizer.plot_2D" title="Permalink to this definition">¶</a></dt>
+<code class="descname">plot_2D</code><span class="sig-paren">(</span><em>points</em>, <em>costs</em>, <em>normalized_cost=False</em>, <em>limits=None</em>, <em>save=False</em>, <em>color_map='viridis_r'</em><span class="sig-paren">)</span><a class="headerlink" href="#optimizer.Optimizer.plot_2D" title="Permalink to this definition">¶</a></dt>
 <dd><p>Interpolates and plots a cost function sampled at an array of points.</p>
 </dd></dl>
 
@@ -323,7 +310,7 @@ space spanned by the state dict.</p>
 
 <dl class="method">
 <dt id="optimizer.Optimizer.plot_optimization">
-<code class="descname">plot_optimization</code><span class="sig-paren">(</span><em>func=None</em>, <em>lbl=None</em>, <em>yscl='linear'</em>, <em>ylbl='Optimization Function'</em>, <em>xlbl='Time (s)'</em><span class="sig-paren">)</span><a class="headerlink" href="#optimizer.Optimizer.plot_optimization" title="Permalink to this definition">¶</a></dt>
+<code class="descname">plot_optimization</code><span class="sig-paren">(</span><em>func=None</em>, <em>lbl=None</em>, <em>yscl='linear'</em>, <em>ylbl='Optimization Function'</em>, <em>xlbl='Time (s)'</em>, <em>save=False</em><span class="sig-paren">)</span><a class="headerlink" href="#optimizer.Optimizer.plot_optimization" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plots an optimization time series stored in self.history.</p>
 </dd></dl>
 
@@ -343,7 +330,7 @@ the cost function evaluated at these points.</p>
 
 <dl class="method">
 <dt id="optimizer.Optimizer.scipy_minimize">
-<code class="descname">scipy_minimize</code><span class="sig-paren">(</span><em>state</em>, <em>cost</em>, <em>params={'method': 'L-BFGS-B'</em>, <em>'plot': 0</em>, <em>'tol': 1e-07}</em>, <em>update=None</em><span class="sig-paren">)</span><a class="headerlink" href="#optimizer.Optimizer.scipy_minimize" title="Permalink to this definition">¶</a></dt>
+<code class="descname">scipy_minimize</code><span class="sig-paren">(</span><em>state</em>, <em>cost</em>, <em>params={'method': 'L-BFGS-B'</em>, <em>'tol': 1e-07}</em>, <em>update=None</em><span class="sig-paren">)</span><a class="headerlink" href="#optimizer.Optimizer.scipy_minimize" title="Permalink to this definition">¶</a></dt>
 <dd><p>Runs a specified scipy minimization method on the target axes and cost.</p>
 </dd></dl>
 
@@ -360,7 +347,7 @@ the cost function evaluated at these points.</p>
 
 <dl class="method">
 <dt id="optimizer.Optimizer.simplex">
-<code class="descname">simplex</code><span class="sig-paren">(</span><em>state</em>, <em>cost</em>, <em>params={'plot': 0</em>, <em>'tol': 1e-07}</em>, <em>update=None</em><span class="sig-paren">)</span><a class="headerlink" href="#optimizer.Optimizer.simplex" title="Permalink to this definition">¶</a></dt>
+<code class="descname">simplex</code><span class="sig-paren">(</span><em>state</em>, <em>cost</em>, <em>params={'tol': 0.004}</em>, <em>update=None</em><span class="sig-paren">)</span><a class="headerlink" href="#optimizer.Optimizer.simplex" title="Permalink to this definition">¶</a></dt>
 <dd><p>Nelder-Mead algorithm from scipy.optimize.</p>
 </dd></dl>
 

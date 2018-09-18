@@ -93,7 +93,6 @@
 <li class="toctree-l1"><a class="reference internal" href="index.html">EMERGENT</a></li>
 <li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="optimization.html">Optimization</a></li>
-<li class="toctree-l1"><a class="reference internal" href="networkflow.html">Network flow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="archetypes.html">Archetypes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="devices.html">Devices</a></li>
@@ -167,6 +166,8 @@
  | <a href="#B"><strong>B</strong></a>
  | <a href="#C"><strong>C</strong></a>
  | <a href="#D"><strong>D</strong></a>
+ | <a href="#E"><strong>E</strong></a>
+ | <a href="#F"><strong>F</strong></a>
  | <a href="#G"><strong>G</strong></a>
  | <a href="#H"><strong>H</strong></a>
  | <a href="#I"><strong>I</strong></a>
@@ -175,21 +176,25 @@
  | <a href="#N"><strong>N</strong></a>
  | <a href="#O"><strong>O</strong></a>
  | <a href="#P"><strong>P</strong></a>
+ | <a href="#Q"><strong>Q</strong></a>
  | <a href="#R"><strong>R</strong></a>
  | <a href="#S"><strong>S</strong></a>
  | <a href="#T"><strong>T</strong></a>
  | <a href="#U"><strong>U</strong></a>
- | <a href="#V"><strong>V</strong></a>
  | <a href="#W"><strong>W</strong></a>
  
 </div>
 <h2 id="_">_</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="archetypes/clock.html#clock.Clock.__init__">__init__() (clock.Clock method)</a>
+      <li><a href="architecture/node.html#node.Node.__getattribute__">__getattribute__() (node.Node method)</a>
+</li>
+      <li><a href="devices/current_driver.html#current_driver.CurrentDriver.__init__">__init__() (current_driver.CurrentDriver method)</a>
 
       <ul>
-        <li><a href="devices/current_driver.html#current_driver.CurrentDriver.__init__">(current_driver.CurrentDriver method)</a>
+        <li><a href="archetypes/fifo.html#fifo.FIFO.__init__">(fifo.FIFO method)</a>
+</li>
+        <li><a href="archetypes/fifo.html#fifo.Message.__init__">(fifo.Message method)</a>
 </li>
         <li><a href="devices/genesys.html#genesys.Genesys.__init__">(genesys.Genesys method)</a>
 </li>
@@ -223,6 +228,8 @@
       <ul>
         <li><a href="devices/genesys.html#genesys.Genesys._actuate">(genesys.Genesys method)</a>
 </li>
+        <li><a href="devices/labjackT7.html#labjackT7.LabJack._actuate">(labjackT7.LabJack method)</a>
+</li>
         <li><a href="architecture/device.html#node.Device._actuate">(node.Device method)</a>
 </li>
         <li><a href="devices/picoAmp.html#picoAmp.PicoAmp._actuate">(picoAmp.PicoAmp method)</a>
@@ -240,6 +247,8 @@
         <li><a href="devices/picoAmp.html#picoAmp.PicoAmp._connect">(picoAmp.PicoAmp method)</a>
 </li>
       </ul></li>
+      <li><a href="devices/current_driver.html#current_driver.CurrentDriver._connect_to_psu">_connect_to_psu() (current_driver.CurrentDriver method)</a>
+</li>
       <li><a href="archetypes/optimizer.html#optimizer.Optimizer._cost">_cost() (optimizer.Optimizer method)</a>
 </li>
       <li><a href="devices/picoAmp.html#picoAmp.PicoAmp._initialize">_initialize() (picoAmp.PicoAmp method)</a>
@@ -264,6 +273,8 @@
         <li><a href="architecture/device.html#node.Device.actuate">(node.Device method)</a>
 </li>
       </ul></li>
+      <li><a href="archetypes/fifo.html#fifo.FIFO.add">add() (fifo.FIFO method)</a>
+</li>
       <li><a href="architecture/device.html#node.Device.add_input">add_input() (node.Device method)</a>
 </li>
       <li><a href="devices/labjackT7.html#labjackT7.LabJack.AIn">AIn() (labjackT7.LabJack method)</a>
@@ -279,6 +290,8 @@
       <li><a href="archetypes/optimizer.html#optimizer.Optimizer.array2sequence">array2sequence() (optimizer.Optimizer method)</a>
 </li>
       <li><a href="archetypes/optimizer.html#optimizer.Optimizer.array2state">array2state() (optimizer.Optimizer method)</a>
+</li>
+      <li><a href="devices/labjackT7.html#labjackT7.LabJack.averaging_array">averaging_array (labjackT7.LabJack attribute)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -298,10 +311,6 @@
 </li>
       <li><a href="archetypes/historian.html#historian.Historian.clear">clear() (historian.Historian method)</a>
 </li>
-      <li><a href="archetypes/clock.html#clock.Clock">Clock (class in clock)</a>
-</li>
-      <li><a href="archetypes/clock.html#module-clock">clock (module)</a>
-</li>
       <li><a href="devices/genesys.html#genesys.Genesys.command">command() (genesys.Genesys method)</a>
 
       <ul>
@@ -311,8 +320,6 @@
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="architecture/control.html#node.Control">Control (class in node)</a>
-</li>
-      <li><a href="archetypes/optimizer.html#optimizer.Optimizer.cost_array">cost_array() (optimizer.Optimizer method)</a>
 </li>
       <li><a href="archetypes/optimizer.html#optimizer.Optimizer.cost_from_array">cost_from_array() (optimizer.Optimizer method)</a>
 </li>
@@ -332,13 +339,37 @@
 </li>
       <li><a href="archetypes/optimizer.html#optimizer.Optimizer.dict2array">dict2array() (optimizer.Optimizer method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="archetypes/optimizer.html#optimizer.Optimizer.differential_evolution">differential_evolution() (optimizer.Optimizer method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="devices/picoAmp.html#picoAmp.PicoAmp.digital">digital() (picoAmp.PicoAmp method)</a>
 </li>
       <li><a href="archetypes/optimizer.html#optimizer.Optimizer.dijkstra_sampling">dijkstra_sampling() (optimizer.Optimizer method)</a>
+</li>
+      <li><a href="devices/current_driver.html#current_driver.CurrentDriver.disable_setpoint">disable_setpoint() (current_driver.CurrentDriver method)</a>
+</li>
+      <li><a href="devices/labjackT7.html#labjackT7.LabJack.DOut">DOut() (labjackT7.LabJack method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="E">E</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="devices/current_driver.html#current_driver.CurrentDriver.enable_setpoint">enable_setpoint() (current_driver.CurrentDriver method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="F">F</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="archetypes/fifo.html#fifo.FIFO">FIFO (class in fifo)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="archetypes/fifo.html#module-fifo">fifo (module)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -432,8 +463,6 @@
         <li><a href="architecture/control.html#node.Control.load">(node.Control method)</a>
 </li>
       </ul></li>
-      <li><a href="archetypes/clock.html#clock.Clock.loop">loop() (clock.Clock method)</a>
-</li>
   </ul></td>
 </tr></table>
 
@@ -443,11 +472,17 @@
       <li><a href="devices/current_driver.html#current_driver.CurrentDriver.measure_current">measure_current() (current_driver.CurrentDriver method)</a>
 </li>
   </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="archetypes/fifo.html#fifo.Message">Message (class in fifo)</a>
+</li>
+  </ul></td>
 </tr></table>
 
 <h2 id="N">N</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="archetypes/fifo.html#fifo.FIFO.next">next() (fifo.FIFO method)</a>
+</li>
       <li><a href="architecture/node.html#node.Node">Node (class in node)</a>
 </li>
   </ul></td>
@@ -463,8 +498,6 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="architecture/control.html#node.Control.onLoad">onLoad() (node.Control method)</a>
-</li>
-      <li><a href="archetypes/optimizer.html#optimizer.Optimizer.optimize">optimize() (optimizer.Optimizer method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -492,17 +525,27 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="archetypes/clock.html#clock.Clock.prepare_constant">prepare_constant() (clock.Clock method)</a>
+      <li><a href="devices/labjackT7.html#labjackT7.LabJack.prepare_streamburst">prepare_streamburst() (labjackT7.LabJack method)</a>
 </li>
-      <li><a href="archetypes/clock.html#clock.Clock.prepare_sequence">prepare_sequence() (clock.Clock method)</a>
-</li>
-      <li><a href="archetypes/clock.html#clock.Clock.prepare_stream">prepare_stream() (clock.Clock method)</a>
+      <li><a href="devices/current_driver.html#current_driver.CurrentDriver.primary_to_secondary">primary_to_secondary() (current_driver.CurrentDriver method)</a>
 </li>
       <li><a href="archetypes/parallel.html#parallel.Process">Process (class in parallel)</a>
 </li>
       <li><a href="archetypes/parallel.html#parallel.ProcessHandler">ProcessHandler (class in parallel)</a>
 </li>
+      <li><a href="devices/current_driver.html#current_driver.CurrentDriver.pulse">pulse() (current_driver.CurrentDriver method)</a>
+</li>
       <li><a href="devices/labjackT7.html#labjackT7.LabJack.PWM">PWM() (labjackT7.LabJack method)</a>
+</li>
+      <li><a href="devices/labjackT7.html#labjackT7.LabJack.PWM_stop">PWM_stop() (labjackT7.LabJack method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="Q">Q</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="devices/labjackT7.html#labjackT7.queue">queue() (in module labjackT7)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -512,13 +555,13 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="archetypes/optimizer.html#optimizer.Optimizer.random_sampling">random_sampling() (optimizer.Optimizer method)</a>
 </li>
-      <li><a href="devices/current_driver.html#current_driver.CurrentDriver.real_to_virtual">real_to_virtual() (current_driver.CurrentDriver method)</a>
+      <li><a href="architecture/node.html#node.Node.register">register() (node.Node method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="architecture/node.html#node.Node.register">register() (node.Node method)</a>
+      <li><a href="devices/labjackT7.html#labjackT7.LabJack.resample">resample() (labjackT7.LabJack method)</a>
 </li>
-      <li><a href="archetypes/clock.html#clock.Clock.run_once">run_once() (clock.Clock method)</a>
+      <li><a href="archetypes/fifo.html#fifo.FIFO.run">run() (fifo.FIFO method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -530,13 +573,17 @@
 </li>
       <li><a href="architecture/control.html#node.Control.save">save() (node.Control method)</a>
 </li>
+      <li><a href="architecture/control.html#node.Control.save_dataframe">save_dataframe() (node.Control method)</a>
+</li>
       <li><a href="archetypes/optimizer.html#optimizer.Optimizer.scipy_minimize">scipy_minimize() (optimizer.Optimizer method)</a>
+</li>
+      <li><a href="devices/current_driver.html#current_driver.CurrentDriver.secondary_to_primary">secondary_to_primary() (current_driver.CurrentDriver method)</a>
 </li>
       <li><a href="archetypes/optimizer.html#optimizer.Optimizer.sequence2array">sequence2array() (optimizer.Optimizer method)</a>
 </li>
-      <li><a href="archetypes/optimizer.html#optimizer.Optimizer.sequence_or_state">sequence_or_state() (optimizer.Optimizer method)</a>
+      <li><a href="devices/labjackT7.html#labjackT7.LabJack.sequence2stream">sequence2stream() (labjackT7.LabJack method)</a>
 </li>
-      <li><a href="architecture/input.html#node.Input.set">set() (node.Input method)</a>
+      <li><a href="archetypes/optimizer.html#optimizer.Optimizer.sequence_or_state">sequence_or_state() (optimizer.Optimizer method)</a>
 </li>
       <li><a href="devices/current_driver.html#current_driver.CurrentDriver.set_current">set_current() (current_driver.CurrentDriver method)</a>
 
@@ -546,29 +593,27 @@
       </ul></li>
       <li><a href="devices/current_driver.html#current_driver.CurrentDriver.set_field">set_field() (current_driver.CurrentDriver method)</a>
 </li>
+      <li><a href="architecture/input.html#node.Input.set_sequence">set_sequence() (node.Input method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="architecture/input.html#node.Input.set_settings">set_settings() (node.Input method)</a>
+</li>
       <li><a href="devices/genesys.html#genesys.Genesys.set_voltage">set_voltage() (genesys.Genesys method)</a>
 </li>
       <li><a href="devices/picoAmp.html#picoAmp.PicoAmp.setDifferential">setDifferential() (picoAmp.PicoAmp method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="archetypes/optimizer.html#optimizer.Optimizer.simplex">simplex() (optimizer.Optimizer method)</a>
-</li>
-      <li><a href="archetypes/clock.html#clock.Clock.single_shot">single_shot() (clock.Clock method)</a>
 </li>
       <li><a href="devices/labjackT7.html#labjackT7.LabJack.spi_initialize">spi_initialize() (labjackT7.LabJack method)</a>
 </li>
       <li><a href="devices/labjackT7.html#labjackT7.LabJack.spi_write">spi_write() (labjackT7.LabJack method)</a>
 </li>
-      <li><a href="archetypes/clock.html#clock.Clock.start">start() (clock.Clock method)</a>
-</li>
       <li><a href="archetypes/optimizer.html#optimizer.Optimizer.state2array">state2array() (optimizer.Optimizer method)</a>
 </li>
-      <li><a href="archetypes/clock.html#clock.Clock.stop">stop() (clock.Clock method)</a>
+      <li><a href="archetypes/parallel.html#parallel.Process.stop">stop() (parallel.Process method)</a>
 
       <ul>
-        <li><a href="archetypes/parallel.html#parallel.Process.stop">(parallel.Process method)</a>
-</li>
         <li><a href="archetypes/parallel.html#parallel.Thread.stop">(parallel.Thread method)</a>
 </li>
       </ul></li>
@@ -576,7 +621,9 @@
 </li>
       <li><a href="devices/labjackT7.html#labjackT7.LabJack.stream_out">stream_out() (labjackT7.LabJack method)</a>
 </li>
-      <li><a href="archetypes/clock.html#clock.Clock.sync">sync() (clock.Clock method)</a>
+      <li><a href="devices/labjackT7.html#labjackT7.LabJack.stream_stop">stream_stop() (labjackT7.LabJack method)</a>
+</li>
+      <li><a href="devices/labjackT7.html#labjackT7.LabJack.streamburst">streamburst() (labjackT7.LabJack method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -594,17 +641,15 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="archetypes/optimizer.html#optimizer.Optimizer.unnormalize">unnormalize() (optimizer.Optimizer method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="architecture/device.html#node.Device.update">update() (node.Device method)</a>
 </li>
   </ul></td>
-</tr></table>
-
-<h2 id="V">V</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="devices/current_driver.html#current_driver.CurrentDriver.virtual_to_real">virtual_to_real() (current_driver.CurrentDriver method)</a>
+      <li><a href="architecture/control.html#node.Control.update_cost">update_cost() (node.Control method)</a>
+</li>
+      <li><a href="architecture/control.html#node.Control.update_dataframe">update_dataframe() (node.Control method)</a>
+</li>
+      <li><a href="architecture/device.html#node.Device.use_inputs">use_inputs() (node.Device method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -614,14 +659,16 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="archetypes/optimizer.html#optimizer.warn">warn() (in module optimizer)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="devices/current_driver.html#current_driver.CurrentDriver.wave">wave() (current_driver.CurrentDriver method)</a>
 
       <ul>
         <li><a href="devices/genesys.html#genesys.Genesys.wave">(genesys.Genesys method)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="devices/current_driver.html#current_driver.CurrentDriver.wave_ttl">wave_ttl() (current_driver.CurrentDriver method)</a>
+</li>
   </ul></td>
 </tr></table>
 

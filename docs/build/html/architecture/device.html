@@ -226,16 +226,16 @@ from this method.</p>
 <dd><p>Makes a physical device change in the lab with the _actuate() method, then registers this change with EMERGENT.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">If a virtual state is passed in (i.e. all dict keys label virtual Input nodes),
-then the state will be converted to real using Device.virtual_to_real(),
-which must be implemented in any driver file which uses virtual inputs.
-After actuation of the real state, the equivalent virtual state is
+<p class="last">If a secondary state is passed in (i.e. all dict keys label secondary Input nodes),
+then the state will be converted to primary using Device.secondary_to_primary(),
+which must be implemented in any driver file which uses secondary inputs.
+After actuation of the primary state, the equivalent secondary state is
 updated.</p>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">If a mixed state is passed in (with both real and virtual components),
-only the real components will be used.</p>
+<p class="last">If a mixed state is passed in (with both primary and secondary components),
+only the primary components will be used.</p>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -249,7 +249,7 @@ only the real components will be used.</p>
 
 <dl class="method">
 <dt id="node.Device.add_input">
-<code class="descname">add_input</code><span class="sig-paren">(</span><em>name</em>, <em>type='real'</em><span class="sig-paren">)</span><a class="headerlink" href="#node.Device.add_input" title="Permalink to this definition">¶</a></dt>
+<code class="descname">add_input</code><span class="sig-paren">(</span><em>name</em>, <em>type='primary'</em><span class="sig-paren">)</span><a class="headerlink" href="#node.Device.add_input" title="Permalink to this definition">¶</a></dt>
 <dd><p>Attaches an Input node with the specified name. This should correspond
 to a specific name in the _actuate() function of a non-abstract Device
 class: for example, the PicoAmp MEMS driver has inputs explicitly named
@@ -262,12 +262,12 @@ class: for example, the PicoAmp MEMS driver has inputs explicitly named
 <dd><p>Returns the state dict with any missing keys filled in from self.state.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">This is useful when using virtual functions which depend on multiple
-inputs. Consider two inputs X and Y with two virtual inputs u=X+Y
-and v=X-Y. If we actuate just X or Y, the virtual inputs still need
+<p class="last">This is useful when using secondary functions which depend on multiple
+inputs. Consider two inputs X and Y with two secondary inputs u=X+Y
+and v=X-Y. If we actuate just X or Y, the secondary inputs still need
 to know the value of the non-actuated input to update their state.
 This method pulls the latest value of any parameters specified in
-keys so that the virtual inputs can be calculated.</p>
+keys so that the secondary inputs can be calculated.</p>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -292,18 +292,18 @@ keys so that the virtual inputs can be calculated.</p>
 <dl class="method">
 <dt id="node.Device.get_type">
 <code class="descname">get_type</code><span class="sig-paren">(</span><em>state</em>, <em>type</em><span class="sig-paren">)</span><a class="headerlink" href="#node.Device.get_type" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the real/virtual components of the state according to the passed type.</p>
+<dd><p>Returns the primary/secondary components of the state according to the passed type.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>state</strong> (<em>dict</em>) -- Target state, e.g. {'param1':value1, 'param2':value2}.</li>
-<li><strong>type</strong> (<em>str</em>) -- Input node type ('real' or 'virtual').</li>
+<li><strong>type</strong> (<em>str</em>) -- Input node type ('primary' or 'secondary').</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">State dict containing the real or virtual elements of state.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">State dict containing the primary or secondary elements of state.</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">new_state (dict)</p>
@@ -324,15 +324,15 @@ nodes.</p>
 <dl class="method">
 <dt id="node.Device.is_type">
 <code class="descname">is_type</code><span class="sig-paren">(</span><em>state</em>, <em>type</em><span class="sig-paren">)</span><a class="headerlink" href="#node.Device.is_type" title="Permalink to this definition">¶</a></dt>
-<dd><p>Checks whether the state is real or virtual according to the passed in type.
-.. note:: is_type(state,'real')==False does not mean the state is virtual - it could be mixed!</p>
+<dd><p>Checks whether the state is primary or secondary according to the passed in type.
+.. note:: is_type(state,'primary')==False does not mean the state is secondary - it could be mixed!</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>state</strong> (<em>dict</em>) -- State dict, e.g. {'param1':value1, 'param2':value2}.</li>
-<li><strong>type</strong> (<em>str</em>) -- Input node type ('real' or 'virtual').</li>
+<li><strong>type</strong> (<em>str</em>) -- Input node type ('primary' or 'secondary').</li>
 </ul>
 </td>
 </tr>
@@ -355,6 +355,20 @@ nodes.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>state</strong> (<em>dict</em>) -- New state, e.g. {'param1':value1, 'param2':value2}.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="node.Device.use_inputs">
+<code class="descname">use_inputs</code><span class="sig-paren">(</span><em>type</em><span class="sig-paren">)</span><a class="headerlink" href="#node.Device.use_inputs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Switches between primary and secondary input representations.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>type</strong> (<em>str</em>) -- 'primary' or 'secondary'</td>
 </tr>
 </tbody>
 </table>

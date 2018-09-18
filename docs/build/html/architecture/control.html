@@ -181,7 +181,7 @@ algorithmically tuned to optimize some target function.</p>
 <dl class="method">
 <dt id="node.Control.__init__">
 <code class="descname">__init__</code><span class="sig-paren">(</span><em>name</em>, <em>parent=None</em>, <em>path='.'</em><span class="sig-paren">)</span><a class="headerlink" href="#node.Control.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initializes a Control node and attaches Clock, Historian, and Optimizer instances.</p>
+<dd><p>Initializes a Control node and attaches Sequencer, Historian, and Optimizer instances.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -237,7 +237,7 @@ algorithmically tuned to optimize some target function.</p>
 
 <dl class="method">
 <dt id="node.Control.get_substate">
-<code class="descname">get_substate</code><span class="sig-paren">(</span><em>keys</em><span class="sig-paren">)</span><a class="headerlink" href="#node.Control.get_substate" title="Permalink to this definition">¶</a></dt>
+<code class="descname">get_substate</code><span class="sig-paren">(</span><em>substate</em><span class="sig-paren">)</span><a class="headerlink" href="#node.Control.get_substate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a state dict containing only the specified keys.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -260,12 +260,12 @@ nodes.</p>
 <dl class="method">
 <dt id="node.Control.list_costs">
 <code class="descname">list_costs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#node.Control.list_costs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a list of all methods tagged with the <a class="reference external" href="mailto:'&#37;&#52;&#48;cost">'<span>&#64;</span>cost</a>' decorator.</p>
+<dd><p>Returns a list of all methods tagged with the <a class="reference external" href="mailto:'&#37;&#52;&#48;experiment">'<span>&#64;</span>experiment</a>' decorator.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="node.Control.load">
-<code class="descname">load</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#node.Control.load" title="Permalink to this definition">¶</a></dt>
+<code class="descname">load</code><span class="sig-paren">(</span><em>device</em>, <em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#node.Control.load" title="Permalink to this definition">¶</a></dt>
 <dd><p>Loads the last saved state and attempts to reinitialize previous values for the Input node specified by full_name. If the input did not exist in the last state, then it is initialized with default values.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -286,7 +286,7 @@ nodes.</p>
 <dl class="method">
 <dt id="node.Control.save">
 <code class="descname">save</code><span class="sig-paren">(</span><em>tag=''</em><span class="sig-paren">)</span><a class="headerlink" href="#node.Control.save" title="Permalink to this definition">¶</a></dt>
-<dd><p>Aggregates the self.state, self.settings, self.cycle_time, and self.sequence variables into a single dict and saves to file.</p>
+<dd><p>Aggregates the self.state and self.settings variables into a dataframe and saves to csv.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -296,6 +296,21 @@ nodes.</p>
 </tbody>
 </table>
 </dd></dl>
+
+<dl class="method">
+<dt id="node.Control.save_dataframe">
+<code class="descname">save_dataframe</code><span class="sig-paren">(</span><em>t</em>, <em>dev</em>, <em>input_name</em><span class="sig-paren">)</span><a class="headerlink" href="#node.Control.save_dataframe" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="node.Control.update_cost">
+<code class="descname">update_cost</code><span class="sig-paren">(</span><em>t</em>, <em>cost</em><span class="sig-paren">)</span><a class="headerlink" href="#node.Control.update_cost" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="node.Control.update_dataframe">
+<code class="descname">update_dataframe</code><span class="sig-paren">(</span><em>t</em>, <em>dev</em>, <em>input_name</em>, <em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#node.Control.update_dataframe" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 </dd></dl>
 
