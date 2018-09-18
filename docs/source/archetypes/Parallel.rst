@@ -1,4 +1,4 @@
-Parallel
+Process manager
 ===============
 
 .. automodule:: parallel
