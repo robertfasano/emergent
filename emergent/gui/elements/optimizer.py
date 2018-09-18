@@ -50,6 +50,14 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         self.parent.treeWidget.itemSelectionChanged.connect(self.update_algorithm_display)
         self.algorithm_box.currentTextChanged.connect(self.update_algorithm)
 
+        self.optimizeProcessingLayout = QHBoxLayout()
+        self.optimizeProcessingLayout.addWidget(QLabel('Operation (n/c)'))
+        self.optimizeProcessingComboBox = QComboBox()
+        for item in ['mean', 'stdev', 'peak-to-peak', 'slope']:
+            self.optimizeProcessingComboBox.addItem(item)
+        self.optimizeProcessingLayout.addWidget(self.optimizeProcessingComboBox)
+        self.optimizeTabLayout.addLayout(self.optimizeProcessingLayout)
+
         self.optimizer_button = QPushButton('Go!')
         self.optimizer_button.clicked.connect(self.optimize)
         self.optimizeTabLayout.addWidget(self.optimizer_button)
