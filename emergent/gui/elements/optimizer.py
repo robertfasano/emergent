@@ -89,7 +89,7 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         self.runTabLayout.addLayout(self.runDelayLayout)
 
         self.runProcessingLayout = QHBoxLayout()
-        self.runProcessingLayout.addWidget(QLabel('Operation (n/c)'))
+        self.runProcessingLayout.addWidget(QLabel('Operation'))
         self.runProcessingComboBox = QComboBox()
         for item in ['mean', 'stdev', 'peak-to-peak', 'slope']:
             self.runProcessingComboBox.addItem(item)
