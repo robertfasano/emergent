@@ -130,7 +130,7 @@ class MOT(Control):
         t = np.linspace(0,pulse_time,len(data))
 
         p0 = [np.max(data), 0, pulse_time, 0.5, 40e-3, 1e-4]
-        popt, pcov = curve_fit(wave, t, data, p0=p0)
+        popt, pcov = curve_fit(self.pulsed_field_model, t, data, p0=p0)
         A_actual, t0_actual, tp_actual, tau_trap_actual, tau_field_actual, capture_rate_actual = popt
 
         return -capture_rate_actual
