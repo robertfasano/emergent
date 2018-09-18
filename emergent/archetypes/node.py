@@ -531,4 +531,4 @@ class Control(Node):
             device._connected = device._connect()
             device.loaded = 1
         self.actuate(self.state)
-        self.sequencer.prepare_sequence()
+        # self.sequencer.prepare_sequence()
