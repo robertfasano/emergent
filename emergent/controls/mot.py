@@ -103,6 +103,20 @@ class MOT(Control):
         #     return 0
 
     @cost
+    def pulsed_field(self, state):
+        ''' Toggle between high and low magnetic field and returns the raw data.'''
+        pulse_time = 0.8
+        self.children['coils'].disable_setpoint(1)
+        time.sleep(0.2)
+        self.actuate(state)
+
+        self.children['coils'].enable_setpoint(1)
+        data = self.labjack.streamburst(duration=pulse_time, operation = None)
+        t = np.linspace(0,pulse_time,len(data))
+
+        return data
+
+    @cost
     def pulsed_field_fit(self, state):
         ''' Toggle between high and low magnetic field; stream in the resulting
             fluorescent waveform and fit it to determine the capture rate.'''
