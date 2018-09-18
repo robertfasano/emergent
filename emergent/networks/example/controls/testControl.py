@@ -1,6 +1,6 @@
 import numpy as np
 from emergent.archetypes.node import Control
-from utility import cost
+from utility import experiment
 import datetime
 class TestControl(Control):
         def __init__(self, name, parent=None, path = '.'):
@@ -9,7 +9,7 @@ class TestControl(Control):
         def cost_coupled(self, state):
             return self.cost_uncoupled(state, theta=30*np.pi/180)
 
-        @cost
+        @experiment
         def cost_uncoupled(self, state, theta=0):
             self.actuate(state)
             try:
@@ -25,7 +25,7 @@ class TestControl(Control):
 
             return cost
 
-        @cost
+        @experiment
         def cost_ramp(self, sequence):
             ''' Evaluate a cost function similar to an optical scattering force,
                 which is maximized for a ramp x(t)=1/t. '''

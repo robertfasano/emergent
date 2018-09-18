@@ -457,8 +457,8 @@ class Control(Node):
         return state
 
     def list_costs(self):
-        """Returns a list of all methods tagged with the '@cost' decorator."""
-        return methodsWithDecorator(self.__class__, 'cost')
+        """Returns a list of all methods tagged with the '@experiment' decorator."""
+        return methodsWithDecorator(self.__class__, 'experiment')
 
     def load(self, device, name):
         """Loads the last saved state and attempts to reinitialize previous values for the Input node specified by full_name. If the input did not exist in the last state, then it is initialized with default values.

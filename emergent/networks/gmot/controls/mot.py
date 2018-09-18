@@ -1,6 +1,6 @@
 from emergent.archetypes.node import Control
 import time
-from utility import cost
+from utility import experiment
 from scipy.stats import linregress
 from scipy.optimize import curve_fit
 import numpy as np
@@ -48,7 +48,7 @@ class MOT(Control):
 
         self.labjack.stream_out(0, data)
 
-    @cost
+    @experiment
     def pulsed_slowing(self, state = None):
         ''' Toggle between high and low magnetic field; measure mean fluorescence
             in both cases and return the difference. '''
@@ -64,7 +64,7 @@ class MOT(Control):
         high = self.labjack.streamburst(duration=0.2, operation = 'mean')
         return -high    # low is subtracted out by SRS
 
-    @cost
+    @experiment
     def pulsed_field_mean(self, state):
         ''' Toggle between high and low magnetic field; measure mean fluorescence
             in both cases and return the difference. '''
@@ -79,7 +79,7 @@ class MOT(Control):
 
         return -high    # low is subtracted out by SRS
 
-    @cost
+    @experiment
     def pulsed_field_slope(self, state):
         ''' Toggle between high and low magnetic field; measure mean fluorescence
             in both cases and return the difference. '''
@@ -102,7 +102,7 @@ class MOT(Control):
         # else:
         #     return 0
 
-    @cost
+    @experiment
     def pulsed_field(self, state):
         ''' Toggle between high and low magnetic field and returns the raw data.'''
         pulse_time = 0.8
@@ -116,7 +116,7 @@ class MOT(Control):
 
         return data
 
-    @cost
+    @experiment
     def pulsed_field_fit(self, state):
         ''' Toggle between high and low magnetic field; stream in the resulting
             fluorescent waveform and fit it to determine the capture rate.'''

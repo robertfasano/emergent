@@ -49,7 +49,7 @@ def dev(func):
     return func
 
 @decorator.decorator
-def cost(func, *args, **kwargs):
+def experiment(func, *args, **kwargs):
     c = func(*args, **kwargs)
     t = datetime.datetime.now()
     for dev_name in args[0].inputs:

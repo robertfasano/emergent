@@ -6,7 +6,7 @@ import sys
 import os
 char = {'nt': '\\', 'posix': '/'}[os.name]
 sys.path.append(char.join(os.getcwd().split(char)[0:-1]))
-from utility import cost
+from utility import experiment
 import datetime
 
 class AutoAlign(Control):
@@ -23,7 +23,7 @@ class AutoAlign(Control):
         time.sleep(delay)
         return self.labjack.AIn(0, num=num)
 
-    @cost
+    @experiment
     def measure_power(self, state):
         ''' Moves to the target alignment and measures the transmitted power. '''
         self.actuate(state)
