@@ -3,7 +3,7 @@
 import inspect
 import sys
 import types
-from PyQt5.QtGui import QStandardItem, QStandardItemModel, QFont
+from PyQt5.QtGui import QIcon, QStandardItem, QStandardItemModel, QFont
 from PyQt5.QtWidgets import (QApplication, QAbstractItemView,QCheckBox, QComboBox, QGridLayout,
         QGroupBox, QHBoxLayout, QLabel, QTextEdit, QTreeView, QPushButton, QTableView,QVBoxLayout,
         QWidget, QMenu, QAction, QTreeWidget, QTreeWidgetItem, QMainWindow, QStatusBar)
@@ -25,6 +25,7 @@ class MainFrame(QMainWindow):
         self.controls = controls
         self.app = app
         self.widget = QWidget()
+        self.setWindowIcon(QIcon('gui/media/icon.png'))
         self.setCentralWidget(self.widget)
         layout= QHBoxLayout(self.widget)
 
