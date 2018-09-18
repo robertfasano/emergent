@@ -37,10 +37,3 @@ coils = CurrentDriver('coils', 'COM13', 'COM18', parent = mot,labjack = labjack_
 # devid = '470016973'    # T7
 # labjack_MEMS = LabJack(devid=devid)
 # mems = PicoAmp('MEMS', labjack_MEMS, parent=mot, comm='analog')
-
-''' Run post-load routine '''
-for c in Control.instances:
-    c.onLoad()
-
-''' Run specific processes '''
-servo.autolock(2)       # lock slowing beam at 90% max power

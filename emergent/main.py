@@ -38,6 +38,11 @@ if "__all__" in network.__dict__:
 else:
     names = [x for x in network.__dict__ if not x.startswith("_")]
 globals().update({k: getattr(network, k) for k in names})
+
+''' Run post-load routine '''
+for c in Control.instances:
+    c.onLoad()
+
 ''' Do stuff '''
 process = importlib.import_module('emergent.networks.%s'%sys.argv[1]+'.process')
 if "__all__" in process.__dict__:
