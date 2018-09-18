@@ -7,6 +7,8 @@ import inspect
 import json
 import logging as log
 import time
+from scipy.stats import linregress
+import numpy as np
 
 class OptimizerLayout(QVBoxLayout, ProcessHandler):
     def __init__(self, parent):
@@ -126,6 +128,18 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         # self._run_thread(self.start_optimizer, stoppable=False)
         self.start_optimizer()
 
+    def postprocess(self, data, method):
+        if method == 'mean':
+            return np.mean(data)
+        if method == 'stdev':
+            return np.std(data)
+        if method == 'slope':
+            axis = np.linspace(0,1,len(data))
+            slope, intercept, r, p, err = linregress(axis, data)
+            return slope
+        if method == 'peak-to-peak':
+            return np.ptp(data)
+
     def run_experiment(self, stopped):
         control = self.parent.treeWidget.get_selected_control()
         experiment = getattr(control, self.cost_box.currentText())
@@ -136,6 +150,8 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         while not stopped() and count < iterations:
             state = control.state
             result = experiment(state)
+            if type(result) is np.ndarray:
+                result = self.postprocess(result, operation)
             self.runResultEdit.setText(str(result))
             qApp.processEvents(QEventLoop.ExcludeUserInputEvents)
             count += 1
