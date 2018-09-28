@@ -12,7 +12,8 @@ sys.path.append('networks/%s'%sys.argv[1])
 import logging as log
 import argparse
 import importlib
-
+import ctypes
+ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID('EMERGENT')
 parser = argparse.ArgumentParser()
 parser.add_argument("path")
 parser.add_argument("-v", "--verbose", help="Increase output verbosity", action="store_true")
