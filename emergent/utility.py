@@ -90,6 +90,10 @@ def create_device(name):
     dev = import_device(name)
     args = get_args(dev, '__init__')
 
+    def extract_pulses(self, data, threshold):
+        ''' Splits a numpy array into segments which are above a threshold. '''
+        return np.split(data, np.where(np.diff(data > threshold))[0] + 1)[1::2]
+
 def get_args(cls, func):
     f = getattr(cls, func)
     ''' Read default params dict from source code and insert in self.params_edit. '''
