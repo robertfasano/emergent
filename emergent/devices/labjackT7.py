@@ -210,9 +210,20 @@ class LabJack(ProcessHandler, Device):
         self._command("SPI_GO", 1)  # Do the SPI communications
 
     ''' Streaming methods '''
-    def prepare_streamburst(self, channel):
+    def prepare_streamburst(self, channel, trigger = None):
+        ''' Sets up the LabJack for burst input streaming on a target channel. '''
         self.aScanList = ljm.namesToAddresses(1, ['AIN%i'%channel])[0]  # Scan list addresses for streamBurst
-        self._command("STREAM_TRIGGER_INDEX", 0) # disable triggered stream
+        if trigger is None:
+            self._command("STREAM_TRIGGER_INDEX", 0) # disable triggered stream
+        else:
+            channel = 'DIO%i'%trigger
+            aNames = ["%s_EF_ENABLE"%channel, "%s_EF_INDEX"%channel,
+                      "%s_EF_OPTIONS"%channel, "%s_EF_VALUE_A"%channel,
+                      "%s_EF_ENABLE"%channel]
+            aValues = [0, 3, 0, 2, 1]
+            ljm.eWriteNames(self.handle, len(aNames), aNames, aValues)
+            self._command('STREAM_TRIGGER_INDEX', 2000+trigger)
+            ljm.writeLibraryConfigS('LJM_STREAM_RECEIVE_TIMEOUT_MS',0)  #disable timeout
         if self.deviceType == ljm.constants.dtT7:
             self._command("STREAM_CLOCK_SOURCE", 0)  # enable internal clock
         aNames = ["AIN_ALL_NEGATIVE_CH", "AIN0_RANGE", "AIN1_RANGE",
