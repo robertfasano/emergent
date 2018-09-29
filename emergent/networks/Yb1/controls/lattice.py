@@ -16,8 +16,7 @@ class Lattice(Control):
     def load_lattice(self, state):
         ''' Actuates to a new state, waits for TTL high on FIO0, measures a signal, extracts pulses, and returns difference between ground and background populations. '''
         self.actuate(state)
-        ground, background, excited = state_readout(duration=0.1)
-
+        ground, background, excited = self.state_readout(duration=0.07)
         return -(ground-background)
 
     def state_readout(self, duration = 0.1):
@@ -40,11 +39,11 @@ class Lattice(Control):
                 break
 
         ''' Measure fluorescence from green loading '''
-        ground, background, excited = state_readout(duration=0.1)
+        ground, background, excited = self.state_readout(duration=0.07)
         green_count = ground-background
 
         ''' Measure fluorescence from lattice loading '''
-        ground, background, excited = state_readout(duration=0.1)
+        ground, background, excited = self.state_readout(duration=0.07)
         lattice_count = ground-background
 
         return -lattice_count/green_count
