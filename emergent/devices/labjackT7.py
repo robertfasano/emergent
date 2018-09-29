@@ -284,18 +284,13 @@ class LabJack(ProcessHandler, Device):
         if trigger is None:
             self._command("STREAM_TRIGGER_INDEX", 0)        # Ensure triggered stream is disabled.
         else:
-            # self._command('DIO%i_EF_ENABLE'%trigger, 0)
-            # self._command('DIO%i_EF_INDEX'%trigger, 3)
-            # self._command('DIO%i_EF_ENABLE'%trigger, 1)
+
             channel = 'DIO%i'%trigger
             aNames = ["%s_EF_ENABLE"%channel, "%s_EF_INDEX"%channel,
                       "%s_EF_OPTIONS"%channel, "%s_EF_VALUE_A"%channel,
                       "%s_EF_ENABLE"%channel]
             aValues = [0, 3, 0, 2, 1]
             ljm.eWriteNames(self.handle, len(aNames), aNames, aValues)
-
-            # trigger on PWM for test
-            # self.PWM(2, .1, 50)
             self._command('STREAM_TRIGGER_INDEX', 2000+trigger)
 
         if self.deviceType == ljm.constants.dtT7:
