@@ -297,7 +297,10 @@ class Optimizer():
                     limits[full_name] = {}
                     limits[full_name]['min'] = self.parent.settings[dev][name]['min']
                     limits[full_name]['max'] = self.parent.settings[dev][name]['max']
-            ax = self.plot_2D(points, costs, limits = limits, save=params['save'])
+            if len(arr) is 1:
+                ax = self.plot_1D(points, costs, limits=limits, save=params['save'])
+            if len(arr) is 2:
+                ax = self.plot_2D(points, costs, limits = limits, save=params['save'])
         best_point = self.array2dict(points[np.argmin(costs)], state)
         self.actuate(self.unnormalize(best_point))
 
@@ -446,6 +449,25 @@ class Optimizer():
 
 
     ''' Visualization methods '''
+    def plot_1D(self, points, costs, normalized_cost = False, limits = None,
+                save = False):
+        plt.figure()
+        points = points.copy()
+        ordinate_index = 0
+        abscissa_index = 1
+        if limits is not None:
+            name = list(limits.keys())[0]
+            points = limits[name]['min'] + points*(limits[name]['max']-limits[name]['min'])
+        plt.plot(points, costs)
+        if save:
+            plt.savefig(self.parent.data_path + str(time.time()) + '.png')
+        ax = plt.gca()
+        if limits is not None:
+            plt.xlabel(name)
+            plt.ylabel('Cost')
+
+        return ax
+
     def plot_2D(self, points, costs, normalized_cost = False, limits = None,
                 save = False, color_map='viridis_r'):
         ''' Interpolates and plots a cost function sampled at an array of points. '''
