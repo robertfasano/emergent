@@ -310,15 +310,16 @@ class LabJack(ProcessHandler, Device):
                 self._command("STREAM_OUT%i_SET_LOOP"%i, loop)
                 aScanList.append(4800+i)
         else:
-            i = channels[0]
-            self._command("STREAM_OUT0_TARGET", 1000+i*2)
-            self._command("STREAM_OUT0_BUFFER_SIZE", buffer_size)
-            self._command("STREAM_OUT0_ENABLE", 1)
-            target = ['STREAM_OUT0_BUFFER_F32'] * len(data)
+            if stream_channel is None:
+                stream_channel = 0
+            self._command("STREAM_OUT%i_TARGET"%stream_channel, 1000+i*2)
+            self._command("STREAM_OUT%i_BUFFER_SIZE"%stream_channel, buffer_size)
+            self._command("STREAM_OUT%i_ENABLE"%stream_channel, 1)
+            target = ['STREAM_OUT%i_BUFFER_F32'%stream_channel] * len(data)
             ljm.eWriteNames(self.handle, len(data), target, list(data))
-            self._command("STREAM_OUT0_LOOP_SIZE", len(data))
-            self._command("STREAM_OUT0_SET_LOOP", loop)
-            aScanList.append(4800)
+            self._command("STREAM_OUT%i_LOOP_SIZE"%stream_channel, len(data))
+            self._command("STREAM_OUT%i_SET_LOOP"%stream_channel, loop)
+            aScanList.append(4800+stream_channel)
         scanRate = ljm.eStreamStart(self.handle, 1,len(aScanList), aScanList, scanRate)
         log.info("\nStream started with a scan rate of %0.0f Hz." % scanRate)
 
