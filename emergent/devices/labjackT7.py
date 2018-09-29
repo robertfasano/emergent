@@ -260,12 +260,11 @@ class LabJack(ProcessHandler, Device):
     def stream_stop(self):
         ljm.eStreamStop(self.handle)
 
-    def stream_out(self, channels, data, scanRate, loop = False, trigger = None):
-        ''' Streams data at a given scan rate..
+    def prepare_stream_out(self, channels, stream_channel = None, loop = False, trigger = None):
+        ''' Prepares an output stream.
 
             Args:
                 channels (list)): DAC channels to use; can use DAC0, DAC1, or both.
-                data (array): Data to stream out.
                 loop (bool): if False, data will be streamed out once; if True, the stream will loop.
 
             Note:
@@ -280,7 +279,6 @@ class LabJack(ProcessHandler, Device):
             ljm.eStreamStop(self.handle)
         except:
             pass
-        buffer_size = 2**14
         if trigger is None:
             self._command("STREAM_TRIGGER_INDEX", 0)        # Ensure triggered stream is disabled.
         else:
@@ -298,6 +296,20 @@ class LabJack(ProcessHandler, Device):
         aNames = ["STREAM_SETTLING_US", "STREAM_RESOLUTION_INDEX"]
         aValues = [0, 0]
         ljm.eWriteNames(self.handle, len(aNames), aNames, aValues)
+
+    def stream_out(self, channels, data, scanRate, loop = False, trigger = None):
+        ''' Streams data at a given scan rate..
+
+            Args:
+                data (array): Data to stream out.
+        '''
+        try:
+            ''' Stop streaming if currently running '''
+            ljm.eStreamStop(self.handle)
+        except:
+            pass
+        buffer_size = 2**14
+
         aScanList = []
         if len(channels) > 1:
             for i in range(len(channels)):
