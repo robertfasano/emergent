@@ -307,7 +307,7 @@ class LabJack(ProcessHandler, Device):
                 target = ['STREAM_OUT%i_BUFFER_F32'%i] * len(data[:,i])
                 ljm.eWriteNames(self.handle, len(data[:,i]), target, list(data[:,i]))
                 self._command("STREAM_OUT%i_LOOP_SIZE"%i, len(data[:,i]))
-                self._command("STREAM_OUT%i_SET_LOOP"%i, 1)
+                self._command("STREAM_OUT%i_SET_LOOP"%i, loop)
                 aScanList.append(4800+i)
         else:
             i = channels[0]
@@ -317,12 +317,11 @@ class LabJack(ProcessHandler, Device):
             target = ['STREAM_OUT0_BUFFER_F32'] * len(data)
             ljm.eWriteNames(self.handle, len(data), target, list(data))
             self._command("STREAM_OUT0_LOOP_SIZE", len(data))
-            self._command("STREAM_OUT0_SET_LOOP", 1)
+            self._command("STREAM_OUT0_SET_LOOP", loop)
             aScanList.append(4800)
         scanRate = ljm.eStreamStart(self.handle, 1,len(aScanList), aScanList, scanRate)
         log.info("\nStream started with a scan rate of %0.0f Hz." % scanRate)
 
-    @queue
     def sequence2stream(self, sequence, period, channels = 1):
         ''' Converts a sequence to a stream. The LabJack has two limitations:
             a maximum stream rate of 100 kS/s and a maximum sample count of
@@ -363,7 +362,6 @@ class LabJack(ProcessHandler, Device):
             stream[int(t/period*samples)::] = V
         return stream, speed
 
-    @queue
     def resample(self, wave, period, channels = 1):
         ''' Resamples a waveform with a given period into the optimal stream.
 
