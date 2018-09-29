@@ -3,6 +3,7 @@ import importlib
 import os
 import datetime
 import decorator
+import numpy as np
 
 def getChar():
     ''' Returns a user-input keyboard character. Cross-platform implementation
