@@ -335,7 +335,7 @@ class LabJack(ProcessHandler, Device):
         scanRate = ljm.eStreamStart(self.handle, 1,len(aScanList), aScanList, scanRate)
         log.info("\nStream started with a scan rate of %0.0f Hz." % scanRate)
 
-    def sequence2stream(self, sequence, period, channels = 1):
+    def sequence2stream(self, sequence, period, max_samples = None, channels = 1):
         ''' Converts a sequence to a stream. The LabJack has two limitations:
             a maximum stream rate of 100 kS/s and a maximum sample count of
             2^13-1. This method computes a cutoff period based on these two
@@ -353,7 +353,8 @@ class LabJack(ProcessHandler, Device):
                 speed (float): Stream rate in samples/second.
         '''
         buffer_size = 2**14
-        max_samples = int(buffer_size/2)-1
+        if max_samples is None:
+            max_samples = int(buffer_size/2)-1
         if self.deviceType == ljm.constants.dtT7:
             max_speed = 100000 / channels
         elif self.deviceType == ljm.constants.dtT4:
@@ -375,7 +376,7 @@ class LabJack(ProcessHandler, Device):
             stream[int(t/period*samples)::] = V
         return stream, speed
 
-    def resample(self, wave, period, channels = 1):
+    def resample(self, wave, period, max_samples = None, channels = 1):
         ''' Resamples a waveform with a given period into the optimal stream.
 
             Args:
@@ -393,7 +394,7 @@ class LabJack(ProcessHandler, Device):
             x = wave[i]
             seq.append((t, x))
 
-        return self.sequence2stream(seq, period, channels)
+        return self.sequence2stream(seq, period, max_samples, channels)
 
 if __name__ == '__main__':
     lj = LabJack(devid='470016973')
