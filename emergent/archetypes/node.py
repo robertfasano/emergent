@@ -38,6 +38,30 @@ class SettingsSignal(QObject):
     def emit(self, sequence):
         self.signal.emit(sequence)
 
+class CreateSignal(QObject):
+    signal = pyqtSignal(dict)
+
+    def __init__(self):
+        super().__init__()
+
+    def connect(self, func):
+        self.signal.connect(func)
+
+    def emit(self, control, device, input):
+        self.signal.emit({'control':control, 'device':device, 'input':input})
+
+class RemoveSignal(QObject):
+    signal = pyqtSignal(dict)
+
+    def __init__(self):
+        super().__init__()
+
+    def connect(self, func):
+        self.signal.connect(func)
+
+    def emit(self, control, device, input):
+        self.signal.emit({'control':control, 'device':device, 'input':input})
+
 class Node():
     ''' The Node class is the core building block of the EMERGENT network,
     providing useful organizational methods which are passed on to the Input,
@@ -155,6 +179,10 @@ class Device(Node):
         self.secondary_inputs = 0
         self.node_type = 'device'
         self.input_type = 'primary'
+
+        ''' Add signals for input creation and removal '''
+        self.create_signal = CreateSignal()
+        self.remove_signal = RemoveSignal()
 
     def use_inputs(self, type):
         ''' Switches between primary and secondary input representations.
