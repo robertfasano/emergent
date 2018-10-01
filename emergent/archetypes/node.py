@@ -275,6 +275,20 @@ class Device(Node):
         elif type == 'secondary':
             self.secondary_inputs += 1
 
+        self.create_signal.emit(self.parent, self, name)
+        if self.loaded:
+            self.actuate({name:self.parent.state[self.name][name]})
+    def remove_input(self, name):
+        ''' Detaches the Input node with the specified name. '''
+        self.remove_signal.emit(self.parent, self, name)
+
+        del self.children[name]
+        del self.state[name]
+
+        del self.parent.inputs[self.name][name]
+        del self.parent.state[self.name][name]
+
+
     def _actuate(self, state):
         """Private placeholder for the device-specific driver.
 
