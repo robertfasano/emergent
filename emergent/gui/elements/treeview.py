@@ -222,6 +222,9 @@ class NodeWidget(QTreeWidgetItem):
 
         if self.node.node_type == 'device':
             self.inputs = 'secondary'
+            self.node.create_signal.connect(self.onCreateSignal)
+            self.node.remove_signal.connect(self.onRemoveSignal)
+
         elif self.node.node_type == 'input':
             self.node.actuate_signal.connect(self.onActuateSignal)
             self.node.settings_signal.connect(self.onSettingsSignal)
@@ -249,6 +252,16 @@ class NodeWidget(QTreeWidgetItem):
 
     def onActuateSignal(self, state):
         self.setText(1, str('%.2f'%state))
+
+    def onCreateSignal(self, d):
+        if self.node == d['device']:
+            child_item = NodeWidget([d['input']], d['device'].children[d['input']], self.level+1)
+            self.addChild(child_item)
+
+    def onRemoveSignal(self, d):
+        if self.node == d['device']:
+            child_item = self.node.children[d['input']].leaf
+            self.removeChild(child_item)
 
     def onSettingsSignal(self, d):
         self.setText(2, str('%.2f'%float(d['min'])))
