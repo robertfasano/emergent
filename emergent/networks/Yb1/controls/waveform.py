@@ -4,13 +4,13 @@ import numpy as np
 import time
 
 class LinearRamp(Device):
-    def __init__(self, name, duration, labjack, parent = None):
+    def __init__(self, name, duration, labjack, parent = None, trigger = None):
         super().__init__(name=name, parent = parent)
         self.duration = duration
         self.labjack = labjack
         self.add_input('V0')
         self.add_input('Vf')
-        self.labjack.prepare_stream_out(['DAC0'], trigger=0)
+        self.labjack.prepare_stream_out(['DAC0'], trigger=trigger)
         self.initialized = 0
 
     def _actuate(self, state):
