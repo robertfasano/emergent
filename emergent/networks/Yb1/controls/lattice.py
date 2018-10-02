@@ -20,7 +20,7 @@ class Lattice(Control):
         return -(ground-background)
 
     def state_readout(self, duration = 0.1):
-        signal = self.labjack.streamburst(duration)           # measure three pulses
+        signal = self.ljIN.streamburst(duration, max_samples = self.max_samples)           # measure three pulses
         pulses = extract_pulses(signal, self.signal_threshold_in_mV/1000)
         ground = np.max(pulses[0])
         background = np.max(pulses[1])
