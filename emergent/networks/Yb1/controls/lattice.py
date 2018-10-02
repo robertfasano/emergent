@@ -7,10 +7,7 @@ class Lattice(Control):
     def __init__(self, name, parent = None, path='.'):
         super().__init__(name, parent = parent, path=path)
         self.signal_threshold_in_mV = 100
-
-    def add_labjack(self, labjack):
-        self.labjack = labjack
-        self.labjack.prepare_streamburst(channel=0, trigger = 0)
+        self.max_samples = 1000
 
     @experiment
     def load_lattice(self, state):
