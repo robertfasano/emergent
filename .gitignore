@@ -8,5 +8,4 @@ docs/build/*
 build/*
 EMERGENT.egg-info/*
 dist/*
-emergent/networks/example/data/*
-emergent/networks/gmot/data/*
+*.csv
