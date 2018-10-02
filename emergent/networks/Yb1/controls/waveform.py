@@ -23,10 +23,3 @@ class LinearRamp(Device):
             self.labjack.stream_out([0], sequence, scanRate, loop=0)
         else:
             self.initialized = 1
-
-    def test(self):
-        sequence, scanRate = self.labjack.resample([0,1], 0.5, max_samples = 500)
-        for i in range(n):
-            self.labjack.stream_out([0], sequence, scanRate, loop=0)
-    def _connect(self):
-        return 1
