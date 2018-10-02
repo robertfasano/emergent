@@ -210,31 +210,35 @@ class LabJack(ProcessHandler, Device):
         self._command("SPI_GO", 1)  # Do the SPI communications
 
     ''' Streaming methods '''
-    def prepare_streamburst(self, channel, trigger = None):
+    def prepare_streamburst(self, channel, max_samples = 2**13-1, trigger = None):
         ''' Sets up the LabJack for burst input streaming on a target channel. '''
         self.aScanList = ljm.namesToAddresses(1, ['AIN%i'%channel])[0]  # Scan list addresses for streamBurst
+
         if trigger is None:
             self._command("STREAM_TRIGGER_INDEX", 0) # disable triggered stream
+            aNames = ['STREAM_TRIGGER_INDEX']
+            aValues = [0]
         else:
             channel = 'DIO%i'%trigger
             aNames = ["%s_EF_ENABLE"%channel, "%s_EF_INDEX"%channel,
                       "%s_EF_OPTIONS"%channel, "%s_EF_VALUE_A"%channel,
-                      "%s_EF_ENABLE"%channel]
-            aValues = [0, 3, 0, 2, 1]
-            ljm.eWriteNames(self.handle, len(aNames), aNames, aValues)
-            self._command('STREAM_TRIGGER_INDEX', 2000+trigger)
+                      "%s_EF_ENABLE"%channel, 'STREAM_TRIGGER_INDEX']
+            aValues = [0, 3, 0, 2, 1, 2000+trigger]
+            # self._command('STREAM_TRIGGER_INDEX', 2000+trigger)
             ljm.writeLibraryConfigS('LJM_STREAM_RECEIVE_TIMEOUT_MS',0)  #disable timeout
         if self.deviceType == ljm.constants.dtT7:
-            self._command("STREAM_CLOCK_SOURCE", 0)  # enable internal clock
-        aNames = ["AIN_ALL_NEGATIVE_CH", "AIN0_RANGE", "AIN1_RANGE",
-                  "STREAM_SETTLING_US", "STREAM_RESOLUTION_INDEX"]
-        aValues = [ljm.constants.GND, 10.0, 10.0, 0, 0]
-        numFrames = len(aNames)
-        ljm.eWriteNames(self.handle, numFrames, aNames, aValues)
+            # self._command("STREAM_CLOCK_SOURCE", 0)  # enable internal clock
+            aNames.append('STREAM_CLOCK_SOURCE')   # enable internal clock
+            aValues.append(0)
+        aNames.extend(["AIN_ALL_NEGATIVE_CH", "AIN0_RANGE", "AIN1_RANGE",
+                  "STREAM_SETTLING_US", "STREAM_RESOLUTION_INDEX", 'STREAM_BUFFER_SIZE_BYTES'])
+        n = np.ceil(np.log10(2*(1+max_samples))/np.log10(2))
+        buffer_size = 2**n
+        aValues.extend([ljm.constants.GND, 10.0, 10.0, 0, 0, buffer_size])
+        ljm.eWriteNames(self.handle, len(aNames), aNames, aValues)
 
-        self._command('STREAM_BUFFER_SIZE_BYTES', 2**14)
 
-    def streamburst(self, duration, operation = None):
+    def streamburst(self, duration, max_samples=2**13-1, operation = None):
         ''' Performs a burst stream and optionally performs a numpy array operation
             on the result.
 
@@ -243,7 +247,6 @@ class LabJack(ProcessHandler, Device):
                 automatically adjusted to avoid overfilling the buffer.
 
                 '''
-        max_samples = 2**13-1
         if self.deviceType == ljm.constants.dtT7:
             max_speed = 100000
         elif self.deviceType == ljm.constants.dtT4:
@@ -260,7 +263,10 @@ class LabJack(ProcessHandler, Device):
     def stream_stop(self):
         ljm.eStreamStop(self.handle)
 
-    def prepare_stream_out(self, channels, stream_channel = None, loop = False, trigger = None):
+    def open_sequencer(self):
+        self.leaf.treeWidget().parent.openSequencerSignal.emit(self)
+
+    def prepare_stream_out(self, channels, trigger = None):
         ''' Prepares an output stream.
 
             Args:
@@ -279,37 +285,42 @@ class LabJack(ProcessHandler, Device):
             ljm.eStreamStop(self.handle)
         except:
             pass
+
         if trigger is None:
             self._command("STREAM_TRIGGER_INDEX", 0)        # Ensure triggered stream is disabled.
+            aNames = ['STREAM_TRIGGER_INDEX']
+            aValues = [0]
         else:
-
             channel = 'DIO%i'%trigger
             aNames = ["%s_EF_ENABLE"%channel, "%s_EF_INDEX"%channel,
                       "%s_EF_OPTIONS"%channel, "%s_EF_VALUE_A"%channel,
-                      "%s_EF_ENABLE"%channel]
-            aValues = [0, 3, 0, 2, 1]
-            ljm.eWriteNames(self.handle, len(aNames), aNames, aValues)
-            self._command('STREAM_TRIGGER_INDEX', 2000+trigger)
+                      "%s_EF_ENABLE"%channel, 'STREAM_TRIGGER_INDEX']
+            aValues = [0, 3, 0, 2, 1, 2000+trigger]
 
+
+        aNames.extend(["STREAM_SETTLING_US", "STREAM_RESOLUTION_INDEX"])
+        aValues.extend([0, 0])
         if self.deviceType == ljm.constants.dtT7:
-            self._command("STREAM_CLOCK_SOURCE", 0)       # Enabling internally-clocked stream.
-        aNames = ["STREAM_SETTLING_US", "STREAM_RESOLUTION_INDEX"]
-        aValues = [0, 0]
+            aNames.append('STREAM_CLOCK_SOURCE')    # Enabling internally-clocked stream.
+            aValues.append(0)
         ljm.eWriteNames(self.handle, len(aNames), aNames, aValues)
 
-    def stream_out(self, channels, data, scanRate, loop = False, trigger = None):
+
+    def stream_out(self, channels, data, scanRate, stream_channel = None, loop = 0):
         ''' Streams data at a given scan rate..
 
             Args:
                 data (array): Data to stream out.
         '''
+
         try:
             ''' Stop streaming if currently running '''
             ljm.eStreamStop(self.handle)
         except:
             pass
-        buffer_size = 2**14
-
+        n = np.ceil(np.log10(2*(1+len(data)))/np.log10(2))
+        buffer_size = 2**n
+        print('Buffer size:', buffer_size)
         aScanList = []
 
         if len(channels) > 1:
@@ -322,7 +333,7 @@ class LabJack(ProcessHandler, Device):
                 ljm.eWriteNames(self.handle, len(data[:,i]), target, list(data[:,i]))
                 aNames = ["STREAM_OUT%i_LOOP_SIZE"%i,
                                "STREAM_OUT%i_SET_LOOP"%i]
-                aValues = [1000+i*2, buffer_size, 1, loop*len(data[:,i]), 1]
+                aValues = [loop*len(data[:,i]), 1]
                 ljm.eWriteNames(self.handle, len(aNames), aNames, aValues)
                 aScanList.append(4800+i)
         else:
@@ -335,9 +346,9 @@ class LabJack(ProcessHandler, Device):
             ljm.eWriteNames(self.handle, len(aNames), aNames, aValues)
             target = ['STREAM_OUT%i_BUFFER_F32'%stream_channel] * len(data)
             ljm.eWriteNames(self.handle, len(data), target, list(data))
-            aNames = ["STREAM_OUT%i_LOOP_SIZE"%stream_channel,
+            aNames=["STREAM_OUT%i_LOOP_SIZE"%stream_channel,
                            "STREAM_OUT%i_SET_LOOP"%stream_channel]
-            aValues = [1000+channels[0]*2, buffer_size, 1, loop*len(data), 1]
+            aValues = [loop*len(data), 1]
             ljm.eWriteNames(self.handle, len(aNames), aNames, aValues)
             aScanList.append(4800+stream_channel)
 
