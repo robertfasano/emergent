@@ -5,6 +5,16 @@ import datetime
 import decorator
 import numpy as np
 
+def unit_test(self, func, *args, **kwargs):
+    tests = 100
+    times = []
+    for i in range(tests):
+        start = time.time()
+        func(*args, **kwargs)
+        end = time.time()
+        times.append(end-start)
+    print(np.mean(times), '+/-', np.std(times))
+
 def getChar():
     ''' Returns a user-input keyboard character. Cross-platform implementation
         credited to Matthew Strax-Haber (StackExchange) '''
