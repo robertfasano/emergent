@@ -53,6 +53,8 @@ class LabJack(ProcessHandler, Device):
         self.queue = FIFO()
         self._run_thread(self.queue.run)
         self._connected = self._connect()
+        # self.options = {'Sequencer': self.open_sequencer}
+
 
     def _connect(self):
         if self._connected:
