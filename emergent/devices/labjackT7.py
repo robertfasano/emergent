@@ -330,36 +330,23 @@ class LabJack(ProcessHandler, Device):
         buffer_size = 2**n
         print('Buffer size:', buffer_size)
         aScanList = []
-
-        if len(channels) > 1:
-            for i in range(len(channels)):
-                aNames =["STREAM_OUT%i_TARGET"%i,
-                               "STREAM_OUT%i_BUFFER_SIZE"%i,
-                               "STREAM_OUT%i_ENABLE"%i]
-                aValues = [1000+i*2, buffer_size, 1]
-                self._write_array(aNames, aValues)
-                target = ['STREAM_OUT%i_BUFFER_F32'%i] * len(data)
-                ljm.eWriteNames(self.handle, len(data[:,i]), target, list(data[:,i]))
-                aNames = ["STREAM_OUT%i_LOOP_SIZE"%i,
-                               "STREAM_OUT%i_SET_LOOP"%i]
-                aValues = [loop*len(data[:,i]), 1]
-                self._write_array(aNames, aValues)
-                aScanList.append(4800+i)
-        else:
-            if stream_channel is None:
-                stream_channel = 0
-            aNames = ["STREAM_OUT%i_TARGET"%stream_channel,
-                           "STREAM_OUT%i_BUFFER_SIZE"%stream_channel,
-                           "STREAM_OUT%i_ENABLE"%stream_channel]
-            aValues = [1000+channels[0]*2, buffer_size, 1]
+        for i in range(len(channels)):
+            aNames =["STREAM_OUT%i_TARGET"%i,
+                           "STREAM_OUT%i_BUFFER_SIZE"%i,
+                           "STREAM_OUT%i_ENABLE"%i]
+            aValues = [1000+i*2, buffer_size, 1]
             self._write_array(aNames, aValues)
-            target = ['STREAM_OUT%i_BUFFER_F32'%stream_channel] * len(data)
-            ljm.eWriteNames(self.handle, len(data), target, list(data))
-            aNames=["STREAM_OUT%i_LOOP_SIZE"%stream_channel,
-                           "STREAM_OUT%i_SET_LOOP"%stream_channel]
+            target = ['STREAM_OUT%i_BUFFER_F32'%i] * len(data)
+            try:
+                target_array = data[:,i]
+            except IndexError:
+                target_array = data
+            ljm.eWriteNames(self.handle, len(target_array), target, list(target_array))
+            aNames = ["STREAM_OUT%i_LOOP_SIZE"%i,
+                           "STREAM_OUT%i_SET_LOOP"%i]
             aValues = [loop*len(data), 1]
             self._write_array(aNames, aValues)
-            aScanList.append(4800+stream_channel)
+            aScanList.append(4800+i)
 
         scanRate = ljm.eStreamStart(self.handle, 1,len(aScanList), aScanList, scanRate)
         log.info("\nStream started with a scan rate of %0.0f Hz." % scanRate)
