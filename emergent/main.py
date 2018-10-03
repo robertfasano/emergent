@@ -12,8 +12,11 @@ sys.path.append('networks/%s'%sys.argv[1])
 import logging as log
 import argparse
 import importlib
-import ctypes
-ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID('EMERGENT')
+try:
+    import ctypes
+    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID('EMERGENT')
+except:
+    pass
 parser = argparse.ArgumentParser()
 parser.add_argument("path")
 parser.add_argument("-v", "--verbose", help="Increase output verbosity", action="store_true")
@@ -61,9 +64,6 @@ for control in controls:
         tree[control.name][device.name] = []
         for input in device.children.values():
             tree[control.name][device.name].append(input.name)
-
-
-
 
 controls_dict = {}
 for c in controls:
