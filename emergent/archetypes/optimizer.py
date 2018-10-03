@@ -363,8 +363,6 @@ class Optimizer():
         if params['plot']:
             self.plot_optimization(lbl = 'Gaussian Processing')
 
-        self.parent.save(tag='optimize', save=params['save'])
-
         return X, c
 
 
