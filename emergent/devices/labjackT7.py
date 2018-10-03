@@ -328,7 +328,6 @@ class LabJack(ProcessHandler, Device):
             pass
         n = np.ceil(np.log10(2*(1+len(data)))/np.log10(2))
         buffer_size = 2**n
-        print('Buffer size:', buffer_size)
         aScanList = []
         for i in range(len(channels)):
             aNames =["STREAM_OUT%i_TARGET"%i,
@@ -349,7 +348,7 @@ class LabJack(ProcessHandler, Device):
             aScanList.append(4800+i)
 
         scanRate = ljm.eStreamStart(self.handle, 1,len(aScanList), aScanList, scanRate)
-        log.info("\nStream started with a scan rate of %0.0f Hz." % scanRate)
+        # log.info("\nStream started with a scan rate of %0.0f Hz." % scanRate)
 
     def sequence2stream(self, sequence, period, max_samples = None, channels = 1):
         ''' Converts a sequence to a stream. The LabJack has two limitations:
