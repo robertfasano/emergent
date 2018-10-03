@@ -395,12 +395,20 @@ class LabJack(ProcessHandler, Device):
             speed = max_speed
             samples = period*speed
 
-        stream = np.zeros(int(samples))
+        # stream = np.zeros(int(samples))
+        stream = np.zeros((int(samples), sequence.shape[1]))
+        for i in range(sequence.shape[0]):
+            for j in range(sequence.shape[1]):
+                point = sequence[i,j]
+                t = point[0]
+                V = point[1]
+                stream[int(t/period*samples)::, j] = V
 
-        for point in sequence:
-            t = point[0]
-            V = point[1]
-            stream[int(t/period*samples)::] = V
+
+        # for point in sequence:
+        #     t = point[0]
+        #     V = point[1]
+        #     stream[int(t/period*samples)::] = V
         return stream, speed
 
     def resample(self, wave, period, max_samples = None, channels = 1):
@@ -409,19 +417,21 @@ class LabJack(ProcessHandler, Device):
             Args:
                 wave (array): An array of values describing a waveform.
                 period (float): The total sequence duration.
-                channels (int): Number of channels which will be simultaneously streamed; the maximum sampling rate is reduced by this factor.
 
             Returns:
                 stream (array): A list of points which will be output at the calculated sampling rate.
                 speed (float): Stream rate in samples/second.
         '''
         seq = []
-        for i in range(len(wave)):
-            t = i*period/len(wave)
-            x = wave[i]
-            seq.append((t, x))
-
-        return self.sequence2stream(seq, period, max_samples, channels)
+        for i in range(wave.shape[0]):
+            point = []
+            for j in range(wave.shape[1]):
+                t = i*period/len(wave)
+                x = wave[i,j]
+                point.append((t,x))
+            seq.append(point)
+        seq = np.array(seq)
+        return self.sequence2stream(seq, period, max_samples, wave.shape[1])
 
 if __name__ == '__main__':
     lj = LabJack(devid='470016973')
