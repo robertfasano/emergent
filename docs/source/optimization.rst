@@ -105,28 +105,17 @@ convergence in several seconds.
     :width: 49 %
 
 
-Subspace decoupling
-====================
-The sophisticated algorithms contained in the EMERGENT library can optimize
-functions of many degrees of freedom, but most powerful of all is the ability to
-avoid this through subspace identification and dimensional reduction. By using
-principal component analysis, EMERGENT will be able to project the landscape
-onto a set of orthogonal virtual inputs, hence decomposing a high-dimensional
-coupled optimization problem into many lower-dimensional problems. To see the
-power of this, consider a grid search algorithm which searches for an optimum
-point with :math:`N` uniformly sampled points for each of :math:`d` devices. The
-number of iterations required, :math:`N^d`, is entirely infeasible for even modest
-numbers of devices - for example, just a coarse 10-step sampling with 10 connected
-inputs would take 317 years with an experimental cycle of 1 Hz! However, by
-diagonalizing the covariance matrix, the problem can be reduced into 10 1D
-optimizations which can be performed independently, requiring only :math:`Nd` steps!
-In doing so, we replace the physical inputs with virtual inputs, which are linear
-combinations of the original ones.
-
-For example, consider an experimental landscape consisting of a stretched two-variable
-Gaussian which is rotated by 30 degrees about the :math:`z` axis. The effects of
-the coupling are evident: performing a line search in :math:`x` or :math:`y`
-alone will not in general find the maximum, since by changing one variable we
-change the optimal position of the other. However, we can efficiently solve the
-problem by rotating our inputs into a frame where they are decoupled. Then, we
-can solve two separate 1D optimization problems in terms of the rotated inputs.
+Time-dependent optimization
+============================
+Turning now to a more complicated time-dependent function, we consider
+the problem of magneto-optical trapping, in which atoms are trapped at the zero
+of a quadrupole magnetic field in a red-detuned laser beam. The problem can be
+formulated as a memoryless cost function depending on parameters such as the
+formulated as a memoryless function depending on parameters such as the
+field strength and laser detuning, but the trapping can be improved by adding a
+time-dependent ramp such that the Doppler and Zeeman shifts keep the beam resonant
+while the atoms cool. In this case we are tasked with determining not the
+number of trapped atoms. Algorithmic optimization of atom cooling has been
+achieved with the help of virtual Device nodes called Ramps, which can output
+a parameterized ramp of a given shape (linear, exponential, etc) in terms of
+several optimizable network inputs (initial/final points, decay time, etc).
