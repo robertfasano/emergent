@@ -336,6 +336,7 @@ class LabJack(ProcessHandler, Device):
                                "STREAM_OUT%i_ENABLE"%i]
                 aValues = [1000+i*2, buffer_size, 1]
                 self._write_array(aNames, aValues)
+                target = ['STREAM_OUT%i_BUFFER_F32'%i] * len(data)
                 ljm.eWriteNames(self.handle, len(data[:,i]), target, list(data[:,i]))
                 aNames = ["STREAM_OUT%i_LOOP_SIZE"%i,
                                "STREAM_OUT%i_SET_LOOP"%i]
