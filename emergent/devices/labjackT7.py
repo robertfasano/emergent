@@ -46,15 +46,12 @@ class LabJack(ProcessHandler, Device):
         self.arange = arange
         self.name = name
         self._connected = 0
-        self.averaging_array = []
 
         ''' Define a FIFO queue running in a separate thread so that multiple
             simultaneous threads can share a LabJack without interference. '''
         self.queue = FIFO()
         self._run_thread(self.queue.run)
         self._connected = self._connect()
-        # self.options = {'Sequencer': self.open_sequencer}
-
 
     def _connect(self):
         if self._connected:
@@ -274,9 +271,6 @@ class LabJack(ProcessHandler, Device):
     @queue
     def stream_stop(self):
         ljm.eStreamStop(self.handle)
-
-    def open_sequencer(self):
-        self.leaf.treeWidget().parent.openSequencerSignal.emit(self)
 
     def prepare_stream_out(self, channels, trigger = None):
         ''' Prepares an output stream.
