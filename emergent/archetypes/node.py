@@ -8,59 +8,11 @@ from emergent.archetypes.sequencer import Sequencer
 from emergent.archetypes.historian import Historian
 from emergent.archetypes.optimizer import Optimizer
 from PyQt5.QtWidgets import QWidget
-from PyQt5.QtCore import pyqtSignal, QObject
 from emergent.utility import methodsWithDecorator
 import logging as log
 import pandas as pd
 import datetime
-
-class ActuateSignal(QObject):
-    signal = pyqtSignal(float)
-
-    def __init__(self):
-        super().__init__()
-
-    def connect(self, func):
-        self.signal.connect(func)
-
-    def emit(self, state):
-        self.signal.emit(state)
-
-class SettingsSignal(QObject):
-    signal = pyqtSignal(dict)
-
-    def __init__(self):
-        super().__init__()
-
-    def connect(self, func):
-        self.signal.connect(func)
-
-    def emit(self, sequence):
-        self.signal.emit(sequence)
-
-class CreateSignal(QObject):
-    signal = pyqtSignal(dict)
-
-    def __init__(self):
-        super().__init__()
-
-    def connect(self, func):
-        self.signal.connect(func)
-
-    def emit(self, control, device, input):
-        self.signal.emit({'control':control, 'device':device, 'input':input})
-
-class RemoveSignal(QObject):
-    signal = pyqtSignal(dict)
-
-    def __init__(self):
-        super().__init__()
-
-    def connect(self, func):
-        self.signal.connect(func)
-
-    def emit(self, control, device, input):
-        self.signal.emit({'control':control, 'device':device, 'input':input})
+from emergent.signals import ActuateSignal, SettingsSignal, RemoveSignal, CreateSignal
 
 class Node():
     ''' The Node class is the core building block of the EMERGENT network,
@@ -97,11 +49,11 @@ class Node():
         self.parent = parent
         parent.children[self.name] = self
 
-    def __getattribute__(self, name):
-        returned = object.__getattribute__(self, name)
-        if inspect.isfunction(returned) or inspect.ismethod(returned):
-            log.debug('called %s', returned.__name__)
-        return returned
+    # def __getattribute__(self, name):
+    #     returned = object.__getattribute__(self, name)
+    #     if inspect.isfunction(returned) or inspect.ismethod(returned):
+    #         log.debug('called %s', returned.__name__)
+    #     return returned
 
 class Input(Node):
     ''' Input nodes represent physical variables which may affect the outcome of
