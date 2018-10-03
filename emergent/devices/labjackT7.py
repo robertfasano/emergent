@@ -162,17 +162,19 @@ class LabJack(ProcessHandler, Device):
         try:
             roll_value = self.clock / frequency
             config_a = duty_cycle * roll_value / 100
-            self._command("DIO_EF_CLOCK0_ENABLE", 0);    # Disable the clock source
-            self._command("DIO_EF_CLOCK0_DIVISOR", 1); 	# Configure Clock0's divisor
-            self._command("DIO_EF_CLOCK0_ROLL_VALUE", roll_value); 	# Configure Clock0's roll value
-            self._command("DIO_EF_CLOCK0_ENABLE", 1); 	# Enable the clock source
-
-            # Configure EF Channel Registers:
-            self._command("DIO%i_EF_ENABLE"%channel, 0); 	# Disable the EF system for initial configuration
-            self._command("DIO%i_EF_INDEX"%channel, 0); 	# Configure EF system for PWM
-            self._command("DIO%i_EF_OPTIONS"%channel, 0); 	# Configure what clock source to use: Clock0
-            self._command("DIO%i_EF_CONFIG_A"%channel, config_a); 	# Configure duty cycle
-            self._command("DIO%i_EF_ENABLE"%channel, 1); 	# Enable the EF system, PWM wave is now being outputted
+            aNames = [
+                "DIO_EF_CLOCK0_ENABLE", # Disable the clock source
+                "DIO_EF_CLOCK0_DIVISOR",    # Configure Clock0's divisor
+                "DIO_EF_CLOCK0_ROLL_VALUE", # Configure Clock0's roll value
+                "DIO_EF_CLOCK0_ENABLE", # Enable the clock source
+                "DIO%i_EF_ENABLE", 	# Disable the EF system for initial configuration
+                "DIO%i_EF_INDEX", 	# Configure EF system for PWM
+                "DIO%i_EF_OPTIONS",	# Configure what clock source to use: Clock0
+                "DIO%i_EF_CONFIG_A",	# Configure duty cycle
+                "DIO%i_EF_ENABLE"    # Enable the EF system, PWM wave is now being outputted
+            ]
+            aValues = [0,1,roll_value,1,0,0,0,config_a,1]
+            ljm.eWriteNames(self.handle, len(aNames), aNames, aValues)
         except Exception as e:
             log.warn(e)
 
