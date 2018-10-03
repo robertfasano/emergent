@@ -29,7 +29,7 @@ concerned with determining the state vector :math:`X(t)` which minimizes or maxi
 Steady-state optimization
 ===========================
 To make this formalism more intuitive, let's first study an experiment with a
-memoryless functional :math:`\mathcal F[X(T)]]``, where the measurement depends on the input
+memoryless functional :math:`\mathcal F[X(T)]`, where the measurement depends on the input
 state at time :math:`T` but not the history. Let's see how EMERGENT describes this process.
 
 State representation
