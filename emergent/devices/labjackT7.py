@@ -272,12 +272,11 @@ class LabJack(ProcessHandler, Device):
     def stream_stop(self):
         ljm.eStreamStop(self.handle)
 
-    def prepare_stream_out(self, channels, trigger = None):
+    def prepare_stream_out(self, trigger = None):
         ''' Prepares an output stream.
 
             Args:
-                channels (list)): DAC channels to use; can use DAC0, DAC1, or both.
-                loop (bool): if False, data will be streamed out once; if True, the stream will loop.
+                trigger (int): if not None, set an FIO channel to trigger on
 
             Note:
                 The maximum buffer size of the LabJack T7 is 2^15=32768 bytes,
