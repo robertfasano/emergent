@@ -4,32 +4,40 @@ import numpy as np
 import time
 
 class Ramp(Device):
-    def __init__(self, name, duration, labjack, type = 'linear', parent = None, steps = 1000, trigger = None):
+    def __init__(self, name, duration, labjack, type = {0:'constant',1:'constant'}, parent = None, steps = 1000, trigger = None):
         super().__init__(name=name, parent = parent)
         self.duration = duration
         self.labjack = labjack
         self.steps = steps
         self.type = type
-        if type is 'linear':
-            self.add_input('V0')
-            self.add_input('Vf')
-        elif type is 'exponential':
-            self.add_input('V0')
-            self.add_input('tau')
-        self.labjack.prepare_stream_out(['DAC0'], trigger=trigger)
+        for ch in self.type:
+            if self.type[ch] is 'constant':
+                self.add_input('V0_%i'%ch)
+            if self.type[ch] is 'linear':
+                self.add_input('V0_%i'%ch)
+                self.add_input('Vf_%i'%ch)
+            elif self.type[ch] is 'exponential':
+                self.add_input('V0_%i'%ch)
+                self.add_input('tau_%i'%ch)
+        channels = ['DAC%i'%i for i in self.type]
+        self.labjack.prepare_stream_out(channels, trigger=trigger)
         self.initialized = 0
 
     def _actuate(self, state):
         state = self.get_missing_keys(state, None)
         if self.initialized:
             t = np.linspace(0,self.duration, 1000)
-            if self.type is 'linear':
-                slope = (state['Vf']-state['V0'])/self.duration
-                y = state['V0'] + slope*t
-            elif self.type is 'exponential':
-                y = state['V0']*np.exp(-t/state['tau'])
+            y = np.zeros((len(t),len(self.type)))
+            for ch in self.type:
+                if self.type[ch] is 'constant':
+                    y[:,ch] = state['V0_%i'%ch]
+                elif self.type[ch] is 'linear':
+                    slope = (state['Vf_%i'%ch]-state['V0_%i'%ch])/self.duration
+                    y[:,ch] = state['V0_%i'%ch] + slope*t
+                elif self.type[ch] is 'exponential':
+                    y[:,ch] = state['V0_%i'%ch]*np.exp(-t/state['tau_%i'%ch])
             sequence, scanRate = self.labjack.resample(y, self.duration, max_samples = self.steps)
-            self.labjack.stream_out([0], sequence, scanRate, loop=0)
+            self.labjack.stream_out(list(self.type.keys()), sequence, scanRate, loop=0)
         else:
             self.initialized = 1
 
