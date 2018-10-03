@@ -44,7 +44,7 @@ class NodeTree(QTreeWidget):
         for i in range(len(root_labels)):
             self._generateTree(self.tree[root_labels[i]], roots[i])
 
-        # self.expand(0)
+        self.expand(0)
         self.expand(1)
 
         ''' Ensure that only Inputs are selectable '''
