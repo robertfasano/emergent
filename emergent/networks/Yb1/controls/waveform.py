@@ -20,7 +20,7 @@ class Ramp(Device):
                 self.add_input('DAC%i: Exponential V0'%ch)
                 self.add_input('DAC%i: Exponential tau'%ch)
         channels = ['DAC%i'%i for i in self.type]
-        self.labjack.prepare_stream_out(channels, trigger=trigger)
+        self.labjack.prepare_stream_out(trigger=trigger)
         self.initialized = 0
 
     def _actuate(self, state):
