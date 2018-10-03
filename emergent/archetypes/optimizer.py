@@ -254,11 +254,15 @@ class Optimizer():
     def random_sampling(self,state, cost, points, bounds):
         ''' Performs a random sampling of the cost function at N points within
             the specified bounds. '''
-        points = np.random.uniform(size=(points,len(state.keys())))
+        dof = sum(len(state[x]) for x in state)
+        points = np.random.uniform(size=(points,dof))
         costs = []
         for point in points:
-            target = self.array2dict(point, state)
-            costs.append(cost(self.unnormalize(target)))
+            # target = self.array2dict(point, state)
+            # costs.append(cost(self.unnormalize(target)))
+            print(point)
+            c = self.cost_from_array(point, state, cost)
+            costs.append(c)
 
         return points, costs
 
