@@ -337,12 +337,12 @@ class Optimizer():
         return b*mu-(1-b)*sigma
 
     @algorithm
-    def gaussian_process(self, state, cost, params={'batch_size':10,'presampled': 15, 'iterations':10},update=None):
+    def gaussian_process(self, state, cost, params={'batch_size':10,'presampled': 15, 'iterations':10, 'greed': 1},update=None):
         ''' Online Gaussian process regression. Batch sampling is done with
             points with varying trade-off of optimization vs. exploration. '''
         X, bounds = self.initialize_optimizer(state)
         c = np.array([self.cost_from_array(X, state,cost)])
-
+        b = params['greed']
         points, costs = self.sample(state, cost, 'random_sampling', params['presampled'])
         X = np.append(np.atleast_2d(X), points, axis=0)
         c = np.append(c, costs)
@@ -351,7 +351,7 @@ class Optimizer():
         for i in range(params['iterations']):
             self.gp.fit(X,c)
             for j in range(params['batch_size']):
-                b = j / (params['batch_size']-1)
+                # b = j / (params['batch_size']-1)
                 X_new = self.gp_next_sample(X, bounds, b, self.gp_effective_cost, self.gp, restarts=10)
                 X_new = np.atleast_2d(X_new)
                 X = np.append(X, X_new, axis=0)
