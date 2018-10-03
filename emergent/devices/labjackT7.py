@@ -311,11 +311,14 @@ class LabJack(ProcessHandler, Device):
         self._write_array(aNames, aValues)
 
 
-    def stream_out(self, channels, data, scanRate, stream_channel = None, loop = 0):
+    def stream_out(self, channels, data, scanRate, loop = 0):
         ''' Streams data at a given scan rate..
 
             Args:
-                data (array): Data to stream out.
+                channels (list): Output channels to stream on, e.g. ['DAC0', 'DAC1']
+                data (array): Data to stream out. For streaming on multiple channels, use column 0 for DAC0 and column 1 for DAC1.
+                scanRate (float): desired output rate in scans/s
+                loop (int): number of values from the end of the buffer to loop after finishing stream
         '''
 
         try:
