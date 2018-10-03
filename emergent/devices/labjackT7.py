@@ -191,14 +191,18 @@ class LabJack(ProcessHandler, Device):
                 MISO (int): the FIO channel to use for input
                 MOSI (int): the FIO channel to use for output
         '''
+        aNames = [
+            "SPI_CS_DIONUM",
+            "SPI_CLK_DIONUM",
+            "SPI_MISO_DIONUM",
+            "SPI_MOSI_DIONUM",
+            "SPI_MODE",                 # Selecting Mode CPHA=1 (bit 0), CPOL=1 (bit 1)
+            "SPI_SPEED_THROTTLE",     # Valid speed throttle values are 1 to 65536 where 0 = 65536 ~ 800 kHz
+            "SPI_OPTIONS"              # Enabling active low clock select pin
+        ]
 
-        self._command("SPI_CS_DIONUM", CS)
-        self._command("SPI_CLK_DIONUM", CLK)
-        self._command("SPI_MISO_DIONUM", MISO)
-        self._command("SPI_MOSI_DIONUM", MOSI)
-        self._command("SPI_MODE", mode)                  # Selecting Mode CPHA=1 (bit 0), CPOL=1 (bit 1)
-        self._command("SPI_SPEED_THROTTLE", 0)        # Valid speed throttle values are 1 to 65536 where 0 = 65536 ~ 800 kHz
-        self._command("SPI_OPTIONS", 0)               # Enabling active low clock select pin
+        aValues = [CS, CLK, MISO, MOSI, mode, 0, 0]
+        ljm.eWriteNames(self.handle, len(aNames), aNames, aValues)
 
     def spi_write(self, data):
         ''' Writes a list of commands via SPI.
