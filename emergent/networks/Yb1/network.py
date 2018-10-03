@@ -14,3 +14,4 @@ lattice.ljOUT = LabJack(devid='470016970', name='labjack')
 lattice.ljOUT.prepare_stream_out(['DAC0'], trigger = 0)
 
 intensity_ramp = LinearRamp('intensity_ramp', .03, lattice.ljOUT, parent=lattice, trigger = 0)
+lattice.ljOUT.add_input('DAC1')
