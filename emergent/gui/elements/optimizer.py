@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import (QComboBox, QLabel, QTextEdit, QPushButton, QVBoxLayout,
-        QWidget, QProgressBar, qApp, QHBoxLayout, QCheckBox, QTabWidget, QLineEdit)
+        QWidget, QProgressBar, qApp, QHBoxLayout, QCheckBox, QTabWidget, QLineEdit, QSlider)
 from PyQt5.QtCore import *
 from emergent.archetypes.optimizer import Optimizer
 from emergent.archetypes.parallel import ProcessHandler
@@ -102,10 +102,15 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         self.runTabLayout.addLayout(self.run_experimentParamsLayout)
 
         self.runIterationsLayout.addWidget(QLabel('Iterations'))
-        self.runIterationsComboBox = QComboBox()
-        for power in range(8):
-            self.runIterationsComboBox.addItem(str(2**power))
-        self.runIterationsLayout.addWidget(self.runIterationsComboBox)
+        self.runIterationsSlider = QSlider(Qt.Horizontal)
+        self.runIterationsSlider.valueChanged.connect(self.updateIterations)
+        self.runIterationsSlider.setRange(1,8)
+        self.runIterationsSlider.setSingleStep(1)
+
+        self.runIterationsLayout.addWidget(self.runIterationsSlider)
+        self.runIterationsEdit = QLineEdit('')
+        self.runIterationsLayout.addWidget(self.runIterationsEdit)
+        self.runIterationsSlider.setValue(8)
         self.runTabLayout.addLayout(self.runIterationsLayout)
 
         self.runDelayLayout = QHBoxLayout()
@@ -136,6 +141,17 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         self.runResultEdit = QLineEdit('')
         self.runResultLayout.addWidget(self.runResultEdit)
         self.runTabLayout.addLayout(self.runResultLayout)
+
+    def updateIterations(self):
+        try:
+            val = self.runIterationsSlider.value()
+            text = {}
+            for i in range(1,8):
+                text[i] = str(2**i)
+            text[8] = 'Continuous'
+            self.runIterationsEdit.setText(text[val])
+        except AttributeError:
+            return
 
     def update_algorithm_display(self):
         ''' Updates the algorithm box with the methods available to the currently selected control. '''
@@ -177,14 +193,16 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
     def run_experiment(self, stopped):
         control = self.parent.treeWidget.get_selected_control()
         experiment = getattr(control, self.cost_box.currentText())
-        iterations = int(self.runIterationsComboBox.currentText())
+        iterations = self.runIterationsEdit.text()
+        if iterations != 'Continuous':
+            iterations = int(iterations)
         delay = float(self.runDelayEdit.text())
         # operation = self.runProcessingComboBox.currentText()
         count = 0
         cost_params = self.run_cost_params_edit.toPlainText().replace('\n','').replace("'", '"')
         cost_params = json.loads(cost_params)
-        cost_params['cycles per sample'] = int(self.cycles_per_sample_edit.currentText())
-        while not stopped() and count < iterations:
+        cost_params['cycles per sample'] = int(self.cycles_per_sample_edit.text())
+        while not stopped():
             state = control.state
             result = experiment(state, params=cost_params)
             # if type(result) is np.ndarray:
@@ -193,6 +211,9 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
             qApp.processEvents(QEventLoop.ExcludeUserInputEvents)
             count += 1
             time.sleep(delay/1000)
+            if type(iterations) is int:
+                if count >= iterations:
+                    break
 
     def start_experiment(self):
         self._run_thread(self.run_experiment)
@@ -212,7 +233,7 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
 
         cost_params = self.cost_params_edit.toPlainText().replace('\n','').replace("'", '"')
         cost_params = json.loads(cost_params)
-        cost_params['cycles per sample'] = int(self.cycles_per_sample_edit.currentText())
+        cost_params['cycles per sample'] = int(self.cycles_per_sample_edit.text())
 
         cost_name = self.cost_box.currentText()
         cost = getattr(control, cost_name)
