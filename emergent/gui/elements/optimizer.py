@@ -150,17 +150,17 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         # self._run_thread(self.start_optimizer, stoppable=False)
         self.start_optimizer()
 
-    def postprocess(self, data, method):
-        if method == 'mean':
-            return np.mean(data)
-        if method == 'stdev':
-            return np.std(data)
-        if method == 'slope':
-            axis = np.linspace(0,1,len(data))
-            slope, intercept, r, p, err = linregress(axis, data)
-            return slope
-        if method == 'peak-to-peak':
-            return np.ptp(data)
+    # def postprocess(self, data, method):
+    #     if method == 'mean':
+    #         return np.mean(data)
+    #     if method == 'stdev':
+    #         return np.std(data)
+    #     if method == 'slope':
+    #         axis = np.linspace(0,1,len(data))
+    #         slope, intercept, r, p, err = linregress(axis, data)
+    #         return slope
+    #     if method == 'peak-to-peak':
+    #         return np.ptp(data)
 
     def run_experiment(self, stopped):
         control = self.parent.treeWidget.get_selected_control()
