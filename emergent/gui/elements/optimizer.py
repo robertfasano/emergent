@@ -21,6 +21,8 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         self.addWidget(self.cost_box)
 
         self.tabWidget = QTabWidget()
+        self.current_algorithm = None
+        self.current_control = None
 
         ''' Create optimizer tab '''
         self.optimizeTab = QWidget()
@@ -63,7 +65,6 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         plotLayout.addWidget(self.save_label)
         plotLayout.addWidget(self.save_checkbox)
         self.optimizeTabLayout.addLayout(plotLayout)
-
         self.parent.treeWidget.itemSelectionChanged.connect(self.update_algorithm_display)
         self.algorithm_box.currentTextChanged.connect(self.update_algorithm)
         self.cost_box.currentTextChanged.connect(self.update_experiment)
@@ -157,6 +158,10 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         ''' Updates the algorithm box with the methods available to the currently selected control. '''
         tree = self.parent.treeWidget
         control = tree.currentItem().root
+        if control == self.current_control:
+            return
+        else:
+            self.current_control = control
         self.algorithm_box.clear()
         for item in control.optimizer.list_algorithms():
             self.algorithm_box.addItem(item.replace('_',' '))
@@ -246,6 +251,11 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
             log.info('Optimization complete!')
 
     def update_algorithm(self):
+        algo = self.algorithm_box.currentText()
+        if algo == self.current_algorithm or algo is '':
+            return
+        else:
+            self.current_algorithm = algo
         if self.algorithm_box.currentText() is not '':
             f = getattr(Optimizer, self.algorithm_box.currentText().replace(' ','_'))
             ''' Read default params dict from source code and insert in self.params_edit. '''
