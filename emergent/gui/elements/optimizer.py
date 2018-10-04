@@ -32,8 +32,21 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         self.algorithm_box = QComboBox()
         self.optimizeTabLayout.addWidget(self.algorithm_box)
 
+        self.paramsLayout = QHBoxLayout()
+
+        self.optimizerParamsLayout = QVBoxLayout()
         self.params_edit = QTextEdit('')
-        self.optimizeTabLayout.addWidget(self.params_edit)
+        self.optimizerParamsLayout.addWidget(QLabel('Algorithm parameters'))
+        self.optimizerParamsLayout.addWidget(self.params_edit)
+        self.paramsLayout.addLayout(self.optimizerParamsLayout)
+
+        self.experimentParamsLayout = QVBoxLayout()
+        self.cost_params_edit = QTextEdit('')
+        self.experimentParamsLayout.addWidget(QLabel('Experiment parameters'))
+        self.experimentParamsLayout.addWidget(self.cost_params_edit)
+        self.paramsLayout.addLayout(self.experimentParamsLayout)
+
+        self.optimizeTabLayout.addLayout(self.paramsLayout)
 
         ''' Plot options buttons '''
         plotLayout = QHBoxLayout()
@@ -49,6 +62,7 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
 
         self.parent.treeWidget.itemSelectionChanged.connect(self.update_algorithm_display)
         self.algorithm_box.currentTextChanged.connect(self.update_algorithm)
+        self.cost_box.currentTextChanged.connect(self.update_experiment)
 
         self.optimizeProcessingLayout = QHBoxLayout()
         self.optimizeProcessingLayout.addWidget(QLabel('Operation (n/c)'))
@@ -180,12 +194,16 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         params['plot']=self.plot_checkbox.isChecked()
         params['save']=self.save_checkbox.isChecked()
 
+        cost_params = self.cost_params_edit.toPlainText().replace('\n','').replace("'", '"')
+        cost_params = json.loads(cost_params)
+
+
         cost = getattr(control, self.cost_box.currentText())
         state = self.parent.treeWidget.get_selected_state()
         if state == {}:
             log.warn('Please select at least one Input node for optimization.')
         else:
-            func(state, cost, params, self.update_progress_bar)
+            func(state, cost, params, cost_params, self.update_progress_bar)
             log.info('Optimization complete!')
 
     def update_algorithm(self):
@@ -207,3 +225,23 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
                         default = default.replace(',', ',\n')
                         default = default.replace('}', '\n}')
                         self.params_edit.setText(default)
+
+    def update_experiment(self):
+        ''' Read default params dict from source code and insert it in self.cost_params_edit. '''
+        if self.cost_box.currentText() is not '':
+            control = self.parent.treeWidget.get_selected_control()
+            f = getattr(control, self.cost_box.currentText())
+            args = inspect.signature(f).parameters
+            args = list(args.items())
+            for a in args:
+                name = a[0]
+                if name == 'params':
+                    default = str(a[1])
+                    if default == name:
+                        default = 'Enter'
+                    else:
+                        default = default.split('=')[1]
+                        default = default.replace('{', '{\n')
+                        default = default.replace(',', ',\n')
+                        default = default.replace('}', '\n}')
+                        self.cost_params_edit.setText(default)
