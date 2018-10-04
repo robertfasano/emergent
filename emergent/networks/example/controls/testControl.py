@@ -6,11 +6,12 @@ class TestControl(Control):
         def __init__(self, name, parent=None, path = '.'):
                 super().__init__(name, parent, path=path)
 
-        def cost_coupled(self, state):
+        def cost_coupled(self, state, params={}):
             return self.cost_uncoupled(state, theta=30*np.pi/180)
 
         @experiment
-        def cost_uncoupled(self, state, theta=0):
+        def cost_uncoupled(self, state, params = {'theta':0}):
+            theta = params['theta']
             self.actuate(state)
             try:
                 x=self.state['deviceA']['X']*np.cos(theta) - self.state['deviceA']['Y']*np.sin(theta)
