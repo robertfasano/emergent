@@ -92,7 +92,15 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         self.runTab.setLayout(self.runTabLayout)
         self.tabWidget.addTab(self.runTab, 'Run')
 
+
+
         self.runIterationsLayout = QHBoxLayout()
+        self.run_experimentParamsLayout = QVBoxLayout()
+        self.run_cost_params_edit = QTextEdit('')
+        self.run_experimentParamsLayout.addWidget(QLabel('Experiment parameters'))
+        self.run_experimentParamsLayout.addWidget(self.run_cost_params_edit)
+        self.runTabLayout.addLayout(self.run_experimentParamsLayout)
+
         self.runIterationsLayout.addWidget(QLabel('Iterations'))
         self.runIterationsComboBox = QComboBox()
         for power in range(8):
@@ -173,9 +181,12 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         delay = float(self.runDelayEdit.text())
         # operation = self.runProcessingComboBox.currentText()
         count = 0
+        cost_params = self.run_cost_params_edit.toPlainText().replace('\n','').replace("'", '"')
+        cost_params = json.loads(cost_params)
+        cost_params['cycles per sample'] = int(self.cycles_per_sample_edit.currentText())
         while not stopped() and count < iterations:
             state = control.state
-            result = experiment(state)
+            result = experiment(state, params=cost_params)
             # if type(result) is np.ndarray:
                 # result = self.postprocess(result, operation)
             self.runResultEdit.setText(str(result))
@@ -255,3 +266,4 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
                         default = default.replace(',', ',\n')
                         default = default.replace('}', '\n}')
                         self.cost_params_edit.setText(default)
+                        self.run_cost_params_edit.setText(default)
