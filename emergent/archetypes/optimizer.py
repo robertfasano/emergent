@@ -223,7 +223,7 @@ class Optimizer():
 
         return points, cost
 
-    def grid_sampling(self, state, cost, cost_params, points, evaluations_per_point, update=None, args=None, norm = True):
+    def grid_sampling(self, state, cost, cost_params, points, update=None, args=None, norm = True):
         ''' Performs a uniformly-spaced sampling of the cost function in the
             space spanned by the passed-in state dict. '''
         arr, bounds = self.initialize_optimizer(state)
@@ -238,11 +238,8 @@ class Optimizer():
         ''' Actuate search '''
         costs = []
         for point in points:
-            acquisitions = []
-            for i in range(evaluations_per_point):
-                c = self.cost_from_array(point, state, cost, cost_params)
-                acquisitions.append(c)
-            costs.append(np.mean(acquisitions))
+            c = self.cost_from_array(point, state, cost, cost_params)
+            costs.append(c)
             if update is not None:
                 update(len(costs)/len(points))
 
@@ -285,11 +282,11 @@ class Optimizer():
 
     ''' Optimization routines '''
     @algorithm
-    def grid_search(self, state, cost, params={'steps':10, 'evaluations_per_point':1}, cost_params = {}, update=None):
+    def grid_search(self, state, cost, params={'steps':10}, cost_params = {}, update=None):
         ''' An N-dimensional grid search (brute force) optimizer. '''
         arr, bounds = self.initialize_optimizer(state)
         ''' Generate search grid '''
-        points, costs = self.grid_sampling(state, cost, cost_params, params['steps'], params['evaluations_per_point'], update=update)
+        points, costs = self.grid_sampling(state, cost, cost_params, params['steps'], update=update)
 
         ''' Plot result if desired '''
         ax = None
