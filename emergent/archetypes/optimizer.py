@@ -71,13 +71,13 @@ class Optimizer():
                 i += 1
         return state
 
-    def cost_from_array(self, arr, d, cost):
+    def cost_from_array(self, arr, d, cost, cost_params):
         ''' Converts the array back to the form of d (e.g. sequence or state),
             unnormalizes it, and returns cost evaluated on the result. '''
         target = self.array2dict(arr, d)
         target = self.unnormalize(target)
 
-        c = cost(target)
+        c = cost(target, cost_params)
 
         ''' Update history '''
         t = time.time()
@@ -213,17 +213,17 @@ class Optimizer():
 
 
     ''' Sampling methods '''
-    def sample(self, state, cost, method='random_sampling', points = 1, bounds = None):
+    def sample(self, state, cost, cost_params, method='random_sampling', points = 1, bounds = None):
         ''' Returns a list of points sampled with the specified method, as well as
             the cost function evaluated at these points. '''
         if bounds is None:
             bounds = np.array(list(itertools.repeat([0,1], len(state.keys()))))
         func = getattr(self, method)
-        points, cost = func(state, cost, points, bounds)
+        points, cost = func(state, cost, cost_params, points, bounds)
 
         return points, cost
 
-    def grid_sampling(self, state, cost, points, evaluations_per_point, update=None, args=None, norm = True):
+    def grid_sampling(self, state, cost, cost_params, points, evaluations_per_point, update=None, args=None, norm = True):
         ''' Performs a uniformly-spaced sampling of the cost function in the
             space spanned by the passed-in state dict. '''
         arr, bounds = self.initialize_optimizer(state)
@@ -240,7 +240,7 @@ class Optimizer():
         for point in points:
             acquisitions = []
             for i in range(evaluations_per_point):
-                c = self.cost_from_array(point, state, cost)
+                c = self.cost_from_array(point, state, cost, cost_params)
                 acquisitions.append(c)
             costs.append(np.mean(acquisitions))
             if update is not None:
@@ -251,7 +251,7 @@ class Optimizer():
 
         return points, costs
 
-    def random_sampling(self,state, cost, points, bounds):
+    def random_sampling(self,state, cost, cost_params, points, bounds):
         ''' Performs a random sampling of the cost function at N points within
             the specified bounds. '''
         dof = sum(len(state[x]) for x in state)
@@ -261,7 +261,7 @@ class Optimizer():
             # target = self.array2dict(point, state)
             # costs.append(cost(self.unnormalize(target)))
             print(point)
-            c = self.cost_from_array(point, state, cost)
+            c = self.cost_from_array(point, state, cost, cost_params)
             costs.append(c)
 
         return points, costs
@@ -285,11 +285,11 @@ class Optimizer():
 
     ''' Optimization routines '''
     @algorithm
-    def grid_search(self, state, cost, params={'steps':10, 'evaluations_per_point':1}, update=None):
+    def grid_search(self, state, cost, params={'steps':10, 'evaluations_per_point':1}, cost_params = {}, update=None):
         ''' An N-dimensional grid search (brute force) optimizer. '''
         arr, bounds = self.initialize_optimizer(state)
         ''' Generate search grid '''
-        points, costs = self.grid_sampling(state, cost, params['steps'], params['evaluations_per_point'], update=update)
+        points, costs = self.grid_sampling(state, cost, cost_params, params['steps'], params['evaluations_per_point'], update=update)
 
         ''' Plot result if desired '''
         ax = None
@@ -337,13 +337,13 @@ class Optimizer():
         return b*mu-(1-b)*sigma
 
     @algorithm
-    def gaussian_process(self, state, cost, params={'batch_size':10,'presampled': 15, 'iterations':10, 'greed': 1},update=None):
+    def gaussian_process(self, state, cost, params={'batch_size':10,'presampled': 15, 'iterations':10, 'greed': 1}, cost_params = {}, update=None):
         ''' Online Gaussian process regression. Batch sampling is done with
             points with varying trade-off of optimization vs. exploration. '''
         X, bounds = self.initialize_optimizer(state)
-        c = np.array([self.cost_from_array(X, state,cost)])
+        c = np.array([self.cost_from_array(X, state,cost, cost_params)])
         b = params['greed']
-        points, costs = self.sample(state, cost, 'random_sampling', params['presampled'])
+        points, costs = self.sample(state, cost, cost_params, 'random_sampling', params['presampled'])
         X = np.append(np.atleast_2d(X), points, axis=0)
         c = np.append(c, costs)
         kernel = C(1.0, (1e-3, 1e3)) * RBF(10, (1e-2, 1e2))
@@ -355,7 +355,7 @@ class Optimizer():
                 X_new = self.gp_next_sample(X, bounds, b, self.gp_effective_cost, self.gp, restarts=10)
                 X_new = np.atleast_2d(X_new)
                 X = np.append(X, X_new, axis=0)
-                c = np.append(c, self.cost_from_array(X[-1], state, cost))
+                c = np.append(c, self.cost_from_array(X[-1], state, cost, cost_params))
                 if update is not None:
                     update((j+i*params['batch_size'])/params['batch_size']/params['iterations'])
         best_point = self.array2state(X[np.argmin(c)], state)
@@ -367,14 +367,14 @@ class Optimizer():
 
 
     @algorithm
-    def scipy_minimize(self, state, cost, params={'method':'L-BFGS-B', 'tol':1e-7}, update=None):
+    def scipy_minimize(self, state, cost, params={'method':'L-BFGS-B', 'tol':1e-7}, cost_params = {}, update=None):
         ''' Runs a specified scipy minimization method on the target axes and cost. '''
         arr, bounds = self.initialize_optimizer(state)
         keys = list(state.keys())
         res = minimize(fun=self.cost_from_array,
                    x0=arr,
                    bounds=bounds,
-                   args = (state, cost),
+                   args = (state, cost, cost_params),
                    method=params['method'],
                    tol = params['tol'])
         if params['plot']:
@@ -385,12 +385,12 @@ class Optimizer():
         return None, None
 
     @algorithm
-    def simplex(self, state, cost, params={'tol':4e-3}, update=None):
+    def simplex(self, state, cost, params={'tol':4e-3}, cost_params = {}, update=None):
         ''' Nelder-Mead algorithm from scipy.optimize. '''
         X, bounds = self.initialize_optimizer(state)
         res = minimize(fun=self.cost_from_array,
                    x0=X,
-                   args = (state, cost),
+                   args = (state, cost, cost_params),
                    method='Nelder-Mead',
                    tol = params['tol'])
 
@@ -402,13 +402,13 @@ class Optimizer():
         return None, None
 
     @algorithm
-    def differential_evolution(self, state, cost, params={'strategy':'best1bin', 'popsize':15, 'tol':0.01, 'mutation': 1,'recombination':0.7}, update=None):
+    def differential_evolution(self, state, cost, params={'strategy':'best1bin', 'popsize':15, 'tol':0.01, 'mutation': 1,'recombination':0.7}, cost_params = {}, update=None):
         ''' Differential evolution algorithm from scipy.optimize. '''
         X, bounds = self.initialize_optimizer(state)
         keys = list(state.keys())
         res = differential_evolution(func=self.cost_from_array,
                    bounds=bounds,
-                   args = (state, cost),
+                   args = (state, cost, cost_params),
                    strategy=params['strategy'],
                    tol = params['tol'],
                    mutation = params['mutation'],
