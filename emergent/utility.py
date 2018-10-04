@@ -61,7 +61,12 @@ def dev(func):
 
 @decorator.decorator
 def experiment(func, *args, **kwargs):
-    c = func(*args, **kwargs)
+    results = []
+    params = args[2]
+    for i in range(params['cycles per sample']):
+        c = func(*args, **kwargs)
+        results.append(c)
+    c = np.mean(results)
     t = datetime.datetime.now()
     for dev_name in args[0].inputs:
         for input in args[0].inputs[dev_name]:
