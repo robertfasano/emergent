@@ -446,6 +446,36 @@ class Optimizer():
     #
     #     return points, costs
 
+    ''' Control methods '''
+    def PID(self, state, error, params={'proportional_gain':1, 'integral_gain':1, 'derivative_gain':1}, error_params = {}):
+        devices = list(state.keys())
+        assert len(devices) == 1
+        dev = devices[0]
+
+        inputs = list(state[dev].keys())
+        assert len(inputs) == 1
+        input = inputs[0]
+
+        last_error = error(state)
+        last_time = time.time()
+        integral = 0
+
+        while True:
+            e = error(state)
+            t = time.time()
+            print('State:', state, 'Error:', e)
+            delta_t = t - last_time
+            delta_e = e - last_error
+
+            proportional = params['proportional_gain'] * e
+            integral += params['integral_gain'] * e * delta_t
+            derivative = params['derivative_gain'] * delta_e/delta_t
+
+            last_time = t
+            last_error = e
+
+            target = proportional + integral + derivative
+            state[dev][input] -= params['sign']*target  # gets passed into error in the next loop
 
     ''' Visualization methods '''
     def plot_1D(self, points, costs, normalized_cost = False, limits = None,
