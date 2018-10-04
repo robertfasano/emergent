@@ -64,13 +64,13 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         self.algorithm_box.currentTextChanged.connect(self.update_algorithm)
         self.cost_box.currentTextChanged.connect(self.update_experiment)
 
-        self.optimizeProcessingLayout = QHBoxLayout()
-        self.optimizeProcessingLayout.addWidget(QLabel('Operation (n/c)'))
-        self.optimizeProcessingComboBox = QComboBox()
-        for item in ['mean', 'stdev', 'peak-to-peak', 'slope']:
-            self.optimizeProcessingComboBox.addItem(item)
-        self.optimizeProcessingLayout.addWidget(self.optimizeProcessingComboBox)
-        self.optimizeTabLayout.addLayout(self.optimizeProcessingLayout)
+        # self.optimizeProcessingLayout = QHBoxLayout()
+        # self.optimizeProcessingLayout.addWidget(QLabel('Operation (n/c)'))
+        # self.optimizeProcessingComboBox = QComboBox()
+        # for item in ['mean', 'stdev', 'peak-to-peak', 'slope']:
+        #     self.optimizeProcessingComboBox.addItem(item)
+        # self.optimizeProcessingLayout.addWidget(self.optimizeProcessingComboBox)
+        # self.optimizeTabLayout.addLayout(self.optimizeProcessingLayout)
 
         self.optimizer_button = QPushButton('Go!')
         self.optimizer_button.clicked.connect(self.optimize)
@@ -102,13 +102,13 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         self.runDelayLayout.addWidget(self.runDelayEdit)
         self.runTabLayout.addLayout(self.runDelayLayout)
 
-        self.runProcessingLayout = QHBoxLayout()
-        self.runProcessingLayout.addWidget(QLabel('Operation'))
-        self.runProcessingComboBox = QComboBox()
-        for item in ['mean', 'stdev', 'peak-to-peak', 'slope']:
-            self.runProcessingComboBox.addItem(item)
-        self.runProcessingLayout.addWidget(self.runProcessingComboBox)
-        self.runTabLayout.addLayout(self.runProcessingLayout)
+        # self.runProcessingLayout = QHBoxLayout()
+        # self.runProcessingLayout.addWidget(QLabel('Operation'))
+        # self.runProcessingComboBox = QComboBox()
+        # for item in ['mean', 'stdev', 'peak-to-peak', 'slope']:
+        #     self.runProcessingComboBox.addItem(item)
+        # self.runProcessingLayout.addWidget(self.runProcessingComboBox)
+        # self.runTabLayout.addLayout(self.runProcessingLayout)
 
         self.runButtonsLayout = QHBoxLayout()
         self.runExperimentButton = QPushButton('Run')
@@ -167,13 +167,13 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         experiment = getattr(control, self.cost_box.currentText())
         iterations = int(self.runIterationsComboBox.currentText())
         delay = float(self.runDelayEdit.text())
-        operation = self.runProcessingComboBox.currentText()
+        # operation = self.runProcessingComboBox.currentText()
         count = 0
         while not stopped() and count < iterations:
             state = control.state
             result = experiment(state)
-            if type(result) is np.ndarray:
-                result = self.postprocess(result, operation)
+            # if type(result) is np.ndarray:
+                # result = self.postprocess(result, operation)
             self.runResultEdit.setText(str(result))
             qApp.processEvents(QEventLoop.ExcludeUserInputEvents)
             count += 1
