@@ -231,7 +231,10 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
     def update_experiment(self):
         ''' Read default params dict from source code and insert it in self.cost_params_edit. '''
         if self.cost_box.currentText() is not '':
-            control = self.parent.treeWidget.get_selected_control()
+            try:
+                control = self.parent.treeWidget.get_selected_control()
+            except IndexError:
+                return
             f = getattr(control, self.cost_box.currentText())
             args = inspect.signature(f).parameters
             args = list(args.items())
