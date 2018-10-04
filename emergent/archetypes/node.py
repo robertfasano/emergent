@@ -229,7 +229,9 @@ class Device(Node):
 
         self.create_signal.emit(self.parent, self, name)
         if self.loaded:
-            self.actuate({name:self.parent.state[self.name][name]})
+            # self.actuate({name:self.parent.state[self.name][name]})
+            log.warn('Inputs changed but not actuated; physical state not synched with virtual state. Run parent.actuate(parent.state) to resolve, where parent is the name of the parent control node.')
+
     def remove_input(self, name):
         ''' Detaches the Input node with the specified name. '''
         self.remove_signal.emit(self.parent, self, name)
