@@ -57,7 +57,7 @@ class NodeTree(QTreeWidget):
             if item.node.node_type == 'device':
                 self.toggle_inputs(item)
 
-        self.setColumnWidth(0,175)
+        self.setColumnWidth(0,200)
         for i in [1,2,3]:
             self.setColumnWidth(i,50)
 
