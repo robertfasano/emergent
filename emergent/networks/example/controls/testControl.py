@@ -2,6 +2,8 @@ import numpy as np
 from emergent.archetypes.node import Control
 from utility import experiment
 import datetime
+import time
+
 class TestControl(Control):
         def __init__(self, name, parent=None, path = '.'):
                 super().__init__(name, parent, path=path)
@@ -38,6 +40,21 @@ class TestControl(Control):
                 t = s[i][0]
                 result -= 1/(1+(1-x*t)**2)
             return result
+
+        def error(self, state):
+            self.actuate(state)
+            dev = list(state.keys())[0]
+            input = list(state[dev].keys())[0]
+            e = self.state[dev][input] - (time.time()-self.start_time)
+            e = -e
+            print('Setpoint:',time.time()-self.start_time)
+            time.sleep(1)
+            return(e)
+
+        def demo_PID(self, Kp=.01, Ki=0, Kd=0, sign = -1):
+            self.start_time = time.time()
+            state = {'deviceA':{'X':0}}
+            self.optimizer.PID(state, self.error, params={'proportional_gain':Kp, 'integral_gain':Ki, 'derivative_gain':Kd, 'sign':sign}, error_params = {})
 
         def optimize_sequence(self):
             self.clock.prepare_constant(1, 'deviceA.X', 15)
