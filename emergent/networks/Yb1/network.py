@@ -1,5 +1,5 @@
 from emergent.networks.Yb1.controls.lattice import Lattice
-from emergent.networks.Yb1.controls.waveform import LinearRamp
+from emergent.networks.Yb1.controls.waveform import Ramp
 
 from emergent.devices.labjackT7 import LabJack
 
@@ -11,7 +11,5 @@ lattice.ljIN = LabJack(devid='470016973', name='labjack')
 lattice.ljIN.prepare_streamburst(channel=0, trigger = 0, max_samples = lattice.max_samples)
 
 lattice.ljOUT = LabJack(devid='470016970', name='labjack')
-lattice.ljOUT.prepare_stream_out(['DAC0'], trigger = 0)
 
-intensity_ramp = LinearRamp('intensity_ramp', .03, lattice.ljOUT, parent=lattice, trigger = 0)
-lattice.ljOUT.add_input('DAC1')
+ramp = Ramp('ramp', .03, lattice.ljOUT, type={0:'linear', 1:'linear'}, steps=100, parent=lattice, trigger = 0)
