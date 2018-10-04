@@ -10,18 +10,23 @@ class Ramp(Device):
         self.labjack = labjack
         self.steps = steps
         self.type = type
+        self.all_inputs = {'constant':['Constant V0'], 'linear': ['Linear V0', 'Linear Vf'], 'exponential':['Exponential V0', 'Exponential tau']}
         for ch in self.type:
-            if self.type[ch] is 'constant':
-                self.add_input('DAC%i: Constant V0'%ch)
-            if self.type[ch] is 'linear':
-                self.add_input('DAC%i: Linear V0'%ch)
-                self.add_input('DAC%i: Linear Vf'%ch)
-            elif self.type[ch] is 'exponential':
-                self.add_input('DAC%i: Exponential V0'%ch)
-                self.add_input('DAC%i: Exponential tau'%ch)
+            self.add_ramp_type_inputs(ch)
         channels = ['DAC%i'%i for i in self.type]
         self.labjack.prepare_stream_out(trigger=trigger)
         self.initialized = 0
+
+    def add_ramp_type_inputs(self, ch):
+        inputs = self.all_inputs[self.type[ch]]
+        for input in inputs:
+            self.add_input('DAC%i: %s'%(ch, input))
+
+    def delete_ramp_type_inputs(self, ch):
+        current_inputs = list(self.children.keys())
+        for input in current_inputs:
+            if 'DAC%i'%ch in input:
+                self.remove_input(input)
 
     def _actuate(self, state):
         state = self.get_missing_keys(state, None)
@@ -43,3 +48,12 @@ class Ramp(Device):
 
     def _connect(self):
         return self.labjack._connected
+
+    def switch_type(self, ch, new_type):
+        if self.type is new_type:
+            return
+        self.delete_ramp_type_inputs(ch)
+        self.type[ch] = new_type
+        self.add_ramp_type_inputs(ch)
+        self.parent.actuate(self.parent.state)
+        log.warn('State sync conflict resolved.')
