@@ -48,8 +48,12 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
 
         self.optimizeTabLayout.addLayout(self.paramsLayout)
 
-        ''' Plot options buttons '''
+        ''' Optimization and plotting options '''
         plotLayout = QHBoxLayout()
+        self.cycles_per_sample_edit = QLineEdit('1')
+        self.cycles_per_sample_edit.setMaximumWidth(100)
+        plotLayout.addWidget(QLabel('Cycles per sample'))
+        plotLayout.addWidget(self.cycles_per_sample_edit)
         self.plot_label = QLabel('Plot result')
         self.plot_checkbox = QCheckBox()
         plotLayout.addWidget(self.plot_label)
@@ -197,6 +201,7 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
 
         cost_params = self.cost_params_edit.toPlainText().replace('\n','').replace("'", '"')
         cost_params = json.loads(cost_params)
+        cost_params['cycles per sample'] = int(self.cycles_per_sample_edit.currentText())
 
         cost_name = self.cost_box.currentText()
         cost = getattr(control, cost_name)
