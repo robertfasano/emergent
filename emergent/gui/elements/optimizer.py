@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import (QComboBox, QLabel, QTextEdit, QPushButton, QVBoxLay
 from PyQt5.QtCore import *
 from emergent.archetypes.optimizer import Optimizer
 from emergent.archetypes.parallel import ProcessHandler
+from emergent.utility import list_algorithms
 import inspect
 import json
 import logging as log
@@ -163,7 +164,7 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         else:
             self.current_control = control
         self.algorithm_box.clear()
-        for item in control.optimizer.list_algorithms():
+        for item in list_algorithms():
             self.algorithm_box.addItem(item.replace('_',' '))
         self.cost_box.clear()
         for item in control.list_costs():
@@ -229,8 +230,15 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
     def start_optimizer(self):
         ''' Call chosen optimization routine with user-selected cost function and parameters '''
         algorithm_name = self.algorithm_box.currentText()
-        control = self.parent.treeWidget.get_selected_control()
-        func = getattr(control.optimizer, algorithm_name.replace(' ','_'))
+        try:
+            control = self.parent.treeWidget.get_selected_control()
+        except IndexError:
+            log.warn('Select inputs before starting optimization!')
+            return
+        state = self.parent.treeWidget.get_selected_state()
+
+        optimizer, index = control.attach_optimizer(state)
+        func = getattr(optimizer, algorithm_name.replace(' ','_'))
         params = self.params_edit.toPlainText().replace('\n','').replace("'", '"')
         params = json.loads(params)
         params['plot']=self.plot_checkbox.isChecked()
@@ -242,13 +250,18 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
 
         cost_name = self.cost_box.currentText()
         cost = getattr(control, cost_name)
-        state = self.parent.treeWidget.get_selected_state()
         if state == {}:
             log.warn('Please select at least one Input node for optimization.')
         else:
             log.info('Started optimization of %s experiment using %s algorithm.'%(cost_name, algorithm_name))
             func(state, cost, params, cost_params, self.update_progress_bar)
             log.info('Optimization complete!')
+            del control.optimizers[index]
+
+    def stop_optimizer(self):
+        control = self.parent.treeWidget.get_selected_control()
+        for d in control.optimizers.values():
+            d['optimizer'].terminate()
 
     def update_algorithm(self):
         algo = self.algorithm_box.currentText()
