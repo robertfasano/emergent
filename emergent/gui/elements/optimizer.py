@@ -57,6 +57,11 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         self.cycles_per_sample_edit.setMaximumWidth(100)
         plotLayout.addWidget(QLabel('Cycles per sample'))
         plotLayout.addWidget(self.cycles_per_sample_edit)
+        self.thread_label = QLabel('Run in parallel')
+        self.thread_checkbox = QCheckBox()
+        self.thread_checkbox.stateChanged.connect(self.disable_plotting)
+        plotLayout.addWidget(self.thread_label)
+        plotLayout.addWidget(self.thread_checkbox)
         self.plot_label = QLabel('Plot result')
         self.plot_checkbox = QCheckBox()
         plotLayout.addWidget(self.plot_label)
@@ -78,11 +83,16 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         # self.optimizeProcessingLayout.addWidget(self.optimizeProcessingComboBox)
         # self.optimizeTabLayout.addLayout(self.optimizeProcessingLayout)
 
+        self.optimizeButtonsLayout = QHBoxLayout()
         self.optimizer_button = QPushButton('Go!')
         self.optimizer_button.clicked.connect(self.optimize)
-        self.optimizeTabLayout.addWidget(self.optimizer_button)
-
+        self.optimizeButtonsLayout.addWidget(self.optimizer_button)
+        self.optimizer_stop_button = QPushButton('Cancel')
+        self.optimizer_stop_button.clicked.connect(self.stop_optimizer)
+        self.optimizeButtonsLayout.addWidget(self.optimizer_stop_button)
+        self.optimizeTabLayout.addLayout(self.optimizeButtonsLayout)
         self.progress_bar = QProgressBar()
+        self.progress_bar.setTextVisible(False)
         self.max_progress = 100
         self.progress_bar.setMaximum(self.max_progress)
         self.optimizeTabLayout.addWidget(self.progress_bar)
@@ -144,6 +154,16 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         self.runResultLayout.addWidget(self.runResultEdit)
         self.runTabLayout.addLayout(self.runResultLayout)
 
+    def disable_plotting(self, state):
+        if state:
+            for box in [self.plot_checkbox, self.save_checkbox]:
+                box.setChecked(0)
+                box.setEnabled(False)
+
+        else:
+            for box in [self.plot_checkbox, self.save_checkbox]:
+                box.setEnabled(True)
+
     def updateIterations(self):
         try:
             val = self.runIterationsSlider.value()
@@ -176,13 +196,11 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         #self.parent.app.processEvents()
         qApp.processEvents(QEventLoop.ExcludeUserInputEvents)
 
-    def hyperparameter(self):
-        control = self.parent.treeWidget.controls['control']
-        control.optimizer.grid_optimize(control.state, control.cost_coupled)
-
     def optimize(self):
-        # self._run_thread(self.start_optimizer, stoppable=False)
-        self.start_optimizer()
+        if self.thread_checkbox.isChecked():
+            self._run_thread(self.start_optimizer, stoppable=False)
+        else:
+            self.start_optimizer()
 
     # def postprocess(self, data, method):
     #     if method == 'mean':
