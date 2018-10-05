@@ -21,7 +21,9 @@ class LatticeLock(Control):
 
     def acquire_cavity_lock(self, span = 0.05, step = .001, sweeps = 5):
         ''' Tune to magic '''
-        points, costs = self.optimizer.grid_search({'PZT':self.state['PZT']}, self.detuning_cost, params={'steps':20})
+        state = {'PZT':self.state['PZT']}
+        optimizer, index = self.attach_optimizer(state)
+        points, costs = optimizer.grid_search(state, self.detuning_cost, params={'steps':20})
 
         ''' Execute triangle-wave search'''
         #
@@ -33,8 +35,9 @@ class LatticeLock(Control):
     def acquire_etalon_lock(self):
         self.etalon.lock('off')
         self.PZT.lock('off')
-
-        points, costs = self.optimizer.grid_search({'SolsTiS':self.state['SolsTiS']}, self.detuning_cost, params={'steps':20})
+        state = {'SolsTiS':self.state['SolsTiS']}
+        optimizer, index = self.attach_optimizer(state)
+        points, costs = optimizer.grid_search(state, self.detuning_cost, params={'steps':20})
         self.etalon_lock('on')
 
         ''' Make sure that frequency doesn't jump away from lock point '''
