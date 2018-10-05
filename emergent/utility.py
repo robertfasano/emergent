@@ -45,6 +45,11 @@ def getChar():
 
     return getChar._func()
 
+def list_algorithms():
+    ''' Returns a list of all methods tagged with the '@algorithm' decorator '''
+    from emergent.archetypes.optimizer import Optimizer
+    return methodsWithDecorator(Optimizer, 'algorithm')
+
 def methodsWithDecorator(cls, decoratorName):
     methods = []
     sourcelines = inspect.getsourcelines(cls)[0]
