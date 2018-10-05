@@ -87,7 +87,6 @@ class Optimizer():
         target = self.unnormalize(target)
 
         c = cost(target, cost_params)
-
         ''' Update history '''
         t = time.time()
         type = self.sequence_or_state(target)
@@ -257,16 +256,19 @@ class Optimizer():
 
         return points, costs
 
-    def random_sampling(self,state, cost, cost_params, points, bounds):
+    def random_sampling(self,state, cost, cost_params, points, bounds, callback = None):
         ''' Performs a random sampling of the cost function at N points within
             the specified bounds. '''
+        if callback is None:
+            callback = self.callback
         dof = sum(len(state[x]) for x in state)
         points = np.random.uniform(size=(points,dof))
         costs = []
         for point in points:
+            if not callback():
+                return points[0:len(costs)], costs
             # target = self.array2dict(point, state)
             # costs.append(cost(self.unnormalize(target)))
-            print(point)
             c = self.cost_from_array(point, state, cost, cost_params)
             costs.append(c)
 
@@ -344,9 +346,11 @@ class Optimizer():
         return b*mu-(1-b)*sigma
 
     @algorithm
-    def gaussian_process(self, state, cost, params={'batch_size':10,'presampled': 15, 'iterations':10, 'greed': 1}, cost_params = {}, update=None):
+    def gaussian_process(self, state, cost, params={'batch_size':10,'presampled': 15, 'iterations':10, 'greed': 1}, cost_params = {}, update=None, callback = None):
         ''' Online Gaussian process regression. Batch sampling is done with
             points with varying trade-off of optimization vs. exploration. '''
+        if callback is None:
+            callback = self.callback
         X, bounds = self.initialize_optimizer(state)
         c = np.array([self.cost_from_array(X, state,cost, cost_params)])
         b = params['greed']
@@ -356,6 +360,8 @@ class Optimizer():
         kernel = C(1.0, (1e-3, 1e3)) * RBF(10, (1e-2, 1e2))
         self.gp = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=10)
         for i in range(params['iterations']):
+            if not callback():
+                return points[0:len(costs)], costs
             self.gp.fit(X,c)
             for j in range(params['batch_size']):
                 # b = j / (params['batch_size']-1)
@@ -457,7 +463,9 @@ class Optimizer():
     #     return points, costs
 
     ''' Control methods '''
-    def PID(self, state, error, params={'proportional_gain':1, 'integral_gain':1, 'derivative_gain':1}, error_params = {}):
+    def PID(self, state, error, params={'proportional_gain':1, 'integral_gain':1, 'derivative_gain':1}, error_params = {}, callback = None):
+        if callback is None:
+            callback = self.callback
         devices = list(state.keys())
         assert len(devices) == 1
         dev = devices[0]
@@ -470,7 +478,7 @@ class Optimizer():
         last_time = time.time()
         integral = 0
 
-        while True:
+        while callback():
             e = error(state)
             t = time.time()
             print('State:', state, 'Error:', e)
