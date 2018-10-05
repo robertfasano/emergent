@@ -4,6 +4,8 @@
 ''' TODO: store position indices for each device, actuate functions should be threaded,
     pca/dimensionality reduction/covariance/clustering, image convolution, drift record analysis
 '''
+import threading
+import logging as log
 import numpy as np
 import itertools
 import sys
@@ -36,6 +38,13 @@ class Optimizer():
         ''' Initialize the optimizer and link to the parent Control node. '''
         self.parent = control_node
         self.actuate = self.parent.actuate
+        self.active = True        # a boolean allowing early termination through the callback method
+
+    def callback(self):
+        return self.active
+
+    def terminate(self):
+        self.active = False
 
     ''' State conversion functions '''
     def array2dict(self, arr, initial):
@@ -223,9 +232,11 @@ class Optimizer():
 
         return points, cost
 
-    def grid_sampling(self, state, cost, cost_params, points, update=None, args=None, norm = True):
+    def grid_sampling(self, state, cost, cost_params, points, update=None, args=None, norm = True, callback = None):
         ''' Performs a uniformly-spaced sampling of the cost function in the
             space spanned by the passed-in state dict. '''
+        if callback is None:
+            callback = self.callback
         arr, bounds = self.initialize_optimizer(state)
         N = len(arr)
         grid = []
@@ -236,15 +247,17 @@ class Optimizer():
         points = np.transpose(np.meshgrid(*[grid[n] for n in range(N)])).reshape(-1,N)
 
         ''' Actuate search '''
-        costs = []
+        costs = np.array([])
         for point in points:
+            if not callback():
+                return points[0:len(costs)], costs
             c = self.cost_from_array(point, state, cost, cost_params)
-            costs.append(c)
-            if update is not None:
+            costs = np.append(costs, c)
+            if update is not None and threading.current_thread() is threading.main_thread():
                 update(len(costs)/len(points))
 
-        points = np.array(points)
-        costs = np.array(costs)
+        # points = np.array(points)
+        # costs = np.array(costs)
 
         return points, costs
 
@@ -288,20 +301,21 @@ class Optimizer():
         ''' Generate search grid '''
         points, costs = self.grid_sampling(state, cost, cost_params, params['steps'], update=update)
 
-        ''' Plot result if desired '''
-        ax = None
-        if params['plot']:
-            limits = {}
-            for dev in state:
-                for name in state[dev]:
-                    full_name = name+'.'+dev
-                    limits[full_name] = {}
-                    limits[full_name]['min'] = self.parent.settings[dev][name]['min']
-                    limits[full_name]['max'] = self.parent.settings[dev][name]['max']
-            if len(arr) is 1:
-                ax = self.plot_1D(points, costs, limits=limits, save=params['save'])
-            if len(arr) is 2:
-                ax = self.plot_2D(points, costs, limits = limits, save=params['save'])
+        ''' Plot result if desired and if optimization terminated successfully '''
+        if self.active:
+            ax = None
+            if params['plot']:
+                limits = {}
+                for dev in state:
+                    for name in state[dev]:
+                        full_name = name+'.'+dev
+                        limits[full_name] = {}
+                        limits[full_name]['min'] = self.parent.settings[dev][name]['min']
+                        limits[full_name]['max'] = self.parent.settings[dev][name]['max']
+                if len(arr) is 1:
+                    ax = self.plot_1D(points, costs, limits=limits, save=params['save'])
+                if len(arr) is 2:
+                    ax = self.plot_2D(points, costs, limits = limits, save=params['save'])
         best_point = self.array2dict(points[np.argmin(costs)], state)
         self.actuate(self.unnormalize(best_point))
 
@@ -353,7 +367,7 @@ class Optimizer():
                 X_new = np.atleast_2d(X_new)
                 X = np.append(X, X_new, axis=0)
                 c = np.append(c, self.cost_from_array(X[-1], state, cost, cost_params))
-                if update is not None:
+                if update is not None and threading.current_thread() is not threading.main_thread():
                     update((j+i*params['batch_size'])/params['batch_size']/params['iterations'])
         best_point = self.array2state(X[np.argmin(c)], state)
         self.actuate(self.unnormalize(best_point))
@@ -480,6 +494,10 @@ class Optimizer():
     ''' Visualization methods '''
     def plot_1D(self, points, costs, normalized_cost = False, limits = None,
                 save = False):
+        if threading.current_thread() is not threading.main_thread():
+            log.warn('Cannot create matplotlib plot in thread.')
+            return
+
         plt.figure()
         points = points.copy()
         ordinate_index = 0
@@ -500,6 +518,9 @@ class Optimizer():
     def plot_2D(self, points, costs, normalized_cost = False, limits = None,
                 save = False, color_map='viridis_r'):
         ''' Interpolates and plots a cost function sampled at an array of points. '''
+        if threading.current_thread() is not threading.main_thread():
+            log.warn('Cannot create matplotlib plot in thread.')
+            return
         plt.figure()
         points = points.copy()
         ordinate_index = 0
