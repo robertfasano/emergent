@@ -397,7 +397,8 @@ class Control(Node):
 
         self.sequencer = Sequencer(self)
         self.historian = Historian(self)
-        self.optimizer = Optimizer(self)
+        # self.optimizer = Optimizer(self)
+        self.optimizers = {}
 
         self.node_type = 'control'
 
@@ -419,6 +420,12 @@ class Control(Node):
             self.actuating = 0
         else:
             log.warn('Actuate blocked by already running actuation.')
+
+    def attach_optimizer(self, state):
+        optimizer = Optimizer(self)
+        index = len(self.optimizers)
+        self.optimizers[index] = {'state':state, 'optimizer':optimizer}
+        return optimizer, index
 
     def get_sequence(self):
         """Populates the self.sequence dict with sequences of all inputs."""
