@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import (QComboBox, QLabel, QTextEdit, QPushButton, QVBoxLay
 from PyQt5.QtCore import *
 from emergent.archetypes.optimizer import Optimizer
 from emergent.archetypes.parallel import ProcessHandler
-from emergent.utility import list_algorithms
+from emergent.utility import list_algorithms, list_triggers
 import inspect
 import json
 import logging as log
@@ -71,7 +71,7 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         plotLayout.addWidget(self.save_label)
         plotLayout.addWidget(self.save_checkbox)
         self.optimizeTabLayout.addLayout(plotLayout)
-        self.parent.treeWidget.itemSelectionChanged.connect(self.update_algorithm_display)
+        self.parent.treeWidget.itemSelectionChanged.connect(self.update_control)
         self.algorithm_box.currentTextChanged.connect(self.update_algorithm)
         self.cost_box.currentTextChanged.connect(self.update_experiment)
 
@@ -129,6 +129,11 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         self.runDelayLayout.addWidget(QLabel('Delay (ms)'))
         self.runDelayEdit = QLineEdit('0')
         self.runDelayLayout.addWidget(self.runDelayEdit)
+
+        self.trigger_box = QComboBox()
+        self.runDelayLayout.addWidget(QLabel('Trigger'))
+        self.runDelayLayout.addWidget(self.trigger_box)
+
         self.runTabLayout.addLayout(self.runDelayLayout)
 
         # self.runProcessingLayout = QHBoxLayout()
@@ -179,10 +184,6 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         ''' Updates the algorithm box with the methods available to the currently selected control. '''
         tree = self.parent.treeWidget
         control = tree.currentItem().root
-        if control == self.current_control:
-            return
-        else:
-            self.current_control = control
         self.algorithm_box.clear()
         for item in list_algorithms():
             self.algorithm_box.addItem(item.replace('_',' '))
@@ -190,6 +191,24 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         for item in control.list_costs():
             self.cost_box.addItem(item)
         self.update_algorithm()
+
+    def update_control(self):
+        control = self.parent.treeWidget.currentItem().root
+        if control == self.current_control:
+            return
+        else:
+            self.current_control = control
+        self.update_trigger()
+        self.update_algorithm_display()
+
+    def update_trigger(self):
+        ''' Updates the trigger box with the methods available to the currently selected control. '''
+        tree = self.parent.treeWidget
+        control = tree.currentItem().root
+        self.trigger_box.clear()
+        self.trigger_box.addItem('None')
+        for item in list_triggers(control):
+            self.trigger_box.addItem(item.replace('_',' '))
 
     def update_progress_bar(self, progress):
         self.progress_bar.setValue(progress*self.max_progress)
@@ -217,6 +236,7 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
     def run_experiment(self, stopped):
         control = self.parent.treeWidget.get_selected_control()
         experiment = getattr(control, self.cost_box.currentText())
+        trigger = getattr(control, self.trigger_box.currentText())
         iterations = self.runIterationsEdit.text()
         if iterations != 'Continuous':
             iterations = int(iterations)
@@ -226,6 +246,8 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         cost_params = self.run_cost_params_edit.toPlainText().replace('\n','').replace("'", '"')
         cost_params = json.loads(cost_params)
         cost_params['cycles per sample'] = int(self.cycles_per_sample_edit.text())
+        if trigger is not None:
+            trigger()
         while not stopped():
             state = control.state
             result = experiment(state, params=cost_params)
