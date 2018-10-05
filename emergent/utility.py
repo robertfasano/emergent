@@ -50,6 +50,10 @@ def list_algorithms():
     from emergent.archetypes.optimizer import Optimizer
     return methodsWithDecorator(Optimizer, 'algorithm')
 
+def list_triggers(control):
+    ''' Returns a list of all methods tagged with the '@trigger' decorator '''
+    return methodsWithDecorator(control.__class__, 'trigger')
+
 def methodsWithDecorator(cls, decoratorName):
     methods = []
     sourcelines = inspect.getsourcelines(cls)[0]
@@ -79,6 +83,12 @@ def experiment(func, *args, **kwargs):
     args[0].update_cost(t, c)
 
     return c
+
+@decorator.decorator
+def trigger(func, *args, **kwargs):
+    ''' Wait until the passed function returns True before proceeding. '''
+    while not func():
+        continue
 
 @decorator.decorator
 def algorithm(func, *args, **kwargs):
