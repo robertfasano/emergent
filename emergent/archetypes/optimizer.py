@@ -175,10 +175,6 @@ class Optimizer():
             bounds = np.array(list(itertools.repeat([0,1], len(state))))
             return state, bounds
 
-    def list_algorithms(self):
-        ''' Returns a list of all methods tagged with the '@algorithm' decorator '''
-        return methodsWithDecorator(Optimizer, 'algorithm')
-
     def normalize(self, unnorm):
         ''' Normalizes a state or substate based on min/max values of the Inputs,
             saved in the parent Control node. '''
