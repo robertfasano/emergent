@@ -5,7 +5,7 @@ char = {'nt': '\\', 'posix': '/'}[os.name]
 sys.path.append(char.join(os.getcwd().split(char)[0:-3]))
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import QCoreApplication
-from emergent.gui.elements.window import MainFrame
+from emergent.gui.elements.MainWindow import MainFrame
 from emergent.archetypes.node import Control
 import numpy as np
 sys.path.append('networks/%s'%sys.argv[1])
