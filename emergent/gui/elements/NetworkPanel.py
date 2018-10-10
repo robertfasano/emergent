@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import (QApplication, QAbstractItemView,QCheckBox, QComboBo
 from PyQt5.QtCore import *
 import json
 from emergent.archetypes.optimizer import Optimizer
-from emergent.gui.elements.optimizer import OptimizerLayout
+from emergent.gui.elements.ExperimentPanel import OptimizerLayout
 from emergent.archetypes.node import Control, Device, Input, ActuateSignal, SettingsSignal
 import functools
 
