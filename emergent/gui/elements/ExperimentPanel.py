@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import (QComboBox, QLabel, QTextEdit, QPushButton, QVBoxLay
         QWidget, QProgressBar, qApp, QHBoxLayout, QCheckBox, QTabWidget, QLineEdit, QSlider)
 from PyQt5.QtCore import *
 from emergent.archetypes.optimizer import Optimizer
+from emergent.gui.elements.OptimizeTab import OptimizeTab
 from emergent.archetypes.parallel import ProcessHandler
 from emergent.utility import list_algorithms, list_triggers
 import inspect
@@ -22,120 +23,44 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         self.addWidget(self.cost_box)
 
         self.tabWidget = QTabWidget()
+        self.addWidget(self.tabWidget)
+
         self.current_algorithm = None
         self.current_control = None
 
-        ''' Create optimizer tab '''
-        self.optimizeTab = QWidget()
-        self.optimizeTabLayout = QVBoxLayout()
-        self.optimizeTab.setLayout(self.optimizeTabLayout)
-        self.tabWidget.addTab(self.optimizeTab, 'Optimize')
-        self.addWidget(self.tabWidget)
-
-        self.algorithm_box = QComboBox()
-        self.optimizeTabLayout.addWidget(self.algorithm_box)
-
-        self.paramsLayout = QHBoxLayout()
-
-        self.optimizerParamsLayout = QVBoxLayout()
-        self.params_edit = QTextEdit('')
-        self.optimizerParamsLayout.addWidget(QLabel('Algorithm parameters'))
-        self.optimizerParamsLayout.addWidget(self.params_edit)
-        self.paramsLayout.addLayout(self.optimizerParamsLayout)
-
-        self.experimentParamsLayout = QVBoxLayout()
-        self.cost_params_edit = QTextEdit('')
-        self.experimentParamsLayout.addWidget(QLabel('Experiment parameters'))
-        self.experimentParamsLayout.addWidget(self.cost_params_edit)
-        self.paramsLayout.addLayout(self.experimentParamsLayout)
-
-        self.optimizeTabLayout.addLayout(self.paramsLayout)
-
-        ''' Optimization and plotting options '''
-        plotLayout = QHBoxLayout()
-        self.cycles_per_sample_edit = QLineEdit('1')
-        self.cycles_per_sample_edit.setMaximumWidth(100)
-        plotLayout.addWidget(QLabel('Cycles per sample'))
-        plotLayout.addWidget(self.cycles_per_sample_edit)
-        self.thread_label = QLabel('Run in parallel')
-        self.thread_checkbox = QCheckBox()
-        self.thread_checkbox.stateChanged.connect(self.disable_plotting)
-        plotLayout.addWidget(self.thread_label)
-        plotLayout.addWidget(self.thread_checkbox)
-        self.plot_label = QLabel('Plot result')
-        self.plot_checkbox = QCheckBox()
-        plotLayout.addWidget(self.plot_label)
-        plotLayout.addWidget(self.plot_checkbox)
-        self.save_label = QLabel('Save plot')
-        self.save_checkbox = QCheckBox()
-        plotLayout.addWidget(self.save_label)
-        plotLayout.addWidget(self.save_checkbox)
-        self.optimizeTabLayout.addLayout(plotLayout)
-        self.parent.treeWidget.itemSelectionChanged.connect(self.update_control)
-        self.algorithm_box.currentTextChanged.connect(self.update_algorithm)
-        self.cost_box.currentTextChanged.connect(self.update_experiment)
-
-        self.optimizeButtonsLayout = QHBoxLayout()
-        self.optimizer_button = QPushButton('Go!')
-        self.optimizer_button.clicked.connect(self.optimize)
-        self.optimizeButtonsLayout.addWidget(self.optimizer_button)
-        self.optimizer_stop_button = QPushButton('Cancel')
-        self.optimizer_stop_button.clicked.connect(self.stop_optimizer)
-        self.optimizeButtonsLayout.addWidget(self.optimizer_stop_button)
-        self.optimizeTabLayout.addLayout(self.optimizeButtonsLayout)
-        self.progress_bar = QProgressBar()
-        self.progress_bar.setTextVisible(False)
-        self.max_progress = 100
-        self.progress_bar.setMaximum(self.max_progress)
-        self.optimizeTabLayout.addWidget(self.progress_bar)
-
+        ''' Create Optimizer tab '''
+        optimizeTab = OptimizeTab(parent=self)
+        self.tabWidget.addTab(optimizeTab, 'Optimize')
 
         ''' Create Run tab '''
         self.runTab = QWidget()
         self.runTabLayout = QVBoxLayout()
         self.runTab.setLayout(self.runTabLayout)
         self.tabWidget.addTab(self.runTab, 'Run')
-
-
-
         self.runIterationsLayout = QHBoxLayout()
         self.run_experimentParamsLayout = QVBoxLayout()
         self.run_cost_params_edit = QTextEdit('')
         self.run_experimentParamsLayout.addWidget(QLabel('Experiment parameters'))
         self.run_experimentParamsLayout.addWidget(self.run_cost_params_edit)
         self.runTabLayout.addLayout(self.run_experimentParamsLayout)
-
         self.runIterationsLayout.addWidget(QLabel('Iterations'))
         self.runIterationsSlider = QSlider(Qt.Horizontal)
         self.runIterationsSlider.valueChanged.connect(self.updateIterations)
         self.runIterationsSlider.setRange(1,8)
         self.runIterationsSlider.setSingleStep(1)
-
         self.runIterationsLayout.addWidget(self.runIterationsSlider)
         self.runIterationsEdit = QLineEdit('')
         self.runIterationsLayout.addWidget(self.runIterationsEdit)
         self.runIterationsSlider.setValue(8)
         self.runTabLayout.addLayout(self.runIterationsLayout)
-
         self.runDelayLayout = QHBoxLayout()
         self.runDelayLayout.addWidget(QLabel('Delay (ms)'))
         self.runDelayEdit = QLineEdit('0')
         self.runDelayLayout.addWidget(self.runDelayEdit)
-
         self.trigger_box = QComboBox()
         self.runDelayLayout.addWidget(QLabel('Trigger'))
         self.runDelayLayout.addWidget(self.trigger_box)
-
         self.runTabLayout.addLayout(self.runDelayLayout)
-
-        # self.runProcessingLayout = QHBoxLayout()
-        # self.runProcessingLayout.addWidget(QLabel('Operation'))
-        # self.runProcessingComboBox = QComboBox()
-        # for item in ['mean', 'stdev', 'peak-to-peak', 'slope']:
-        #     self.runProcessingComboBox.addItem(item)
-        # self.runProcessingLayout.addWidget(self.runProcessingComboBox)
-        # self.runTabLayout.addLayout(self.runProcessingLayout)
-
         self.runButtonsLayout = QHBoxLayout()
         self.runExperimentButton = QPushButton('Run')
         self.runExperimentButton.clicked.connect(self.start_experiment)
@@ -144,7 +69,6 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         self.stopExperimentButton.clicked.connect(self.stop_experiment)
         self.runButtonsLayout.addWidget(self.stopExperimentButton)
         self.runTabLayout.addLayout(self.runButtonsLayout)
-
         self.runResultLayout = QHBoxLayout()
         self.runResultLayout.addWidget(QLabel('Result'))
         self.runResultEdit = QLineEdit('')
