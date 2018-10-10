@@ -3,6 +3,7 @@ from emergent.archetypes.node import Control
 from utility import experiment
 import datetime
 import time
+import numpy as np
 
 class TestControl(Control):
         def __init__(self, name, parent=None, path = '.'):
@@ -12,7 +13,7 @@ class TestControl(Control):
             return self.cost_uncoupled(state, theta=30*np.pi/180)
 
         @experiment
-        def cost_uncoupled(self, state, params = {'theta':0}):
+        def cost_uncoupled(self, state, params = {'theta':0, 'noise':0}):
             theta = params['theta']
             self.actuate(state)
             try:
@@ -24,7 +25,7 @@ class TestControl(Control):
                 y=primary['X']*np.sin(theta) + primary['Y']*np.cos(theta)
             x0 = 0.3
             y0 = 0.6
-            cost =  -np.exp(-(x-0.5)**2/x0**2)*np.exp(-(y-0.5)**2/y0**2)
+            cost =  -np.exp(-(x-0.5)**2/x0**2)*np.exp(-(y-0.5)**2/y0**2) + np.random.normal(0, params['noise'])
 
             return cost
 
