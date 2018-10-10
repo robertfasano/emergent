@@ -346,36 +346,47 @@ class Optimizer():
         return b*mu-(1-b)*sigma
 
     @algorithm
-    def gaussian_process(self, state, cost, params={'batch_size':10,'presampled': 15, 'iterations':10, 'greed': 1}, cost_params = {}, update=None, callback = None):
+    def gaussian_process(self, state, cost, params={'presampled points': 15, 'iterations':10, 'batch size':10, 'kernel amplitude': 1, 'kernel length scale': 1, 'kernel noise': 0.1}, cost_params = {}, update=None, callback = None):
         ''' Online Gaussian process regression. Batch sampling is done with
             points with varying trade-off of optimization vs. exploration. '''
         if callback is None:
             callback = self.callback
         X, bounds = self.initialize_optimizer(state)
         c = np.array([self.cost_from_array(X, state,cost, cost_params)])
-        b = params['greed']
-        points, costs = self.sample(state, cost, cost_params, 'random_sampling', params['presampled'])
+        points, costs = self.sample(state, cost, cost_params, 'random_sampling', params['presampled points'])
         X = np.append(np.atleast_2d(X), points, axis=0)
         c = np.append(c, costs)
-        kernel = C(1.0, (1e-3, 1e3)) * RBF(10, (1e-2, 1e2))
+        kernel = C(params['kernel amplitude'], (1e-3, 1e3)) * RBF(params['kernel length scale'], (1e-2, 1e2)) + WhiteKernel(params['kernel noise'])
         self.gp = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=10)
         for i in range(params['iterations']):
             if not callback():
                 return points[0:len(costs)], costs
             self.gp.fit(X,c)
-            for j in range(params['batch_size']):
-                # b = j / (params['batch_size']-1)
+            a = i / (params['iterations']-1)        # scale from explorer to optimizer through iterations
+            for j in range(params['batch size']):
+                b = a * j / (params['batch size']-1)        # scale from explorer to optimizer throughout batch
                 X_new = self.gp_next_sample(X, bounds, b, self.gp_effective_cost, self.gp, restarts=10)
                 X_new = np.atleast_2d(X_new)
                 X = np.append(X, X_new, axis=0)
                 c = np.append(c, self.cost_from_array(X[-1], state, cost, cost_params))
                 if update is not None and threading.current_thread() is not threading.main_thread():
-                    update((j+i*params['batch_size'])/params['batch_size']/params['iterations'])
+                    update((j+i*params['batch size'])/params['batch size']/params['iterations'])
         best_point = self.array2state(X[np.argmin(c)], state)
         self.actuate(self.unnormalize(best_point))
         if params['plot']:
-            self.plot_optimization(lbl = 'Gaussian Processing')
-
+            self.plot_optimization(lbl = 'Gaussian Processing')     # plot trajectory
+            ''' Predict and plot cost landscape '''
+            grid = []
+            N = X.shape[1]
+            for n in range(N):
+                space = np.linspace(bounds[n][0], bounds[n][1], 30)
+                grid.append(space)
+            grid = np.array(grid)
+            predict_points = np.transpose(np.meshgrid(*[grid[n] for n in range(N)])).reshape(-1,N)
+            predict_costs = np.array([])
+            for point in predict_points:
+                predict_costs = np.append(predict_costs, self.gp.predict(np.atleast_2d(point)))
+            self.plot_2D(predict_points, predict_costs)
         return X, c
 
 
