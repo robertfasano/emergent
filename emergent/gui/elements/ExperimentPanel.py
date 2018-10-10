@@ -75,14 +75,6 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         self.algorithm_box.currentTextChanged.connect(self.update_algorithm)
         self.cost_box.currentTextChanged.connect(self.update_experiment)
 
-        # self.optimizeProcessingLayout = QHBoxLayout()
-        # self.optimizeProcessingLayout.addWidget(QLabel('Operation (n/c)'))
-        # self.optimizeProcessingComboBox = QComboBox()
-        # for item in ['mean', 'stdev', 'peak-to-peak', 'slope']:
-        #     self.optimizeProcessingComboBox.addItem(item)
-        # self.optimizeProcessingLayout.addWidget(self.optimizeProcessingComboBox)
-        # self.optimizeTabLayout.addLayout(self.optimizeProcessingLayout)
-
         self.optimizeButtonsLayout = QHBoxLayout()
         self.optimizer_button = QPushButton('Go!')
         self.optimizer_button.clicked.connect(self.optimize)
@@ -221,18 +213,6 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         else:
             self.start_optimizer()
 
-    # def postprocess(self, data, method):
-    #     if method == 'mean':
-    #         return np.mean(data)
-    #     if method == 'stdev':
-    #         return np.std(data)
-    #     if method == 'slope':
-    #         axis = np.linspace(0,1,len(data))
-    #         slope, intercept, r, p, err = linregress(axis, data)
-    #         return slope
-    #     if method == 'peak-to-peak':
-    #         return np.ptp(data)
-
     def run_experiment(self, stopped):
         control = self.parent.treeWidget.get_selected_control()
         experiment = getattr(control, self.cost_box.currentText())
@@ -253,8 +233,6 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         while not stopped():
             state = control.state
             result = experiment(state, params=cost_params)
-            # if type(result) is np.ndarray:
-                # result = self.postprocess(result, operation)
             self.runResultEdit.setText(str(result))
             qApp.processEvents(QEventLoop.ExcludeUserInputEvents)
             count += 1
