@@ -475,6 +475,7 @@ class Optimizer():
 
     ''' Control methods '''
     def PID(self, state, error, params={'proportional_gain':1, 'integral_gain':1, 'derivative_gain':1}, error_params = {}, callback = None):
+
         if callback is None:
             callback = self.callback
         devices = list(state.keys())
@@ -484,13 +485,14 @@ class Optimizer():
         inputs = list(state[dev].keys())
         assert len(inputs) == 1
         input = inputs[0]
-
+        input_node = self.parent.children[dev].children[input]
+        input_node.error_history = pd.Series()
         last_error = error(state)
         last_time = time.time()
         integral = 0
 
         while callback():
-            e = error(state)
+            e = error(state, error_params)
             t = time.time()
             print('State:', state, 'Error:', e)
             delta_t = t - last_time
