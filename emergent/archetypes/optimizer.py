@@ -84,8 +84,8 @@ class Optimizer():
     def cost_from_array(self, arr, d, cost, cost_params):
         ''' Converts the array back to the form of d (e.g. sequence or state),
             unnormalizes it, and returns cost evaluated on the result. '''
-        target = self.array2dict(arr, d)
-        target = self.unnormalize(target)
+        norm_target = self.array2dict(arr, d)
+        target = self.unnormalize(norm_target)
 
         c = cost(target, cost_params)
         ''' Update history '''
@@ -98,6 +98,9 @@ class Optimizer():
                     col = key+str(i)
                     self.history.loc[t,col] = s[i][1]
         self.history.loc[t,'cost']=-c
+        for dev in d:
+            for input in d[dev]:
+                self.history.loc[t,dev+'.'+input] = norm_target[dev][input]
         return c
 
     def dict2array(self, d):
