@@ -3,6 +3,9 @@ import threading
 import logging as log
 from scipy.interpolate import griddata
 import numpy as np
+import pandas as pd
+
+
 
 def plot_1D(points, costs, normalized_cost = False, limits = None,
             save = False):
@@ -42,11 +45,11 @@ def plot_2D(points, costs, normalized_cost = False, limits = None,
         for i in [0,1]:
             points[:,i] = limits[names[i]]['min'] + points[:,i]*(limits[names[i]]['max']-limits[names[i]]['min'])
     ordinate_mesh, abscissa_mesh = np.meshgrid(points[:,ordinate_index], points[:, abscissa_index])
-    normalized_costs = -1*(costs - np.min(costs))/(np.max(costs)-np.min(costs)) + 1
-    if normalized_cost:
-        cost_grid = griddata(points[:,[ordinate_index, abscissa_index]], normalized_costs, (ordinate_mesh,abscissa_mesh))
-    else:
-        cost_grid = griddata(points[:,[ordinate_index, abscissa_index]], costs, (ordinate_mesh,abscissa_mesh))
+    # normalized_costs = -1*(costs - np.min(costs))/(np.max(costs)-np.min(costs)) + 1
+    # if normalized_cost:
+        # cost_grid = griddata(points[:,[ordinate_index, abscissa_index]], normalized_costs, (ordinate_mesh,abscissa_mesh))
+    # else:
+    cost_grid = griddata(points[:,[ordinate_index, abscissa_index]], costs, (ordinate_mesh,abscissa_mesh))
     plot = plt.pcolormesh(ordinate_mesh, abscissa_mesh, cost_grid, cmap=color_map)
     plt.colorbar(plot)
     if save:
