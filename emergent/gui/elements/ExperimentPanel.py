@@ -76,15 +76,15 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         self.runResultLayout.addWidget(self.runResultEdit)
         self.runTabLayout.addLayout(self.runResultLayout)
 
-    def disable_plotting(self, state):
-        if state:
-            for box in [self.plot_checkbox, self.save_checkbox]:
-                box.setChecked(0)
-                box.setEnabled(False)
-
-        else:
-            for box in [self.plot_checkbox, self.save_checkbox]:
-                box.setEnabled(True)
+    # def disable_plotting(self, state):
+    #     if state:
+    #         for box in [self.plot_checkbox, self.save_checkbox]:
+    #             box.setChecked(0)
+    #             box.setEnabled(False)
+    #
+    #     else:
+    #         for box in [self.plot_checkbox, self.save_checkbox]:
+    #             box.setEnabled(True)
 
     def updateIterations(self):
         try:
@@ -133,10 +133,10 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         qApp.processEvents(QEventLoop.ExcludeUserInputEvents)
 
     def optimize(self):
-        if self.thread_checkbox.isChecked():
-            self._run_thread(self.start_optimizer, stoppable=False)
-        else:
-            self.start_optimizer()
+        # if self.thread_checkbox.isChecked():
+        self._run_thread(self.start_optimizer, stoppable=False)
+        # else:
+        #     self.start_optimizer()
 
     def run_experiment(self, stopped):
         control = self.parent.treeWidget.get_selected_control()
@@ -191,8 +191,8 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         func = getattr(optimizer, algorithm_name.replace(' ','_'))
         params = self.params_edit.toPlainText().replace('\n','').replace("'", '"')
         params = json.loads(params)
-        params['plot']=self.plot_checkbox.isChecked()
-        params['save']=self.save_checkbox.isChecked()
+        params['plot']=False
+        params['save']=False
 
         cost_params = self.cost_params_edit.toPlainText().replace('\n','').replace("'", '"')
         cost_params = json.loads(cost_params)
