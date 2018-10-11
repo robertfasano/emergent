@@ -84,6 +84,7 @@ class Input(Node):
         self.node_type = 'input'
         self.actuate_signal = ActuateSignal()
         self.settings_signal = SettingsSignal()
+        self.parent.parent.dataframe[self.parent.name][self.name] = pd.DataFrame()
 
     def set_settings(self, d):
         if 'max' in d:
@@ -125,6 +126,7 @@ class Device(Node):
         self.state = {}
         self.parent.state[self.name] = {}
         self.parent.settings[self.name] = {}
+        self.parent.dataframe[self.name] = {}
 
         self.loaded = 0     # set to 1 after first state preparation
         self.primary_inputs = 0
@@ -476,14 +478,14 @@ class Control(Node):
 
         ''' Load dataframe '''
         try:
-            self.dataframe[full_name] = pd.read_csv(self.data_path+full_name+'.csv', index_col=0)
-            self.state[device][name] = self.dataframe[full_name]['state'].iloc[-1]
+            self.dataframe[device][name] = pd.read_csv(self.data_path+full_name+'.csv', index_col=0)
+            self.state[device][name] = self.dataframe[device][name]['state'].iloc[-1]
             self.settings[device][name] = {}
             for setting in ['min', 'max']:
-                self.settings[device][name][setting] = self.dataframe[full_name][setting].iloc[-1]
+                self.settings[device][name][setting] = self.dataframe[device][name][setting].iloc[-1]
             self.inputs[device][name].set_settings(self.settings[device][name])
         except FileNotFoundError:
-            self.dataframe[full_name] = pd.DataFrame()
+            self.dataframe[device][name] = pd.DataFrame()
             self.state[device][name] = 0
             self.settings[device][name] = {}
             for setting in ['min', 'max']:
