@@ -14,6 +14,8 @@ from emergent.gui.elements.ExperimentPanel import OptimizerLayout
 from emergent.archetypes.node import Control, Device, Input, ActuateSignal, SettingsSignal
 import functools
 from emergent.archetypes.visualization import plot_2D
+from emergent.archetypes.parallel import ProcessHandler
+
 import json
 class OptimizerItem(QTableWidgetItem):
     def __init__(self, optimizer):
@@ -40,10 +42,6 @@ class HistoryPanel(QVBoxLayout):
     def add_event(self, timestamp, experiment, event, status, optimizer):
         row = self.table.rowCount()
         self.table.insertRow(row)
-        # self.table.setCellWidget(row, 0, QLabel(str(timestamp)))
-        # self.table.setCellWidget(row, 1, QLabel(experiment))
-        # self.table.setCellWidget(row, 2, QLabel(event))
-        # self.table.setCellWidget(row, 3, QLabel(status))
         self.table.setItem(row, 0, QTableWidgetItem(str(timestamp)))
         self.table.setItem(row, 1, QTableWidgetItem(experiment))
         self.table.setItem(row, 2, QTableWidgetItem(event))
@@ -62,9 +60,11 @@ class HistoryPanel(QVBoxLayout):
         self.popup = OptimizerPopup(optimizer, algorithm)
         self.popup.show()
 
-class OptimizerPopup(QWidget):
+class OptimizerPopup(QWidget, ProcessHandler):
     def __init__(self, optimizer, algorithm):
-        super().__init__()
+        super(OptimizerPopup, self).__init__()
+        QWidget().__init__()
+        ProcessHandler.__init__(self)
         with open('gui/stylesheet.txt',"r") as file:
             self.setStyleSheet(file.read())
         self.optimizer = optimizer
@@ -87,14 +87,30 @@ class OptimizerPopup(QWidget):
         params = str(params).replace('{', '').replace(',', ',\n').replace('}', '')
         self.layout.addWidget(QLabel(params), 3, 1)
         self.layout.addWidget(QLabel('Result'), 5, 0)
-        self.layout.addWidget(QLabel(str(self.optimizer.history['cost'].iloc[-1])), 5, 1)
+        self.result_label = QLabel(str(self.optimizer.history['cost'].iloc[-1]))
+        self.layout.addWidget(self.result_label, 5, 1)
 
+        self.layout.addWidget(QLabel('Progress:'), 6, 0)
+        self.progress_label = QLabel(str(self.optimizer.progress))
+        self.layout.addWidget(self.progress_label, 6, 1)
 
+        self.terminate_button = QPushButton('Terminate')
+        self.terminate_button.clicked.connect(self.optimizer.terminate)
+        self.layout.addWidget(self.terminate_button, 7, 0)
 
-        self.plot_button = QPushButton('Plot')
+        self.plot_button = QPushButton('Plot result')
         self.plot_button.clicked.connect(self.plot)
-        self.layout.addWidget(self.plot_button, 6, 0)
+        self.layout.addWidget(self.plot_button, 7, 1)
+
+        self._run_thread(self.check_progress, stoppable=False)
 
     def plot(self):
         points, costs = self.optimizer.get_history()
         plot_2D(points, costs)
+
+    def check_progress(self):
+        while self.optimizer.progress < 1:
+            self.progress_label.setText('%.0f%%'%(self.optimizer.progress*100))
+            self.result_label.setText(str(self.optimizer.result))
+        self.progress_label.setText('100%')
+        self.result_label.setText(str(self.optimizer.result))
