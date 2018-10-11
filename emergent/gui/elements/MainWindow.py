@@ -31,7 +31,7 @@ class MainFrame(QMainWindow):
         self.setCentralWidget(self.widget)
         layout= QHBoxLayout(self.widget)
 
-        width_fraction = 0.75
+        width_fraction = 0.6
         height_fraction = width_fraction/1.618
         width = self.app.desktop().screenGeometry().width()*width_fraction
         height = self.app.desktop().screenGeometry().height()*height_fraction
