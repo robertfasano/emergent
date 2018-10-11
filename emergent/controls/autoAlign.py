@@ -15,7 +15,7 @@ class AutoAlign(Control):
     def __init__(self, name, labjack, parent = None, path='.'):
         super().__init__(name, parent = parent, path=path)
         self.labjack = labjack
-        
+
     def readADC(self, num = 10, delay = 0):
         ''' Reads the transmitted power from Labjack channel AIN0 with an optional
             delay. num samplings can be averaged together to improve the signal to
@@ -28,9 +28,4 @@ class AutoAlign(Control):
         ''' Moves to the target alignment and measures the transmitted power. '''
         self.actuate(state)
         cost = -self.readADC()
-        t = datetime.datetime.now()
-        for name in self.inputs['MEMS']:
-            input = self.inputs['MEMS'][name]
-            self.update_dataframe(t, 'MEMS', name, input.state)
-        self.update_cost(t, cost)
         return cost
