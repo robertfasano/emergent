@@ -22,6 +22,7 @@ from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C, WhiteKern
 from sklearn.decomposition import PCA, IncrementalPCA, KernelPCA
 from scipy.sparse.csgraph import dijkstra
 import sklearn.cluster
+from emergent.archetypes.visualization import plot_1D, plot_2D
 # from algorithms.neural_network import NeuralNetwork
 from sklearn import metrics
 import pandas as pd
@@ -311,9 +312,9 @@ class Optimizer():
                         limits[full_name]['min'] = self.parent.settings[dev][name]['min']
                         limits[full_name]['max'] = self.parent.settings[dev][name]['max']
                 if len(arr) is 1:
-                    ax = self.plot_1D(points, costs, limits=limits, save=params['save'])
+                    ax = plot_1D(points, costs, limits=limits, save=params['save'])
                 if len(arr) is 2:
-                    ax = self.plot_2D(points, costs, limits = limits, save=params['save'])
+                    ax = plot_2D(points, costs, limits = limits, save=params['save'])
         best_point = self.array2dict(points[np.argmin(costs)], state)
         self.actuate(self.unnormalize(best_point))
 
@@ -386,7 +387,7 @@ class Optimizer():
             predict_costs = np.array([])
             for point in predict_points:
                 predict_costs = np.append(predict_costs, self.gp.predict(np.atleast_2d(point)))
-            self.plot_2D(predict_points, predict_costs)
+            plot_2D(predict_points, predict_costs)
         return X, c
 
 
@@ -469,7 +470,7 @@ class Optimizer():
     #     args = (algo, state, cost)
     #     points, costs = self.grid_sampling(hyperparams, self.hypercost, params['steps'], bounds, args=args, norm=False, update = update)
     #
-    #     self.plot_2D(points,costs)
+    #     plot_2D(points,costs)
     #
     #     return points, costs
 
@@ -509,60 +510,6 @@ class Optimizer():
             state[dev][input] -= params['sign']*target  # gets passed into error in the next loop
 
     ''' Visualization methods '''
-    def plot_1D(self, points, costs, normalized_cost = False, limits = None,
-                save = False):
-        if threading.current_thread() is not threading.main_thread():
-            log.warn('Cannot create matplotlib plot in thread.')
-            return
-
-        plt.figure()
-        points = points.copy()
-        ordinate_index = 0
-        abscissa_index = 1
-        if limits is not None:
-            name = list(limits.keys())[0]
-            points = limits[name]['min'] + points*(limits[name]['max']-limits[name]['min'])
-        plt.plot(points, costs)
-        if save:
-            plt.savefig(self.parent.data_path + str(time.time()) + '.png')
-        ax = plt.gca()
-        if limits is not None:
-            plt.xlabel(name)
-            plt.ylabel('Cost')
-
-        return ax
-
-    def plot_2D(self, points, costs, normalized_cost = False, limits = None,
-                save = False, color_map='viridis_r'):
-        ''' Interpolates and plots a cost function sampled at an array of points. '''
-        if threading.current_thread() is not threading.main_thread():
-            log.warn('Cannot create matplotlib plot in thread.')
-            return
-        plt.figure()
-        points = points.copy()
-        ordinate_index = 0
-        abscissa_index = 1
-        if limits is not None:
-            names = list(limits.keys())
-            for i in [0,1]:
-                points[:,i] = limits[names[i]]['min'] + points[:,i]*(limits[names[i]]['max']-limits[names[i]]['min'])
-        ordinate_mesh, abscissa_mesh = np.meshgrid(points[:,ordinate_index], points[:, abscissa_index])
-        normalized_costs = -1*(costs - np.min(costs))/(np.max(costs)-np.min(costs)) + 1
-        if normalized_cost:
-            cost_grid = griddata(points[:,[ordinate_index, abscissa_index]], normalized_costs, (ordinate_mesh,abscissa_mesh))
-        else:
-            cost_grid = griddata(points[:,[ordinate_index, abscissa_index]], costs, (ordinate_mesh,abscissa_mesh))
-        plot = plt.pcolormesh(ordinate_mesh, abscissa_mesh, cost_grid, cmap=color_map)
-        plt.colorbar(plot)
-        if save:
-            plt.savefig(self.parent.data_path + str(time.time()) + '.png')
-        ax = plt.gca()
-        if limits is not None:
-            plt.xlabel(names[0])
-            plt.ylabel(names[1])
-
-        return ax
-
     def plot_optimization(self, func=None, lbl = None, yscl = 'linear',
                           ylbl = 'Optimization Function', xlbl = 'Time (s)', save = False):
         ''' Plots an optimization time series stored in self.history. '''
