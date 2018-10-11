@@ -113,6 +113,15 @@ class Optimizer():
 
         return arr
 
+    def get_history(self):
+        ''' Return a multidimensional array and corresponding points from the history df'''
+        arrays = []
+        costs = self.history['cost'].values
+        for col in self.history.columns:
+            if col != 'cost':
+                arrays.append(self.history[col].values)
+        return np.vstack(arrays).T.astype(float), costs.astype(float)
+
     def sequence2array(self, sequence):
         ''' Convert an experimental sequence to an array of setpoints. '''
         arr = []
