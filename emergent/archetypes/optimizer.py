@@ -40,6 +40,8 @@ class Optimizer():
         self.parent = control_node
         self.actuate = self.parent.actuate
         self.active = True        # a boolean allowing early termination through the callback method
+        self.progress = 0
+        self.result = None
 
     def callback(self):
         return self.active
@@ -101,7 +103,8 @@ class Optimizer():
                 for i in range(len(s)):
                     col = key+str(i)
                     self.history.loc[t,col] = s[i][1]
-        self.history.loc[t,'cost']=-c
+        self.history.loc[t,'cost']=c
+        self.result = c
         for dev in d:
             for input in d[dev]:
                 self.history.loc[t,dev+'.'+input] = norm_target[dev][input]
@@ -270,6 +273,7 @@ class Optimizer():
             costs = np.append(costs, c)
             if update is not None and threading.current_thread() is threading.main_thread():
                 update(len(costs)/len(points))
+            self.progress = len(costs) / len(points)
 
         # points = np.array(points)
         # costs = np.array(costs)
@@ -336,7 +340,7 @@ class Optimizer():
                     ax = plot_2D(points, costs, limits = limits, save=params['save'])
         best_point = self.array2dict(points[np.argmin(costs)], state)
         self.actuate(self.unnormalize(best_point))
-
+        self.progress = 1
         return points, costs
 
     def gp_next_sample(self, X, bounds, b, cost, gaussian_process, restarts=25):
@@ -391,6 +395,7 @@ class Optimizer():
                 c = np.append(c, self.cost_from_array(X[-1], state, cost, cost_params))
                 if update is not None and threading.current_thread() is not threading.main_thread():
                     update((j+i*params['batch size'])/params['batch size']/params['iterations'])
+                self.progress = (j+i*params['batch size'])/params['batch size']/params['iterations']
         best_point = self.array2state(X[np.argmin(c)], state)
         self.actuate(self.unnormalize(best_point))
         if params['plot']:
@@ -407,6 +412,7 @@ class Optimizer():
             for point in predict_points:
                 predict_costs = np.append(predict_costs, self.gp.predict(np.atleast_2d(point)))
             plot_2D(predict_points, predict_costs)
+        self.progress = 1
         return X, c
 
 
