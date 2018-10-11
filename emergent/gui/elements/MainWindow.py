@@ -13,6 +13,7 @@ from emergent.archetypes.optimizer import Optimizer
 from emergent.gui.elements.ExperimentPanel import OptimizerLayout
 # from emergent.gui.elements.sequencer import SequencerLayout
 from emergent.gui.elements.NetworkPanel import NodeTree
+from emergent.gui.elements.HistoryPanel import HistoryPanel
 import os
 import psutil
 import sys
@@ -58,6 +59,10 @@ class MainFrame(QMainWindow):
         ''' Create sequencer layout '''
         # self.sequencer = SequencerLayout(self)
         # layout.addLayout(self.sequencer)
+
+        ''' Create history panel '''
+        self.historyPanel = HistoryPanel()
+        layout.addLayout(self.historyPanel)
 
     def get_system_stats(self):
         mem = 'Memory usage: %.2f GB'%(psutil.Process(os.getpid()).memory_info()[0]/2.**30)
