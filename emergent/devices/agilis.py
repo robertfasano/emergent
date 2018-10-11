@@ -4,25 +4,26 @@ import numpy as np
 from emergent.protocols import serial
 import serial as ser
 from emergent.archetypes.node import Device
+from emergent.archetypes.parallel import ProcessHandler
 from emergent.utility import getChar
 import time
 
-class Agilis(Device):
+class Agilis(Device, ProcessHandler):
     def __init__(self, port, name = 'agilis', parent = None, connect = False):
+        self.mirrors = [1]
         if parent is not None:
             Device.__init__(self, name, parent = parent)
+            ProcessHandler.__init__(self)
             self.zero = {}
-            for input in ['X1','Y1','X2','Y2']:
-                self.add_input(input)
-                self.zero[input] = self.children[input].state
-                if self.zero[input] is None:
-                    self.zero[input] = 0
+            for mirror in self.mirrors:
+                for input in ['X%i'%mirror, 'Y%i'%mirror]:
+                    self.add_input(input)
         self.port = port
         self._connected = 0
         if connect:
             self._connected = self._connect()
         self.mirror=None
-        self.range = {'X1':377150, 'Y1':310100, 'X2':250800, 'Y2':250550}
+        self.range = {'X1':377150, 'Y1':310100}
 
     def _connect(self):
         self.serial = serial.Serial(port = self.port, baudrate = 921600, parity = ser.PARITY_NONE, stopbits = ser.STOPBITS_ONE, bytesize = ser.EIGHTBITS, timeout = 1, encoding = 'ascii', name = 'Agilis')
@@ -30,10 +31,9 @@ class Agilis(Device):
             self.command('RS')
             self.command('MR')
             self.saved_positions = {}
-            self.mirrors = [1,2]
             self._connected = 1
             self.step_size = 50
-            for mirror in [1,2]:
+            for mirror in self.mirrors:
                 self.set_channel(mirror)
                 for axis in [1,2]:
                     self.command('%sSU+%i'%(axis, self.step_size))
@@ -51,13 +51,14 @@ class Agilis(Device):
             index = indices[input]
             mirror = int(input[1])
             axis = {'X':1,'Y':2}[input[0]]
-
+            if self.state[input] is None:
+                self.state[input] = state[input]
             step = state[input] - self.state[input]
             unnorm_step = step/2 * (1+self.range[input]/self.step_size)
             if step != 0:
                 self.relative_move(mirror, axis, unnorm_step)
                 print('step:', step, 'unnorm_step:', unnorm_step)
-
+        self.wait_until_stopped(axis)
     def clear_buffer(self):
         time.sleep(.1)
         while True:
@@ -65,7 +66,7 @@ class Agilis(Device):
                 break
 
     def calibrate(self):
-        for mirror in [1,2]:
+        for mirror in self.mirrors:
             self.set_channel(mirror)
             for axis in [1,2]:
                 try:
@@ -97,8 +98,12 @@ class Agilis(Device):
                 except Exception as e:
                     print(e)
                     print(self.command('TE?'))
+        target_parent_state = {self.name:{}}
         for input in self.state:
             self.state[input] = 0
+            self.parent.state[self.name][input] = 0
+            target_parent_state[self.name][input] = 0
+        self.parent.actuate(target_parent_state)
 
     def command(self, cmd, reply = True):
         r = self.serial.command(cmd, suffix = '\r\n', reply = reply)
@@ -164,10 +169,13 @@ class Agilis(Device):
         self.saved_positions[index] = self.get_position(mirror='all')
 
     def walk(self):
-        print('Entering walk mode.')
-        step = 100
+        self._run_thread(self.walk_thread, stoppable = False)
 
+    def walk_thread(self):
+        print('Entering walk mode.')
+        step = .05
         while True:
+            sign = None
             command = getChar().decode('ASCII')
             if command.lower() in ['q', 'quit', 'exit']:
                 break
@@ -179,22 +187,40 @@ class Agilis(Device):
                 step /= 2
                 print('Decreasing step')
 
-            elif command == 's':
-                self.relative_move(1, 1, step = step)
-            elif command == 'w':
-                self.relative_move(1, 1, step = -step)
-            elif command == 'a':
-                self.relative_move(1, 2, step = -step)
-            elif command == 'd':
-                self.relative_move(1, 2, step = step)
-            elif command == 'k':
-                self.relative_move(2, 1, step = -step)
-            elif command == 'i':
-                self.relative_move(2, 1, step = step)
-            elif command == 'l':
-                self.relative_move(2, 2, step = -step)
             elif command == 'j':
-                self.relative_move(2, 2, step = step)
+                input = 'X1'
+                sign = 1
+                # self.relative_move(1, 1, step = step)
+            elif command == 'l':
+                # self.relative_move(1, 1, step = -step)
+                input = 'X1'
+                sign = -1
+            elif command == 'k':
+                input = 'Y1'
+                sign = -1
+                # self.relative_move(1, 2, step = -step)
+            elif command == 'i':
+                input = 'Y1'
+                sign = 1
+                # self.relative_move(1, 2, step = step)
+            elif command == 'd':
+                input = 'X2'
+                sign = -1
+                # self.relative_move(2, 1, step = -step)
+            elif command == 'a':
+                input = 'X2'
+                sign = 1
+                # self.relative_move(2, 1, step = step)
+            elif command == 's':
+                input = 'Y2'
+                sign = -1
+                # self.relative_move(2, 2, step = -step)
+            elif command == 'w':
+                input = 'Y2'
+                sign = 1
+                # self.relative_move(2, 2, step = step)
+            if sign is not None:
+                self.parent.actuate({self.name:{input:self.state[input]+sign*step}})
 
     def zero(self):
         for mirror in [1,2]:

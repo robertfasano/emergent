@@ -120,11 +120,13 @@ class Sequencer(ProcessHandler):
         '''
         T = self.parent.cycle_time
         times = []
-        for input in self.parent.inputs.values():
-            if input.sequenced:
-                if input.name in input.parent.state:
-                    self.parent.sequence[input.full_name] = input.sequence
-                    times.extend([x[0]*T for x in input.sequence])
+        for dev in self.parent.inputs:
+            for input in self.parent.inputs[dev].values():
+                if input.sequenced:
+                    full_name = dev + '.' + input.name
+                    if input.name in input.parent.state:
+                        self.parent.sequence[full_name] = input.sequence
+                        times.extend([x[0]*T for x in input.sequence])
         times = np.unique(times)
 
         delays = np.append(np.diff(times),np.array([T-np.sum(np.diff(times))]))

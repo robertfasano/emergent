@@ -22,6 +22,9 @@ class TestDevice(Device):
         print(state)
         ''' this is where you would do some actuation on the primary state '''
 
+    def _connect(self):
+        return 1
+
     def primary_to_secondary(self, state):
         ''' Converts a primary state to a secondary state. '''
         state = self.get_missing_keys(state, ['X','Y'])

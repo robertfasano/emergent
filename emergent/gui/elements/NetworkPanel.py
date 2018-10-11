@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import (QApplication, QAbstractItemView,QCheckBox, QComboBo
 from PyQt5.QtCore import *
 import json
 from emergent.archetypes.optimizer import Optimizer
-from emergent.gui.elements.optimizer import OptimizerLayout
+from emergent.gui.elements.ExperimentPanel import OptimizerLayout
 from emergent.archetypes.node import Control, Device, Input, ActuateSignal, SettingsSignal
 import functools
 
@@ -57,7 +57,7 @@ class NodeTree(QTreeWidget):
             if item.node.node_type == 'device':
                 self.toggle_inputs(item)
 
-        self.setColumnWidth(0,125)
+        self.setColumnWidth(0,200)
         for i in [1,2,3]:
             self.setColumnWidth(i,50)
 
@@ -120,7 +120,9 @@ class NodeTree(QTreeWidget):
         for i in items:
             input = i.node
             dev = input.parent
-            state[dev.name + '.' + input.name] = input.state
+            if dev.name not in state:
+                state[dev.name] = {}
+            state[dev.name][input.name] = input.state
 
         return state
 
@@ -147,15 +149,15 @@ class NodeTree(QTreeWidget):
 
             control_name = self.current_item.parent().parent().text(0)
             control = self.controls[control_name]
-
+            input = self.current_item.node.name
+            device = self.current_item.node.parent.name
             if col == 1:
-                state = {key: float(value)}
+                state = {device:{input: float(value)}}
                 control.actuate(state)
-
             elif col == 2:
-                control.settings[self.current_item.node.full_name]['min'] = float(value)
+                control.settings[device][input]['min'] = float(value)
             elif col == 3:
-                control.settings[self.current_item.node.full_name]['max'] = float(value)
+                control.settings[device][input]['max'] = float(value)
 
         except AttributeError:
             pass
@@ -217,19 +219,26 @@ class NodeWidget(QTreeWidgetItem):
         self.level = level
         self.node.leaf = self
         self.root = self.get_root()
+
         if self.node.node_type == 'device':
             self.inputs = 'secondary'
+            self.node.create_signal.connect(self.onCreateSignal)
+            self.node.remove_signal.connect(self.onRemoveSignal)
+
         elif self.node.node_type == 'input':
             self.node.actuate_signal.connect(self.onActuateSignal)
             self.node.settings_signal.connect(self.onSettingsSignal)
 
             if self.node.type == 'primary':
-                self.setText(2, str(self.root.settings[self.node.full_name]['min']))
-                self.setText(3,str(self.root.settings[self.node.full_name]['max']))
+                name = self.node.name
+                device = self.node.parent.name
+                self.setText(2, str(self.root.settings[device][name]['min']))
+                self.setText(3,str(self.root.settings[device][name]['max']))
 
     def __repr__(self):
         try:
-            return self.node.full_name
+            full_name = self.node.parent.name + '.' + self.node.name
+            return full_name
         except AttributeError:
             return self.node.name
 
@@ -242,8 +251,18 @@ class NodeWidget(QTreeWidgetItem):
                 return root
 
     def onActuateSignal(self, state):
-        self.setText(1, str('%.1f'%state))
+        self.setText(1, str('%.2f'%state))
+
+    def onCreateSignal(self, d):
+        if self.node == d['device']:
+            child_item = NodeWidget([d['input']], d['device'].children[d['input']], self.level+1)
+            self.addChild(child_item)
+
+    def onRemoveSignal(self, d):
+        if self.node == d['device']:
+            child_item = self.node.children[d['input']].leaf
+            self.removeChild(child_item)
 
     def onSettingsSignal(self, d):
-        self.setText(2, str('%.1f'%float(d['min'])))
-        self.setText(3, str('%.1f'%float(d['max'])))
+        self.setText(2, str('%.2f'%float(d['min'])))
+        self.setText(3, str('%.2f'%float(d['max'])))

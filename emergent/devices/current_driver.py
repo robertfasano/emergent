@@ -39,6 +39,8 @@ class CurrentDriver(Device, ProcessHandler):
         self.port1 = port1
         self.port2 = port2
         self.labjack = labjack
+        self.enable_setpoint(1)
+        self.disable_setpoint(2)
         self.slope = [26.2895, 26.0752]
         self.intercept = [-1.9746,-4.5531]
 
@@ -85,6 +87,14 @@ class CurrentDriver(Device, ProcessHandler):
             plt.ylabel('Current (I)')
             plt.show()
         self.labjack.AOut(coil-1, 0)
+
+    def enable_setpoint(self, ch):
+        ''' Only works with ch = 1 or 2 '''
+        self.labjack.DOut(6+ch-1,0)
+
+    def disable_setpoint(self, ch):
+        ''' Only works with ch = 1 or 2 '''
+        self.labjack.DOut(6+ch-1,1)
 
     def measure_current(self, coil):
         ''' Measure the Hall probe current.
@@ -216,8 +226,8 @@ class CurrentDriver(Device, ProcessHandler):
             self.set_current(2,i*A)
             time.sleep(T/2)
 
-    def wave(self, frequency = 2, grad = 50, zero = 0):
-        state = self.secondary_to_primary({'grad':grad, 'zero':zero})
+    def wave(self, frequency = 2, I1=65, I2=65):
+        state = {'I1':I1, 'I2':I2}
         sequence = {}
         stream = {}
         for i in [1,2]:
@@ -226,3 +236,11 @@ class CurrentDriver(Device, ProcessHandler):
             stream['I%i'%i], scanRate = self.labjack.sequence2stream(seq, 1/frequency, 2)
         data = np.array([stream['I1'],stream['I2']]).T
         self.labjack.stream_out([0,1], data, scanRate, loop = True)
+
+    def wave_ttl(self, frequency = 2):
+        ''' Starts a wave between the current setpoint and 0 '''
+        sequence = {}
+        seq = [[0,0], [1/frequency/2,1]]
+        # stream, scanRate = self.labjack.sequence2stream(seq, 1/frequency, 2)
+        # self.labjack.stream_out([0,1], data, scanRate, loop = True)
+        self.labjack.PWM(6,frequency,50)

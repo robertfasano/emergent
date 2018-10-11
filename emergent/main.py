@@ -5,14 +5,18 @@ char = {'nt': '\\', 'posix': '/'}[os.name]
 sys.path.append(char.join(os.getcwd().split(char)[0:-3]))
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import QCoreApplication
-from emergent.gui.elements.window import MainFrame
+from emergent.gui.elements.MainWindow import MainFrame
 from emergent.archetypes.node import Control
 import numpy as np
 sys.path.append('networks/%s'%sys.argv[1])
 import logging as log
 import argparse
 import importlib
-
+try:
+    import ctypes
+    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID('EMERGENT')
+except:
+    pass
 parser = argparse.ArgumentParser()
 parser.add_argument("path")
 parser.add_argument("-v", "--verbose", help="Increase output verbosity", action="store_true")
@@ -38,6 +42,11 @@ if "__all__" in network.__dict__:
 else:
     names = [x for x in network.__dict__ if not x.startswith("_")]
 globals().update({k: getattr(network, k) for k in names})
+
+''' Run post-load routine '''
+for c in Control.instances:
+    c.onLoad()
+
 ''' Do stuff '''
 process = importlib.import_module('emergent.networks.%s'%sys.argv[1]+'.process')
 if "__all__" in process.__dict__:
@@ -55,9 +64,6 @@ for control in controls:
         tree[control.name][device.name] = []
         for input in device.children.values():
             tree[control.name][device.name].append(input.name)
-
-
-
 
 controls_dict = {}
 for c in controls:

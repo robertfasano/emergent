@@ -101,7 +101,7 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#state-actuation">State actuation</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#virtual-inputs">Virtual inputs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#primary-and-secondary-inputs">Primary and secondary inputs</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#sequencing">Sequencing</a></li>
@@ -178,7 +178,7 @@
 <h1>Network flow<a class="headerlink" href="#network-flow" title="Permalink to this headline">¶</a></h1>
 <p>In this page we describe the overall control flow of EMERGENT, including network
 construction and initialization, state and sequence actuation, and optimization.
-We will follow the example network in <code class="docutils literal notranslate"><span class="pre">emergent/examples/basic</span></code>.</p>
+We will follow the example network in <code class="docutils literal notranslate"><span class="pre">emergent/networks/example</span></code>.</p>
 <div class="section" id="network-construction">
 <h2>Network construction<a class="headerlink" href="#network-construction" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="the-control-node">
@@ -193,7 +193,7 @@ We will follow the example network in <code class="docutils literal notranslate"
 label the node within the network tree. It doesn't have to be the same as the
 variable name, but it may be helpful. The second argument is the path of our
 network directory - to start emergent, we will run <code class="docutils literal notranslate"><span class="pre">main.py</span></code> in the root
-directory with the argument <code class="docutils literal notranslate"><span class="pre">basic</span></code> to specify this network.</p>
+directory with the argument <code class="docutils literal notranslate"><span class="pre">example</span></code> to specify this network.</p>
 <p>When a Control node is initialized, it first calls its parent initializer,
 <code class="docutils literal notranslate"><span class="pre">Node.__init__(name,</span> <span class="pre">parent)</span></code>, which does five things:</p>
 <ol class="arabic simple">
@@ -254,10 +254,28 @@ input such as <code class="docutils literal notranslate"><span class="pre">'devi
 <li><code class="docutils literal notranslate"><span class="pre">Device.actuate()</span></code> first calls <code class="docutils literal notranslate"><span class="pre">Device._actuate()</span></code>, which is a private  function implemented for each separate device; this function changes the physical  state (e.g. by setting a voltage to a certain value) but does not change the virtual state.</li>
 <li>Next, <code class="docutils literal notranslate"><span class="pre">Device.actuate()</span></code> calls <code class="docutils literal notranslate"><span class="pre">Device.update()</span></code>, which simultaneously updates the state of the Input, Device, and Control nodes.</li>
 </ol>
-<div class="section" id="virtual-inputs">
-<h3>Virtual inputs<a class="headerlink" href="#virtual-inputs" title="Permalink to this headline">¶</a></h3>
-<p>An important note must be made here about real inputs (settable quantities in the
-lab) vs. virtual inputs, which are functions of real inputs. For example, the
+<div class="section" id="primary-and-secondary-inputs">
+<h3>Primary and secondary inputs<a class="headerlink" href="#primary-and-secondary-inputs" title="Permalink to this headline">¶</a></h3>
+<p>A useful feature is the ability to represent a Device state in terms of multiple
+sets of inputs. Perhaps you have an apparatus which converts a voltage setpoint into
+a current; in this case, it is convenient to be able to choose either the voltage
+or the current and have the other quantity update automatically. We refer to the
+voltage as a primary input and the current as a secondary input; secondary
+input nodes can be created by passing the keyword argument <code class="docutils literal notranslate"><span class="pre">type='virtual'</span></code>
+into the constructor.</p>
+<p>Currently only one set of secondary inputs can be constructed. The secondary inputs
+are related to the primary inputs by a pair of methods <code class="docutils literal notranslate"><span class="pre">primary_to_secondary</span></code> and
+<code class="docutils literal notranslate"><span class="pre">secondary</span></code> which must be implemented in the Device driver class. Only
+one set of inputs can be active at once, and can be chosen by calling
+<code class="docutils literal notranslate"><span class="pre">Device.use_inputs(type)</span></code>, where type can be <code class="docutils literal notranslate"><span class="pre">`primary`</span></code> or <code class="docutils literal notranslate"><span class="pre">`secondary`</span></code>.
+When this method is called, the current representation will be converted into the
+other representation and the state dicts of the Device and Control nodes will be
+updated accordingly. Note that no actuation is done, since the two states are
+physically identical.</p>
+<p>When the Device.actuate() method is called, the current input type of the Device
+is checked.</p>
+<p>An important note must be made here about real (primary) inputs (settable quantities in the
+lab) vs. virtual (secondary) inputs, which are functions of real inputs. For example, the
 CurrentDriver() class controls a current servo which takes analog voltages and
 outputs proportional currents into a pair of coils. Although the analog voltages
 are the real inputs, it is experimentally convenient to work with the gradient and
@@ -265,11 +283,6 @@ zero position of the magnetic field coils instead, which are virtual inputs;
 the real and virtual inputs can be converted to and from each other using known
 calibration data and an analytical model for the magnetic field as a function of
 current.</p>
-<p>Another place where virtual inputs are useful is in PCA decomposition of a cost
-function. Often a coupled, many-variable cost function can be decomposed into
-uncoupled substates which can be separately optimized; the eigenvectors of the
-diagonalized covariance matrix constitute virtual inputs which are linear combinations
-of the real inputs.</p>
 <p>EMERGENT allows actuation in terms of either the virtual or real inputs (as long
 as the two aren't mixed within one call to actuate()). In the case of the
 CurrentDriver class, pointing <code class="docutils literal notranslate"><span class="pre">actuate()</span></code> at the virtual inputs will first

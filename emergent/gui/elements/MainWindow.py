@@ -3,31 +3,34 @@
 import inspect
 import sys
 import types
-from PyQt5.QtGui import QStandardItem, QStandardItemModel, QFont
+from PyQt5.QtGui import QIcon, QStandardItem, QStandardItemModel, QFont
 from PyQt5.QtWidgets import (QApplication, QAbstractItemView,QCheckBox, QComboBox, QGridLayout,
         QGroupBox, QHBoxLayout, QLabel, QTextEdit, QTreeView, QPushButton, QTableView,QVBoxLayout,
         QWidget, QMenu, QAction, QTreeWidget, QTreeWidgetItem, QMainWindow, QStatusBar)
 from PyQt5.QtCore import *
 import json
 from emergent.archetypes.optimizer import Optimizer
-from emergent.gui.elements.optimizer import OptimizerLayout
-from emergent.gui.elements.sequencer import SequencerLayout
-from emergent.gui.elements.treeview import NodeTree
+from emergent.gui.elements.ExperimentPanel import OptimizerLayout
+# from emergent.gui.elements.sequencer import SequencerLayout
+from emergent.gui.elements.NetworkPanel import NodeTree
 import os
 import psutil
+import sys
 
 class MainFrame(QMainWindow):
     def __init__(self, app, tree, controls):
         QMainWindow.__init__(self)
-        self.setWindowTitle('EMERGENT')
+        self.setWindowTitle('EMERGENT: %s'%sys.argv[1])
         with open('gui/stylesheet.txt',"r") as file:
             self.setStyleSheet(file.read())
         self.controls = controls
         self.app = app
         self.widget = QWidget()
+        self.setWindowIcon(QIcon('gui/media/icon.png'))
         self.setCentralWidget(self.widget)
         layout= QHBoxLayout(self.widget)
-
+        width = 1000
+        self.resize(width, width/1.618)
         ''' Create status bar '''
         self.statusBar = QStatusBar()
         self.setStatusBar(self.statusBar)
@@ -53,8 +56,8 @@ class MainFrame(QMainWindow):
         layout.addLayout(self.optimizer)
 
         ''' Create sequencer layout '''
-        self.sequencer = SequencerLayout(self)
-        layout.addLayout(self.sequencer)
+        # self.sequencer = SequencerLayout(self)
+        # layout.addLayout(self.sequencer)
 
     def get_system_stats(self):
         mem = 'Memory usage: %.2f GB'%(psutil.Process(os.getpid()).memory_info()[0]/2.**30)

@@ -1,7 +1,7 @@
-Clock
+Queues
 ================
 
-.. automodule:: clock
+.. automodule:: fifo
     :members:
     :undoc-members:
     :special-members:

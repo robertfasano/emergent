@@ -3,6 +3,18 @@ import importlib
 import os
 import datetime
 import decorator
+import numpy as np
+import time
+
+def unit_test(self, func, *args, **kwargs):
+    tests = 100
+    times = []
+    for i in range(tests):
+        start = time.time()
+        func(*args, **kwargs)
+        end = time.time()
+        times.append(end-start)
+    print(np.mean(times), '+/-', np.std(times))
 
 def getChar():
     ''' Returns a user-input keyboard character. Cross-platform implementation
@@ -33,7 +45,16 @@ def getChar():
             getChar._func=_ttyRead
 
     return getChar._func()
-    
+
+def list_algorithms():
+    ''' Returns a list of all methods tagged with the '@algorithm' decorator '''
+    from emergent.archetypes.optimizer import Optimizer
+    return methodsWithDecorator(Optimizer, 'algorithm')
+
+def list_triggers(control):
+    ''' Returns a list of all methods tagged with the '@trigger' decorator '''
+    return methodsWithDecorator(control.__class__, 'trigger')
+
 def methodsWithDecorator(cls, decoratorName):
     methods = []
     sourcelines = inspect.getsourcelines(cls)[0]
@@ -49,14 +70,39 @@ def dev(func):
     return func
 
 @decorator.decorator
-def cost(func, *args, **kwargs):
-    c = func(*args, **kwargs)
+def experiment(func, *args, **kwargs):
+    results = []
+    params = args[2]
+    for i in range(params['cycles per sample']):
+        c = func(*args, **kwargs)
+        results.append(c)
+    c = np.mean(results)
     t = datetime.datetime.now()
-    for full_name in args[0].inputs:
-        args[0].update_dataframe(t, full_name, args[0].inputs[full_name].state)
-    args[0].update_cost(t, c)
+    for dev_name in args[0].inputs:
+        for input in args[0].inputs[dev_name]:
+            args[0].update_dataframe(t, dev_name, input, args[0].inputs[dev_name][input].state)
+    args[0].update_cost(t, c, func.__name__)
 
     return c
+
+@decorator.decorator
+def error(func, *args, **kwargs):
+    control = args[0]
+    state = args[1]
+    devices = list(state.keys())
+    dev = devices[0]
+    inputs = list(state[dev].keys())
+    input = inputs[0]
+    input_node = control.children[dev].children[input]
+    e = func(*args, **kwargs)
+    input_node.error_history.loc[time.time()] = e
+    return e
+
+@decorator.decorator
+def trigger(func, *args, **kwargs):
+    ''' Wait until the passed function returns True before proceeding. '''
+    while not func():
+        continue
 
 @decorator.decorator
 def algorithm(func, *args, **kwargs):
@@ -88,6 +134,11 @@ def import_device(name):
 def create_device(name):
     dev = import_device(name)
     args = get_args(dev, '__init__')
+
+def extract_pulses(data, threshold):
+    ''' Splits a numpy array into segments which are above a threshold. '''
+    data = np.array(data)
+    return np.split(data, np.where(np.diff(data > threshold))[0] + 1)[1::2]
 
 def get_args(cls, func):
     f = getattr(cls, func)

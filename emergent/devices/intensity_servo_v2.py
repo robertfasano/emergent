@@ -1,7 +1,7 @@
 from emergent.archetypes.node import Device
 from emergent.devices.labjackT7 import LabJack
 import functools
-
+import time
 class IntensityServo(Device):
     ''' Device driver for a four-channel intensity servo with an embedded pair of
         LabJack T4 DAQs for control.
@@ -15,7 +15,8 @@ class IntensityServo(Device):
     def __init__(self, name, id1, id2, parent = None):
         super().__init__(name, parent = parent)
         self.labjack = []
-        self.labjack.append(LabJack(devid=id1))
+        self.labjack.append(None)
+        # self.labjack.append(LabJack(devid=id1))
         self.labjack.append(LabJack(devid=id2))
 
         # for ch in [0,1,2,3]:
@@ -61,7 +62,9 @@ class IntensityServo(Device):
         lj = [self.labjack[0], self.labjack[0], self.labjack[1], self.labjack[1]][channel]
         ch = [0, 1, 0, 1][channel]
         unlocked_power = lj.AIn(ch)
-        self._actuate({'V%i'%channel:frac*unlocked_power})
+        # self._actuate({'V%i'%channel:frac*unlocked_power})
+        state = {self.name: {'V%i'%channel:frac*unlocked_power}}
+        self.parent.actuate(state)
         self.lock(channel, 1)
 
     def wave(self, channel, frequency = 1):

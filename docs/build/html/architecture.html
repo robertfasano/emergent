@@ -36,7 +36,7 @@
               href="genindex.html"/>
         <link rel="search" title="Search" href="search.html"/>
     <link rel="top" title="EMERGENT 0.1alpha documentation" href="index.html"/>
-        <link rel="next" title="Node" href="architecture/node.html"/>
+        <link rel="next" title="Optimization" href="optimization.html"/>
         <link rel="prev" title="EMERGENT" href="index.html"/> 
 
   
@@ -93,14 +93,13 @@
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="index.html">EMERGENT</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Architecture</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="architecture/node.html">Node</a></li>
-<li class="toctree-l2"><a class="reference internal" href="architecture/input.html">Input</a></li>
-<li class="toctree-l2"><a class="reference internal" href="architecture/device.html">Device</a></li>
-<li class="toctree-l2"><a class="reference internal" href="architecture/control.html">Control</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#inputs">Inputs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#devices">Devices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#controls">Controls</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#experiments">Experiments</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="optimization.html">Optimization</a></li>
-<li class="toctree-l1"><a class="reference internal" href="networkflow.html">Network flow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="archetypes.html">Archetypes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="devices.html">Devices</a></li>
@@ -170,26 +169,59 @@
   <div class="section" id="architecture">
 <h1>Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h1>
 <p>The architecture underlying EMERGENT's scalability is a network of Node objects
-which abstractly represent the experiment under study. A typical building block,
-shown in Figure 1, is the triplet consisting of an Input node representing a state
-variable such as laser frequency or translation stage position, a Device node
-interfacing with an apparatus to actuate the input, and a Control node which
-measures some optimization function and attempts to minimize it by actuating the
-Inputs through the Device interface.</p>
-<div align="right" class="align-right"><img alt="_images/network_basic.svg" src="_images/network_basic.svg" /></div>
-<p>While this simple network model suffices for compact experimental tasks such as
-automated fiber alignment, ongoing work will be directed at modeling more complex
-experiments, where the outputs of control nodes can be used as the inputs to other
-layers.</p>
-<p>Full documentation for the Node class and its offshoots can be found in the
-links below.</p>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="architecture/node.html">Node</a></li>
-<li class="toctree-l1"><a class="reference internal" href="architecture/input.html">Input</a></li>
-<li class="toctree-l1"><a class="reference internal" href="architecture/device.html">Device</a></li>
-<li class="toctree-l1"><a class="reference internal" href="architecture/control.html">Control</a></li>
-</ul>
+which abstractly represent the experiment under study. Nodes come in three types:
+Control, Device, and Input nodes.</p>
+<div class="section" id="inputs">
+<h2>Inputs<a class="headerlink" href="#inputs" title="Permalink to this headline">¶</a></h2>
+<p>An <a class="reference internal" href="architecture/input.html"><span class="doc">Input</span></a> node is the lowest-level object in an EMERGENT network. Its sole purpose
+is to represent the state of some physical variable in the lab. For example, a
+power supply creating a 60 A current might be represented by an Input node called
+<code class="docutils literal notranslate"><span class="pre">current</span></code> with <code class="docutils literal notranslate"><span class="pre">current.state=60</span></code>. The Input node class only offers basic
+functionalities for representing this state; more advanced functionalities like
+state actuation and optimization are carried out in higher-level nodes.</p>
+</div>
+<div class="section" id="devices">
+<h2>Devices<a class="headerlink" href="#devices" title="Permalink to this headline">¶</a></h2>
+<p>A <a class="reference internal" href="architecture/device.html"><span class="doc">Device</span></a> node represents a physical device which is responsible
+for controlling one or more Input nodes. For example, a motorized XY translation
+stage could be represented by a Device node called <code class="docutils literal notranslate"><span class="pre">stage</span></code> with inputs <code class="docutils literal notranslate"><span class="pre">X</span></code> and
+<code class="docutils literal notranslate"><span class="pre">Y</span></code>. The inputs can be accessed through the <code class="docutils literal notranslate"><span class="pre">children</span></code> attribute, e.g.
+<code class="docutils literal notranslate"><span class="pre">stage.children['X']</span></code> returns a handle to the Input node representing the X
+degree of freedom. A dictionary is used to represent the state of multiple Input
+nodes in a human-readable way: a typical state might be <code class="docutils literal notranslate"><span class="pre">stage.state={'X':0,</span> <span class="pre">'Y':1}</span></code>.
+Changes in state are driven by the <code class="docutils literal notranslate"><span class="pre">stage.actuate(state)</span></code> function, which takes
+a state dictionary with at least one input, drives the physical change, then updates
+the internal state of the network accordingly.</p>
+</div>
+<div class="section" id="controls">
+<h2>Controls<a class="headerlink" href="#controls" title="Permalink to this headline">¶</a></h2>
+<p>The <a class="reference internal" href="architecture/control.html"><span class="doc">Control</span></a> node is the brain of the experiment. While Input
+and Device nodes are responsible for representing and changing the experimental state,
+Control nodes serve as an interface for many devices and are capable of intelligently
+optimizing the macroscopic state towards a desired outcome. This macroscopic state,
+containing many device substates, is represented through a nested dict which could
+look like <code class="docutils literal notranslate"><span class="pre">control.state={'stage':{'X':0,'Y':1},</span> <span class="pre">'power_supply':{'current':60}}</span></code>.
+Like the Device node, the Control node possesses a method called <code class="docutils literal notranslate"><span class="pre">actuate</span></code> which
+decomposes a macroscopic state into substates and distributes them to the correct
+Device nodes.</p>
+</div>
+<div class="section" id="experiments">
+<h2>Experiments<a class="headerlink" href="#experiments" title="Permalink to this headline">¶</a></h2>
+<p>An experiment is represented through a class method of the Control node. Let's
+take a look at a very basic experiment from the <code class="docutils literal notranslate"><span class="pre">autoAlign</span></code> class:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@experiment</span>
+<span class="k">def</span> <span class="nf">measure_power</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; Moves to the target alignment and measures the transmitted power. &#39;&#39;&#39;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">actuate</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+    <span class="k">return</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">readADC</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>This experiment steers a MEMS mirror to the specified state, e.g. <code class="docutils literal notranslate"><span class="pre">state={'X':-60,'Y':0}</span></code>,
+and measures and returns the power transmitted through an optical fiber. The &#64;experiment
+decorator carries out two functions: first, it lets EMERGENT know that this method
+should appear in drop-down menus for experiment selection; second, it automatically
+logs the state and experimental result every time it's called so that previous
+states can be recalled.</p>
 </div>
 </div>
 
@@ -203,7 +235,7 @@ links below.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="architecture/node.html" class="btn btn-neutral float-right" title="Node" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="optimization.html" class="btn btn-neutral float-right" title="Optimization" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="index.html" class="btn btn-neutral" title="EMERGENT" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

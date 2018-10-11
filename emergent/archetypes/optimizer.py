@@ -4,6 +4,8 @@
 ''' TODO: store position indices for each device, actuate functions should be threaded,
     pca/dimensionality reduction/covariance/clustering, image convolution, drift record analysis
 '''
+import threading
+import logging as log
 import numpy as np
 import itertools
 import sys
@@ -20,6 +22,7 @@ from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C, WhiteKern
 from sklearn.decomposition import PCA, IncrementalPCA, KernelPCA
 from scipy.sparse.csgraph import dijkstra
 import sklearn.cluster
+from emergent.archetypes.visualization import plot_1D, plot_2D
 # from algorithms.neural_network import NeuralNetwork
 from sklearn import metrics
 import pandas as pd
@@ -36,14 +39,20 @@ class Optimizer():
         ''' Initialize the optimizer and link to the parent Control node. '''
         self.parent = control_node
         self.actuate = self.parent.actuate
+        self.active = True        # a boolean allowing early termination through the callback method
+
+    def callback(self):
+        return self.active
+
+    def terminate(self):
+        self.active = False
 
     ''' State conversion functions '''
     def array2dict(self, arr, initial):
         ''' Converts the array back to the form of the initial object. '''
-
         initial_type = self.sequence_or_state(initial)
-
-        if initial_type == 'sequence':
+        # initial_type = 'state'
+        if initial_type == 'sequence': # deprecated
             target = self.array2sequence(arr, initial)
         elif initial_type =='state':
             target = self.array2state(arr, initial)
@@ -52,6 +61,7 @@ class Optimizer():
 
     def array2sequence(self, arr, sequence):
         ''' Updates setpoints in a sequence with values from an array. '''
+        # deprecated
         i = 0
         for key in sequence.keys():
             s = sequence[key]
@@ -62,20 +72,22 @@ class Optimizer():
 
     def array2state(self, arr, d):
         ''' Converts a numpy array into a state dict with the specified keys. '''
-        keys = list(d.keys())
         state = {}
-        for i in range(len(keys)):
-            state[keys[i]] = arr[i]
+        i = 0
+        for dev in d:
+            state[dev] = {}
+            for input in d[dev]:
+                state[dev][input] = arr[i]
+                i += 1
         return state
 
-    def cost_from_array(self, arr, d, cost):
+    def cost_from_array(self, arr, d, cost, cost_params):
         ''' Converts the array back to the form of d (e.g. sequence or state),
             unnormalizes it, and returns cost evaluated on the result. '''
-        target = self.array2dict(arr, d)
-        target = self.unnormalize(target)
+        norm_target = self.array2dict(arr, d)
+        target = self.unnormalize(norm_target)
 
-        c = cost(target)
-
+        c = cost(target, cost_params)
         ''' Update history '''
         t = time.time()
         type = self.sequence_or_state(target)
@@ -86,6 +98,9 @@ class Optimizer():
                     col = key+str(i)
                     self.history.loc[t,col] = s[i][1]
         self.history.loc[t,'cost']=-c
+        for dev in d:
+            for input in d[dev]:
+                self.history.loc[t,dev+'.'+input] = norm_target[dev][input]
         return c
 
     def dict2array(self, d):
@@ -97,6 +112,15 @@ class Optimizer():
             arr = self.state2array(d)
 
         return arr
+
+    def get_history(self):
+        ''' Return a multidimensional array and corresponding points from the history df'''
+        arrays = []
+        costs = self.history['cost'].values
+        for col in self.history.columns:
+            if col != 'cost':
+                arrays.append(self.history[col].values)
+        return np.vstack(arrays).T.astype(float), costs.astype(float)
 
     def sequence2array(self, sequence):
         ''' Convert an experimental sequence to an array of setpoints. '''
@@ -117,8 +141,9 @@ class Optimizer():
     def state2array(self, state):
         ''' Converts a state dict into a numpy array. '''
         arr = np.array([])
-        for i in range(len(state.keys())):
-            arr = np.append(arr, state[list(state.keys())[i]])
+        for dev in state:
+            for input in state[dev]:
+                arr = np.append(arr, state[dev][input])
         return arr
 
     ''' Logistics functions '''
@@ -134,15 +159,21 @@ class Optimizer():
             bounds array. '''
         initial_type = self.sequence_or_state(state)
         if initial_type == 'state':
-            cols = list(state.keys())
-            cols.append('cost')
-            self.history = pd.DataFrame(index = [], columns = cols)
+            num_items = 0
+            cols = []
+            for dev in state:
+                for input in state[dev]:
+                    cols.append(dev+'.'+input)
+                    num_items += 1
             state = self.normalize(state)
-            bounds = np.array(list(itertools.repeat([0,1], len(state.keys()))))
+            cols.append('cost')
+            self.history = pd.DataFrame(columns=cols)
+            bounds = np.array(list(itertools.repeat([0,1], num_items)))
             state = self.dict2array(state)
             return state, bounds
 
         elif initial_type == 'sequence':
+            # deprecated
             cols = []
             for key in state.keys():
                 sequence = state[key]
@@ -156,27 +187,25 @@ class Optimizer():
             bounds = np.array(list(itertools.repeat([0,1], len(state))))
             return state, bounds
 
-    def list_algorithms(self):
-        ''' Returns a list of all methods tagged with the '@algorithm' decorator '''
-        return methodsWithDecorator(Optimizer, 'algorithm')
-
     def normalize(self, unnorm):
         ''' Normalizes a state or substate based on min/max values of the Inputs,
             saved in the parent Control node. '''
         type = self.sequence_or_state(unnorm)
         norm = {}
 
-        for i in unnorm.keys():
-            min = self.parent.settings[i]['min']
-            max = self.parent.settings[i]['max']
-            if type == 'state':
-                norm[i] = (unnorm[i] - min)/(max-min)
-            elif type == 'sequence':
-                s = unnorm[i]
-                s_norm = []
-                for j in range(len(s)):
-                    s_norm.append([s[j][0], (s[j][1] - min)/(max-min)])
-                norm[i] = s_norm
+        for dev in unnorm:
+            norm[dev] = {}
+            for i in unnorm[dev]:
+                min = self.parent.settings[dev][i]['min']
+                max = self.parent.settings[dev][i]['max']
+                if type == 'state':
+                    norm[dev][i] = (unnorm[dev][i] - min)/(max-min)
+                elif type == 'sequence':        # deprecated
+                    s = unnorm[i]
+                    s_norm = []
+                    for j in range(len(s)):
+                        s_norm.append([s[j][0], (s[j][1] - min)/(max-min)])
+                    norm[i] = s_norm
         return norm
 
     def unnormalize(self, norm):
@@ -184,35 +213,38 @@ class Optimizer():
             max and min parameter values. '''
         type = self.sequence_or_state(norm)
         unnorm = {}
-
-        for i in norm.keys():
-            min = self.parent.settings[i]['min']
-            max = self.parent.settings[i]['max']
-            if type == 'state':
-                unnorm[i] = min + norm[i] * (max-min)
-            elif type == 'sequence':
-                s = norm[i]
-                s_unnorm = []
-                for j in range(len(s)):
-                    s_unnorm.append([s[j][0], min+s[j][1]*(max-min)])
-                unnorm[i] = s_unnorm
+        for dev in norm:
+            unnorm[dev] = {}
+            for i in norm[dev]:
+                min = self.parent.settings[dev][i]['min']
+                max = self.parent.settings[dev][i]['max']
+                if type == 'state':
+                    unnorm[dev][i] = min + norm[dev][i] * (max-min)
+                elif type == 'sequence':    # deprecated
+                    s = norm[i]
+                    s_unnorm = []
+                    for j in range(len(s)):
+                        s_unnorm.append([s[j][0], min+s[j][1]*(max-min)])
+                    unnorm[i] = s_unnorm
         return unnorm
 
 
     ''' Sampling methods '''
-    def sample(self, state, cost, method='random_sampling', points = 1, bounds = None):
+    def sample(self, state, cost, cost_params, method='random_sampling', points = 1, bounds = None):
         ''' Returns a list of points sampled with the specified method, as well as
             the cost function evaluated at these points. '''
         if bounds is None:
             bounds = np.array(list(itertools.repeat([0,1], len(state.keys()))))
         func = getattr(self, method)
-        points, cost = func(state, cost, points, bounds)
+        points, cost = func(state, cost, cost_params, points, bounds)
 
         return points, cost
 
-    def grid_sampling(self, state, cost, points, update=None, args=None, norm = True):
+    def grid_sampling(self, state, cost, cost_params, points, update=None, args=None, norm = True, callback = None):
         ''' Performs a uniformly-spaced sampling of the cost function in the
             space spanned by the passed-in state dict. '''
+        if callback is None:
+            callback = self.callback
         arr, bounds = self.initialize_optimizer(state)
         N = len(arr)
         grid = []
@@ -223,27 +255,35 @@ class Optimizer():
         points = np.transpose(np.meshgrid(*[grid[n] for n in range(N)])).reshape(-1,N)
 
         ''' Actuate search '''
-        costs = []
+        costs = np.array([])
         for point in points:
-            costs.append(self.cost_from_array(point, state, cost))
-            if update is not None:
+            if not callback():
+                return points[0:len(costs)], costs
+            c = self.cost_from_array(point, state, cost, cost_params)
+            costs = np.append(costs, c)
+            if update is not None and threading.current_thread() is threading.main_thread():
                 update(len(costs)/len(points))
 
-        points = np.array(points)
-        costs = np.array(costs)
-        np.savetxt('costs.txt', costs)
-        np.savetxt('points.txt', points)
+        # points = np.array(points)
+        # costs = np.array(costs)
 
         return points, costs
 
-    def random_sampling(self,state, cost, points, bounds):
+    def random_sampling(self,state, cost, cost_params, points, bounds, callback = None):
         ''' Performs a random sampling of the cost function at N points within
             the specified bounds. '''
-        points = np.random.uniform(size=(points,len(state.keys())))
+        if callback is None:
+            callback = self.callback
+        dof = sum(len(state[x]) for x in state)
+        points = np.random.uniform(size=(points,dof))
         costs = []
         for point in points:
-            target = self.array2dict(point, state)
-            costs.append(cost(self.unnormalize(target)))
+            if not callback():
+                return points[0:len(costs)], costs
+            # target = self.array2dict(point, state)
+            # costs.append(cost(self.unnormalize(target)))
+            c = self.cost_from_array(point, state, cost, cost_params)
+            costs.append(c)
 
         return points, costs
 
@@ -266,26 +306,27 @@ class Optimizer():
 
     ''' Optimization routines '''
     @algorithm
-    def grid_search(self, state, cost, params={'loadExisting':0, 'steps':10}, update=None):
+    def grid_search(self, state, cost, params={'steps':10}, cost_params = {}, update=None):
         ''' An N-dimensional grid search (brute force) optimizer. '''
         arr, bounds = self.initialize_optimizer(state)
-        if params['loadExisting']:
-            costs = np.loadtxt('costs.txt')
-            points = np.loadtxt('points.txt')
-        else:
-            ''' Generate search grid '''
-            points, costs = self.grid_sampling(state, cost, params['steps'], update=update)
+        ''' Generate search grid '''
+        points, costs = self.grid_sampling(state, cost, cost_params, params['steps'], update=update)
 
-        ''' Plot result if desired '''
-        ax = None
-        if params['plot'] and len(state) is 2:
-            names = list(state.keys())
-            limits = {}
-            for name in names:
-                limits[name] = {}
-                limits[name]['min'] = self.parent.settings[name]['min']
-                limits[name]['max'] = self.parent.settings[name]['max']
-            ax = self.plot_2D(points, costs, limits = limits, save=params['save'])
+        ''' Plot result if desired and if optimization terminated successfully '''
+        if self.active:
+            ax = None
+            if params['plot']:
+                limits = {}
+                for dev in state:
+                    for name in state[dev]:
+                        full_name = name+'.'+dev
+                        limits[full_name] = {}
+                        limits[full_name]['min'] = self.parent.settings[dev][name]['min']
+                        limits[full_name]['max'] = self.parent.settings[dev][name]['max']
+                if len(arr) is 1:
+                    ax = plot_1D(points, costs, limits=limits, save=params['save'])
+                if len(arr) is 2:
+                    ax = plot_2D(points, costs, limits = limits, save=params['save'])
         best_point = self.array2dict(points[np.argmin(costs)], state)
         self.actuate(self.unnormalize(best_point))
 
@@ -318,46 +359,59 @@ class Optimizer():
         return b*mu-(1-b)*sigma
 
     @algorithm
-    def gaussian_process(self, state, cost, params={'batch_size':10,'presampled': 15, 'iterations':10},update=None):
+    def gaussian_process(self, state, cost, params={'presampled points': 15, 'iterations':10, 'batch size':10, 'kernel amplitude': 1, 'kernel length scale': 1, 'kernel noise': 0.1}, cost_params = {}, update=None, callback = None):
         ''' Online Gaussian process regression. Batch sampling is done with
             points with varying trade-off of optimization vs. exploration. '''
+        if callback is None:
+            callback = self.callback
         X, bounds = self.initialize_optimizer(state)
-        c = np.array([self.cost_from_array(X, state,cost)])
-
-        points, costs = self.sample(state, cost, 'random_sampling', params['presampled'])
+        c = np.array([self.cost_from_array(X, state,cost, cost_params)])
+        points, costs = self.sample(state, cost, cost_params, 'random_sampling', params['presampled points'])
         X = np.append(np.atleast_2d(X), points, axis=0)
         c = np.append(c, costs)
-        kernel = C(1.0, (1e-3, 1e3)) * RBF(10, (1e-2, 1e2))
+        kernel = C(params['kernel amplitude'], (1e-3, 1e3)) * RBF(params['kernel length scale'], (1e-2, 1e2)) + WhiteKernel(params['kernel noise'])
         self.gp = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=10)
         for i in range(params['iterations']):
+            if not callback():
+                return points[0:len(costs)], costs
             self.gp.fit(X,c)
-            for j in range(params['batch_size']):
-                b = j / (params['batch_size']-1)
+            a = i / (params['iterations']-1)        # scale from explorer to optimizer through iterations
+            for j in range(params['batch size']):
+                b = a * j / (params['batch size']-1)        # scale from explorer to optimizer throughout batch
                 X_new = self.gp_next_sample(X, bounds, b, self.gp_effective_cost, self.gp, restarts=10)
                 X_new = np.atleast_2d(X_new)
                 X = np.append(X, X_new, axis=0)
-                c = np.append(c, self.cost_from_array(X[-1], state, cost))
-                if update is not None:
-                    update((j+i*params['batch_size'])/params['batch_size']/params['iterations'])
+                c = np.append(c, self.cost_from_array(X[-1], state, cost, cost_params))
+                if update is not None and threading.current_thread() is not threading.main_thread():
+                    update((j+i*params['batch size'])/params['batch size']/params['iterations'])
         best_point = self.array2state(X[np.argmin(c)], state)
         self.actuate(self.unnormalize(best_point))
         if params['plot']:
-            self.plot_optimization(lbl = 'Gaussian Processing')
-
-        self.parent.save(tag='optimize', save=params['save'])
-
+            self.plot_optimization(lbl = 'Gaussian Processing')     # plot trajectory
+            ''' Predict and plot cost landscape '''
+            grid = []
+            N = X.shape[1]
+            for n in range(N):
+                space = np.linspace(bounds[n][0], bounds[n][1], 30)
+                grid.append(space)
+            grid = np.array(grid)
+            predict_points = np.transpose(np.meshgrid(*[grid[n] for n in range(N)])).reshape(-1,N)
+            predict_costs = np.array([])
+            for point in predict_points:
+                predict_costs = np.append(predict_costs, self.gp.predict(np.atleast_2d(point)))
+            plot_2D(predict_points, predict_costs)
         return X, c
 
 
     @algorithm
-    def scipy_minimize(self, state, cost, params={'method':'L-BFGS-B', 'tol':1e-7}, update=None):
+    def scipy_minimize(self, state, cost, params={'method':'L-BFGS-B', 'tol':1e-7}, cost_params = {}, update=None):
         ''' Runs a specified scipy minimization method on the target axes and cost. '''
         arr, bounds = self.initialize_optimizer(state)
         keys = list(state.keys())
         res = minimize(fun=self.cost_from_array,
                    x0=arr,
                    bounds=bounds,
-                   args = (state, cost),
+                   args = (state, cost, cost_params),
                    method=params['method'],
                    tol = params['tol'])
         if params['plot']:
@@ -368,12 +422,12 @@ class Optimizer():
         return None, None
 
     @algorithm
-    def simplex(self, state, cost, params={'tol':4e-3}, update=None):
+    def simplex(self, state, cost, params={'tol':4e-3}, cost_params = {}, update=None):
         ''' Nelder-Mead algorithm from scipy.optimize. '''
         X, bounds = self.initialize_optimizer(state)
         res = minimize(fun=self.cost_from_array,
                    x0=X,
-                   args = (state, cost),
+                   args = (state, cost, cost_params),
                    method='Nelder-Mead',
                    tol = params['tol'])
 
@@ -385,13 +439,13 @@ class Optimizer():
         return None, None
 
     @algorithm
-    def differential_evolution(self, state, cost, params={'strategy':'best1bin', 'popsize':15, 'tol':0.01, 'mutation': 1,'recombination':0.7}, update=None):
+    def differential_evolution(self, state, cost, params={'strategy':'best1bin', 'popsize':15, 'tol':0.01, 'mutation': 1,'recombination':0.7}, cost_params = {}, update=None):
         ''' Differential evolution algorithm from scipy.optimize. '''
         X, bounds = self.initialize_optimizer(state)
         keys = list(state.keys())
         res = differential_evolution(func=self.cost_from_array,
                    bounds=bounds,
-                   args = (state, cost),
+                   args = (state, cost, cost_params),
                    strategy=params['strategy'],
                    tol = params['tol'],
                    mutation = params['mutation'],
@@ -411,7 +465,7 @@ class Optimizer():
     #     NeuralNetwork(self, norm_state, cost, bounds, params=params, update = update)
     #
     #     return None, None
-    
+
     # ''' Hyperparameter optimization '''
     # def hypercost(self, params, args):
     #     ''' Returns the optimization time for a given algorithm, cost, and initial state '''
@@ -428,40 +482,46 @@ class Optimizer():
     #     args = (algo, state, cost)
     #     points, costs = self.grid_sampling(hyperparams, self.hypercost, params['steps'], bounds, args=args, norm=False, update = update)
     #
-    #     self.plot_2D(points,costs)
+    #     plot_2D(points,costs)
     #
     #     return points, costs
 
+    ''' Control methods '''
+    def PID(self, state, error, params={'proportional_gain':1, 'integral_gain':1, 'derivative_gain':1}, error_params = {}, callback = None):
+
+        if callback is None:
+            callback = self.callback
+        devices = list(state.keys())
+        assert len(devices) == 1
+        dev = devices[0]
+
+        inputs = list(state[dev].keys())
+        assert len(inputs) == 1
+        input = inputs[0]
+        input_node = self.parent.children[dev].children[input]
+        input_node.error_history = pd.Series()
+        last_error = error(state)
+        last_time = time.time()
+        integral = 0
+
+        while callback():
+            e = error(state, error_params)
+            t = time.time()
+            print('State:', state, 'Error:', e)
+            delta_t = t - last_time
+            delta_e = e - last_error
+
+            proportional = params['proportional_gain'] * e
+            integral += params['integral_gain'] * e * delta_t
+            derivative = params['derivative_gain'] * delta_e/delta_t
+
+            last_time = t
+            last_error = e
+
+            target = proportional + integral + derivative
+            state[dev][input] -= params['sign']*target  # gets passed into error in the next loop
 
     ''' Visualization methods '''
-    def plot_2D(self, points, costs, normalized_cost = False, limits = None,
-                save = False, color_map='viridis_r'):
-        ''' Interpolates and plots a cost function sampled at an array of points. '''
-        plt.figure()
-        points = points.copy()
-        ordinate_index = 0
-        abscissa_index = 1
-        if limits is not None:
-            names = list(limits.keys())
-            for i in [0,1]:
-                points[:,i] = limits[names[i]]['min'] + points[:,i]*(limits[names[i]]['max']-limits[names[i]]['min'])
-        ordinate_mesh, abscissa_mesh = np.meshgrid(points[:,ordinate_index], points[:, abscissa_index])
-        normalized_costs = -1*(costs - np.min(costs))/(np.max(costs)-np.min(costs)) + 1
-        if normalized_cost:
-            cost_grid = griddata(points[:,[ordinate_index, abscissa_index]], normalized_costs, (ordinate_mesh,abscissa_mesh))
-        else:
-            cost_grid = griddata(points[:,[ordinate_index, abscissa_index]], costs, (ordinate_mesh,abscissa_mesh))
-        plot = plt.pcolormesh(ordinate_mesh, abscissa_mesh, cost_grid, cmap=color_map)
-        plt.colorbar(plot)
-        if save:
-            plt.savefig(self.parent.data_path + str(time.time()) + '.png')
-        ax = plt.gca()
-        if limits is not None:
-            plt.xlabel(names[0])
-            plt.ylabel(names[1])
-
-        return ax
-
     def plot_optimization(self, func=None, lbl = None, yscl = 'linear',
                           ylbl = 'Optimization Function', xlbl = 'Time (s)', save = False):
         ''' Plots an optimization time series stored in self.history. '''
