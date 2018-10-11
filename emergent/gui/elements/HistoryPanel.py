@@ -54,6 +54,7 @@ class HistoryPanel(QVBoxLayout):
 
     def update_event_status(self, row, status):
         self.table.item(row, 3).setText(status)
+        self.table.viewport().update()
 
     def on_double_click(self, row, col):
         optimizer = self.table.item(row, 4).optimizer
