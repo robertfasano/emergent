@@ -182,6 +182,7 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         state = self.parent.treeWidget.get_selected_state()
 
         optimizer, index = control.attach_optimizer(state)
+        control.optimizers[index]['status'] = 'Optimizing'
         func = getattr(optimizer, algorithm_name.replace(' ','_'))
         params = self.params_edit.toPlainText().replace('\n','').replace("'", '"')
         params = json.loads(params)
@@ -200,7 +201,9 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
             log.info('Started optimization of %s experiment using %s algorithm.'%(cost_name, algorithm_name))
             func(state, cost, params, cost_params, self.update_progress_bar)
             log.info('Optimization complete!')
-            del control.optimizers[index]
+            control.optimizers[index]['status'] = 'Done'
+
+            # del control.optimizers[index]
 
     def stop_optimizer(self):
         control = self.parent.treeWidget.get_selected_control()
