@@ -81,7 +81,7 @@ def experiment(func, *args, **kwargs):
     for dev_name in args[0].inputs:
         for input in args[0].inputs[dev_name]:
             args[0].update_dataframe(t, dev_name, input, args[0].inputs[dev_name][input].state)
-    args[0].update_cost(t, c)
+    args[0].update_cost(t, c, func.__name__)
 
     return c
 
