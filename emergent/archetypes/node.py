@@ -517,15 +517,14 @@ class Control(Node):
         if input.type is 'secondary':
             return
         self.update_dataframe(t, dev, input_name, input.state)
-        self.dataframe[full_name].to_csv(self.data_path+full_name+'.csv')
+        self.dataframe[dev][input_name].to_csv(self.data_path+full_name+'.csv')
 
     def update_dataframe(self, t, dev, input_name, state):
         if self.inputs[dev][input_name].type is 'secondary':
             return
-        full_name = dev + '.' + input_name
-        self.dataframe[full_name].loc[t, 'state'] = state
+        self.dataframe[dev][input_name].loc[t, 'state'] = state
         for setting in ['min', 'max']:
-            self.dataframe[full_name].loc[t, setting] = self.settings[dev][input_name][setting]
+            self.dataframe[dev][input_name].loc[t, setting] = self.settings[dev][input_name][setting]
 
     def update_cost(self, t, cost):
         self.dataframe['cost'].loc[t] = cost
