@@ -13,6 +13,7 @@ import logging as log
 import pandas as pd
 import datetime
 from emergent.signals import ActuateSignal, SettingsSignal, RemoveSignal, CreateSignal
+import numpy as np
 
 class Node():
     ''' The Node class is the core building block of the EMERGENT network,
@@ -392,8 +393,7 @@ class Control(Node):
         self.state_path = path+'/state/'
         self.data_path = path+'/data/'
         self.dataframe = {}
-        self.dataframe['cost'] = None
-
+        self.dataframe['cost'] = {}
         for p in [self.state_path, self.data_path]:
             pathlib.Path(p).mkdir(parents=True, exist_ok=True)
 
@@ -403,6 +403,7 @@ class Control(Node):
         self.optimizers = {}
 
         self.node_type = 'control'
+        self.load_costs()
 
     def actuate(self, state, save=True):
         """Updates all Inputs in the given state to the given values and optionally logs the state.
@@ -484,6 +485,8 @@ class Control(Node):
             for setting in ['min', 'max']:
                 self.settings[device][name][setting] = self.dataframe[device][name][setting].iloc[-1]
             self.inputs[device][name].set_settings(self.settings[device][name])
+
+
         except FileNotFoundError:
             self.dataframe[device][name] = pd.DataFrame()
             self.state[device][name] = 0
@@ -492,11 +495,12 @@ class Control(Node):
                 self.settings[device][name][setting] = 0
             log.warn('Could not find csv for input %s; creating new settings.'%full_name)
 
-        if self.dataframe['cost'] is None:
+    def load_costs(self):
+        for cost_name in self.list_costs():
             try:
-                self.dataframe['cost'] = pd.read_csv(self.data_path+'cost'+'.csv', index_col=0)
-            except FileNotFoundError:
-                self.dataframe['cost'] = pd.Series()
+                self.dataframe['cost'][cost_name] = pd.read_csv(self.data_path+cost_name+'.csv', index_col=0)
+            except (FileNotFoundError, pd.errors.EmptyDataError):
+                self.dataframe['cost'][cost_name] = pd.Series()
 
     def save(self, tag = ''):
         """Aggregates the self.state and self.settings variables into a dataframe and saves to csv.
@@ -509,7 +513,9 @@ class Control(Node):
         for dev in self.inputs:
             for input in self.inputs[dev]:
                 self.save_dataframe(t, dev, input)
-        self.dataframe['cost'].to_csv(self.data_path+self.name+'_cost'+'.csv')
+
+        for name in self.dataframe['cost']:
+            self.dataframe['cost'][name].to_csv(self.data_path+name+'.csv')
 
     def save_dataframe(self, t, dev, input_name):
         full_name = dev + '.' + input_name
@@ -526,8 +532,8 @@ class Control(Node):
         for setting in ['min', 'max']:
             self.dataframe[dev][input_name].loc[t, setting] = self.settings[dev][input_name][setting]
 
-    def update_cost(self, t, cost):
-        self.dataframe['cost'].loc[t] = cost
+    def update_cost(self, t, cost, name):
+        self.dataframe['cost'][name].loc[t] = cost
 
     def onLoad(self):
         """Tasks to be carried out after all Devices and Inputs are initialized."""
