@@ -30,8 +30,13 @@ class MainFrame(QMainWindow):
         self.setWindowIcon(QIcon('gui/media/icon.png'))
         self.setCentralWidget(self.widget)
         layout= QHBoxLayout(self.widget)
-        width = 1000
-        self.resize(width, width/1.618)
+
+        width_fraction = 0.75
+        height_fraction = width_fraction/1.618
+        width = self.app.desktop().screenGeometry().width()*width_fraction
+        height = self.app.desktop().screenGeometry().height()*height_fraction
+        self.resize(width, height)
+
         ''' Create status bar '''
         self.statusBar = QStatusBar()
         self.setStatusBar(self.statusBar)
