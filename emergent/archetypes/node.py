@@ -427,8 +427,21 @@ class Control(Node):
     def attach_optimizer(self, state):
         optimizer = Optimizer(self)
         index = len(self.optimizers)
-        self.optimizers[index] = {'state':state, 'optimizer':optimizer}
+        self.optimizers[index] = {'state':state, 'optimizer':optimizer, 'status':'Ready'}
         return optimizer, index
+
+    def get_history(self, dev, inputs, cost):
+        ''' Return a multidimensional array and corresponding points from the dataframe storage of the control node '''
+        arrays = []
+        costs = self.dataframe['cost'][cost]
+        df = pd.DataFrame()
+        for name in inputs:
+            df[name] = self.dataframe[dev][name]['state']
+        df = df.loc[list(costs.index)]
+
+        for col in df.columns:
+            arrays.append(df[col].values)
+        return np.vstack(arrays).T, costs.values.T[0]
 
     def get_sequence(self):
         """Populates the self.sequence dict with sequences of all inputs."""
