@@ -44,6 +44,10 @@ class Optimizer():
     def callback(self):
         return self.active
 
+    def log(self, filename):
+        ''' Saves the results of the optimization to file with the given name '''
+        self.history.to_csv(self.parent.data_path+filename+'.csv')
+
     def terminate(self):
         self.active = False
 
