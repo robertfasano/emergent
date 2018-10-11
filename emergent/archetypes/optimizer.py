@@ -157,10 +157,13 @@ class Optimizer():
         self.history.loc[time.time()] = -c
         return c
 
-    def initialize_optimizer(self, state):
+    def initialize_optimizer(self, state, cost, params, cost_params):
         ''' Creates a history dataframe to log the optimization. Normalizes the
             state in terms of the min/max of each Input node, then prepares a
             bounds array. '''
+        self.cost_name = cost.__name__
+        self.params = params
+        self.cost_params = cost_params
         initial_type = self.sequence_or_state(state)
         if initial_type == 'state':
             num_items = 0
@@ -244,12 +247,12 @@ class Optimizer():
 
         return points, cost
 
-    def grid_sampling(self, state, cost, cost_params, points, update=None, args=None, norm = True, callback = None):
+    def grid_sampling(self, state, cost, params, cost_params, points, update=None, args=None, norm = True, callback = None):
         ''' Performs a uniformly-spaced sampling of the cost function in the
             space spanned by the passed-in state dict. '''
         if callback is None:
             callback = self.callback
-        arr, bounds = self.initialize_optimizer(state)
+        arr, bounds = self.initialize_optimizer(state, cost, params, cost_params)
         N = len(arr)
         grid = []
         for n in range(N):
@@ -312,9 +315,9 @@ class Optimizer():
     @algorithm
     def grid_search(self, state, cost, params={'steps':10}, cost_params = {}, update=None):
         ''' An N-dimensional grid search (brute force) optimizer. '''
-        arr, bounds = self.initialize_optimizer(state)
+        arr, bounds = self.initialize_optimizer(state, cost, params, cost_params)
         ''' Generate search grid '''
-        points, costs = self.grid_sampling(state, cost, cost_params, params['steps'], update=update)
+        points, costs = self.grid_sampling(state, cost, params, cost_params, params['steps'], update=update)
 
         ''' Plot result if desired and if optimization terminated successfully '''
         if self.active:
@@ -368,7 +371,7 @@ class Optimizer():
             points with varying trade-off of optimization vs. exploration. '''
         if callback is None:
             callback = self.callback
-        X, bounds = self.initialize_optimizer(state)
+        X, bounds = self.initialize_optimizer(state, cost, params, cost_params)
         c = np.array([self.cost_from_array(X, state,cost, cost_params)])
         points, costs = self.sample(state, cost, cost_params, 'random_sampling', params['presampled points'])
         X = np.append(np.atleast_2d(X), points, axis=0)
@@ -410,7 +413,7 @@ class Optimizer():
     @algorithm
     def scipy_minimize(self, state, cost, params={'method':'L-BFGS-B', 'tol':1e-7}, cost_params = {}, update=None):
         ''' Runs a specified scipy minimization method on the target axes and cost. '''
-        arr, bounds = self.initialize_optimizer(state)
+        arr, bounds = self.initialize_optimizer(state, cost, params, cost_params)
         keys = list(state.keys())
         res = minimize(fun=self.cost_from_array,
                    x0=arr,
@@ -428,7 +431,7 @@ class Optimizer():
     @algorithm
     def simplex(self, state, cost, params={'tol':4e-3}, cost_params = {}, update=None):
         ''' Nelder-Mead algorithm from scipy.optimize. '''
-        X, bounds = self.initialize_optimizer(state)
+        X, bounds = self.initialize_optimizer(state, cost, params, cost_params)
         res = minimize(fun=self.cost_from_array,
                    x0=X,
                    args = (state, cost, cost_params),
@@ -445,7 +448,7 @@ class Optimizer():
     @algorithm
     def differential_evolution(self, state, cost, params={'strategy':'best1bin', 'popsize':15, 'tol':0.01, 'mutation': 1,'recombination':0.7}, cost_params = {}, update=None):
         ''' Differential evolution algorithm from scipy.optimize. '''
-        X, bounds = self.initialize_optimizer(state)
+        X, bounds = self.initialize_optimizer(state, cost, params, cost_params)
         keys = list(state.keys())
         res = differential_evolution(func=self.cost_from_array,
                    bounds=bounds,
@@ -464,7 +467,7 @@ class Optimizer():
 
     # @algorithm
     # def neural_network(self, state, cost, params={'layers':10, 'neurons':64, 'optimizer':'adam', 'activation':'erf', 'initial_points':100, 'cycles':500, 'samples':1000}, update = None):
-    #     X, bounds = self.initialize_optimizer(state)
+    #     X, bounds = self.initialize_optimizer(state, cost, params, cost_params)
     #     norm_state = self.array2state(X,state)
     #     NeuralNetwork(self, norm_state, cost, bounds, params=params, update = update)
     #
