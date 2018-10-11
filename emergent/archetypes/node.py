@@ -412,17 +412,17 @@ class Control(Node):
             state (dict): Target state of the form {'deviceA.param1':1, 'deviceA.param1':2,...}
             save (bool): Whether or not to log.
         """
-        if not self.actuating:
-            self.actuating = 1
-            ''' Aggregate states by device '''
-            dev_states = {}
-            for dev_name in state:
-                dev = self.children[dev_name]
-                dev_state = state[dev_name]
-                dev.actuate(dev_state)
-            self.actuating = 0
-        else:
-            log.warn('Actuate blocked by already running actuation.')
+        # if not self.actuating:
+            # self.actuating = 1
+        ''' Aggregate states by device '''
+        dev_states = {}
+        for dev_name in state:
+            dev = self.children[dev_name]
+            dev_state = state[dev_name]
+            dev.actuate(dev_state)
+        #     self.actuating = 0
+        # else:
+        #     log.warn('Actuate blocked by already running actuation.')
 
     def attach_optimizer(self, state):
         optimizer = Optimizer(self)
