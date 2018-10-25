@@ -488,7 +488,7 @@ class Control(Node):
         if self.inputs[device][name].type is 'secondary':
             return
 
-        full_name = device + '.' + name
+        full_name = self.name + '.' + device + '.' + name
 
         ''' Load dataframe '''
         try:
@@ -528,10 +528,10 @@ class Control(Node):
                 self.save_dataframe(t, dev, input)
 
         for name in self.dataframe['cost']:
-            self.dataframe['cost'][name].to_csv(self.data_path+name+'.csv')
+            self.dataframe['cost'][name].to_csv(self.data_path+self.name+'.'+name+'.csv')
 
     def save_dataframe(self, t, dev, input_name):
-        full_name = dev + '.' + input_name
+        full_name = self.name + '.' + dev + '.' + input_name
         input = self.inputs[dev][input_name]
         if input.type is 'secondary':
             return
