@@ -4,7 +4,6 @@ import weakref
 import pathlib
 import time
 import inspect
-from emergent.archetypes.sequencer import Sequencer
 from emergent.archetypes.historian import Historian
 from emergent.archetypes.optimizer import Optimizer
 from PyQt5.QtWidgets import QWidget
@@ -78,10 +77,8 @@ class Input(Node):
         super().__init__(name, parent=parent)
         self.type = type
         self.state = None
-        self.sequence = None
         self.min = None
         self.max = None
-        self.sequenced = 0
         self.node_type = 'input'
         self.actuate_signal = ActuateSignal()
         self.settings_signal = SettingsSignal()
@@ -94,18 +91,6 @@ class Input(Node):
             self.min = d['min']
         self.parent.parent.settings[self.parent.name][self.name] = d
         self.settings_signal.emit({'min':self.min, 'max':self.max})
-
-    def set_sequence(self, sequence):
-        ''' Sets the sequence of an Input and pushes changes upstream.
-
-            Args:
-                sequence (list): a list of lists, each containing a time and a value.
-        '''
-        self.sequence = sequence
-        self.sequenced = 1      # enable sequenced output
-        self.parent.parent.sequence[self.parent.name][self.name] = sequence
-        self.parent.parent.sequencer.prepare_sequence()
-        self.sequence_signal.emit(self.parent.parent.master_sequence)
 
 class Device(Node):
     ''' Device nodes represent apparatus which can control the state of Input
@@ -374,7 +359,7 @@ class Control(Node):
         nodes. '''
 
     def __init__(self, name, parent = None, path = '.'):
-        """Initializes a Control node and attaches Sequencer, Historian, and Optimizer instances.
+        """Initializes a Control node and attaches Historian and Optimizer instances.
 
         Args:
             name (str): node name. All Control nodes should have unique names.
@@ -387,7 +372,6 @@ class Control(Node):
         self.inputs = {}
         self.state = {}
         self.settings = {}
-        self.sequence = {}
         self.actuating = 0
         self.cycle_time = 0
         self.state_path = path+'/state/'
@@ -397,7 +381,6 @@ class Control(Node):
         for p in [self.state_path, self.data_path]:
             pathlib.Path(p).mkdir(parents=True, exist_ok=True)
 
-        self.sequencer = Sequencer(self)
         self.historian = Historian(self)
         # self.optimizer = Optimizer(self)
         self.optimizers = {}
@@ -442,23 +425,6 @@ class Control(Node):
         for col in df.columns:
             arrays.append(df[col].values)
         return np.vstack(arrays).T, costs.values.T[0]
-
-    def get_sequence(self):
-        """Populates the self.sequence dict with sequences of all inputs."""
-        for dev in self.inputs:
-            for input in self.inputs[dev]:
-                self.sequence[dev][input] = self.inputs[dev][input]
-
-    def get_subsequence(self, keys):
-        """Returns a sequence dict containing only the specified keys.
-
-        Args:
-            keys (list): full_name variables of Input nodes to retrieve, e.g. ['deviceA.input1', 'deviceB.input1'].
-        """
-        sequence = {}
-        for key in keys:
-            sequence[key] = self.sequence[key]
-        return sequence
 
     def get_substate(self, substate):
         """Returns a state dict containing only the specified keys.
@@ -554,4 +520,3 @@ class Control(Node):
             device._connected = device._connect()
             device.loaded = 1
         self.actuate(self.state)
-        # self.sequencer.prepare_sequence()

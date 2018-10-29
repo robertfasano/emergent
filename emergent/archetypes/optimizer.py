@@ -54,28 +54,6 @@ class Optimizer():
         self.active = False
 
     ''' State conversion functions '''
-    def array2dict(self, arr, initial):
-        ''' Converts the array back to the form of the initial object. '''
-        initial_type = self.sequence_or_state(initial)
-        # initial_type = 'state'
-        if initial_type == 'sequence': # deprecated
-            target = self.array2sequence(arr, initial)
-        elif initial_type =='state':
-            target = self.array2state(arr, initial)
-
-        return target
-
-    def array2sequence(self, arr, sequence):
-        ''' Updates setpoints in a sequence with values from an array. '''
-        # deprecated
-        i = 0
-        for key in sequence.keys():
-            s = sequence[key]
-            for j in range(len(s)):
-                s[j][1] = arr[i]
-                i += 1
-        return sequence
-
     def array2state(self, arr, d):
         ''' Converts a numpy array into a state dict with the specified keys. '''
         state = {}
@@ -88,37 +66,20 @@ class Optimizer():
         return state
 
     def cost_from_array(self, arr, d, cost, cost_params):
-        ''' Converts the array back to the form of d (e.g. sequence or state),
+        ''' Converts the array back to the form of d,
             unnormalizes it, and returns cost evaluated on the result. '''
-        norm_target = self.array2dict(arr, d)
+        norm_target = self.array2state(arr, d)
         target = self.unnormalize(norm_target)
 
         c = cost(target, cost_params)
         ''' Update history '''
         t = time.time()
-        type = self.sequence_or_state(target)
-        if type == 'sequence':
-            for key in target.keys():
-                s = target[key]
-                for i in range(len(s)):
-                    col = key+str(i)
-                    self.history.loc[t,col] = s[i][1]
         self.history.loc[t,'cost']=c
         self.result = c
         for dev in d:
             for input in d[dev]:
                 self.history.loc[t,dev+'.'+input] = norm_target[dev][input]
         return c
-
-    def dict2array(self, d):
-        d_type = self.sequence_or_state(d)
-
-        if d_type == 'sequence':
-            arr = self.sequence2array(d)
-        elif d_type == 'state':
-            arr = self.state2array(d)
-
-        return arr
 
     def get_history(self):
         ''' Return a multidimensional array and corresponding points from the history df'''
@@ -128,22 +89,6 @@ class Optimizer():
             if col != 'cost':
                 arrays.append(self.history[col].values)
         return np.vstack(arrays).T.astype(float), costs.astype(float)
-
-    def sequence2array(self, sequence):
-        ''' Convert an experimental sequence to an array of setpoints. '''
-        arr = []
-        for key in sequence.keys():
-            s = sequence[key]
-            for i in range(len(s)):
-                arr.append(s[i][1])
-        return arr
-
-    def sequence_or_state(self, d):
-        d_type = type(list(d.values())[0])
-        if d_type is list:
-            return 'sequence'
-        else:
-            return 'state'
 
     def state2array(self, state):
         ''' Converts a state dict into a numpy array. '''
@@ -167,40 +112,24 @@ class Optimizer():
         self.cost_name = cost.__name__
         self.params = params
         self.cost_params = cost_params
-        initial_type = self.sequence_or_state(state)
-        if initial_type == 'state':
-            num_items = 0
-            cols = []
-            for dev in state:
-                for input in state[dev]:
-                    cols.append(dev+'.'+input)
-                    num_items += 1
-            state = self.normalize(state)
-            cols.append('cost')
-            self.history = pd.DataFrame(columns=cols)
-            bounds = np.array(list(itertools.repeat([0,1], num_items)))
-            state = self.dict2array(state)
-            return state, bounds
 
-        elif initial_type == 'sequence':
-            # deprecated
-            cols = []
-            for key in state.keys():
-                sequence = state[key]
-                for i in range(len(sequence)):
-                    cols.append(key+str(i))
-            cols.append('cost')
-            self.history = pd.DataFrame(index = [], columns = cols)
+        num_items = 0
+        cols = []
+        for dev in state:
+            for input in state[dev]:
+                cols.append(dev+'.'+input)
+                num_items += 1
+        state = self.normalize(state)
+        cols.append('cost')
+        self.history = pd.DataFrame(columns=cols)
+        bounds = np.array(list(itertools.repeat([0,1], num_items)))
+        state = self.state2array(state)
+        return state, bounds
 
-            state = self.normalize(state)
-            state = self.dict2array(state)
-            bounds = np.array(list(itertools.repeat([0,1], len(state))))
-            return state, bounds
 
     def normalize(self, unnorm):
         ''' Normalizes a state or substate based on min/max values of the Inputs,
             saved in the parent Control node. '''
-        type = self.sequence_or_state(unnorm)
         norm = {}
 
         for dev in unnorm:
@@ -208,34 +137,20 @@ class Optimizer():
             for i in unnorm[dev]:
                 min = self.parent.settings[dev][i]['min']
                 max = self.parent.settings[dev][i]['max']
-                if type == 'state':
-                    norm[dev][i] = (unnorm[dev][i] - min)/(max-min)
-                elif type == 'sequence':        # deprecated
-                    s = unnorm[i]
-                    s_norm = []
-                    for j in range(len(s)):
-                        s_norm.append([s[j][0], (s[j][1] - min)/(max-min)])
-                    norm[i] = s_norm
+                norm[dev][i] = (unnorm[dev][i] - min)/(max-min)
+
         return norm
 
     def unnormalize(self, norm):
         ''' Converts normalized (0-1) state to physical state based on specified
             max and min parameter values. '''
-        type = self.sequence_or_state(norm)
         unnorm = {}
         for dev in norm:
             unnorm[dev] = {}
             for i in norm[dev]:
                 min = self.parent.settings[dev][i]['min']
                 max = self.parent.settings[dev][i]['max']
-                if type == 'state':
-                    unnorm[dev][i] = min + norm[dev][i] * (max-min)
-                elif type == 'sequence':    # deprecated
-                    s = norm[i]
-                    s_unnorm = []
-                    for j in range(len(s)):
-                        s_unnorm.append([s[j][0], min+s[j][1]*(max-min)])
-                    unnorm[i] = s_unnorm
+                unnorm[dev][i] = min + norm[dev][i] * (max-min)
         return unnorm
 
 
@@ -291,8 +206,6 @@ class Optimizer():
         for point in points:
             if not callback():
                 return points[0:len(costs)], costs
-            # target = self.array2dict(point, state)
-            # costs.append(cost(self.unnormalize(target)))
             c = self.cost_from_array(point, state, cost, cost_params)
             costs.append(c)
 
@@ -338,7 +251,7 @@ class Optimizer():
                     ax = plot_1D(points, costs, limits=limits, save=params['save'])
                 if len(arr) is 2:
                     ax = plot_2D(points, costs, limits = limits, save=params['save'])
-        best_point = self.array2dict(points[np.argmin(costs)], state)
+        best_point = self.array2state(points[np.argmin(costs)], state)
         self.actuate(self.unnormalize(best_point))
         self.progress = 1
         return points, costs
@@ -560,8 +473,3 @@ class Optimizer():
         plt.ylabel('Setpoint')
         plt.savefig(self.parent.data_path + 'history%i.png'%i)
         plt.close()
-
-    def animate_sequence_history(self):
-        for i in range(len(self.history)):
-            if not i%12:
-                self.plot_history_slice(i)
