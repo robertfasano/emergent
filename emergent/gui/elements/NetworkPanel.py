@@ -55,7 +55,7 @@ class NodeTree(QTreeWidget):
         ''' Prepare initial GUI state '''
         for item in self.get_all_items():
             if item.node.node_type == 'device':
-                self.toggle_inputs(item)
+                self.sync_inputs(item)
 
         self.setColumnWidth(0,200)
         for i in [1,2,3]:
@@ -179,13 +179,6 @@ class NodeTree(QTreeWidget):
         item = self.itemAt(pos)
         globalPos = self.mapToGlobal(pos)
         menu = QMenu()
-
-        if item.node.node_type == 'device':
-            if item.node.secondary_inputs > 0:
-                other_input_type = {'secondary':'primary', 'primary':'secondary'}[item.inputs]
-                hide_secondary_inputs_action = QAction('Show %s inputs'%other_input_type, self)
-                hide_secondary_inputs_action.triggered.connect(functools.partial(self.toggle_inputs,self.currentItem()))
-                menu.addAction(hide_secondary_inputs_action)
         actions = {}
         for option in item.node.options:
             actions[option] = QAction(option, self)
@@ -195,22 +188,12 @@ class NodeTree(QTreeWidget):
 
         selectedItem = menu.exec_(globalPos)
 
-    def toggle_inputs(self, dev):
+    def sync_inputs(self, dev):
         ''' Switches from primary to secondary inputs for the passed in device item.
         '''
-        type = 'primary'
-        if dev.inputs == 'primary':
-            type = 'secondary'
-        old_type = dev.inputs
-        dev.inputs = type
-        dev.node.use_inputs(type)
         for input in dev.node.children.values():
-            if input.type == type:
-                input.leaf.setHidden(0)
-                input.leaf.setText(1,str(input.state))
-            elif input.type == old_type:
-                input.leaf.setHidden(1)
-
+            input.leaf.setHidden(0)
+            input.leaf.setText(1,str(input.state))
 
 class NodeWidget(QTreeWidgetItem):
     def __init__(self, name, node, level):
@@ -221,7 +204,6 @@ class NodeWidget(QTreeWidgetItem):
         self.root = self.get_root()
 
         if self.node.node_type == 'device':
-            self.inputs = 'secondary'
             self.node.create_signal.connect(self.onCreateSignal)
             self.node.remove_signal.connect(self.onRemoveSignal)
 
@@ -229,11 +211,10 @@ class NodeWidget(QTreeWidgetItem):
             self.node.actuate_signal.connect(self.onActuateSignal)
             self.node.settings_signal.connect(self.onSettingsSignal)
 
-            if self.node.type == 'primary':
-                name = self.node.name
-                device = self.node.parent.name
-                self.setText(2, str(self.root.settings[device][name]['min']))
-                self.setText(3,str(self.root.settings[device][name]['max']))
+            name = self.node.name
+            device = self.node.parent.name
+            self.setText(2, str(self.root.settings[device][name]['min']))
+            self.setText(3,str(self.root.settings[device][name]['max']))
 
     def __repr__(self):
         try:

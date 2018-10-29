@@ -64,18 +64,15 @@ class Input(Node):
         be accessed for a given type, e.g. Control.instances lists all Control
         nodes. '''
 
-    def __init__(self, name, parent, type='primary', speed = 'slow'):
+    def __init__(self, name, parent):
         """Initializes an Input node, which is never directly used but instead
             offers a useful internal representation of a state.
 
         Args:
             name (str): node name. Nodes which share a Device should have unique names.
             parent (str): name of parent Device node.
-            type (str): Specifies whether the Input node is 'primary' (representing a directly controlled quantity) or 'secondary' (representing a derived quantity or superposition of primary quantities).
-            speed (str): Specified whether the Input node is 'slow' (using state-actuation for sequencing) or 'fast' (using burst streaming from a LabJack).
         """
         super().__init__(name, parent=parent)
-        self.type = type
         self.state = None
         self.min = None
         self.max = None
@@ -115,105 +112,24 @@ class Device(Node):
         self.parent.dataframe[self.name] = {}
 
         self.loaded = 0     # set to 1 after first state preparation
-        self.primary_inputs = 0
-        self.secondary_inputs = 0
         self.node_type = 'device'
-        self.input_type = 'primary'
 
         ''' Add signals for input creation and removal '''
         self.create_signal = CreateSignal()
         self.remove_signal = RemoveSignal()
 
-    def use_inputs(self, type):
-        ''' Switches between primary and secondary input representations.
-
-            Args:
-                type (str): 'primary' or 'secondary'
-        '''
-        assert type in ['primary', 'secondary']
-        if type == self.input_type:
-            return
-
-        ''' Get new state representation '''
-        if type == 'secondary':
-            new_state = self.primary_to_secondary(self.state)
-        elif type == 'primary':
-            new_state = self.secondary_to_primary(self.state)
-
-        ''' Convert master sequence '''
-        new_sequence = []
-        for i in range(len(self.parent.master_sequence)):
-            point = self.parent.master_sequence[i]
-            delay = point[0]
-            state = point[1]
-            dev_state = {}
-            for dev_name in state:
-                if dev_name == self.name:
-                    for input in state[dev_name]:
-                        dev_state[input] = state[dev_name][input]
-            state = dev_state
-
-            if type == 'secondary':
-                new = self.primary_to_secondary(state)
-            else:
-                new = self.secondary_to_primary(state)
-            new_sequence.append([delay, new])
-            for name in self.state.keys():
-                if self.children[name].sequenced:
-                    del self.parent.master_sequence[i][1][self.name][name]
-            for name in new_state.keys():
-                if self.children[name].sequenced:
-                    self.parent.master_sequence[i][1][self.name][name] = new[name]
-
-        ''' Change representation in parent control node '''
-        for key in self.state.keys():
-            del self.parent.state[self.name][key]
-        for key in new_state.keys():
-            self.parent.state[self.name][key] = new_state[key]
-            self.children[key].state = new_state[key]
-
-        ''' Convert settings '''
-        min = {}
-        max = {}
-        for key in self.state.keys():
-            min[key] = self.parent.settings[self.name][key]['min']
-            max[key] = self.parent.settings[self.name][key]['max']
-        if type is 'primary':
-            min_new = self.secondary_to_primary(min)
-            max_new = self.secondary_to_primary(max)
-        else:
-            min_new = self.primary_to_secondary(min)
-            max_new = self.primary_to_secondary(max)
-        for key in min_new:
-            self.children[key].set_settings({'min':min_new[key],'max':max_new[key]})
-        for key in self.state.keys():
-            del self.parent.settings[self.name][key]
-
-        ''' Update self '''
-        self.state = new_state
-        self.input_type = type
-
-        ''' Convert subsequence - must be done after changing self.state '''
-        # for name in new_state:
-        #     seq = self.parent.sequencer.master_to_subsequence(dev, input)
-        #     self.parent.inputs[self.name][name].sequence = seq
-
-    def add_input(self, name, type='primary'):
+    def add_input(self, name):
         ''' Attaches an Input node with the specified name. This should correspond
             to a specific name in the _actuate() function of a non-abstract Device
             class: for example, the PicoAmp MEMS driver has inputs explicitly named
             'X' and 'Y' which are referenced in PicoAmp._actuate().'''
-        input = Input(name, parent=self, type=type)
+        input = Input(name, parent=self)
         self.children[name] = input
         if self.name not in self.parent.inputs:
             self.parent.inputs[self.name] = {}
         self.parent.inputs[self.name][name] = input
         self.parent.load(self.name, name)
-        if type == 'primary':
-            self.state[name] = self.children[name].state
-            self.primary_inputs += 1
-        elif type == 'secondary':
-            self.secondary_inputs += 1
+        self.state[name] = self.children[name].state
 
         self.create_signal.emit(self.parent, self, name)
         if self.loaded:
@@ -251,29 +167,11 @@ class Device(Node):
     def actuate(self, state):
         """Makes a physical device change in the lab with the _actuate() method, then registers this change with EMERGENT.
 
-        Note:
-            If a secondary state is passed in (i.e. all dict keys label secondary Input nodes),
-            then the state will be converted to primary using Device.secondary_to_primary(),
-            which must be implemented in any driver file which uses secondary inputs.
-            After actuation of the primary state, the equivalent secondary state is
-            updated.
-
-        Note:
-            If a mixed state is passed in (with both primary and secondary components),
-            only the primary components will be used.
-
         Args:
             state (dict): Target state of the form {'param1':value1, 'param2':value2,...}.
         """
 
-        isPrimary = self.is_type(state, 'primary')
-        isSecondary = self.is_type(state, 'secondary')
-        assert not (isPrimary and isSecondary)
-
-        if isPrimary:
-            self._actuate(state)
-        elif isSecondary:
-            self._actuate(self.secondary_to_primary(state))
+        self._actuate(state)
         self.update(state)
 
     def get_missing_keys(self, state, keys):
@@ -301,39 +199,6 @@ class Device(Node):
             except KeyError:
                 total_state[input] = self.state[input]
         return total_state
-
-    def get_type(self, state, type):
-        """Returns the primary/secondary components of the state according to the passed type.
-
-        Args:
-            state (dict): Target state, e.g. {'param1':value1, 'param2':value2}.
-            type (str): Input node type ('primary' or 'secondary').
-
-        Returns:
-            new_state (dict): State dict containing the primary or secondary elements of state.
-        """
-        new_state = {}
-        for key in state.keys():
-            if self.children[key].type == type:
-                new_state[key] = state[key]
-        return new_state
-
-    def is_type(self, state, type):
-        """Checks whether the state is primary or secondary according to the passed in type.
-        Note:
-            is_type(state,'primary')==False does not mean the state is secondary - it could be mixed!
-
-        Args:
-            state (dict): State dict, e.g. {'param1':value1, 'param2':value2}.
-            type (str): Input node type ('primary' or 'secondary').
-
-        Returns:
-            is_type (bool): True if all elements of state are type; False otherwise.
-        """
-        is_type = True
-        for key in state.keys():
-            is_type = is_type and (self.children[key].type == type)
-        return is_type
 
     def update(self,state):
         """Synchronously updates the state of the Input, Device, and Control.
@@ -451,8 +316,6 @@ class Control(Node):
         Args:
             full_name (str): Specifies the Input node and its parent device, e.g. 'deviceA.input1'.
         """
-        if self.inputs[device][name].type is 'secondary':
-            return
 
         full_name = self.name + '.' + device + '.' + name
 
@@ -499,14 +362,10 @@ class Control(Node):
     def save_dataframe(self, t, dev, input_name):
         full_name = self.name + '.' + dev + '.' + input_name
         input = self.inputs[dev][input_name]
-        if input.type is 'secondary':
-            return
         self.update_dataframe(t, dev, input_name, input.state)
         self.dataframe[dev][input_name].to_csv(self.data_path+full_name+'.csv')
 
     def update_dataframe(self, t, dev, input_name, state):
-        if self.inputs[dev][input_name].type is 'secondary':
-            return
         self.dataframe[dev][input_name].loc[t, 'state'] = state
         for setting in ['min', 'max']:
             self.dataframe[dev][input_name].loc[t, setting] = self.settings[dev][input_name][setting]
