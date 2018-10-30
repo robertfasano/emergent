@@ -205,7 +205,7 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
             log.info('Optimization complete!')
             control.optimizers[index]['status'] = 'Done'
             self.parent.historyPanel.update_event_status(row, 'Done')
-            optimizer.log(t + ' - ' + cost_name + ' - ' + algorithm_name)
+            optimizer.log(t.replace(':','') + ' - ' + cost_name + ' - ' + algorithm_name)
 
             # del control.optimizers[index]
 
