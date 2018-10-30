@@ -191,8 +191,6 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         func = getattr(optimizer, algorithm_name.replace(' ','_'))
         params = self.params_edit.toPlainText().replace('\n','').replace("'", '"')
         params = json.loads(params)
-        params['plot']=False
-        params['save']=False
 
         cost_params = self.cost_params_edit.toPlainText().replace('\n','').replace("'", '"')
         cost_params = json.loads(cost_params)
