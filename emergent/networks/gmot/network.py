@@ -16,22 +16,20 @@ labjack_cooling = LabJack(devid=devid, name='cooling')
 cooling = AutoAlign(name='cooling', labjack=labjack_cooling, path='networks/%s'%sys.argv[1])
 mems_cooling = PicoAmp('MEMS', labjack_cooling, parent=cooling)
 
-devid = '470016970'
+devid = '470017899'
 labjack_slowing = LabJack(devid=devid, name='slowing')
 slowing = AutoAlign(name='slowing', labjack=labjack_slowing, path='networks/%s'%sys.argv[1])
 mems_slowing = PicoAmp('MEMS', labjack_slowing, parent=slowing)
 
 ''' Define MOT control hub '''
-devid = '440010734'     # T4
 mot = MOT(name='MOT', path='networks/%s'%sys.argv[1])
-labjack_MOT = LabJack(devid=devid, name='labjack', parent=mot)
+labjack_MOT = LabJack(devid='440010734', name='labjack', parent=mot)
 mot.add_labjack(labjack_MOT)
-feedthrough = NetControls('feedthrough', 'COM11', parent = mot)
-# novatech = Novatech('novatech', 'COM32', parent = mot)
+# feedthrough = NetControls('feedthrough', 'COM11', parent = mot)
+# novatech = Novatech('novatech', 'COM4', parent = mot)
 servo = IntensityServo('servo', None, '440010742', parent = mot)
 # agilis = Agilis('COM15', 'agilis', parent=mot)
-devid='440010680'
-labjack_coils = LabJack(devid=devid, name = 'labjack')
+labjack_coils = LabJack(devid='440010680', name = 'labjack')
 coils = CurrentDriver('coils', 'COM13', 'COM18', parent = mot,labjack = labjack_coils)
 
 # devid = '470016973'    # T7
