@@ -186,8 +186,8 @@ class Optimizer():
                 return points[0:len(costs)], costs
             c = self.cost_from_array(point, state, cost, cost_params)
             costs = np.append(costs, c)
-            if update is not None and threading.current_thread() is threading.main_thread():
-                update(len(costs)/len(points))
+            # if update is not None and threading.current_thread() is threading.main_thread():
+                # update(len(costs)/len(points))
             self.progress = len(costs) / len(points)
 
         # points = np.array(points)
@@ -306,8 +306,8 @@ class Optimizer():
                 X_new = np.atleast_2d(X_new)
                 X = np.append(X, X_new, axis=0)
                 c = np.append(c, self.cost_from_array(X[-1], state, cost, cost_params))
-                if update is not None and threading.current_thread() is not threading.main_thread():
-                    update((j+i*params['batch size'])/params['batch size']/params['iterations'])
+                # if update is not None and threading.current_thread() is not threading.main_thread():
+                    # update((j+i*params['batch size'])/params['batch size']/params['iterations'])
                 self.progress = (j+i*params['batch size'])/params['batch size']/params['iterations']
         best_point = self.array2state(X[np.argmin(c)], state)
         self.actuate(self.unnormalize(best_point))
