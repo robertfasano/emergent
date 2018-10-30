@@ -49,20 +49,36 @@ class MOT(Control):
         self.labjack.stream_out(0, data)
 
     @experiment
-    def pulsed_slowing(self, state = None):
-        ''' Toggle between high and low magnetic field; measure mean fluorescence
-            in both cases and return the difference. '''
+    def pulsed_slowing(self, state = None, params = {'pulse time': 0.5, 'settling time': 0.05}):
         if state is not None:
             self.actuate(state)
         state = self.state['servo']['V2']
-        self.children['servo']._actuate({'V2':0.2})
-        time.sleep(0.05)
-        self.labjack.AOut(1, 0) # output DC level for subtraction with SRS
-        low = self.labjack.streamburst(duration=0.200, operation = 'mean')
-        self.labjack.AOut(1, low) # output DC level for subtraction with SRS
+        self.children['servo']._actuate({'V2':0})
+        low = self.labjack.streamburst(duration=params['pulse time'], operation = 'mean')
         self.children['servo']._actuate({'V2':state})
-        high = self.labjack.streamburst(duration=0.2, operation = 'mean')
+        high = self.labjack.streamburst(duration=params['pulse time'], operation = 'mean')
         return -high    # low is subtracted out by SRS
+
+    @experiment
+    def pulsed_slowing_slope(self, state = None, params = {'pulse time': 0.5, 'settling time': 0.05}):
+        if state is not None:
+            self.actuate(state)
+        # state = self.state['servo']['V2']
+        # min = self.settings['servo']['V2']['min']
+        # self.children['servo']._actuate({'V2':min})
+        self.children['servo'].lock(2,0)
+        self.labjack.DOut(4,0)
+        time.sleep(params['pulse time'])
+        # self.children['servo']._actuate({'V2':state})
+        self.labjack.DOut(4,1)
+        self.children['servo'].lock(2,1)
+
+        data = self.labjack.streamburst(duration=params['pulse time'], operation = None)
+        axis = np.linspace(0,params['pulse time'],len(data))
+
+        slope, intercept, r, p, err = linregress(axis, data)
+        z = slope/err
+        return -slope
 
     @experiment
     def pulsed_field_mean(self, state):
@@ -77,44 +93,43 @@ class MOT(Control):
         time.sleep(0.075)
         high = self.labjack.streamburst(duration=0.2, operation = 'mean')
 
-        return -high    # low is subtracted out by SRS
+        return -high
 
     @experiment
-    def pulsed_field_slope(self, state):
+    def pulsed_field_slope(self, state, params = {'pulse time': 0.8, 'settling time': 0.05}):
         ''' Toggle between high and low magnetic field; measure mean fluorescence
             in both cases and return the difference. '''
         self.children['coils'].disable_setpoint(1)
-        # self.labjack.AOut(1, 0) # output DC level for subtraction with SRS
-        # low = self.labjack.streamburst(duration=0.1, operation = 'mean')
-        # self.labjack.AOut(1, low) # output DC level for subtraction with SRS
-        time.sleep(0.2)
+        time.sleep(params['settling time'])
         self.actuate(state)
         self.children['coils'].enable_setpoint(1)
-        time.sleep(0.05)
-        data = self.labjack.streamburst(duration=0.4, operation = None)
-        axis = np.linspace(0,.4,len(data))
+        time.sleep(params['settling time'])
+        data = self.labjack.streamburst(duration=params['pulse time'], operation = None)
+        axis = np.linspace(0,params['pulse time'],len(data))
 
         slope, intercept, r, p, err = linregress(axis, data)
         z = slope/err
         return -slope
-        # if z > 2:
-        #     return -slope    # low is subtracted out by SRS
-        # else:
-        #     return 0
 
     @experiment
-    def pulsed_field(self, state):
+    def pulsed_field(self, state, params = {'pulse time': 0.8, 'settling time': 0.2}):
         ''' Toggle between high and low magnetic field and returns the raw data.'''
-        pulse_time = 0.8
         self.children['coils'].disable_setpoint(1)
-        time.sleep(0.2)
+        time.sleep(params['settling time'])
         self.actuate(state)
 
         self.children['coils'].enable_setpoint(1)
-        data = self.labjack.streamburst(duration=pulse_time, operation = None)
-        t = np.linspace(0,pulse_time,len(data))
+        data = self.labjack.streamburst(duration=params['pulse time'], operation = None)
+        t = np.linspace(0,params['pulse time'],len(data))
 
         return data
+
+    @experiment
+    def fluorescence(self, state, params = {}):
+        self.actuate(state)
+        data = self.labjack.streamburst(duration=0.25, operation = None)
+
+        return np.mean(data)
 
     @experiment
     def pulsed_field_fit(self, state):
