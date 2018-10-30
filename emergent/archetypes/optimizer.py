@@ -236,21 +236,6 @@ class Optimizer():
         ''' Generate search grid '''
         points, costs = self.grid_sampling(state, cost, params, cost_params, params['steps'], update=update)
 
-        ''' Plot result if desired and if optimization terminated successfully '''
-        if self.active:
-            ax = None
-            if params['plot']:
-                limits = {}
-                for dev in state:
-                    for name in state[dev]:
-                        full_name = name+'.'+dev
-                        limits[full_name] = {}
-                        limits[full_name]['min'] = self.parent.settings[dev][name]['min']
-                        limits[full_name]['max'] = self.parent.settings[dev][name]['max']
-                if len(arr) is 1:
-                    ax = plot_1D(points, costs, limits=limits, save=params['save'])
-                if len(arr) is 2:
-                    ax = plot_2D(points, costs, limits = limits, save=params['save'])
         best_point = self.array2state(points[np.argmin(costs)], state)
         self.actuate(self.unnormalize(best_point))
         self.progress = 1
@@ -328,7 +313,6 @@ class Optimizer():
         self.progress = 1
         return X, c
 
-
     @algorithm
     def scipy_minimize(self, state, cost, params={'method':'L-BFGS-B', 'tol':1e-7}, cost_params = {}, update=None):
         ''' Runs a specified scipy minimization method on the target axes and cost. '''
@@ -340,8 +324,6 @@ class Optimizer():
                    args = (state, cost, cost_params),
                    method=params['method'],
                    tol = params['tol'])
-        if params['plot']:
-            self.plot_optimization(lbl = params['method'], save=params['save'])
 
         self.parent.save(tag='optimize')
 
@@ -356,9 +338,6 @@ class Optimizer():
                    args = (state, cost, cost_params),
                    method='Nelder-Mead',
                    tol = params['tol'])
-
-        if params['plot']:
-            self.plot_optimization(lbl = 'simplex', save=params['save'])
 
         self.parent.save(tag='optimize')
 
@@ -377,8 +356,6 @@ class Optimizer():
                    mutation = params['mutation'],
                    recombination = params['recombination'],
                    popsize = params['popsize'])
-        if params['plot']:
-            self.plot_optimization(lbl = params['strategy'], save=params['save'])
 
         self.parent.save(tag='optimize')
 
