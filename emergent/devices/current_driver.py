@@ -115,9 +115,9 @@ class CurrentDriver(Device, ProcessHandler):
 
     def _connect(self):
         try:
-            for coil in [1,2]:
+            # for coil in [1,2]:
                 # self._run_thread(target=self._connect_to_psu, args=(coil,), stoppable = False)
-                self._connect_to_psu(coil)
+                # self._connect_to_psu(coil)
             return 1
         except Exception as e:
              log.error('Failed to connect to coils:', e)
