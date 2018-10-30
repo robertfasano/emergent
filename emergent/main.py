@@ -75,3 +75,6 @@ if __name__ == "__main__":
 
     main = MainFrame(app, tree, controls_dict)
     main.show()
+    app.processEvents()
+
+    server = Server()
