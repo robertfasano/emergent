@@ -208,8 +208,8 @@ class NodeWidget(QTreeWidgetItem):
             self.node.remove_signal.connect(self.onRemoveSignal)
 
         elif self.node.node_type == 'input':
-            self.node.actuate_signal.connect(self.onActuateSignal)
-            self.node.settings_signal.connect(self.onSettingsSignal)
+            self.node.actuate_signal.connect(self.updateStateText)
+            self.node.settings_signal.connect(self.updateSettingsText)
 
             name = self.node.name
             device = self.node.parent.name
@@ -231,7 +231,7 @@ class NodeWidget(QTreeWidgetItem):
             except AttributeError:
                 return root
 
-    def onActuateSignal(self, state):
+    def updateStateText(self, state):
         self.setText(1, str('%.2f'%state))
 
     def onCreateSignal(self, d):
@@ -244,6 +244,6 @@ class NodeWidget(QTreeWidgetItem):
             child_item = self.node.children[d['input']].leaf
             self.removeChild(child_item)
 
-    def onSettingsSignal(self, d):
+    def updateSettingsText(self, d):
         self.setText(2, str('%.2f'%float(d['min'])))
         self.setText(3, str('%.2f'%float(d['max'])))
