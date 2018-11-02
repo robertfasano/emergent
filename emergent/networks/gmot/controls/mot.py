@@ -52,10 +52,11 @@ class MOT(Control):
     def pulsed_slowing(self, state = None, params = {'pulse time': 0.5, 'settling time': 0.05}):
         if state is not None:
             self.actuate(state)
-        state = self.state['servo']['V2']
-        self.children['servo']._actuate({'V2':0})
+        self.children['servo'].lock(2,0)
+        self.labjack.DOut(4,0)
         low = self.labjack.streamburst(duration=params['pulse time'], operation = 'mean')
-        self.children['servo']._actuate({'V2':state})
+        self.labjack.DOut(4,1)
+        self.children['servo'].lock(2,1)
         high = self.labjack.streamburst(duration=params['pulse time'], operation = 'mean')
         return -high    # low is subtracted out by SRS
 
