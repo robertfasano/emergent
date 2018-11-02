@@ -35,7 +35,8 @@ class Server():
         data = await reader.read(100)
         addr = writer.get_extra_info('peername')
 
-        message = data.decode()
+        message = json.loads(data.decode())
+        print(message)
         op = message['op']
         if op == 'get_state':
-            self.send_context(reader, writer)
+            await self.send_context(reader, writer)
