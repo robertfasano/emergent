@@ -11,13 +11,11 @@ from emergent.devices.agilis import Agilis
 from __main__ import *
 
 ''' Define autoAlign '''
-devid = '470016934'
-labjack_cooling = LabJack(devid=devid, name='cooling')
+labjack_cooling = LabJack(devid='470016934', name='cooling')
 cooling = AutoAlign(name='cooling', labjack=labjack_cooling, path='networks/%s'%sys.argv[1])
 mems_cooling = PicoAmp('MEMS', labjack_cooling, parent=cooling)
 
-devid = '470017899'
-labjack_slowing = LabJack(devid=devid, name='slowing')
+labjack_slowing = LabJack(devid='470017899', name='slowing')
 slowing = AutoAlign(name='slowing', labjack=labjack_slowing, path='networks/%s'%sys.argv[1])
 mems_slowing = PicoAmp('MEMS', labjack_slowing, parent=slowing)
 
