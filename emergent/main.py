@@ -7,6 +7,7 @@ from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import QCoreApplication
 from emergent.gui.elements.MainWindow import MainFrame
 from emergent.archetypes.node import Control
+from emergent.archetypes.server import Server
 import numpy as np
 sys.path.append('networks/%s'%sys.argv[1])
 import logging as log
