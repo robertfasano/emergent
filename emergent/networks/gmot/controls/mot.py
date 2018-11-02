@@ -126,11 +126,12 @@ class MOT(Control):
         return data
 
     @experiment
-    def fluorescence(self, state, params = {}):
+    def fluorescence(self, state, params = {'settling time': 0.1, 'duration': 0.25}):
         self.actuate(state)
-        data = self.labjack.streamburst(duration=0.25, operation = None)
+        time.sleep(params['settling time'])
+        data = self.labjack.streamburst(duration=params['duration'], operation = None)
 
-        return np.mean(data)
+        return -np.mean(data)
 
     @experiment
     def pulsed_field_fit(self, state):
