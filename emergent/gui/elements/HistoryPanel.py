@@ -13,7 +13,7 @@ from emergent.archetypes.optimizer import Optimizer
 from emergent.gui.elements.ExperimentPanel import OptimizerLayout
 from emergent.archetypes.node import Control, Device, Input, ActuateSignal, SettingsSignal
 import functools
-from emergent.archetypes.visualization import plot_2D
+from emergent.archetypes.visualization import plot_2D, plot_1D
 from emergent.archetypes.parallel import ProcessHandler
 
 import json
@@ -106,7 +106,15 @@ class OptimizerPopup(QWidget, ProcessHandler):
 
     def plot(self):
         points, costs = self.optimizer.get_history()
-        plot_2D(points, costs)
+        if points.shape[1] == 1:
+            full_name =  self.optimizer.history.columns[0]
+            dev = full_name.split('.')[0]
+            input = full_name.split('.')[1]
+            control = self.optimizer.parent
+            limits = {full_name.replace('.', ': '): control.settings[dev][input]}
+            plot_1D(points, costs, limits = limits)
+        elif points.shape[1] == 2:            
+            plot_2D(points, costs)
 
     def check_progress(self):
         while self.optimizer.progress < 1:
