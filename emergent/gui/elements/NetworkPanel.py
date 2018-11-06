@@ -32,7 +32,7 @@ class NodeTree(QTreeWidget):
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.itemDoubleClicked.connect(self.open_editor)
         self.itemSelectionChanged.connect(self.close_editor)
-        self.itemSelectionChanged.connect(self.deselect_nonsiblings)
+        # self.itemSelectionChanged.connect(self.deselect_nonsiblings)
 
         ''' Populate tree '''
         root_labels = list(self.tree.keys())
