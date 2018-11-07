@@ -76,16 +76,6 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         self.runResultLayout.addWidget(self.runResultEdit)
         self.runTabLayout.addLayout(self.runResultLayout)
 
-    # def disable_plotting(self, state):
-    #     if state:
-    #         for box in [self.plot_checkbox, self.save_checkbox]:
-    #             box.setChecked(0)
-    #             box.setEnabled(False)
-    #
-    #     else:
-    #         for box in [self.plot_checkbox, self.save_checkbox]:
-    #             box.setEnabled(True)
-
     def updateIterations(self):
         try:
             val = self.runIterationsSlider.value()
@@ -129,7 +119,6 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
 
     def update_progress_bar(self, progress):
         self.progress_bar.setValue(progress*self.max_progress)
-        #self.parent.app.processEvents()
         qApp.processEvents(QEventLoop.ExcludeUserInputEvents)
 
     def run_experiment(self, stopped):
@@ -197,7 +186,7 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
             self._run_thread(self.start_optimizer, args=(func, state, cost, params, cost_params, control, optimizer, index, row, t, cost_name, algorithm_name), stoppable=False)
 
     def start_optimizer(self, func, state, cost, params, cost_params, control, optimizer, index, row, t, cost_name, algorithm_name):
-        func(state, cost, params, cost_params, self.update_progress_bar)
+        func(state, cost, params, cost_params)
         log.info('Optimization complete!')
         control.optimizers[index]['status'] = 'Done'
         # self.parent.historyPanel.update_event_status(row, 'Done')

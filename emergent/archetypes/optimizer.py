@@ -165,7 +165,7 @@ class Optimizer():
 
         return points, cost
 
-    def grid_sampling(self, state, cost, params, cost_params, points, update=None, args=None, norm = True, callback = None):
+    def grid_sampling(self, state, cost, params, cost_params, points,  args=None, norm = True, callback = None):
         ''' Performs a uniformly-spaced sampling of the cost function in the
             space spanned by the passed-in state dict. '''
         if callback is None:
@@ -186,8 +186,6 @@ class Optimizer():
                 return points[0:len(costs)], costs
             c = self.cost_from_array(point, state, cost, cost_params)
             costs = np.append(costs, c)
-            # if update is not None and threading.current_thread() is threading.main_thread():
-                # update(len(costs)/len(points))
             self.progress = len(costs) / len(points)
 
         # points = np.array(points)
@@ -230,11 +228,11 @@ class Optimizer():
 
     ''' Optimization routines '''
     @algorithm
-    def grid_search(self, state, cost, params={'steps':10}, cost_params = {}, update=None):
+    def grid_search(self, state, cost, params={'steps':10}, cost_params = {}):
         ''' An N-dimensional grid search (brute force) optimizer. '''
         arr, bounds = self.initialize_optimizer(state, cost, params, cost_params)
         ''' Generate search grid '''
-        points, costs = self.grid_sampling(state, cost, params, cost_params, params['steps'], update=update)
+        points, costs = self.grid_sampling(state, cost, params, cost_params, params['steps'])
 
         best_point = self.array2state(points[np.argmin(costs)], state)
         self.actuate(self.unnormalize(best_point))
@@ -268,7 +266,7 @@ class Optimizer():
         return b*mu-(1-b)*sigma
 
     @algorithm
-    def gaussian_process(self, state, cost, params={'presampled points': 15, 'iterations':10, 'batch size':10, 'kernel amplitude': 1, 'kernel length scale': 1, 'kernel noise': 0.1}, cost_params = {}, update=None, callback = None):
+    def gaussian_process(self, state, cost, params={'presampled points': 15, 'iterations':10, 'batch size':10, 'kernel amplitude': 1, 'kernel length scale': 1, 'kernel noise': 0.1}, cost_params = {}, callback = None):
         ''' Online Gaussian process regression. Batch sampling is done with
             points with varying trade-off of optimization vs. exploration. '''
         if callback is None:
@@ -291,8 +289,6 @@ class Optimizer():
                 X_new = np.atleast_2d(X_new)
                 X = np.append(X, X_new, axis=0)
                 c = np.append(c, self.cost_from_array(X[-1], state, cost, cost_params))
-                # if update is not None and threading.current_thread() is not threading.main_thread():
-                    # update((j+i*params['batch size'])/params['batch size']/params['iterations'])
                 self.progress = (j+i*params['batch size'])/params['batch size']/params['iterations']
         best_point = self.array2state(X[np.argmin(c)], state)
         self.actuate(self.unnormalize(best_point))
@@ -314,7 +310,7 @@ class Optimizer():
         return X, c
 
     @algorithm
-    def scipy_minimize(self, state, cost, params={'method':'L-BFGS-B', 'tol':1e-7}, cost_params = {}, update=None):
+    def scipy_minimize(self, state, cost, params={'method':'L-BFGS-B', 'tol':1e-7}, cost_params = {}):
         ''' Runs a specified scipy minimization method on the target axes and cost. '''
         arr, bounds = self.initialize_optimizer(state, cost, params, cost_params)
         keys = list(state.keys())
@@ -330,7 +326,7 @@ class Optimizer():
         return None, None
 
     @algorithm
-    def simplex(self, state, cost, params={'tol':4e-3}, cost_params = {}, update=None):
+    def simplex(self, state, cost, params={'tol':4e-3}, cost_params = {}):
         ''' Nelder-Mead algorithm from scipy.optimize. '''
         X, bounds = self.initialize_optimizer(state, cost, params, cost_params)
         res = minimize(fun=self.cost_from_array,
@@ -344,7 +340,7 @@ class Optimizer():
         return None, None
 
     @algorithm
-    def differential_evolution(self, state, cost, params={'strategy':'best1bin', 'popsize':15, 'tol':0.01, 'mutation': 1,'recombination':0.7}, cost_params = {}, update=None):
+    def differential_evolution(self, state, cost, params={'strategy':'best1bin', 'popsize':15, 'tol':0.01, 'mutation': 1,'recombination':0.7}, cost_params = {}):
         ''' Differential evolution algorithm from scipy.optimize. '''
         X, bounds = self.initialize_optimizer(state, cost, params, cost_params)
         keys = list(state.keys())
@@ -362,10 +358,10 @@ class Optimizer():
         return None, None
 
     # @algorithm
-    # def neural_network(self, state, cost, params={'layers':10, 'neurons':64, 'optimizer':'adam', 'activation':'erf', 'initial_points':100, 'cycles':500, 'samples':1000}, update = None):
+    # def neural_network(self, state, cost, params={'layers':10, 'neurons':64, 'optimizer':'adam', 'activation':'erf', 'initial_points':100, 'cycles':500, 'samples':1000}):
     #     X, bounds = self.initialize_optimizer(state, cost, params, cost_params)
     #     norm_state = self.array2state(X,state)
-    #     NeuralNetwork(self, norm_state, cost, bounds, params=params, update = update)
+    #     NeuralNetwork(self, norm_state, cost, bounds, params=params)
     #
     #     return None, None
 
@@ -378,12 +374,12 @@ class Optimizer():
     #     return c
     #
     # @algorithm
-    # def grid_hypertune(self, state, cost, params={'steps':10},update=None):
+    # def grid_hypertune(self, state, cost, params={'steps':10}):
     #     algo = self.differential_evolution
     #     hyperparams = {'popsize':15, 'recombination':0.7}
     #     bounds = np.array([[10,20],[0.3,1]])
     #     args = (algo, state, cost)
-    #     points, costs = self.grid_sampling(hyperparams, self.hypercost, params['steps'], bounds, args=args, norm=False, update = update)
+    #     points, costs = self.grid_sampling(hyperparams, self.hypercost, params['steps'], bounds, args=args, norm=False)
     #
     #     plot_2D(points,costs)
     #
