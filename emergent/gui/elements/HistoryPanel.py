@@ -116,8 +116,8 @@ class OptimizerPopup(QWidget, ProcessHandler):
         self.progress_timer.start(100)
 
     def plot(self):
-        points, costs = self.optimizer.get_history(include_database = self.use_database_checkbox.isChecked())
         if points.shape[1] == 1:
+            points, costs = self.optimizer.get_history(include_database = self.use_database_checkbox.isChecked())
             full_name =  self.optimizer.history.columns[0]
             dev = full_name.split('.')[0]
             input = full_name.split('.')[1]
@@ -125,6 +125,7 @@ class OptimizerPopup(QWidget, ProcessHandler):
             limits = {full_name.replace('.', ': '): control.settings[dev][input]}
             plot_1D(points, costs, limits = limits, cost_name = self.optimizer.cost.__name__)
         elif points.shape[1] == 2:
+            points, costs = self.optimizer.get_history(include_database = self.use_database_checkbox.isChecked())
             plot_2D(points, costs)
         self.optimizer.plot_optimization()
 
