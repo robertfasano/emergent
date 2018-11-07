@@ -460,20 +460,16 @@ class Optimizer():
             state[dev][input] -= params['sign']*target  # gets passed into error in the next loop
 
     ''' Visualization methods '''
-    def plot_optimization(self, func=None, lbl = None, yscl = 'linear',
-                          ylbl = 'Optimization Function', xlbl = 'Time (s)', save = False):
+    def plot_optimization(self, yscale = 'linear'):
         ''' Plots an optimization time series stored in self.history. '''
-        if func is None:
-            func = self.history
-            func.index -= func.index[0]
-        plt.plot(func['cost'], label = lbl)
-        plt.yscale(yscl)
-        plt.ylabel(ylbl)
-        plt.xlabel(xlbl)
-        plt.legend()
+        func = self.history
+        func.index -= func.index[0]
+        plt.figure()
+        plt.plot(func['cost'])
+        plt.yscale(yscale)
+        plt.ylabel(self.cost.__name__)
+        plt.xlabel('Time (s)')
         plt.show()
-        if save:
-            plt.savefig(self.parent.data_path + str(time.time()) + '.png')
 
     def plot_history_slice(self, i):
         ''' Plots a slice of the ith element of the history. '''
