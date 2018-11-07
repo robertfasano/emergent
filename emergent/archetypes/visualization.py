@@ -20,7 +20,7 @@ def plot_1D(points, costs, normalized_cost = False, limits = None,
     if limits is not None:
         name = list(limits.keys())[0]
         points = limits[name]['min'] + points*(limits[name]['max']-limits[name]['min'])
-    plt.plot(points, costs)
+    plt.plot(points, costs, '.')
     if save:
         plt.savefig(self.parent.data_path + str(time.time()) + '.png')
     ax = plt.gca()
