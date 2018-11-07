@@ -76,18 +76,22 @@ class OptimizerPopup(QWidget, ProcessHandler):
         self.layout.addWidget(QLabel('Experiment:'), 0, 0)
         self.layout.addWidget(QLabel(self.optimizer.cost_name), 0, 1)
 
-        self.layout.addWidget(QLabel('Experiment parameters'), 1, 0)
+        self.layout.addWidget(QLabel('Inputs:'), 1, 0)
+        inputs_string = json.dumps(self.optimizer.inputs).replace('{', '').replace('}', '').replace('],', ']\n').replace('"', '')
+        self.layout.addWidget(QLabel(inputs_string), 1,1)
+
+        self.layout.addWidget(QLabel('Experiment parameters'), 2, 0)
         cost_params = self.optimizer.cost_params
         cost_params = str(cost_params).replace('{', '').replace(',', ',\n').replace('}', '')
 
-        self.layout.addWidget(QLabel(cost_params), 1, 1)
-        self.layout.addWidget(QLabel('Algorithm'), 2, 0)
-        self.layout.addWidget(QLabel(algorithm), 2, 1)
+        self.layout.addWidget(QLabel(cost_params), 2, 1)
+        self.layout.addWidget(QLabel('Algorithm'), 3, 0)
+        self.layout.addWidget(QLabel(algorithm), 3, 1)
 
-        self.layout.addWidget(QLabel('Algorithm parameters'), 3, 0)
+        self.layout.addWidget(QLabel('Algorithm parameters'), 4, 0)
         params = self.optimizer.params
         params = str(params).replace('{', '').replace(',', ',\n').replace('}', '')
-        self.layout.addWidget(QLabel(params), 3, 1)
+        self.layout.addWidget(QLabel(params), 4, 1)
         self.layout.addWidget(QLabel('Result'), 5, 0)
         try:
             result = str(self.optimizer.history['cost'].iloc[-1])
