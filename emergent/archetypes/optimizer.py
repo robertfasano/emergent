@@ -151,13 +151,15 @@ class Optimizer():
         self.cost_name = cost.__name__
         self.params = params
         self.cost_params = cost_params
-
+        self.inputs = {}
         num_items = 0
         cols = []
         for dev in state:
+            self.inputs[dev] = []
             for input in state[dev]:
                 cols.append(dev+'.'+input)
                 num_items += 1
+                self.inputs[dev].append(input)
         state = self.normalize(state)
         cols.append('cost')
         self.history = pd.DataFrame(columns=cols)
