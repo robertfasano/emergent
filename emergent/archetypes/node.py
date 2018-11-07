@@ -344,7 +344,7 @@ class Control(Node):
     def load_costs(self):
         for cost_name in self.list_costs():
             try:
-                self.dataframe['cost'][cost_name] = pd.read_csv(self.data_path+cost_name+'.csv', index_col=0)
+                self.dataframe['cost'][cost_name] = pd.read_csv(self.data_path+self.name+'.'+cost_name+'.csv', index_col=0)
             except (FileNotFoundError, pd.errors.EmptyDataError):
                 self.dataframe['cost'][cost_name] = pd.DataFrame()
 
