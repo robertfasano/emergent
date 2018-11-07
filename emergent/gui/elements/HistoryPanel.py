@@ -127,6 +127,7 @@ class OptimizerPopup(QWidget, ProcessHandler):
             plot_1D(points, costs, limits = limits, cost_name = self.optimizer.cost.__name__)
         elif points.shape[1] == 2:
             plot_2D(points, costs)
+        self.optimizer.plot_optimization()
 
     def check_progress(self):
         self.progress_label.setText('%.0f%%'%(self.optimizer.progress*100))
