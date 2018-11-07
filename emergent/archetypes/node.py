@@ -4,7 +4,6 @@ import weakref
 import pathlib
 import time
 import inspect
-from emergent.archetypes.sequencer import Sequencer
 from emergent.archetypes.historian import Historian
 from emergent.archetypes.optimizer import Optimizer
 from PyQt5.QtWidgets import QWidget
@@ -13,6 +12,7 @@ import logging as log
 import pandas as pd
 import datetime
 from emergent.signals import ActuateSignal, SettingsSignal, RemoveSignal, CreateSignal
+import numpy as np
 
 class Node():
     ''' The Node class is the core building block of the EMERGENT network,
@@ -64,26 +64,22 @@ class Input(Node):
         be accessed for a given type, e.g. Control.instances lists all Control
         nodes. '''
 
-    def __init__(self, name, parent, type='primary', speed = 'slow'):
+    def __init__(self, name, parent):
         """Initializes an Input node, which is never directly used but instead
             offers a useful internal representation of a state.
 
         Args:
             name (str): node name. Nodes which share a Device should have unique names.
             parent (str): name of parent Device node.
-            type (str): Specifies whether the Input node is 'primary' (representing a directly controlled quantity) or 'secondary' (representing a derived quantity or superposition of primary quantities).
-            speed (str): Specified whether the Input node is 'slow' (using state-actuation for sequencing) or 'fast' (using burst streaming from a LabJack).
         """
         super().__init__(name, parent=parent)
-        self.type = type
         self.state = None
-        self.sequence = None
         self.min = None
         self.max = None
-        self.sequenced = 0
         self.node_type = 'input'
         self.actuate_signal = ActuateSignal()
         self.settings_signal = SettingsSignal()
+        self.parent.parent.dataframe[self.parent.name][self.name] = pd.DataFrame()
 
     def set_settings(self, d):
         if 'max' in d:
@@ -92,18 +88,6 @@ class Input(Node):
             self.min = d['min']
         self.parent.parent.settings[self.parent.name][self.name] = d
         self.settings_signal.emit({'min':self.min, 'max':self.max})
-
-    def set_sequence(self, sequence):
-        ''' Sets the sequence of an Input and pushes changes upstream.
-
-            Args:
-                sequence (list): a list of lists, each containing a time and a value.
-        '''
-        self.sequence = sequence
-        self.sequenced = 1      # enable sequenced output
-        self.parent.parent.sequence[self.parent.name][self.name] = sequence
-        self.parent.parent.sequencer.prepare_sequence()
-        self.sequence_signal.emit(self.parent.parent.master_sequence)
 
 class Device(Node):
     ''' Device nodes represent apparatus which can control the state of Input
@@ -125,107 +109,27 @@ class Device(Node):
         self.state = {}
         self.parent.state[self.name] = {}
         self.parent.settings[self.name] = {}
+        self.parent.dataframe[self.name] = {}
 
         self.loaded = 0     # set to 1 after first state preparation
-        self.primary_inputs = 0
-        self.secondary_inputs = 0
         self.node_type = 'device'
-        self.input_type = 'primary'
 
         ''' Add signals for input creation and removal '''
         self.create_signal = CreateSignal()
         self.remove_signal = RemoveSignal()
 
-    def use_inputs(self, type):
-        ''' Switches between primary and secondary input representations.
-
-            Args:
-                type (str): 'primary' or 'secondary'
-        '''
-        assert type in ['primary', 'secondary']
-        if type == self.input_type:
-            return
-
-        ''' Get new state representation '''
-        if type == 'secondary':
-            new_state = self.primary_to_secondary(self.state)
-        elif type == 'primary':
-            new_state = self.secondary_to_primary(self.state)
-
-        ''' Convert master sequence '''
-        new_sequence = []
-        for i in range(len(self.parent.master_sequence)):
-            point = self.parent.master_sequence[i]
-            delay = point[0]
-            state = point[1]
-            dev_state = {}
-            for dev_name in state:
-                if dev_name == self.name:
-                    for input in state[dev_name]:
-                        dev_state[input] = state[dev_name][input]
-            state = dev_state
-
-            if type == 'secondary':
-                new = self.primary_to_secondary(state)
-            else:
-                new = self.secondary_to_primary(state)
-            new_sequence.append([delay, new])
-            for name in self.state.keys():
-                if self.children[name].sequenced:
-                    del self.parent.master_sequence[i][1][self.name][name]
-            for name in new_state.keys():
-                if self.children[name].sequenced:
-                    self.parent.master_sequence[i][1][self.name][name] = new[name]
-
-        ''' Change representation in parent control node '''
-        for key in self.state.keys():
-            del self.parent.state[self.name][key]
-        for key in new_state.keys():
-            self.parent.state[self.name][key] = new_state[key]
-            self.children[key].state = new_state[key]
-
-        ''' Convert settings '''
-        min = {}
-        max = {}
-        for key in self.state.keys():
-            min[key] = self.parent.settings[self.name][key]['min']
-            max[key] = self.parent.settings[self.name][key]['max']
-        if type is 'primary':
-            min_new = self.secondary_to_primary(min)
-            max_new = self.secondary_to_primary(max)
-        else:
-            min_new = self.primary_to_secondary(min)
-            max_new = self.primary_to_secondary(max)
-        for key in min_new:
-            self.children[key].set_settings({'min':min_new[key],'max':max_new[key]})
-        for key in self.state.keys():
-            del self.parent.settings[self.name][key]
-
-        ''' Update self '''
-        self.state = new_state
-        self.input_type = type
-
-        ''' Convert subsequence - must be done after changing self.state '''
-        # for name in new_state:
-        #     seq = self.parent.sequencer.master_to_subsequence(dev, input)
-        #     self.parent.inputs[self.name][name].sequence = seq
-
-    def add_input(self, name, type='primary'):
+    def add_input(self, name):
         ''' Attaches an Input node with the specified name. This should correspond
             to a specific name in the _actuate() function of a non-abstract Device
             class: for example, the PicoAmp MEMS driver has inputs explicitly named
             'X' and 'Y' which are referenced in PicoAmp._actuate().'''
-        input = Input(name, parent=self, type=type)
+        input = Input(name, parent=self)
         self.children[name] = input
         if self.name not in self.parent.inputs:
             self.parent.inputs[self.name] = {}
         self.parent.inputs[self.name][name] = input
         self.parent.load(self.name, name)
-        if type == 'primary':
-            self.state[name] = self.children[name].state
-            self.primary_inputs += 1
-        elif type == 'secondary':
-            self.secondary_inputs += 1
+        self.state[name] = self.children[name].state
 
         self.create_signal.emit(self.parent, self, name)
         if self.loaded:
@@ -263,29 +167,11 @@ class Device(Node):
     def actuate(self, state):
         """Makes a physical device change in the lab with the _actuate() method, then registers this change with EMERGENT.
 
-        Note:
-            If a secondary state is passed in (i.e. all dict keys label secondary Input nodes),
-            then the state will be converted to primary using Device.secondary_to_primary(),
-            which must be implemented in any driver file which uses secondary inputs.
-            After actuation of the primary state, the equivalent secondary state is
-            updated.
-
-        Note:
-            If a mixed state is passed in (with both primary and secondary components),
-            only the primary components will be used.
-
         Args:
             state (dict): Target state of the form {'param1':value1, 'param2':value2,...}.
         """
 
-        isPrimary = self.is_type(state, 'primary')
-        isSecondary = self.is_type(state, 'secondary')
-        assert not (isPrimary and isSecondary)
-
-        if isPrimary:
-            self._actuate(state)
-        elif isSecondary:
-            self._actuate(self.secondary_to_primary(state))
+        self._actuate(state)
         self.update(state)
 
     def get_missing_keys(self, state, keys):
@@ -314,39 +200,6 @@ class Device(Node):
                 total_state[input] = self.state[input]
         return total_state
 
-    def get_type(self, state, type):
-        """Returns the primary/secondary components of the state according to the passed type.
-
-        Args:
-            state (dict): Target state, e.g. {'param1':value1, 'param2':value2}.
-            type (str): Input node type ('primary' or 'secondary').
-
-        Returns:
-            new_state (dict): State dict containing the primary or secondary elements of state.
-        """
-        new_state = {}
-        for key in state.keys():
-            if self.children[key].type == type:
-                new_state[key] = state[key]
-        return new_state
-
-    def is_type(self, state, type):
-        """Checks whether the state is primary or secondary according to the passed in type.
-        Note:
-            is_type(state,'primary')==False does not mean the state is secondary - it could be mixed!
-
-        Args:
-            state (dict): State dict, e.g. {'param1':value1, 'param2':value2}.
-            type (str): Input node type ('primary' or 'secondary').
-
-        Returns:
-            is_type (bool): True if all elements of state are type; False otherwise.
-        """
-        is_type = True
-        for key in state.keys():
-            is_type = is_type and (self.children[key].type == type)
-        return is_type
-
     def update(self,state):
         """Synchronously updates the state of the Input, Device, and Control.
 
@@ -371,7 +224,7 @@ class Control(Node):
         nodes. '''
 
     def __init__(self, name, parent = None, path = '.'):
-        """Initializes a Control node and attaches Sequencer, Historian, and Optimizer instances.
+        """Initializes a Control node and attaches Historian and Optimizer instances.
 
         Args:
             name (str): node name. All Control nodes should have unique names.
@@ -384,23 +237,21 @@ class Control(Node):
         self.inputs = {}
         self.state = {}
         self.settings = {}
-        self.sequence = {}
         self.actuating = 0
         self.cycle_time = 0
         self.state_path = path+'/state/'
         self.data_path = path+'/data/'
         self.dataframe = {}
-        self.dataframe['cost'] = None
-
+        self.dataframe['cost'] = {}
         for p in [self.state_path, self.data_path]:
             pathlib.Path(p).mkdir(parents=True, exist_ok=True)
 
-        self.sequencer = Sequencer(self)
         self.historian = Historian(self)
         # self.optimizer = Optimizer(self)
         self.optimizers = {}
 
         self.node_type = 'control'
+        self.load_costs()
 
     def actuate(self, state, save=True):
         """Updates all Inputs in the given state to the given values and optionally logs the state.
@@ -409,40 +260,36 @@ class Control(Node):
             state (dict): Target state of the form {'deviceA.param1':1, 'deviceA.param1':2,...}
             save (bool): Whether or not to log.
         """
-        if not self.actuating:
-            self.actuating = 1
-            ''' Aggregate states by device '''
-            dev_states = {}
-            for dev_name in state:
-                dev = self.children[dev_name]
-                dev_state = state[dev_name]
-                dev.actuate(dev_state)
-            self.actuating = 0
-        else:
-            log.warn('Actuate blocked by already running actuation.')
+        # if not self.actuating:
+            # self.actuating = 1
+        ''' Aggregate states by device '''
+        dev_states = {}
+        for dev_name in state:
+            dev = self.children[dev_name]
+            dev_state = state[dev_name]
+            dev.actuate(dev_state)
+        #     self.actuating = 0
+        # else:
+        #     log.warn('Actuate blocked by already running actuation.')
 
     def attach_optimizer(self, state):
         optimizer = Optimizer(self)
         index = len(self.optimizers)
-        self.optimizers[index] = {'state':state, 'optimizer':optimizer}
+        self.optimizers[index] = {'state':state, 'optimizer':optimizer, 'status':'Ready'}
         return optimizer, index
 
-    def get_sequence(self):
-        """Populates the self.sequence dict with sequences of all inputs."""
-        for dev in self.inputs:
-            for input in self.inputs[dev]:
-                self.sequence[dev][input] = self.inputs[dev][input]
+    def get_history(self, dev, inputs, cost):
+        ''' Return a multidimensional array and corresponding points from the dataframe storage of the control node '''
+        arrays = []
+        costs = self.dataframe['cost'][cost]
+        df = pd.DataFrame()
+        for name in inputs:
+            df[name] = self.dataframe[dev][name]['state']
+        df = df.loc[list(costs.index)]
 
-    def get_subsequence(self, keys):
-        """Returns a sequence dict containing only the specified keys.
-
-        Args:
-            keys (list): full_name variables of Input nodes to retrieve, e.g. ['deviceA.input1', 'deviceB.input1'].
-        """
-        sequence = {}
-        for key in keys:
-            sequence[key] = self.sequence[key]
-        return sequence
+        for col in df.columns:
+            arrays.append(df[col].values)
+        return np.vstack(arrays).T, costs.values.T[0]
 
     def get_substate(self, substate):
         """Returns a state dict containing only the specified keys.
@@ -469,32 +316,33 @@ class Control(Node):
         Args:
             full_name (str): Specifies the Input node and its parent device, e.g. 'deviceA.input1'.
         """
-        if self.inputs[device][name].type is 'secondary':
-            return
 
-        full_name = device + '.' + name
+        full_name = self.name + '.' + device + '.' + name
 
         ''' Load dataframe '''
         try:
-            self.dataframe[full_name] = pd.read_csv(self.data_path+full_name+'.csv', index_col=0)
-            self.state[device][name] = self.dataframe[full_name]['state'].iloc[-1]
+            self.dataframe[device][name] = pd.read_csv(self.data_path+full_name+'.csv', index_col=0)
+            self.state[device][name] = self.dataframe[device][name]['state'].iloc[-1]
             self.settings[device][name] = {}
             for setting in ['min', 'max']:
-                self.settings[device][name][setting] = self.dataframe[full_name][setting].iloc[-1]
+                self.settings[device][name][setting] = self.dataframe[device][name][setting].iloc[-1]
             self.inputs[device][name].set_settings(self.settings[device][name])
+
+
         except FileNotFoundError:
-            self.dataframe[full_name] = pd.DataFrame()
+            self.dataframe[device][name] = pd.DataFrame()
             self.state[device][name] = 0
             self.settings[device][name] = {}
             for setting in ['min', 'max']:
                 self.settings[device][name][setting] = 0
             log.warn('Could not find csv for input %s; creating new settings.'%full_name)
 
-        if self.dataframe['cost'] is None:
+    def load_costs(self):
+        for cost_name in self.list_costs():
             try:
-                self.dataframe['cost'] = pd.read_csv(self.data_path+'cost'+'.csv', index_col=0)
-            except FileNotFoundError:
-                self.dataframe['cost'] = pd.Series()
+                self.dataframe['cost'][cost_name] = pd.read_csv(self.data_path+cost_name+'.csv', index_col=0)
+            except (FileNotFoundError, pd.errors.EmptyDataError):
+                self.dataframe['cost'][cost_name] = pd.Series()
 
     def save(self, tag = ''):
         """Aggregates the self.state and self.settings variables into a dataframe and saves to csv.
@@ -507,26 +355,23 @@ class Control(Node):
         for dev in self.inputs:
             for input in self.inputs[dev]:
                 self.save_dataframe(t, dev, input)
-        self.dataframe['cost'].to_csv(self.data_path+self.name+'_cost'+'.csv')
+
+        for name in self.dataframe['cost']:
+            self.dataframe['cost'][name].to_csv(self.data_path+self.name+'.'+name+'.csv')
 
     def save_dataframe(self, t, dev, input_name):
-        full_name = dev + '.' + input_name
+        full_name = self.name + '.' + dev + '.' + input_name
         input = self.inputs[dev][input_name]
-        if input.type is 'secondary':
-            return
         self.update_dataframe(t, dev, input_name, input.state)
-        self.dataframe[full_name].to_csv(self.data_path+full_name+'.csv')
+        self.dataframe[dev][input_name].to_csv(self.data_path+full_name+'.csv')
 
     def update_dataframe(self, t, dev, input_name, state):
-        if self.inputs[dev][input_name].type is 'secondary':
-            return
-        full_name = dev + '.' + input_name
-        self.dataframe[full_name].loc[t, 'state'] = state
+        self.dataframe[dev][input_name].loc[t, 'state'] = state
         for setting in ['min', 'max']:
-            self.dataframe[full_name].loc[t, setting] = self.settings[dev][input_name][setting]
+            self.dataframe[dev][input_name].loc[t, setting] = self.settings[dev][input_name][setting]
 
-    def update_cost(self, t, cost):
-        self.dataframe['cost'].loc[t] = cost
+    def update_cost(self, t, cost, name):
+        self.dataframe['cost'][name].loc[t] = cost
 
     def onLoad(self):
         """Tasks to be carried out after all Devices and Inputs are initialized."""
@@ -534,4 +379,3 @@ class Control(Node):
             device._connected = device._connect()
             device.loaded = 1
         self.actuate(self.state)
-        # self.sequencer.prepare_sequence()

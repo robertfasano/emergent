@@ -2,6 +2,7 @@ from emergent.archetypes.node import Device
 from emergent.devices.labjackT7 import LabJack
 import functools
 import time
+import numpy as np
 class IntensityServo(Device):
     ''' Device driver for a four-channel intensity servo with an embedded pair of
         LabJack T4 DAQs for control.
@@ -79,6 +80,9 @@ class IntensityServo(Device):
         sequence = {}
         stream = {}
         V = self.state['V%i'%channel]
-        seq = [[0,0], [1/frequency/2,V]]
-        stream, scanRate = lj.sequence2stream(seq, 1/frequency, 1)
+        seq = np.array([[0,0], [1/frequency/2,V]])
+
+        seq = np.atleast_2d([0, V]).T
+        stream, scanRate = lj.resample(seq, 1/frequency)
+        # stream, scanRate = lj.sequence2stream(seq, 1/frequency, 1)
         lj.stream_out([ch], stream, scanRate, loop = True)

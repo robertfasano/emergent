@@ -49,8 +49,6 @@ class CurrentDriver(Device, ProcessHandler):
         self.add_input('I1')
         self.add_input('I2')
 
-        self.add_input('grad', type='secondary')
-        self.add_input('zero', type='secondary')
         # self._connected = self._connect()
 
         ''' Wave options '''
@@ -117,9 +115,9 @@ class CurrentDriver(Device, ProcessHandler):
 
     def _connect(self):
         try:
-            for coil in [1,2]:
+            # for coil in [1,2]:
                 # self._run_thread(target=self._connect_to_psu, args=(coil,), stoppable = False)
-                self._connect_to_psu(coil)
+                # self._connect_to_psu(coil)
             return 1
         except Exception as e:
              log.error('Failed to connect to coils:', e)
@@ -145,35 +143,6 @@ class CurrentDriver(Device, ProcessHandler):
         voltage = (current-self.intercept[i])/self.slope[i]
         self.labjack.AOut(i, voltage)
 
-    def primary_to_secondary(self, state):
-        ''' Converts a primary state with currents I1, I2 to a secondary state with a
-            gradient and zero.
-
-            Args:
-                state (dict): State dict with primary currents in amps, e.g. {'I1':50, 'I2':40}.
-            Returns:
-                secondary_state (dict): State dict with gradient in G/cm and zero position in mm, e.g. {'grad':50, 'zero':0}.
-        '''
-        state = self.get_missing_keys(state, ['I1', 'I2'])
-        I1 = state['I1']
-        I2 = state['I2']
-
-        ''' Find root numerically for zero of B-field. WARNING: if a zero
-            is not found (e.g. if the current disparity is too great), then we
-            set the result to zero.'''
-        try:
-            res = newton(func=self.B, args=(I1,I2), x0=0)
-        except RuntimeError:
-            log.warn('CurrentDriver zero could not be calculated.')
-            res = 0
-        z0 = res
-        grad = -3*MU0/2 * (I2*N2*R2**2*(z0-Z2)/(R2**2+(z0-Z2)**2)**(5/2)-I1*N1*R1**2*(z0-Z1)/(R1**2+(z0-Z1)**2)**(5/2))
-
-        ''' Convert units to mm and G/cm '''
-        z0 *= 1000
-        grad *= 100
-        return {'zero':z0, 'grad':grad}
-
     def B(self, z, I1, I2):
         ''' Analytic model for the on-axis field as a function of known calibration constants.
 
@@ -184,40 +153,6 @@ class CurrentDriver(Device, ProcessHandler):
         '''
 
         return MU0/2 * (N1*I1*R1**2/(R1**2+(z-Z1)**2)**(3/2)-N2*I2*R2**2/(R2**2+(z-Z2)**2)**(3/2))
-
-    def secondary_to_primary(self, state):
-        ''' Converts a secondary state with gradient and zero into a primary state with
-            currents I1, I2.
-
-            Args:
-                state (dict): State dict with gradient in G/cm and zero position in mm, e.g. {'grad':50, 'zero':0}.
-            Returns:
-                primary_state (dict): State dict with primary currents in amps, e.g. {'I1':50, 'I2':40}.
-        '''
-        state = self.get_missing_keys(state, ['grad', 'zero'])
-        z0 = state['zero']
-        grad = state['grad']
-
-        z0 /= 1000
-        grad /= 100
-        denom = (z0-Z1)*(R2**2+(z0-Z2)*(Z1-Z2))-R1**2*(z0-Z2)
-        alpha = 2/3/MU0 * (R1**2+(z0-Z1)**2)*(R2**2+(z0-Z2)**2)/denom
-        I1 = alpha * (R1**2+(z0-Z1)**2)**(3/2)/N1/R1**2 * grad
-        I2 = alpha * (R2**2+(z0-Z2)**2)**(3/2)/N2/R2**2 * grad
-
-        return {'I1':I1, 'I2':I2}
-
-    def set_field(self, grad, z0):
-        ''' Sets coil currents to achieve the desired gradient and zero position.
-
-            Args:
-                gradient (float): Magnetic field gradient at the zero position, in G/cm.
-                z0 (float): offset of the zero position from the center of the coils in mm, along the axis pointing from coil 1 to coil 2.
-            '''
-        state = self.secondary_to_primary({'grad':grad, 'zero':z0})
-        self.set_current(1, state['I1'])
-        self.set_current(2, state['I2'])
-
 
     def pulse(self, N=20, A=10, T=1):
         i=0

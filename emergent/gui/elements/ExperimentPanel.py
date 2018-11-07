@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import (QComboBox, QLabel, QTextEdit, QPushButton, QVBoxLay
         QWidget, QProgressBar, qApp, QHBoxLayout, QCheckBox, QTabWidget, QLineEdit, QSlider)
 from PyQt5.QtCore import *
 from emergent.archetypes.optimizer import Optimizer
+from emergent.gui.elements.OptimizeTab import OptimizeTab
 from emergent.archetypes.parallel import ProcessHandler
 from emergent.utility import list_algorithms, list_triggers
 import inspect
@@ -10,6 +11,7 @@ import logging as log
 import time
 from scipy.stats import linregress
 import numpy as np
+import datetime
 
 class OptimizerLayout(QVBoxLayout, ProcessHandler):
     def __init__(self, parent):
@@ -22,128 +24,44 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         self.addWidget(self.cost_box)
 
         self.tabWidget = QTabWidget()
+        self.addWidget(self.tabWidget)
+
         self.current_algorithm = None
         self.current_control = None
 
-        ''' Create optimizer tab '''
-        self.optimizeTab = QWidget()
-        self.optimizeTabLayout = QVBoxLayout()
-        self.optimizeTab.setLayout(self.optimizeTabLayout)
-        self.tabWidget.addTab(self.optimizeTab, 'Optimize')
-        self.addWidget(self.tabWidget)
-
-        self.algorithm_box = QComboBox()
-        self.optimizeTabLayout.addWidget(self.algorithm_box)
-
-        self.paramsLayout = QHBoxLayout()
-
-        self.optimizerParamsLayout = QVBoxLayout()
-        self.params_edit = QTextEdit('')
-        self.optimizerParamsLayout.addWidget(QLabel('Algorithm parameters'))
-        self.optimizerParamsLayout.addWidget(self.params_edit)
-        self.paramsLayout.addLayout(self.optimizerParamsLayout)
-
-        self.experimentParamsLayout = QVBoxLayout()
-        self.cost_params_edit = QTextEdit('')
-        self.experimentParamsLayout.addWidget(QLabel('Experiment parameters'))
-        self.experimentParamsLayout.addWidget(self.cost_params_edit)
-        self.paramsLayout.addLayout(self.experimentParamsLayout)
-
-        self.optimizeTabLayout.addLayout(self.paramsLayout)
-
-        ''' Optimization and plotting options '''
-        plotLayout = QHBoxLayout()
-        self.cycles_per_sample_edit = QLineEdit('1')
-        self.cycles_per_sample_edit.setMaximumWidth(100)
-        plotLayout.addWidget(QLabel('Cycles per sample'))
-        plotLayout.addWidget(self.cycles_per_sample_edit)
-        self.thread_label = QLabel('Run in parallel')
-        self.thread_checkbox = QCheckBox()
-        self.thread_checkbox.stateChanged.connect(self.disable_plotting)
-        plotLayout.addWidget(self.thread_label)
-        plotLayout.addWidget(self.thread_checkbox)
-        self.plot_label = QLabel('Plot result')
-        self.plot_checkbox = QCheckBox()
-        plotLayout.addWidget(self.plot_label)
-        plotLayout.addWidget(self.plot_checkbox)
-        self.save_label = QLabel('Save plot')
-        self.save_checkbox = QCheckBox()
-        plotLayout.addWidget(self.save_label)
-        plotLayout.addWidget(self.save_checkbox)
-        self.optimizeTabLayout.addLayout(plotLayout)
-        self.parent.treeWidget.itemSelectionChanged.connect(self.update_control)
-        self.algorithm_box.currentTextChanged.connect(self.update_algorithm)
-        self.cost_box.currentTextChanged.connect(self.update_experiment)
-
-        # self.optimizeProcessingLayout = QHBoxLayout()
-        # self.optimizeProcessingLayout.addWidget(QLabel('Operation (n/c)'))
-        # self.optimizeProcessingComboBox = QComboBox()
-        # for item in ['mean', 'stdev', 'peak-to-peak', 'slope']:
-        #     self.optimizeProcessingComboBox.addItem(item)
-        # self.optimizeProcessingLayout.addWidget(self.optimizeProcessingComboBox)
-        # self.optimizeTabLayout.addLayout(self.optimizeProcessingLayout)
-
-        self.optimizeButtonsLayout = QHBoxLayout()
-        self.optimizer_button = QPushButton('Go!')
-        self.optimizer_button.clicked.connect(self.optimize)
-        self.optimizeButtonsLayout.addWidget(self.optimizer_button)
-        self.optimizer_stop_button = QPushButton('Cancel')
-        self.optimizer_stop_button.clicked.connect(self.stop_optimizer)
-        self.optimizeButtonsLayout.addWidget(self.optimizer_stop_button)
-        self.optimizeTabLayout.addLayout(self.optimizeButtonsLayout)
-        self.progress_bar = QProgressBar()
-        self.progress_bar.setTextVisible(False)
-        self.max_progress = 100
-        self.progress_bar.setMaximum(self.max_progress)
-        self.optimizeTabLayout.addWidget(self.progress_bar)
-
+        ''' Create Optimizer tab '''
+        optimizeTab = OptimizeTab(parent=self)
+        self.tabWidget.addTab(optimizeTab, 'Optimize')
 
         ''' Create Run tab '''
         self.runTab = QWidget()
         self.runTabLayout = QVBoxLayout()
         self.runTab.setLayout(self.runTabLayout)
         self.tabWidget.addTab(self.runTab, 'Run')
-
-
-
         self.runIterationsLayout = QHBoxLayout()
         self.run_experimentParamsLayout = QVBoxLayout()
         self.run_cost_params_edit = QTextEdit('')
         self.run_experimentParamsLayout.addWidget(QLabel('Experiment parameters'))
         self.run_experimentParamsLayout.addWidget(self.run_cost_params_edit)
         self.runTabLayout.addLayout(self.run_experimentParamsLayout)
-
         self.runIterationsLayout.addWidget(QLabel('Iterations'))
         self.runIterationsSlider = QSlider(Qt.Horizontal)
         self.runIterationsSlider.valueChanged.connect(self.updateIterations)
         self.runIterationsSlider.setRange(1,8)
         self.runIterationsSlider.setSingleStep(1)
-
         self.runIterationsLayout.addWidget(self.runIterationsSlider)
         self.runIterationsEdit = QLineEdit('')
         self.runIterationsLayout.addWidget(self.runIterationsEdit)
         self.runIterationsSlider.setValue(8)
         self.runTabLayout.addLayout(self.runIterationsLayout)
-
         self.runDelayLayout = QHBoxLayout()
         self.runDelayLayout.addWidget(QLabel('Delay (ms)'))
         self.runDelayEdit = QLineEdit('0')
         self.runDelayLayout.addWidget(self.runDelayEdit)
-
         self.trigger_box = QComboBox()
         self.runDelayLayout.addWidget(QLabel('Trigger'))
         self.runDelayLayout.addWidget(self.trigger_box)
-
         self.runTabLayout.addLayout(self.runDelayLayout)
-
-        # self.runProcessingLayout = QHBoxLayout()
-        # self.runProcessingLayout.addWidget(QLabel('Operation'))
-        # self.runProcessingComboBox = QComboBox()
-        # for item in ['mean', 'stdev', 'peak-to-peak', 'slope']:
-        #     self.runProcessingComboBox.addItem(item)
-        # self.runProcessingLayout.addWidget(self.runProcessingComboBox)
-        # self.runTabLayout.addLayout(self.runProcessingLayout)
-
         self.runButtonsLayout = QHBoxLayout()
         self.runExperimentButton = QPushButton('Run')
         self.runExperimentButton.clicked.connect(self.start_experiment)
@@ -152,22 +70,21 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         self.stopExperimentButton.clicked.connect(self.stop_experiment)
         self.runButtonsLayout.addWidget(self.stopExperimentButton)
         self.runTabLayout.addLayout(self.runButtonsLayout)
-
         self.runResultLayout = QHBoxLayout()
         self.runResultLayout.addWidget(QLabel('Result'))
         self.runResultEdit = QLineEdit('')
         self.runResultLayout.addWidget(self.runResultEdit)
         self.runTabLayout.addLayout(self.runResultLayout)
 
-    def disable_plotting(self, state):
-        if state:
-            for box in [self.plot_checkbox, self.save_checkbox]:
-                box.setChecked(0)
-                box.setEnabled(False)
-
-        else:
-            for box in [self.plot_checkbox, self.save_checkbox]:
-                box.setEnabled(True)
+    # def disable_plotting(self, state):
+    #     if state:
+    #         for box in [self.plot_checkbox, self.save_checkbox]:
+    #             box.setChecked(0)
+    #             box.setEnabled(False)
+    #
+    #     else:
+    #         for box in [self.plot_checkbox, self.save_checkbox]:
+    #             box.setEnabled(True)
 
     def updateIterations(self):
         try:
@@ -216,27 +133,17 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         qApp.processEvents(QEventLoop.ExcludeUserInputEvents)
 
     def optimize(self):
-        if self.thread_checkbox.isChecked():
-            self._run_thread(self.start_optimizer, stoppable=False)
-        else:
-            self.start_optimizer()
-
-    # def postprocess(self, data, method):
-    #     if method == 'mean':
-    #         return np.mean(data)
-    #     if method == 'stdev':
-    #         return np.std(data)
-    #     if method == 'slope':
-    #         axis = np.linspace(0,1,len(data))
-    #         slope, intercept, r, p, err = linregress(axis, data)
-    #         return slope
-    #     if method == 'peak-to-peak':
-    #         return np.ptp(data)
+        # if self.thread_checkbox.isChecked():
+        self._run_thread(self.start_optimizer, stoppable=False)
+        # else:
+        #     self.start_optimizer()
 
     def run_experiment(self, stopped):
         control = self.parent.treeWidget.get_selected_control()
         experiment = getattr(control, self.cost_box.currentText())
-        trigger = getattr(control, self.trigger_box.currentText())
+        trigger = self.trigger_box.currentText()
+        if trigger != 'None':
+            trigger = getattr(control, trigger)
         iterations = self.runIterationsEdit.text()
         if iterations != 'Continuous':
             iterations = int(iterations)
@@ -246,13 +153,11 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         cost_params = self.run_cost_params_edit.toPlainText().replace('\n','').replace("'", '"')
         cost_params = json.loads(cost_params)
         cost_params['cycles per sample'] = int(self.cycles_per_sample_edit.text())
-        if trigger is not None:
+        if trigger != 'None':
             trigger()
         while not stopped():
             state = control.state
             result = experiment(state, params=cost_params)
-            # if type(result) is np.ndarray:
-                # result = self.postprocess(result, operation)
             self.runResultEdit.setText(str(result))
             qApp.processEvents(QEventLoop.ExcludeUserInputEvents)
             count += 1
@@ -276,27 +181,33 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
             log.warn('Select inputs before starting optimization!')
             return
         state = self.parent.treeWidget.get_selected_state()
-
+        cost_name = self.cost_box.currentText()
+        cost = getattr(control, cost_name)
         optimizer, index = control.attach_optimizer(state)
+        control.optimizers[index]['status'] = 'Optimizing'
+        t = datetime.datetime.strftime(datetime.datetime.now(), '%H:%M')
+        row = self.parent.historyPanel.add_event(t, cost_name, algorithm_name, 'Optimizing', optimizer)
+
         func = getattr(optimizer, algorithm_name.replace(' ','_'))
         params = self.params_edit.toPlainText().replace('\n','').replace("'", '"')
         params = json.loads(params)
-        params['plot']=self.plot_checkbox.isChecked()
-        params['save']=self.save_checkbox.isChecked()
 
         cost_params = self.cost_params_edit.toPlainText().replace('\n','').replace("'", '"')
         cost_params = json.loads(cost_params)
         cost_params['cycles per sample'] = int(self.cycles_per_sample_edit.text())
 
-        cost_name = self.cost_box.currentText()
-        cost = getattr(control, cost_name)
+
         if state == {}:
             log.warn('Please select at least one Input node for optimization.')
         else:
             log.info('Started optimization of %s experiment using %s algorithm.'%(cost_name, algorithm_name))
             func(state, cost, params, cost_params, self.update_progress_bar)
             log.info('Optimization complete!')
-            del control.optimizers[index]
+            control.optimizers[index]['status'] = 'Done'
+            self.parent.historyPanel.update_event_status(row, 'Done')
+            optimizer.log(t.replace(':','') + ' - ' + cost_name + ' - ' + algorithm_name)
+
+            # del control.optimizers[index]
 
     def stop_optimizer(self):
         control = self.parent.treeWidget.get_selected_control()

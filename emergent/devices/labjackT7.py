@@ -168,11 +168,11 @@ class LabJack(ProcessHandler, Device):
                 "DIO_EF_CLOCK0_DIVISOR",    # Configure Clock0's divisor
                 "DIO_EF_CLOCK0_ROLL_VALUE", # Configure Clock0's roll value
                 "DIO_EF_CLOCK0_ENABLE", # Enable the clock source
-                "DIO%i_EF_ENABLE", 	# Disable the EF system for initial configuration
-                "DIO%i_EF_INDEX", 	# Configure EF system for PWM
-                "DIO%i_EF_OPTIONS",	# Configure what clock source to use: Clock0
-                "DIO%i_EF_CONFIG_A",	# Configure duty cycle
-                "DIO%i_EF_ENABLE"    # Enable the EF system, PWM wave is now being outputted
+                "DIO%i_EF_ENABLE"%channel, 	# Disable the EF system for initial configuration
+                "DIO%i_EF_INDEX"%channel, 	# Configure EF system for PWM
+                "DIO%i_EF_OPTIONS"%channel,	# Configure what clock source to use: Clock0
+                "DIO%i_EF_CONFIG_A"%channel,	# Configure duty cycle
+                "DIO%i_EF_ENABLE"%channel    # Enable the EF system, PWM wave is now being outputted
             ]
             aValues = [0,1,roll_value,1,0,0,0,config_a,1]
             self._write_array(aNames, aValues)

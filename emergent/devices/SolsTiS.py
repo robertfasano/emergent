@@ -5,6 +5,13 @@ import time
 
 class SolsTiS(Device):
     def __init__(self, params, name = 'SolsTiS', parent = None):
+        ''' Args:
+                params (dict): dictionary containing the following fields:
+                params['server_ip'] (str): IP address of the ICE-BLOC controller
+                params['port'] (int): port number
+                params['client_ip'] (str): IP address of the PC
+        '''
+
         super().__init__(name=name, parent = parent)
         self.add_input('etalon setpoint')
 
@@ -31,6 +38,8 @@ class SolsTiS(Device):
         self.message(op = 'etalon_lock', parameters = {'operation': state})
 
     def message(self, op, parameters):
+        ''' Note: ICE-BLOC protocol manual specifies that all numerical parameters should be enclosed in quotes or brackets;
+            this does not appear to be strictly necessary, but may prevent transmission errors. '''
         cmd = { "message": {"timestamp":time.time(), "transmission_id": [1001],"op": op,"parameters": parameters }}
         print(cmd)
         self.client.sendall(json.dumps(cmd).encode())

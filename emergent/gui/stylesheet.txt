@@ -4,6 +4,9 @@ QTextEdit {color:"#3a4055"; font-family: "Agency FB"; font-size: 18px}
 QTreeWidget {color:"#3a4055"; font-family: "Agency FB"; font-size: 18px}
 
 QLabel {color:"#3a4055"; font-weight: bold; font-family: "Agency FB"; font-size: 15px}
+QTableWidget {color:"#3a4055"; font-weight: bold; font-family: "Agency FB"; font-size: 15px}
+QTableWidgetItem {color:"#3a4055"; font-weight: bold; font-family: "Agency FB"; font-size: 15px}
+QWindow {color:"#3a4055"; font-weight: bold; font-family: "Agency FB"; font-size: 15px}
 QTabWidget {color:"#3a4055"; font-weight: bold; font-family: "Agency FB"; font-size: 15px}
 
 QHeaderView::section {color:"#3a4055"; font-weight: bold; font-family: "Agency FB"; font-size: 15px}

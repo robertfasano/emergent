@@ -32,7 +32,7 @@ class Historian():
 
     def clear(self):
         ''' Deletes historical state data up to the last point. '''
-        for p in [self.state_path, self.settings_path, self.sequence_path]:
+        for p in [self.state_path, self.settings_path]:
             with open(p, 'r') as file:
                 line = file.readlines()[-1]
             with open(p, 'w') as file:
@@ -40,7 +40,7 @@ class Historian():
 
     def delete_tag(self, tag):
         ''' Deletes all historical state data with the given tag. This can be used to prune the log file of frequently-written output, such as from Control.actuate(), while preserving important states such as the results from the optimizer.'''
-        for p in [self.state_path, self.settings_path, self.sequence_path]:
+        for p in [self.state_path, self.settings_path]:
             with open(p, 'r') as file:
                 lines = file.readlines()
             new_lines = []

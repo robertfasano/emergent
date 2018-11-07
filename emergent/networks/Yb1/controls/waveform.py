@@ -17,6 +17,10 @@ class Ramp(Device):
         self.labjack.prepare_stream_out(trigger=trigger)
         self.initialized = 0
 
+        for channel in ['DAC0', 'DAC1']:
+            for type in self.all_inputs:
+                self.options[channel+': '+type] = getattr(self,channel+'_'+type)
+
     def add_ramp_type_inputs(self, ch):
         inputs = self.all_inputs[self.type[ch]]
         for input in inputs:
@@ -57,3 +61,21 @@ class Ramp(Device):
         self.add_ramp_type_inputs(ch)
         self.parent.actuate(self.parent.state)
         log.warn('State sync conflict resolved.')
+
+    def DAC0_constant(self):
+        self.switch_type(0, 'constant')
+
+    def DAC1_constant(self):
+        self.switch_type(1, 'constant')
+
+    def DAC0_linear(self):
+        self.switch_type(0, 'linear')
+
+    def DAC1_linear(self):
+        self.switch_type(1, 'linear')
+
+    def DAC0_exponential(self):
+        self.switch_type(0, 'exponential')
+
+    def DAC1_exponential(self):
+        self.switch_type(1, 'exponential')

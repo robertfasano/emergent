@@ -10,9 +10,10 @@ from PyQt5.QtWidgets import (QApplication, QAbstractItemView,QCheckBox, QComboBo
 from PyQt5.QtCore import *
 import json
 from emergent.archetypes.optimizer import Optimizer
-from emergent.gui.elements.optimizer import OptimizerLayout
+from emergent.gui.elements.ExperimentPanel import OptimizerLayout
 # from emergent.gui.elements.sequencer import SequencerLayout
-from emergent.gui.elements.treeview import NodeTree
+from emergent.gui.elements.NetworkPanel import NodeTree
+from emergent.gui.elements.HistoryPanel import HistoryPanel
 import os
 import psutil
 import sys
@@ -29,8 +30,13 @@ class MainFrame(QMainWindow):
         self.setWindowIcon(QIcon('gui/media/icon.png'))
         self.setCentralWidget(self.widget)
         layout= QHBoxLayout(self.widget)
-        width = 1000
-        self.resize(width, width/1.618)
+
+        width_fraction = 0.72
+        height_fraction = width_fraction/1.618
+        width = self.app.desktop().screenGeometry().width()*width_fraction
+        height = self.app.desktop().screenGeometry().height()*height_fraction
+        self.resize(width, height)
+
         ''' Create status bar '''
         self.statusBar = QStatusBar()
         self.setStatusBar(self.statusBar)
@@ -58,6 +64,10 @@ class MainFrame(QMainWindow):
         ''' Create sequencer layout '''
         # self.sequencer = SequencerLayout(self)
         # layout.addLayout(self.sequencer)
+
+        ''' Create history panel '''
+        self.historyPanel = HistoryPanel()
+        layout.addLayout(self.historyPanel)
 
     def get_system_stats(self):
         mem = 'Memory usage: %.2f GB'%(psutil.Process(os.getpid()).memory_info()[0]/2.**30)
