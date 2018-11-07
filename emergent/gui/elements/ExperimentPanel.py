@@ -166,7 +166,7 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         state = self.parent.treeWidget.get_selected_state()
         cost_name = self.cost_box.currentText()
         cost = getattr(control, cost_name)
-        optimizer, index = control.attach_optimizer(state)
+        optimizer, index = control.attach_optimizer(state, cost)
         control.optimizers[index]['status'] = 'Optimizing'
         t = datetime.datetime.strftime(datetime.datetime.now(), '%H:%M')
         row = self.parent.historyPanel.add_event(t, cost_name, algorithm_name, 'Optimizing', optimizer)

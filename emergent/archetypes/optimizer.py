@@ -35,13 +35,14 @@ from emergent.utility import methodsWithDecorator, algorithm
 
 class Optimizer():
     ''' General methods '''
-    def __init__(self, control_node):
+    def __init__(self, control_node, cost = None):
         ''' Initialize the optimizer and link to the parent Control node. '''
         self.parent = control_node
         self.actuate = self.parent.actuate
         self.active = True        # a boolean allowing early termination through the callback method
         self.progress = 0
         self.result = None
+        self.cost = cost
 
     def callback(self):
         return self.active

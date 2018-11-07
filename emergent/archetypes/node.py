@@ -276,8 +276,8 @@ class Control(Node):
         # else:
         #     log.warn('Actuate blocked by already running actuation.')
 
-    def attach_optimizer(self, state):
-        optimizer = Optimizer(self)
+    def attach_optimizer(self, state, cost):
+        optimizer = Optimizer(self, cost=cost)
         index = len(self.optimizers)
         self.optimizers[index] = {'state':state, 'optimizer':optimizer, 'status':'Ready'}
         return optimizer, index
