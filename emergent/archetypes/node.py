@@ -167,7 +167,7 @@ class Device(Node):
     def _connect(self):
         """Private placeholder for the device-specific initiation method. """
         return 1
-        
+
     def actuate(self, state):
         """Makes a physical device change in the lab with the _actuate() method, then registers this change with EMERGENT.
 
@@ -346,7 +346,7 @@ class Control(Node):
             try:
                 self.dataframe['cost'][cost_name] = pd.read_csv(self.data_path+cost_name+'.csv', index_col=0)
             except (FileNotFoundError, pd.errors.EmptyDataError):
-                self.dataframe['cost'][cost_name] = pd.Series()
+                self.dataframe['cost'][cost_name] = pd.DataFrame()
 
     def save(self, tag = ''):
         """Aggregates the self.state and self.settings variables into a dataframe and saves to csv.
@@ -375,7 +375,10 @@ class Control(Node):
             self.dataframe[dev][input_name].loc[t, setting] = self.settings[dev][input_name][setting]
 
     def update_cost(self, t, cost, name):
-        self.dataframe['cost'][name].loc[t] = cost
+        self.dataframe['cost'][name].loc[t, name] = cost
+        for dev in self.children.values():
+            for input in dev.children.values():
+                self.dataframe['cost'][name].loc[t, dev.name + ': ' + input.name] = input.state
 
     def onLoad(self):
         """Tasks to be carried out after all Devices and Inputs are initialized."""
