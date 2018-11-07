@@ -7,7 +7,7 @@ import pandas as pd
 
 
 
-def plot_1D(points, costs, normalized_cost = False, limits = None,
+def plot_1D(points, costs, cost_name = 'Cost', normalized_cost = False, limits = None,
             save = False):
     if threading.current_thread() is not threading.main_thread():
         log.warn('Cannot create matplotlib plot in thread.')
@@ -26,7 +26,7 @@ def plot_1D(points, costs, normalized_cost = False, limits = None,
     ax = plt.gca()
     if limits is not None:
         plt.xlabel(name)
-        plt.ylabel('Cost')
+        plt.ylabel(cost_name)
 
     return ax
 
