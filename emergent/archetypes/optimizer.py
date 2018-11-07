@@ -32,6 +32,7 @@ def warn(*args, **kwargs):
 import warnings
 warnings.warn = warn
 from emergent.utility import methodsWithDecorator, algorithm
+from copy import deepcopy
 
 class Optimizer():
     ''' General methods '''
@@ -85,11 +86,47 @@ class Optimizer():
     def get_history(self):
         ''' Return a multidimensional array and corresponding points from the history df'''
         arrays = []
+        state = {}
         costs = self.history['cost'].values
         for col in self.history.columns:
             if col != 'cost':
                 arrays.append(self.history[col].values)
-        return np.vstack(arrays).T.astype(float), costs.astype(float)
+                dev = col.split('.')[0]
+                input = col.split('.')[1]
+                if dev not in state.keys():
+                    state[dev] = {}
+                state[dev][input] = 0
+        points = np.vstack(arrays).T.astype(float)
+        costs = costs.astype(float)
+
+        points, costs = self.search_database(points, costs, state, self.cost)
+        return points, costs
+
+    def search_database(self, points, costs, state, cost):
+        ''' Prepare a state dict of all variables which are held constant during optimization '''
+        constant_state = deepcopy(self.parent.state)
+        for dev in state.keys():
+            for input in state[dev]:
+                del constant_state[dev][input]
+
+        ''' Search the database for entries matching these constant values '''
+        database = self.parent.dataframe['cost'][cost.__name__]
+        subdf = database
+        for dev in constant_state.keys():
+            for input in constant_state[dev]:
+                subdf = subdf[np.isclose(subdf[dev+': '+input],constant_state[dev][input], atol = 1e-12)]
+
+
+        ''' Form points, costs arrays '''
+        for i in range(len(subdf)):
+            old_state = {}
+            for dev in state.keys():
+                old_state[dev] = {}
+                for input in state[dev]:
+                    old_state[dev][input] = subdf.iloc[i][dev+': '+input]
+                    points = np.append(points, np.atleast_2d(self.state2array(self.normalize(old_state))), axis=0)
+                    costs = np.append(costs, subdf.iloc[i][cost.__name__])
+        return points, costs
 
     def state2array(self, state):
         ''' Converts a state dict into a numpy array. '''
