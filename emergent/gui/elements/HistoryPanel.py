@@ -102,7 +102,9 @@ class OptimizerPopup(QWidget, ProcessHandler):
         self.plot_button.clicked.connect(self.plot)
         self.layout.addWidget(self.plot_button, 7, 1)
 
-        self._run_thread(self.check_progress, stoppable=False)
+        self.progress_timer = QTimer(self)
+        self.progress_timer.timeout.connect(self.check_progress)
+        self.progress_timer.start(100)
 
     def plot(self):
         points, costs = self.optimizer.get_history()
@@ -113,12 +115,9 @@ class OptimizerPopup(QWidget, ProcessHandler):
             control = self.optimizer.parent
             limits = {full_name.replace('.', ': '): control.settings[dev][input]}
             plot_1D(points, costs, limits = limits)
-        elif points.shape[1] == 2:            
+        elif points.shape[1] == 2:
             plot_2D(points, costs)
 
     def check_progress(self):
-        while self.optimizer.progress < 1:
-            self.progress_label.setText('%.0f%%'%(self.optimizer.progress*100))
-            self.result_label.setText(str(self.optimizer.result))
-        self.progress_label.setText('100%')
+        self.progress_label.setText('%.0f%%'%(self.optimizer.progress*100))
         self.result_label.setText(str(self.optimizer.result))
