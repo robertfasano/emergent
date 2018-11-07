@@ -100,20 +100,23 @@ class OptimizerPopup(QWidget, ProcessHandler):
         self.progress_label = QLabel(str(self.optimizer.progress))
         self.layout.addWidget(self.progress_label, 6, 1)
 
+        self.use_database_checkbox = QCheckBox()
+        self.layout.addWidget(QLabel('Include database in plot'), 7, 0)
+        self.layout.addWidget(self.use_database_checkbox, 7, 1)
         self.terminate_button = QPushButton('Terminate')
         self.terminate_button.clicked.connect(self.optimizer.terminate)
-        self.layout.addWidget(self.terminate_button, 7, 0)
+        self.layout.addWidget(self.terminate_button, 8, 0)
 
         self.plot_button = QPushButton('Plot result')
         self.plot_button.clicked.connect(self.plot)
-        self.layout.addWidget(self.plot_button, 7, 1)
+        self.layout.addWidget(self.plot_button, 8, 1)
 
         self.progress_timer = QTimer(self)
         self.progress_timer.timeout.connect(self.check_progress)
         self.progress_timer.start(100)
 
     def plot(self):
-        points, costs = self.optimizer.get_history()
+        points, costs = self.optimizer.get_history(include_database = self.use_database_checkbox.isChecked())
         if points.shape[1] == 1:
             full_name =  self.optimizer.history.columns[0]
             dev = full_name.split('.')[0]

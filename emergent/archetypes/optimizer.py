@@ -83,7 +83,7 @@ class Optimizer():
                 self.history.loc[t,dev+'.'+input] = norm_target[dev][input]
         return c
 
-    def get_history(self):
+    def get_history(self, include_database = False):
         ''' Return a multidimensional array and corresponding points from the history df'''
         arrays = []
         state = {}
@@ -99,7 +99,8 @@ class Optimizer():
         points = np.vstack(arrays).T.astype(float)
         costs = costs.astype(float)
 
-        points, costs = self.search_database(points, costs, state, self.cost)
+        if include_database:
+            points, costs = self.search_database(points, costs, state, self.cost)
         return points, costs
 
     def search_database(self, points, costs, state, cost):
