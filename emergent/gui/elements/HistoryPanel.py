@@ -123,15 +123,18 @@ class OptimizerPopup(QWidget, ProcessHandler):
             input = full_name.split('.')[1]
             control = self.optimizer.parent
             limits = {full_name.replace('.', ': '): control.settings[dev][input]}
-            plot_1D(points, costs, limits = limits)
             plot_1D(points, costs, limits = limits, cost_name = self.optimizer.cost.__name__)
         elif points.shape[1] == 2:
             plot_2D(points, costs)
         self.optimizer.plot_optimization()
 
     def check_progress(self):
-        self.progress_label.setText('%.0f%%'%(self.optimizer.progress*100))
-        self.result_label.setText(str(self.optimizer.result))
-
         if not self.optimizer.active:
-            self.parent.update_event_status(self.row, 'Done')
+            progress = 'Aborted'
+        elif self.optimizer.progress < 1:
+            progress = '%.0f%%'%(self.optimizer.progress*100)
+        else:
+            progress = 'Done'
+        self.progress_label.setText(progress)
+        self.result_label.setText(str(self.optimizer.result))
+        self.parent.update_event_status(self.row, progress)
