@@ -164,6 +164,10 @@ class Device(Node):
         """
         return
 
+    def _connect(self):
+        """Private placeholder for the device-specific initiation method. """
+        return 1
+        
     def actuate(self, state):
         """Makes a physical device change in the lab with the _actuate() method, then registers this change with EMERGENT.
 
