@@ -132,12 +132,6 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         #self.parent.app.processEvents()
         qApp.processEvents(QEventLoop.ExcludeUserInputEvents)
 
-    def optimize(self):
-        # if self.thread_checkbox.isChecked():
-        self._run_thread(self.start_optimizer, stoppable=False)
-        # else:
-        #     self.start_optimizer()
-
     def run_experiment(self, stopped):
         control = self.parent.treeWidget.get_selected_control()
         experiment = getattr(control, self.cost_box.currentText())
@@ -172,7 +166,7 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
     def stop_experiment(self):
         self._quit_thread(self.run_experiment)
 
-    def start_optimizer(self):
+    def prepare_optimizer(self):
         ''' Call chosen optimization routine with user-selected cost function and parameters '''
         algorithm_name = self.algorithm_box.currentText()
         try:
@@ -187,7 +181,6 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         control.optimizers[index]['status'] = 'Optimizing'
         t = datetime.datetime.strftime(datetime.datetime.now(), '%H:%M')
         row = self.parent.historyPanel.add_event(t, cost_name, algorithm_name, 'Optimizing', optimizer)
-
         func = getattr(optimizer, algorithm_name.replace(' ','_'))
         params = self.params_edit.toPlainText().replace('\n','').replace("'", '"')
         params = json.loads(params)
@@ -201,13 +194,14 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
             log.warn('Please select at least one Input node for optimization.')
         else:
             log.info('Started optimization of %s experiment using %s algorithm.'%(cost_name, algorithm_name))
-            func(state, cost, params, cost_params, self.update_progress_bar)
-            log.info('Optimization complete!')
-            control.optimizers[index]['status'] = 'Done'
-            self.parent.historyPanel.update_event_status(row, 'Done')
-            optimizer.log(t.replace(':','') + ' - ' + cost_name + ' - ' + algorithm_name)
+            self._run_thread(self.start_optimizer, args=(func, state, cost, params, cost_params, control, optimizer, index, row, t, cost_name, algorithm_name), stoppable=False)
 
-            # del control.optimizers[index]
+    def start_optimizer(self, func, state, cost, params, cost_params, control, optimizer, index, row, t, cost_name, algorithm_name):
+        func(state, cost, params, cost_params, self.update_progress_bar)
+        log.info('Optimization complete!')
+        control.optimizers[index]['status'] = 'Done'
+        # self.parent.historyPanel.update_event_status(row, 'Done')
+        optimizer.log(t.replace(':','') + ' - ' + cost_name + ' - ' + algorithm_name)
 
     def stop_optimizer(self):
         control = self.parent.treeWidget.get_selected_control()

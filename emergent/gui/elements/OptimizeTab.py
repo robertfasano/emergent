@@ -33,7 +33,7 @@ class OptimizeTab(QWidget):
         parent.cost_box.currentTextChanged.connect(parent.update_experiment)
         optimizeButtonsLayout = QHBoxLayout()
         parent.optimizer_button = QPushButton('Go!')
-        parent.optimizer_button.clicked.connect(parent.optimize)
+        parent.optimizer_button.clicked.connect(parent.prepare_optimizer)
         optimizeButtonsLayout.addWidget(parent.optimizer_button)
         optimizeTabLayout.addLayout(optimizeButtonsLayout)
         parent.progress_bar = QProgressBar()

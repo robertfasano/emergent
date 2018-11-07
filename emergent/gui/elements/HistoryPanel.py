@@ -57,14 +57,16 @@ class HistoryPanel(QVBoxLayout):
     def on_double_click(self, row, col):
         optimizer = self.table.item(row, 4).optimizer
         algorithm = self.table.item(row, 2).text()
-        self.popup = OptimizerPopup(optimizer, algorithm)
+        self.popup = OptimizerPopup(optimizer, algorithm, self, row)
         self.popup.show()
 
 class OptimizerPopup(QWidget, ProcessHandler):
-    def __init__(self, optimizer, algorithm):
+    def __init__(self, optimizer, algorithm, parent, row):
         super(OptimizerPopup, self).__init__()
         QWidget().__init__()
         ProcessHandler.__init__(self)
+        self.parent = parent
+        self.row = row
         with open('gui/stylesheet.txt',"r") as file:
             self.setStyleSheet(file.read())
         self.optimizer = optimizer
@@ -87,7 +89,11 @@ class OptimizerPopup(QWidget, ProcessHandler):
         params = str(params).replace('{', '').replace(',', ',\n').replace('}', '')
         self.layout.addWidget(QLabel(params), 3, 1)
         self.layout.addWidget(QLabel('Result'), 5, 0)
-        self.result_label = QLabel(str(self.optimizer.history['cost'].iloc[-1]))
+        try:
+            result = str(self.optimizer.history['cost'].iloc[-1])
+        except IndexError:
+            result = ''
+        self.result_label = QLabel(result)
         self.layout.addWidget(self.result_label, 5, 1)
 
         self.layout.addWidget(QLabel('Progress:'), 6, 0)
@@ -121,3 +127,6 @@ class OptimizerPopup(QWidget, ProcessHandler):
     def check_progress(self):
         self.progress_label.setText('%.0f%%'%(self.optimizer.progress*100))
         self.result_label.setText(str(self.optimizer.result))
+
+        if not self.optimizer.active:
+            self.parent.update_event_status(self.row, 'Done')
