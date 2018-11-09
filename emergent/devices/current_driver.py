@@ -57,7 +57,7 @@ class CurrentDriver(Device, ProcessHandler):
         self.options['Calibrate'] = self.calibrate
 
 
-    def calibrate(self, coil, Vmin=1.5, Vmax=3, steps=10, delay = 5/100, plot = False):
+    def calibrate(self, coil=None, Vmin=1.5, Vmax=3, steps=10, delay = 5/100, plot = False):
         ''' Measure and fit the IV curve of the FETs.
 
             Args:
@@ -68,24 +68,29 @@ class CurrentDriver(Device, ProcessHandler):
                 delay (float): Optional settling time between changing voltage and measuring.
                 plot (bool): If True, plot the calibration curve.
         '''
-        V = np.linspace(Vmin, Vmax, steps)
-        I = []
-        for v in V:
-            self.labjack.AOut(coil-1, v)
-            I.append(self.measure_current(coil))
-            time.sleep(delay)
-        fit = linregress(V, I)
-        self.slope[coil-1] = fit[0]
-        self.intercept[coil-1] = fit[1]
+        if coil is None:
+            coils = [1,2]
+        else:
+            coils = [coil]
+        for coil in coils:
+            V = np.linspace(Vmin, Vmax, steps)
+            I = []
+            for v in V:
+                self.labjack.AOut(coil-1, v)
+                I.append(self.measure_current(coil))
+                time.sleep(delay)
+            fit = linregress(V, I)
+            self.slope[coil-1] = fit[0]
+            self.intercept[coil-1] = fit[1]
 
-        plot = True
-        if plot:
-            plt.figure()
-            plt.plot(V, I)
-            plt.xlabel('Setpoint (V)')
-            plt.ylabel('Current (I)')
-            plt.show()
-        self.labjack.AOut(coil-1, 0)
+            if plot:
+                plt.figure()
+                plt.plot(V, I)
+                plt.xlabel('Setpoint (V)')
+                plt.ylabel('Current (I)')
+                plt.show()
+            self.labjack.AOut(coil-1, 0)
+        self.actuate(self.state)
 
     def enable_setpoint(self, ch):
         ''' Only works with ch = 1 or 2 '''
