@@ -28,6 +28,9 @@ class IntensityServo(Device):
         # self.add_input('V1')
         self.add_input('V2')
         self.add_input('V3')
+        self.options['Lock'] = self.lock_all
+        self.options['Unlock'] = self.unlock_all
+
 
     def _actuate(self, state):
         ''' Sets setpoint via analog out control.
@@ -43,7 +46,7 @@ class IntensityServo(Device):
 
     def _connect(self):
         return
-        
+
     def lock(self, channel, state):
         ''' Turns the integrator on or off. Digital high = off.
 
@@ -55,6 +58,16 @@ class IntensityServo(Device):
         ch = [6, 7, 6, 7][channel]
         self.integrator = state
         lj.DOut('FIO%i'%ch, int(1-state))
+
+    def lock_all(self):
+        for input in self.children:
+            ch = int(input[1])
+            self.lock(ch, 1)
+
+    def unlock_all(self):
+        for input in self.children:
+            ch = int(input[1])
+            self.lock(ch, 0)
 
     def autolock(self, channel, frac = 0.9):
         ''' Locks the servo to the specified fraction of the unlocked power. '''
