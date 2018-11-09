@@ -52,8 +52,9 @@ class CurrentDriver(Device, ProcessHandler):
         # self._connected = self._connect()
 
         ''' Wave options '''
-        self.options['Start wave']=self.wave
-        self.options['Stop wave'] = self.labjack.stream_stop
+        # self.options['Start wave']=self.wave
+        # self.options['Stop wave'] = self.labjack.stream_stop
+        self.options['Calibrate'] = self.calibrate
 
 
     def calibrate(self, coil, Vmin=1.5, Vmax=3, steps=10, delay = 5/100, plot = False):
