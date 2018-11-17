@@ -124,10 +124,6 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         for item in list_triggers(control):
             self.trigger_box.addItem(item.replace('_',' '))
 
-    def update_progress_bar(self, progress):
-        self.progress_bar.setValue(progress*self.max_progress)
-        qApp.processEvents(QEventLoop.ExcludeUserInputEvents)
-
     def run_experiment(self, stopped):
         control = self.parent.treeWidget.get_selected_control()
         experiment = getattr(control, self.cost_box.currentText())
