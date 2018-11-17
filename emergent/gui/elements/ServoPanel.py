@@ -20,7 +20,6 @@ class ServoLayout(QVBoxLayout, ProcessHandler):
         ProcessHandler.__init__(self)
         self.parent = parent
 
-        self.addWidget(QLabel('Servos'))
         self.error_box = QComboBox()
         self.addWidget(self.error_box)
 

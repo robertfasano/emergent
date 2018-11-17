@@ -8,6 +8,7 @@ class OptimizeTab(QWidget):
         self.parent = parent
         optimizeTabLayout = QVBoxLayout()
         self.setLayout(optimizeTabLayout)
+        optimizeTabLayout.addWidget(parent.cost_box)
         parent.algorithm_box = QComboBox()
         optimizeTabLayout.addWidget(parent.algorithm_box)
         paramsLayout = QHBoxLayout()

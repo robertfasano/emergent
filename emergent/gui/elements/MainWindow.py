@@ -70,10 +70,6 @@ class MainFrame(QMainWindow):
         self.historyPanel = HistoryPanel()
         layout.addLayout(self.historyPanel)
 
-        ''' Create servo panel '''
-        self.servoPanel = ServoLayout(self)
-        layout.addLayout(self.servoPanel)
-
     def get_system_stats(self):
         mem = 'Memory usage: %.2f GB'%(psutil.Process(os.getpid()).memory_info()[0]/2.**30)
         cpu = 'CPU usage: %.2f%%'%psutil.cpu_percent()

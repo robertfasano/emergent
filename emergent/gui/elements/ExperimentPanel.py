@@ -4,6 +4,7 @@ from PyQt5.QtCore import *
 from emergent.archetypes.optimizer import Optimizer
 from emergent.gui.elements.OptimizeTab import OptimizeTab
 from emergent.archetypes.parallel import ProcessHandler
+from emergent.gui.elements.ServoPanel import ServoLayout
 from emergent.utility import list_algorithms, list_triggers
 import inspect
 import json
@@ -19,9 +20,7 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         ProcessHandler.__init__(self)
         self.parent = parent
 
-        self.addWidget(QLabel('Experiments'))
         self.cost_box = QComboBox()
-        self.addWidget(self.cost_box)
 
         self.tabWidget = QTabWidget()
         self.addWidget(self.tabWidget)
@@ -33,9 +32,17 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         optimizeTab = OptimizeTab(parent=self)
         self.tabWidget.addTab(optimizeTab, 'Optimize')
 
+        ''' Create Servo tab '''
+        servoTab = QWidget()
+        self.servoPanel = ServoLayout(self.parent)
+        servoTab.setLayout(self.servoPanel)
+        self.tabWidget.addTab(servoTab, 'Servo')
+
         ''' Create Run tab '''
         self.runTab = QWidget()
         self.runTabLayout = QVBoxLayout()
+        self.runTabLayout.addWidget(self.cost_box)
+
         self.runTab.setLayout(self.runTabLayout)
         self.tabWidget.addTab(self.runTab, 'Run')
         self.runIterationsLayout = QHBoxLayout()
