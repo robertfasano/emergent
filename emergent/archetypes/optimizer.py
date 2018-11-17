@@ -427,7 +427,7 @@ class Optimizer():
     #     return points, costs
 
     ''' Control methods '''
-    def PID(self, state, error, params={'proportional_gain':1, 'integral_gain':1, 'derivative_gain':1, 'sign':1}, error_params = {}, callback = None):
+    def PID(self, state, error, params={'proportional_gain':1, 'integral_gain':0, 'derivative_gain':0, 'sign':1}, error_params = {}, callback = None):
         self.initialize_optimizer(state, error, params, error_params)
         if callback is None:
             callback = self.callback
