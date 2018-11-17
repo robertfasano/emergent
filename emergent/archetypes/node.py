@@ -314,6 +314,11 @@ class Control(Node):
         """Returns a list of all methods tagged with the '@experiment' decorator."""
         return methodsWithDecorator(self.__class__, 'experiment')
 
+    def list_errors(self):
+        """Returns a list of all methods tagged with the '@error' decorator."""
+        return methodsWithDecorator(self.__class__, 'error')
+
+
     def load(self, device, name):
         """Loads the last saved state and attempts to reinitialize previous values for the Input node specified by full_name. If the input did not exist in the last state, then it is initialized with default values.
 
