@@ -14,6 +14,7 @@ from emergent.gui.elements.ExperimentPanel import OptimizerLayout
 # from emergent.gui.elements.sequencer import SequencerLayout
 from emergent.gui.elements.NetworkPanel import NodeTree
 from emergent.gui.elements.HistoryPanel import HistoryPanel
+from emergent.gui.elements.ServoPanel import ServoLayout
 import os
 import psutil
 import sys
@@ -68,6 +69,10 @@ class MainFrame(QMainWindow):
         ''' Create history panel '''
         self.historyPanel = HistoryPanel()
         layout.addLayout(self.historyPanel)
+
+        ''' Create servo panel '''
+        self.servoPanel = ServoLayout(self)
+        layout.addLayout(self.servoPanel)
 
     def get_system_stats(self):
         mem = 'Memory usage: %.2f GB'%(psutil.Process(os.getpid()).memory_info()[0]/2.**30)
