@@ -447,6 +447,11 @@ class Optimizer():
         while callback():
             e = error(state, error_params)
             t = time.time()
+            print(t)
+            self.history.loc[t,'cost']=e
+            for dev in state:
+                for input in state[dev]:
+                    self.history.loc[t,dev+'.'+input] = state[dev][input]
             print('State:', state, 'Error:', e)
             delta_t = t - last_time
             delta_e = e - last_error
