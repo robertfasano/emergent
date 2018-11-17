@@ -440,7 +440,7 @@ class Optimizer():
         input = inputs[0]
         input_node = self.parent.children[dev].children[input]
         input_node.error_history = pd.Series()
-        last_error = error(state)
+        last_error = error(state, error_params)
         last_time = time.time()
         integral = 0
 
