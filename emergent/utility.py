@@ -87,15 +87,7 @@ def experiment(func, *args, **kwargs):
 
 @decorator.decorator
 def error(func, *args, **kwargs):
-    control = args[0]
-    state = args[1]
-    devices = list(state.keys())
-    dev = devices[0]
-    inputs = list(state[dev].keys())
-    input = inputs[0]
-    input_node = control.children[dev].children[input]
     e = func(*args, **kwargs)
-    input_node.error_history.loc[time.time()] = e
     return e
 
 @decorator.decorator
