@@ -37,8 +37,3 @@ class OptimizeTab(QWidget):
         parent.optimizer_button.clicked.connect(parent.prepare_optimizer)
         optimizeButtonsLayout.addWidget(parent.optimizer_button)
         optimizeTabLayout.addLayout(optimizeButtonsLayout)
-        parent.progress_bar = QProgressBar()
-        parent.progress_bar.setTextVisible(False)
-        parent.max_progress = 100
-        parent.progress_bar.setMaximum(parent.max_progress)
-        optimizeTabLayout.addWidget(parent.progress_bar)
