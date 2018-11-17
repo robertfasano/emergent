@@ -38,7 +38,7 @@ class TestControl(Control):
             return result
 
         @error
-        def error(self, state, error_params = {"drift rate": 1, "proportional_gain": 0.75, "integral_gain": 0.5}):
+        def error(self, state, error_params = {"drift rate": 1, "sign":-1, "proportional_gain": 0.5, "integral_gain": 0.25}):
             self.actuate(state)
             dev = list(state.keys())[0]
             input = list(state[dev].keys())[0]
