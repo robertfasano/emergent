@@ -2,6 +2,7 @@ from emergent.archetypes.node import Device
 import logging as log
 import socket
 import time
+import json
 
 class SolsTiS(Device):
     def __init__(self, params, name = 'SolsTiS', parent = None):
@@ -14,6 +15,7 @@ class SolsTiS(Device):
 
         super().__init__(name=name, parent = parent)
         self.add_input('etalon setpoint')
+        self.params = params
 
     def _connect(self):
         ''' Opens a TCP/IP link to the SolsTiS's ICE-BLOC controller. '''
@@ -35,7 +37,7 @@ class SolsTiS(Device):
         return reply['message']['parameters']
 
     def lock(self, state):
-        self.message(op = 'etalon_lock', parameters = {'operation': state})
+        self.message(op = 'etalon_lock', parameters = {'operation': ['off', 'on'][state]})
 
     def message(self, op, parameters):
         ''' Note: ICE-BLOC protocol manual specifies that all numerical parameters should be enclosed in quotes or brackets;
@@ -48,4 +50,5 @@ class SolsTiS(Device):
 
 
 if __name__ == '__main__':
-    params = {'server_ip':'192.168.1.207', 'client_ip':'192.168.1.1', 'port':39933}
+    params = {'server_ip':'192.168.1.207', 'client_ip':'192.168.1.100', 'port':39933}
+    s = SolsTiS(params)
