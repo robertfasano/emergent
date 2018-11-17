@@ -38,7 +38,7 @@ class TestControl(Control):
             return result
 
         @error
-        def error(self, state, error_params = {"drift rate": 1, "sign":-1, "proportional_gain": 0.5, "integral_gain": 0.25}):
+        def error(self, state, error_params = {"cycle delay": 1, "drift rate": 1, "sign":-1, "proportional_gain": 0.5, "integral_gain": 0.25}):
             self.actuate(state)
             dev = list(state.keys())[0]
             input = list(state[dev].keys())[0]
@@ -48,7 +48,7 @@ class TestControl(Control):
             e = self.state[dev][input] - setpoint
             e = -e
             print('Setpoint:',setpoint)
-            time.sleep(1)
+            time.sleep(error_params['cycle delay'])
             return(e)
 
         def optimize_sequence(self):
