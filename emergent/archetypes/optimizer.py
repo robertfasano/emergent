@@ -469,7 +469,7 @@ class Optimizer():
     ''' Visualization methods '''
     def plot_optimization(self, yscale = 'linear'):
         ''' Plots an optimization time series stored in self.history. '''
-        func = self.history
+        func = self.history.copy()
         func.index -= func.index[0]
         plt.figure()
         plt.plot(func['cost'])
