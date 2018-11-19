@@ -1,6 +1,6 @@
 import numpy as np
 from emergent.archetypes.node import Control
-from utility import experiment
+from utility import experiment, error
 import datetime
 import time
 import numpy as np
@@ -15,10 +15,11 @@ class Lock(Control):
             time.sleep(params['wait'])
             return np.abs(params['setpoint']-self.children['Wavemeter'].frequency())
 
-        def error(self, state, params={'setpoint': 394798.3, 'wait': 0.1}):
+        @error
+        def error(self, state, error_params={'proportional_gain': 0.5, 'integral_gain': 0.05, 'setpoint': 394798.3, 'wait': 0.1}):
             self.actuate(state)
-            time.sleep(params['wait'])
-            return params['setpoint']-self.children['Wavemeter'].frequency()
+            time.sleep(error_params['wait'])
+            return error_params['setpoint']-self.children['Wavemeter'].frequency()
 
         def PID(self, Kp=.5, Ki=0.05, Kd=0.0, sign = 1):
             if self.children['SolsTiS'].check_etalon_lock():
