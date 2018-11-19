@@ -8,12 +8,12 @@ class PZT(Device):
         self.add_input('voltage')
         self.options['Toggle lock'] = self.toggle_lock
         self.lock(0)
-        
+
     def _connect(self):
         return 1
 
     def _actuate(self, state):
-        self.labjack.AOut(0,state['voltage'])
+        self.labjack.AOut(4,state['voltage'], HV=True)
 
     def lock(self, state):
         self.lock_state = state
