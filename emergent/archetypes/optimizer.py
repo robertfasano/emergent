@@ -443,8 +443,8 @@ class Optimizer():
         last_error = error(state, error_params)
         last_time = time.time()
         integral = 0
-
-        while callback():
+        e = None
+        while callback(e):
             e = error(state, error_params)
             t = time.time()
             print(t)
