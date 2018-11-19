@@ -45,7 +45,7 @@ class Optimizer():
         self.result = None
         self.cost = cost
 
-    def callback(self):
+    def callback(self, *args):
         return self.active
 
     def log(self, filename):
