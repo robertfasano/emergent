@@ -3,6 +3,7 @@ import logging as log
 import socket
 import time
 import json
+import numpy as np
 
 class SolsTiS(Device):
     def __init__(self, params, name = 'SolsTiS', parent = None):
@@ -16,6 +17,8 @@ class SolsTiS(Device):
         super().__init__(name=name, parent = parent)
         self.add_input('etalon setpoint')
         self.params = params
+        self.options['Toggle lock'] =  self.toggle_lock
+        self.options['Acquire lock'] = self.acquire_etalon_lock
 
     def _connect(self):
         ''' Opens a TCP/IP link to the SolsTiS's ICE-BLOC controller. '''
@@ -23,20 +26,63 @@ class SolsTiS(Device):
         self.client.connect((self.params['server_ip'], self.params['port']))
         resp = self.message(op = 'start_link', parameters = {'ip_address': self.params['client_ip']})
         print(resp)
+
+        self.lock_state = self.check_etalon_lock()
+        self.lock(0)
         return 1
 
     def _actuate(self, state):
         self.message(op = 'tune_etalon', parameters = {'setting': [state['etalon setpoint']]})
 
+    def acquire_etalon_lock(self):
+        ''' if etalon lock is on, remove it '''
+        self.lock(0)
+        ''' Servo to 0.5 GHz of threshold then cancel and apply lock. Retry if
+            lock point is greater than 1 GHz from setpoint. '''
+
+        error = 999
+        while np.abs(error) > 1:
+            error_params={'setpoint': 394798.3, 'wait': 0.1}
+            params = {'threshold': 'None',
+                      'proportional_gain':0.5,
+                      'integral_gain':0.05,
+                      'derivative_gain':0,
+                      'sign':1}
+            servoPanel = self.leaf.treeWidget().parent.optimizer.servoPanel
+            settings = {'control': self.parent,
+                        'state': {self.name: self.state},
+                        'cost_name': 'error',
+                        'params': params,
+                        'error_params': error_params,
+                        'callback': self.callback}
+            servoPanel.prepare_optimizer(settings=settings)
+            error = self.parent.error(error_params)
+
+    def callback(self, error, threshold=0.5):
+        if error is None:
+            return True
+        if np.abs(error) > threshold:
+            return True
+        else:
+            self.lock(1)
+            return False
+
     def check_etalon_lock(self):
         reply = self.message(op='etalon_lock_status', parameters = {})
-        return {'on':1, 'off':0}[reply['message']['parameters']['condition']]
+        self.lock_state = {'on':1, 'off':0}[reply['message']['parameters']['condition']]
+        return self.lock_state
+
+    def toggle_lock(self):
+        self.lock(1-self.check_etalon_lock())
 
     def get_system_status(self):
         reply = self.message(op = 'get_status', parameters = {})
         return reply['message']['parameters']
 
     def lock(self, state):
+        if state == self.lock_state:
+            return
+        self.lock_state = state
         self.message(op = 'etalon_lock', parameters = {'operation': ['off', 'on'][state]})
 
     def message(self, op, parameters):
