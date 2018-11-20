@@ -80,6 +80,7 @@ class Sampler():
         arrays = []
         state = {}
         costs = self.history['cost'].values
+        t = self.history.index.values
         for col in self.history.columns:
             if col != 'cost':
                 arrays.append(self.history[col].values)
@@ -93,7 +94,7 @@ class Sampler():
 
         if include_database:
             points, costs = self.search_database(points, costs, state, self.cost)
-        return points, costs
+        return t, points, costs
 
     def search_database(self, points, costs, state, cost):
         ''' Prepare a state dict of all variables which are held constant during optimization '''
