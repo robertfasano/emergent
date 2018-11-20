@@ -101,8 +101,7 @@ class NeuralNetwork():
         grid = np.array(grid)
         points = np.transpose(np.meshgrid(*[grid[n] for n in range(N)])).reshape(-1,N)
         costs = self.predict(points)
-        if self.params['plot']:
-            self.parent.plot_2D(points, costs)
+
         y_pred = np.min(costs)
         X_pred = points[np.argmin(costs)]
 
