@@ -111,19 +111,26 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
             self.current_control = control
         self.update_algorithm_display()
 
-
-    def run_experiment(self, stopped):
-        control = self.parent.treeWidget.get_selected_control()
-        experiment = getattr(control, self.cost_box.currentText())
-        iterations = self.runIterationsEdit.text()
-        if iterations != 'Continuous':
-            iterations = int(iterations)
-        delay = float(self.runDelayEdit.text())
-        # operation = self.runProcessingComboBox.currentText()
-        count = 0
+    def get_settings_from_gui(self):
+        settings = {}
+        settings['cost_name'] = self.cost_box.currentText()
+        try:
+            settings['control'] = self.parent.treeWidget.get_selected_control()
+        except IndexError:
+            log.warn('Select inputs before starting optimization!')
+            return
+        params = self.params_edit.toPlainText().replace('\n','').replace("'", '"')
+        settings['params'] = json.loads(params)
         cost_params = self.run_cost_params_edit.toPlainText().replace('\n','').replace("'", '"')
-        cost_params = json.loads(cost_params)
-        cost_params['cycles per sample'] = int(self.cycles_per_sample_edit.text())
+        settings['cost_params'] = json.loads(cost_params)
+        settings['iterations'] = self.runIterationsEdit.text()
+        settings['delay'] = float(self.runDelayEdit.text())
+        settings['callback'] = None
+
+        return settings
+
+    def run_experiment(self, control, experiment, cost_params, delay, iterations, optimizer, index, t, stopped = None):
+        count = 0
         while not stopped():
             state = control.state
             result = experiment(state, params=cost_params)
@@ -134,9 +141,30 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
             if type(iterations) is int:
                 if count >= iterations:
                     break
+        control.optimizers[index]['status'] = 'Done'
+        optimizer.log(t.replace(':','') + ' - ' + experiment.__name__)
 
-    def start_experiment(self):
-        self._run_thread(self.run_experiment)
+    def start_experiment(self, *args, settings = {'callback': None, 'delay': None, 'iterations': None, 'control':None, 'cost_name': None, 'params': None, 'cost_params': None}):
+        ''' Load any non-passed settings from the GUI '''
+        gui_settings = self.get_settings_from_gui()
+        print(settings)
+        for s in settings:
+            if settings[s] is None:
+                settings[s] = gui_settings[s]
+        iterations = settings['iterations']
+        control = settings['control']
+        experiment = getattr(control, settings['cost_name'])
+        delay = settings['delay']
+        cost_params = settings['cost_params']
+        cost_params['cycles per sample'] = int(self.cycles_per_sample_edit.text())
+
+        optimizer, index = control.attach_optimizer(control.state, experiment)
+        optimizer.initialize_optimizer(control.state, experiment, None, cost_params)
+        if iterations != 'Continuous':
+            iterations = int(iterations)
+        t = datetime.datetime.strftime(datetime.datetime.now(), '%H:%M')
+        row = self.parent.historyPanel.add_event(t, settings['cost_name'], None, 'Sampling', optimizer)
+        self._run_thread(self.run_experiment, args = (control, experiment, cost_params, delay, iterations, optimizer, index, t))
 
     def stop_experiment(self):
         self._quit_thread(self.run_experiment)
@@ -163,7 +191,6 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         cost_params = self.cost_params_edit.toPlainText().replace('\n','').replace("'", '"')
         cost_params = json.loads(cost_params)
         cost_params['cycles per sample'] = int(self.cycles_per_sample_edit.text())
-
 
         if state == {}:
             log.warn('Please select at least one Input node for optimization.')
