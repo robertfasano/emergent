@@ -19,6 +19,7 @@ import matplotlib.pyplot as plt
 import json
 import itertools
 import numpy as np
+from emergent.gui.elements.PlotWindow import PlotWidget
 
 class OptimizerItem(QTableWidgetItem):
     def __init__(self, optimizer):
@@ -72,6 +73,7 @@ class OptimizerPopup(QWidget, ProcessHandler):
         self.row = row
         with open('gui/stylesheet.txt',"r") as file:
             self.setStyleSheet(file.read())
+        self.setWindowTitle('Experiment')
         self.optimizer = optimizer
         self.layout= QGridLayout()
         self.setLayout(self.layout)
@@ -162,6 +164,7 @@ class OptimizerPopup(QWidget, ProcessHandler):
             plot_1D(t, p, cost_name = self.optimizer.cost.__name__, ax = cax)
             cax.set_ylabel(full_name)
             cax.set_xlabel('Time (s)')
+        self.pw = PlotWidget(fig1=fig, title='Visualizer: %s'%self.optimizer.cost.__name__)
 
         ''' 2d plots '''
         axis_combos = list(itertools.combinations(range(num_inputs),2))
@@ -173,7 +176,9 @@ class OptimizerPopup(QWidget, ProcessHandler):
                 input = full_name.split('.')[1]
                 limits[full_name.replace('.', ': ')] =  control.settings[dev][input]
             p = points[:,a]
-            plot_2D(p, costs, limits = limits)
+            fig = plot_2D(p, costs, limits = limits)
+            self.pw.addTab(fig)
+        self.pw.show()
         # try:
         #     if points.shape[1] == 1:
         #         full_name =  self.optimizer.sampler.history.columns[0]

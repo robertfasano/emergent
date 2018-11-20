@@ -100,5 +100,4 @@ def plot_2D(points, costs, normalized_cost = False, limits = None,
         axx.set_xlabel(names[0])
         axy.set_ylabel(names[1])
         axy.yaxis.set_label_position("right")
-
-    return ax
+    return fig
