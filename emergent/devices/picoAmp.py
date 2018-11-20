@@ -81,3 +81,19 @@ class PicoAmp(Device):
             V = np.clip(float(V),-5,5)
             channel = {'X':0, 'Y':1}[axis]
             self.labjack.AOut(channel, V, HV=True)
+
+    def wave(self, amplitude=1, frequency = 1):
+        ''' Switch between 0 and the current setpoint.
+
+        Args:
+            channel (int): 0-3
+            frequency (float): wave frequency
+        '''
+        x = self.state['X']
+        i = 0
+        setpoints = [x,x+amplitude]
+        self.waving = True
+        while self.waving:
+            i = (i+1) % 2
+            self._actuate({'X':setpoints[i]})
+            time.sleep(2/frequency)
