@@ -139,18 +139,4 @@ class RunLayout(QVBoxLayout, ProcessHandler):
             except IndexError:
                 return
             f = getattr(control, self.parent.cost_box.currentText())
-            args = inspect.signature(f).parameters
-            args = list(args.items())
-            for a in args:
-                name = a[0]
-                if name == 'params':
-                    default = str(a[1])
-                    if default == name:
-                        default = 'Enter'
-                    else:
-                        default = default.split('=')[1]
-                        default = default.replace('{', '')
-                        default = default.replace(',', '\n')
-                        default = default.replace('}', '')
-                        self.cost_params_edit.setText(default)
-                        self.cost_params_edit.setText(default)
+            self.parent.docstring_to_edit(f, self.cost_params_edit)

@@ -35,7 +35,7 @@ class ServoLayout(QVBoxLayout, ProcessHandler):
         experimentParamsLayout.addWidget(self.error_params_edit)
         paramsLayout.addLayout(experimentParamsLayout)
         self.addLayout(paramsLayout)
-        self.parent.treeWidget.itemSelectionChanged.connect(self.update_control)
+        self.parent.parent.treeWidget.itemSelectionChanged.connect(self.update_control)
         self.error_box.currentTextChanged.connect(self.update_experiment)
         optimizeButtonsLayout = QHBoxLayout()
         self.optimizer_button = QPushButton('Go!')
@@ -44,31 +44,32 @@ class ServoLayout(QVBoxLayout, ProcessHandler):
         self.addLayout(optimizeButtonsLayout)
 
     def update_algorithm(self):
-        control = self.parent.treeWidget.currentItem().root
+        control = self.parent.parent.treeWidget.currentItem().root
         optimizer, index = control.attach_optimizer(None, None)
         f = optimizer.PID
         ''' Read default params dict from source code and insert in self.params_edit. '''
-        args = inspect.signature(f).parameters
-        args = list(args.items())
-        arguments = []
-        for a in args:
-            name = a[0]
-            if name == 'params':
-                default = str(a[1])
-                if default == name:
-                    default = 'Enter'
-                else:
-                    default = default.split('=')[1]
-                    params = json.loads(default.replace("'", '"'))
-                    default = json.dumps(self.update_experiment(params))
-                    default = default.replace('{', '')
-                    default = default.replace(',', '\n')
-                    default = default.replace('}', '')
-                    self.params_edit.setText(default)
+        self.parent.docstring_to_edit(f, self.params_edit)
+        # args = inspect.signature(f).parameters
+        # args = list(args.items())
+        # arguments = []
+        # for a in args:
+        #     name = a[0]
+        #     if name == 'params':
+        #         default = str(a[1])
+        #         if default == name:
+        #             default = 'Enter'
+        #         else:
+        #             default = default.split('=')[1]
+        #             params = json.loads(default.replace("'", '"'))
+        #             default = json.dumps(self.update_experiment(params))
+        #             default = default.replace('{', '')
+        #             default = default.replace(',', '\n')
+        #             default = default.replace('}', '')
+        #             self.params_edit.setText(default)
 
     def update_algorithm_display(self):
         ''' Updates the algorithm box with the methods available to the currently selected control. '''
-        tree = self.parent.treeWidget
+        tree = self.parent.parent.treeWidget
         control = tree.currentItem().root
         self.error_box.clear()
         for item in control.list_errors():
@@ -76,7 +77,7 @@ class ServoLayout(QVBoxLayout, ProcessHandler):
         self.update_algorithm()
 
     def update_control(self):
-        control = self.parent.treeWidget.currentItem().root
+        control = self.parent.parent.treeWidget.currentItem().root
         if control == self.current_control:
             return
         else:
@@ -85,10 +86,10 @@ class ServoLayout(QVBoxLayout, ProcessHandler):
 
     def get_settings_from_gui(self):
         settings = {}
-        settings['state'] = self.parent.treeWidget.get_selected_state()
+        settings['state'] = self.parent.parent.treeWidget.get_selected_state()
         settings['cost_name'] = self.error_box.currentText()
         try:
-            settings['control'] = self.parent.treeWidget.get_selected_control()
+            settings['control'] = self.parent.parent.treeWidget.get_selected_control()
         except IndexError:
             log.warn('Select inputs before starting optimization!')
             return
@@ -116,7 +117,7 @@ class ServoLayout(QVBoxLayout, ProcessHandler):
         optimizer, index = settings['control'].attach_optimizer(settings['state'], settings['cost'])
         settings['control'].optimizers[index]['status'] = 'Servoing'
         t = datetime.datetime.strftime(datetime.datetime.now(), '%H:%M')
-        row = self.parent.historyPanel.add_event(t, settings['cost_name'], 'PID', 'Servoing', optimizer)
+        row = self.parent.parent.historyPanel.add_event(t, settings['cost_name'], 'PID', 'Servoing', optimizer)
         func = optimizer.PID
 
         if settings['state'] == {}:
@@ -132,7 +133,7 @@ class ServoLayout(QVBoxLayout, ProcessHandler):
         optimizer.log(t.replace(':','') + ' - ' + settings['cost_name'] + ' - ' + algorithm_name)
 
     def stop_optimizer(self):
-        control = self.parent.treeWidget.get_selected_control()
+        control = self.parent.parent.treeWidget.get_selected_control()
         for d in control.optimizers.values():
             d['optimizer'].terminate()
 
@@ -143,7 +144,7 @@ class ServoLayout(QVBoxLayout, ProcessHandler):
             experiment separately.'''
         if self.error_box.currentText() is not '':
             try:
-                control = self.parent.treeWidget.get_selected_control()
+                control = self.parent.parent.treeWidget.get_selected_control()
             except IndexError:
                 return
             f = getattr(control, self.error_box.currentText())
