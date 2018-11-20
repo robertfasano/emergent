@@ -65,9 +65,6 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         self.runDelayLayout.addWidget(QLabel('Delay (ms)'))
         self.runDelayEdit = QLineEdit('0')
         self.runDelayLayout.addWidget(self.runDelayEdit)
-        self.trigger_box = QComboBox()
-        self.runDelayLayout.addWidget(QLabel('Trigger'))
-        self.runDelayLayout.addWidget(self.trigger_box)
         self.runTabLayout.addLayout(self.runDelayLayout)
         self.runButtonsLayout = QHBoxLayout()
         self.runExperimentButton = QPushButton('Run')
@@ -112,24 +109,12 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
             return
         else:
             self.current_control = control
-        self.update_trigger()
         self.update_algorithm_display()
 
-    def update_trigger(self):
-        ''' Updates the trigger box with the methods available to the currently selected control. '''
-        tree = self.parent.treeWidget
-        control = tree.currentItem().root
-        self.trigger_box.clear()
-        self.trigger_box.addItem('None')
-        for item in list_triggers(control):
-            self.trigger_box.addItem(item.replace('_',' '))
 
     def run_experiment(self, stopped):
         control = self.parent.treeWidget.get_selected_control()
         experiment = getattr(control, self.cost_box.currentText())
-        trigger = self.trigger_box.currentText()
-        if trigger != 'None':
-            trigger = getattr(control, trigger)
         iterations = self.runIterationsEdit.text()
         if iterations != 'Continuous':
             iterations = int(iterations)
@@ -139,8 +124,6 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         cost_params = self.run_cost_params_edit.toPlainText().replace('\n','').replace("'", '"')
         cost_params = json.loads(cost_params)
         cost_params['cycles per sample'] = int(self.cycles_per_sample_edit.text())
-        if trigger != 'None':
-            trigger()
         while not stopped():
             state = control.state
             result = experiment(state, params=cost_params)
