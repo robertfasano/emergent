@@ -49,23 +49,6 @@ class ServoLayout(QVBoxLayout, ProcessHandler):
         f = optimizer.PID
         ''' Read default params dict from source code and insert in self.params_edit. '''
         self.parent.docstring_to_edit(f, self.params_edit)
-        # args = inspect.signature(f).parameters
-        # args = list(args.items())
-        # arguments = []
-        # for a in args:
-        #     name = a[0]
-        #     if name == 'params':
-        #         default = str(a[1])
-        #         if default == name:
-        #             default = 'Enter'
-        #         else:
-        #             default = default.split('=')[1]
-        #             params = json.loads(default.replace("'", '"'))
-        #             default = json.dumps(self.update_experiment(params))
-        #             default = default.replace('{', '')
-        #             default = default.replace(',', '\n')
-        #             default = default.replace('}', '')
-        #             self.params_edit.setText(default)
 
     def update_algorithm_display(self):
         ''' Updates the algorithm box with the methods available to the currently selected control. '''
@@ -152,7 +135,7 @@ class ServoLayout(QVBoxLayout, ProcessHandler):
             args = list(args.items())
             for a in args:
                 name = a[0]
-                if name == 'error_params':
+                if name == 'params':
                     default = str(a[1])
                     if default == name:
                         default = 'Enter'

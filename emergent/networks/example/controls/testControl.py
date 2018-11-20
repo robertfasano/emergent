@@ -40,17 +40,17 @@ class TestControl(Control):
             return result
 
         @error
-        def error(self, state, error_params = {"cycle delay": 1, "drift rate": 1, "sign":-1, "proportional_gain": 0.5, "integral_gain": 0.25}):
+        def error(self, state, params = {"cycle delay": 1, "drift rate": 1, "sign":-1, "proportional_gain": 0.5, "integral_gain": 0.25}):
             self.actuate(state)
             dev = list(state.keys())[0]
             input = list(state[dev].keys())[0]
             if not hasattr(self, 'start_time'):
                 self.start_time = time.time()
-            setpoint = error_params['drift rate']*(time.time()-self.start_time)
+            setpoint = params['drift rate']*(time.time()-self.start_time)
             e = self.state[dev][input] - setpoint
             e = -e
             print('Setpoint:',setpoint)
-            time.sleep(error_params['cycle delay'])
+            time.sleep(params['cycle delay'])
             return(e)
 
         def optimize_sequence(self):
