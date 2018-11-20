@@ -62,9 +62,6 @@ def plot_2D(points, costs, normalized_cost = False, limits = None,
     zix = cost_grid[iy,:]
     ziy = cost_grid[:,ix]
 
-    if limits is not None:
-        plt.xlabel(names[0])
-        plt.ylabel(names[1])
 
     ''' Plot cross sections around the best point '''
     fig = plt.figure(figsize=(10,8))
@@ -88,5 +85,20 @@ def plot_2D(points, costs, normalized_cost = False, limits = None,
     # axx.yaxis.set_major_formatter(nullfmt)
     # axy.xaxis.set_major_formatter(nullfmt)
     # axy.yaxis.set_major_formatter(nullfmt)
+
+    ''' Plot crosshairs through best point '''
+    xline = np.linspace(points[:,0].min(), points[:,0].max(),100)
+    xliney = best_point[1]*np.ones(len(xline))
+    ax0.plot(xline, xliney, 'k')
+    yline = np.linspace(points[:,1].min(), points[:,1].max(),100)
+    ylinex = best_point[0]*np.ones(len(yline))
+    ax0.plot(ylinex, yline, 'k')
+    ax0.scatter(np.array(best_point[0]), np.array(best_point[1]), marker='o', c='k')
+
+
+    if limits is not None:
+        axx.set_xlabel(names[0])
+        axy.set_ylabel(names[1])
+        axy.yaxis.set_label_position("right")
 
     return ax
