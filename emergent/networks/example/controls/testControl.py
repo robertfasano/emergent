@@ -27,7 +27,7 @@ class TestControl(Control):
             return cost
 
         @experiment
-        def cost_ramp(self, sequence):
+        def cost_ramp(self, sequence, params = {}):
             ''' Evaluate a cost function similar to an optical scattering force,
                 which is maximized for a ramp x(t)=1/t. '''
             self.sequences = sequence
