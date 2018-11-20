@@ -46,6 +46,7 @@ class LabJack(ProcessHandler, Device):
         self.arange = arange
         self.name = name
         self._connected = 0
+        self.stream_mode = None
 
         ''' Define a FIFO queue running in a separate thread so that multiple
             simultaneous threads can share a LabJack without interference. '''
@@ -245,7 +246,7 @@ class LabJack(ProcessHandler, Device):
         buffer_size = 2**n
         aValues.extend([ljm.constants.GND, 10.0, 10.0, 0, 0, buffer_size])
         self._write_array(aNames, aValues)
-
+        self.stream_mode = 'in-triggered'
 
     def streamburst(self, duration, max_samples=2**13-1, operation = None):
         ''' Performs a burst stream and optionally performs a numpy array operation
@@ -309,7 +310,7 @@ class LabJack(ProcessHandler, Device):
             aNames.append('STREAM_CLOCK_SOURCE')    # Enabling internally-clocked stream.
             aValues.append(0)
         self._write_array(aNames, aValues)
-
+        self.stream_mode = 'out-triggered'
 
     def stream_out(self, channels, data, scanRate, loop = 0):
         ''' Streams data at a given scan rate..
