@@ -33,7 +33,7 @@ import warnings
 warnings.warn = warn
 from emergent.utility import methodsWithDecorator, algorithm
 from copy import deepcopy
-
+from emergent.archetypes.sampler import Sampler
 class Optimizer():
     ''' General methods '''
     def __init__(self, control_node, cost = None):
@@ -44,156 +44,17 @@ class Optimizer():
         self.progress = 0
         self.result = None
         self.cost = cost
+        self.sampler = Sampler(control_node, cost = cost)
 
     def callback(self, *args):
         return self.active
 
     def log(self, filename):
         ''' Saves the results of the optimization to file with the given name '''
-        self.history.to_csv(self.parent.data_path+filename+'.csv')
+        self.sampler.history.to_csv(self.parent.data_path+filename+'.csv')
 
     def terminate(self):
         self.active = False
-
-    ''' State conversion functions '''
-    def array2state(self, arr, d):
-        ''' Converts a numpy array into a state dict with the specified keys. '''
-        state = {}
-        i = 0
-        for dev in d:
-            state[dev] = {}
-            for input in d[dev]:
-                state[dev][input] = arr[i]
-                i += 1
-        return state
-
-    def cost_from_array(self, arr, d, cost, cost_params):
-        ''' Converts the array back to the form of d,
-            unnormalizes it, and returns cost evaluated on the result. '''
-        norm_target = self.array2state(arr, d)
-        target = self.unnormalize(norm_target)
-
-        c = cost(target, cost_params)
-        ''' Update history '''
-        t = time.time()
-        self.history.loc[t,'cost']=c
-        self.result = c
-        for dev in d:
-            for input in d[dev]:
-                self.history.loc[t,dev+'.'+input] = norm_target[dev][input]
-        return c
-
-    def get_history(self, include_database = False):
-        ''' Return a multidimensional array and corresponding points from the history df'''
-        arrays = []
-        state = {}
-        costs = self.history['cost'].values
-        for col in self.history.columns:
-            if col != 'cost':
-                arrays.append(self.history[col].values)
-                dev = col.split('.')[0]
-                input = col.split('.')[1]
-                if dev not in state.keys():
-                    state[dev] = {}
-                state[dev][input] = 0
-        points = np.vstack(arrays).T.astype(float)
-        costs = costs.astype(float)
-
-        if include_database:
-            points, costs = self.search_database(points, costs, state, self.cost)
-        return points, costs
-
-    def search_database(self, points, costs, state, cost):
-        ''' Prepare a state dict of all variables which are held constant during optimization '''
-        constant_state = deepcopy(self.parent.state)
-        for dev in state.keys():
-            for input in state[dev]:
-                del constant_state[dev][input]
-
-        ''' Search the database for entries matching these constant values '''
-        database = self.parent.dataframe['cost'][cost.__name__]
-        subdf = database
-        for dev in constant_state.keys():
-            for input in constant_state[dev]:
-                subdf = subdf[np.isclose(subdf[dev+': '+input],constant_state[dev][input], atol = 1e-12)]
-
-
-        ''' Form points, costs arrays '''
-        for i in range(len(subdf)):
-            old_state = {}
-            for dev in state.keys():
-                old_state[dev] = {}
-                for input in state[dev]:
-                    old_state[dev][input] = subdf.iloc[i][dev+': '+input]
-                    points = np.append(points, np.atleast_2d(self.state2array(self.normalize(old_state))), axis=0)
-                    costs = np.append(costs, subdf.iloc[i][cost.__name__])
-        return points, costs
-
-    def state2array(self, state):
-        ''' Converts a state dict into a numpy array. '''
-        arr = np.array([])
-        for dev in state:
-            for input in state[dev]:
-                arr = np.append(arr, state[dev][input])
-        return arr
-
-    ''' Logistics functions '''
-    def _cost(self, state, cost):
-        ''' Unnormalizes the state dict, computes the cost, and logs. '''
-        c = cost(self.unnormalize(state))
-        self.history.loc[time.time()] = -c
-        return c
-
-    def initialize_optimizer(self, state, cost, params, cost_params):
-        ''' Creates a history dataframe to log the optimization. Normalizes the
-            state in terms of the min/max of each Input node, then prepares a
-            bounds array. '''
-        self.cost_name = cost.__name__
-        self.params = params
-        self.cost_params = cost_params
-        self.inputs = {}
-        num_items = 0
-        cols = []
-        for dev in state:
-            self.inputs[dev] = []
-            for input in state[dev]:
-                cols.append(dev+'.'+input)
-                num_items += 1
-                self.inputs[dev].append(input)
-        state = self.normalize(state)
-        cols.append('cost')
-        self.history = pd.DataFrame(columns=cols)
-        bounds = np.array(list(itertools.repeat([0,1], num_items)))
-        state = self.state2array(state)
-        return state, bounds
-
-
-    def normalize(self, unnorm):
-        ''' Normalizes a state or substate based on min/max values of the Inputs,
-            saved in the parent Control node. '''
-        norm = {}
-
-        for dev in unnorm:
-            norm[dev] = {}
-            for i in unnorm[dev]:
-                min = self.parent.settings[dev][i]['min']
-                max = self.parent.settings[dev][i]['max']
-                norm[dev][i] = (unnorm[dev][i] - min)/(max-min)
-
-        return norm
-
-    def unnormalize(self, norm):
-        ''' Converts normalized (0-1) state to physical state based on specified
-            max and min parameter values. '''
-        unnorm = {}
-        for dev in norm:
-            unnorm[dev] = {}
-            for i in norm[dev]:
-                min = self.parent.settings[dev][i]['min']
-                max = self.parent.settings[dev][i]['max']
-                unnorm[dev][i] = min + norm[dev][i] * (max-min)
-        return unnorm
-
 
     ''' Sampling methods '''
     def sample(self, state, cost, cost_params, method='random_sampling', points = 1, bounds = None):
@@ -211,7 +72,7 @@ class Optimizer():
             space spanned by the passed-in state dict. '''
         if callback is None:
             callback = self.callback
-        arr, bounds = self.initialize_optimizer(state, cost, params, cost_params)
+        arr, bounds = self.sampler.initialize(state, cost, params, cost_params)
         N = len(arr)
         grid = []
         for n in range(N):
@@ -225,7 +86,7 @@ class Optimizer():
         for point in points:
             if not callback():
                 return points[0:len(costs)], costs
-            c = self.cost_from_array(point, state, cost, cost_params)
+            c = self.sampler.cost_from_array(point, state, cost, cost_params)
             costs = np.append(costs, c)
             self.progress = len(costs) / len(points)
 
@@ -245,7 +106,7 @@ class Optimizer():
         for point in points:
             if not callback():
                 return points[0:len(costs)], costs
-            c = self.cost_from_array(point, state, cost, cost_params)
+            c = self.sampler.cost_from_array(point, state, cost, cost_params)
             costs.append(c)
 
         return points, costs
@@ -271,12 +132,12 @@ class Optimizer():
     @algorithm
     def grid_search(self, state, cost, params={'steps':10}, cost_params = {}):
         ''' An N-dimensional grid search (brute force) optimizer. '''
-        arr, bounds = self.initialize_optimizer(state, cost, params, cost_params)
+        arr, bounds = self.sampler.initialize(state, cost, params, cost_params)
         ''' Generate search grid '''
         points, costs = self.grid_sampling(state, cost, params, cost_params, params['steps'])
 
-        best_point = self.array2state(points[np.argmin(costs)], state)
-        self.actuate(self.unnormalize(best_point))
+        best_point = self.sampler.array2state(points[np.argmin(costs)], state)
+        self.actuate(self.sampler.unnormalize(best_point))
         self.progress = 1
         return points, costs
 
@@ -312,8 +173,8 @@ class Optimizer():
             points with varying trade-off of optimization vs. exploration. '''
         if callback is None:
             callback = self.callback
-        X, bounds = self.initialize_optimizer(state, cost, params, cost_params)
-        c = np.array([self.cost_from_array(X, state,cost, cost_params)])
+        X, bounds = self.sampler.initialize(state, cost, params, cost_params)
+        c = np.array([self.sampler.cost_from_array(X, state,cost, cost_params)])
         points, costs = self.sample(state, cost, cost_params, 'random_sampling', params['presampled points'])
         X = np.append(np.atleast_2d(X), points, axis=0)
         c = np.append(c, costs)
@@ -329,10 +190,10 @@ class Optimizer():
                 X_new = self.gp_next_sample(X, bounds, b, self.gp_effective_cost, self.gp, restarts=10)
                 X_new = np.atleast_2d(X_new)
                 X = np.append(X, X_new, axis=0)
-                c = np.append(c, self.cost_from_array(X[-1], state, cost, cost_params))
+                c = np.append(c, self.sampler.cost_from_array(X[-1], state, cost, cost_params))
                 self.progress = (j+i*params['batch size'])/params['batch size']/params['iterations']
-        best_point = self.array2state(X[np.argmin(c)], state)
-        self.actuate(self.unnormalize(best_point))
+        best_point = self.sampler.array2state(X[np.argmin(c)], state)
+        self.actuate(self.sampler.unnormalize(best_point))
         if params['plot']:
             self.plot_optimization(lbl = 'Gaussian Processing')     # plot trajectory
             ''' Predict and plot cost landscape '''
@@ -353,9 +214,9 @@ class Optimizer():
     @algorithm
     def scipy_minimize(self, state, cost, params={'method':'L-BFGS-B', 'tol':1e-7}, cost_params = {}):
         ''' Runs a specified scipy minimization method on the target axes and cost. '''
-        arr, bounds = self.initialize_optimizer(state, cost, params, cost_params)
+        arr, bounds = self.sampler.initialize(state, cost, params, cost_params)
         keys = list(state.keys())
-        res = minimize(fun=self.cost_from_array,
+        res = minimize(fun=self.sampler.cost_from_array,
                    x0=arr,
                    bounds=bounds,
                    args = (state, cost, cost_params),
@@ -369,8 +230,8 @@ class Optimizer():
     @algorithm
     def simplex(self, state, cost, params={'tol':4e-3}, cost_params = {}):
         ''' Nelder-Mead algorithm from scipy.optimize. '''
-        X, bounds = self.initialize_optimizer(state, cost, params, cost_params)
-        res = minimize(fun=self.cost_from_array,
+        X, bounds = self.sampler.initialize(state, cost, params, cost_params)
+        res = minimize(fun=self.sampler.cost_from_array,
                    x0=X,
                    args = (state, cost, cost_params),
                    method='Nelder-Mead',
@@ -383,9 +244,9 @@ class Optimizer():
     @algorithm
     def differential_evolution(self, state, cost, params={'strategy':'best1bin', 'popsize':15, 'tol':0.01, 'mutation': 1,'recombination':0.7}, cost_params = {}):
         ''' Differential evolution algorithm from scipy.optimize. '''
-        X, bounds = self.initialize_optimizer(state, cost, params, cost_params)
+        X, bounds = self.sampler.initialize(state, cost, params, cost_params)
         keys = list(state.keys())
-        res = differential_evolution(func=self.cost_from_array,
+        res = differential_evolution(func=self.sampler.cost_from_array,
                    bounds=bounds,
                    args = (state, cost, cost_params),
                    strategy=params['strategy'],
@@ -400,8 +261,8 @@ class Optimizer():
 
     # @algorithm
     # def neural_network(self, state, cost, params={'layers':10, 'neurons':64, 'optimizer':'adam', 'activation':'erf', 'initial_points':100, 'cycles':500, 'samples':1000}):
-    #     X, bounds = self.initialize_optimizer(state, cost, params, cost_params)
-    #     norm_state = self.array2state(X,state)
+    #     X, bounds = self.sampler.initialize(state, cost, params, cost_params)
+    #     norm_state = self.sampler.array2state(X,state)
     #     NeuralNetwork(self, norm_state, cost, bounds, params=params)
     #
     #     return None, None
@@ -411,7 +272,7 @@ class Optimizer():
     #     ''' Returns the optimization time for a given algorithm, cost, and initial state '''
     #     algo, state, cost = args
     #     algo(state, cost, params)
-    #     c = self.history.index[-1]-self.history.index[0]
+    #     c = self.sampler.history.index[-1]-self.sampler.history.index[0]
     #     return c
     #
     # @algorithm
@@ -428,7 +289,7 @@ class Optimizer():
 
     ''' Control methods '''
     def PID(self, state, error, params={'proportional_gain':1, 'integral_gain':0, 'derivative_gain':0, 'sign':1}, error_params = {}, callback = None):
-        self.initialize_optimizer(state, error, params, error_params)
+        self.sampler.initialize(state, error, params, error_params)
         if callback is None:
             callback = self.callback
         devices = list(state.keys())
@@ -448,10 +309,10 @@ class Optimizer():
             e = error(state, error_params)
             t = time.time()
             print(t)
-            self.history.loc[t,'cost']=e
+            self.sampler.history.loc[t,'cost']=e
             for dev in state:
                 for input in state[dev]:
-                    self.history.loc[t,dev+'.'+input] = state[dev][input]
+                    self.sampler.history.loc[t,dev+'.'+input] = state[dev][input]
             print('State:', state, 'Error:', e)
             delta_t = t - last_time
             delta_e = e - last_error
@@ -468,8 +329,8 @@ class Optimizer():
 
     ''' Visualization methods '''
     def plot_optimization(self, yscale = 'linear'):
-        ''' Plots an optimization time series stored in self.history. '''
-        func = self.history.copy()
+        ''' Plots an optimization time series stored in self.sampler.history. '''
+        func = self.sampler.history.copy()
         func.index -= func.index[0]
         plt.figure()
         plt.plot(func['cost'])
@@ -480,7 +341,7 @@ class Optimizer():
 
     def plot_history_slice(self, i):
         ''' Plots a slice of the ith element of the history. '''
-        df = self.history.iloc[i]
+        df = self.sampler.history.iloc[i]
         del df['cost']
         df.plot()
         plt.ylim([-5,8])
