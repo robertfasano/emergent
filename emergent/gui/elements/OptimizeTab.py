@@ -65,9 +65,11 @@ class OptimizeLayout(QVBoxLayout, ProcessHandler):
         row = self.parent.parent.historyPanel.add_event(t, cost_name, algorithm_name, 'Optimizing', optimizer)
         func = getattr(optimizer, algorithm_name.replace(' ','_'))
         params = self.params_edit.toPlainText().replace('\n','').replace("'", '"')
+        params = '{' + params + '}'
         params = json.loads(params)
 
-        cost_params = self.cost_params_edit.toPlainText().replace('\n','').replace("'", '"')
+        cost_params = self.cost_params_edit.toPlainText().replace('\n',',').replace("'", '"')
+        cost_params = '{' + cost_params + '}'
         cost_params = json.loads(cost_params)
         cost_params['cycles per sample'] = int(self.cycles_per_sample_edit.text())
 
@@ -81,7 +83,7 @@ class OptimizeLayout(QVBoxLayout, ProcessHandler):
         func(state, cost, params, cost_params)
         log.info('Optimization complete!')
         control.optimizers[index]['status'] = 'Done'
-        # self.parent.historyPanel.update_event_status(row, 'Done')
+        # self.parent.parent.historyPanel.update_event_status(row, 'Done')
         optimizer.log(t.replace(':','') + ' - ' + cost_name + ' - ' + algorithm_name)
 
     def stop_optimizer(self):
@@ -110,10 +112,11 @@ class OptimizeLayout(QVBoxLayout, ProcessHandler):
                         default = 'Enter'
                     else:
                         default = default.split('=')[1]
-                        default = default.replace('{', '{\n')
-                        default = default.replace(',', ',\n')
-                        default = default.replace('}', '\n}')
+                        default = default.replace('{', '')
+                        default = default.replace(',', '\n')
+                        default = default.replace('}', '')
                         self.params_edit.setText(default)
+
 
     def update_algorithm_display(self):
         ''' Updates the algorithm box with the methods available to the currently selected control. '''
@@ -153,8 +156,9 @@ class OptimizeLayout(QVBoxLayout, ProcessHandler):
                         default = 'Enter'
                     else:
                         default = default.split('=')[1]
-                        default = default.replace('{', '{\n')
-                        default = default.replace(',', ',\n')
-                        default = default.replace('}', '\n}')
+                        default = default.replace('{', '')
+                        default = default.replace(',', '\n')
+                        default = default.replace('}', '')
+
                         self.cost_params_edit.setText(default)
                         self.cost_params_edit.setText(default)

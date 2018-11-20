@@ -61,9 +61,9 @@ class ServoLayout(QVBoxLayout, ProcessHandler):
                     default = default.split('=')[1]
                     params = json.loads(default.replace("'", '"'))
                     default = json.dumps(self.update_experiment(params))
-                    default = default.replace('{', '{\n')
-                    default = default.replace(',', ',\n')
-                    default = default.replace('}', '\n}')
+                    default = default.replace('{', '')
+                    default = default.replace(',', '\n')
+                    default = default.replace('}', '')
                     self.params_edit.setText(default)
 
     def update_algorithm_display(self):
@@ -92,9 +92,12 @@ class ServoLayout(QVBoxLayout, ProcessHandler):
         except IndexError:
             log.warn('Select inputs before starting optimization!')
             return
-        params = self.params_edit.toPlainText().replace('\n','').replace("'", '"')
+        params = self.params_edit.toPlainText().replace('\n',',').replace("'", '"')
+        params = '{' + params + '}'
+
         settings['params'] = json.loads(params)
-        error_params = self.error_params_edit.toPlainText().replace('\n','').replace("'", '"')
+        error_params = self.error_params_edit.toPlainText().replace('\n',',').replace("'", '"')
+        error_params = '{' + error_params + '}'
         settings['error_params'] = json.loads(error_params)
         settings['callback'] = None
         return settings
@@ -163,8 +166,8 @@ class ServoLayout(QVBoxLayout, ProcessHandler):
                                     params[param] = exp_params[param]
                                     del exp_params[param]
                             default = json.dumps(exp_params)
-                        default = default.replace('{', '{\n')
-                        default = default.replace(',', ',\n')
-                        default = default.replace('}', '\n}')
+                        default = default.replace('{', '')
+                        default = default.replace(',', '\n')
+                        default = default.replace('}', '')
                         self.error_params_edit.setText(default)
                         return params

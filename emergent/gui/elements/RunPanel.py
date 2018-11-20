@@ -69,9 +69,8 @@ class RunLayout(QVBoxLayout, ProcessHandler):
         except IndexError:
             log.warn('Select inputs before starting optimization!')
             return
-        params = self.cost_params_edit.toPlainText().replace('\n','').replace("'", '"')
-        settings['params'] = json.loads(params)
-        cost_params = self.cost_params_edit.toPlainText().replace('\n','').replace("'", '"')
+        cost_params = self.cost_params_edit.toPlainText().replace('\n',',').replace("'", '"')
+        cost_params = '{' + cost_params + '}'
         settings['cost_params'] = json.loads(cost_params)
         settings['iterations'] = self.runIterationsEdit.text()
         settings['delay'] = float(self.runDelayEdit.text())
@@ -95,7 +94,7 @@ class RunLayout(QVBoxLayout, ProcessHandler):
         control.optimizers[index]['status'] = 'Done'
         optimizer.log(t.replace(':','') + ' - ' + sampler.cost.__name__)
 
-    def start_experiment(self, *args, settings = {'callback': None, 'delay': None, 'iterations': None, 'control':None, 'cost_name': None, 'params': None, 'cost_params': None}):
+    def start_experiment(self, *args, settings = {'callback': None, 'delay': None, 'iterations': None, 'control':None, 'cost_name': None, 'cost_params': None}):
         ''' Load any non-passed settings from the GUI '''
         gui_settings = self.get_settings_from_gui()
         print(settings)
@@ -150,8 +149,8 @@ class RunLayout(QVBoxLayout, ProcessHandler):
                         default = 'Enter'
                     else:
                         default = default.split('=')[1]
-                        default = default.replace('{', '{\n')
-                        default = default.replace(',', ',\n')
-                        default = default.replace('}', '\n}')
+                        default = default.replace('{', '')
+                        default = default.replace(',', '\n')
+                        default = default.replace('}', '')
                         self.cost_params_edit.setText(default)
                         self.cost_params_edit.setText(default)
