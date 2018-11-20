@@ -2,7 +2,6 @@ from PyQt5.QtWidgets import (QComboBox, QLabel, QTextEdit, QPushButton, QVBoxLay
         QWidget, QProgressBar, qApp, QHBoxLayout, QCheckBox, QTabWidget, QLineEdit, QSlider)
 from PyQt5.QtCore import *
 from emergent.archetypes.optimizer import Optimizer
-from emergent.gui.elements.OptimizeTab import OptimizeTab
 from emergent.archetypes.parallel import ProcessHandler
 from emergent.utility import list_algorithms, list_triggers
 import inspect
@@ -97,7 +96,7 @@ class ServoLayout(QVBoxLayout, ProcessHandler):
         settings['params'] = json.loads(params)
         error_params = self.error_params_edit.toPlainText().replace('\n','').replace("'", '"')
         settings['error_params'] = json.loads(error_params)
-
+        settings['callback'] = None
         return settings
 
     def prepare_optimizer(self, *args, settings = {'callback': None, 'control':None, 'state':None, 'cost_name': None, 'params': None, 'error_params': None}):
