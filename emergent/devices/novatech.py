@@ -11,7 +11,6 @@ class Novatech(Device):
         # self._connected = self._connect()
         self.add_input('f0')
         self.add_input('f1')
-        self.add_input('f2')
         self.frequency = {}
         self.amplitude = {}
 
