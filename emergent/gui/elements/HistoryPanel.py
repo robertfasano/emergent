@@ -15,8 +15,11 @@ from emergent.archetypes.node import Control, Device, Input, ActuateSignal, Sett
 import functools
 from emergent.archetypes.visualization import plot_2D, plot_1D
 from emergent.archetypes.parallel import ProcessHandler
-
+import matplotlib.pyplot as plt
 import json
+import itertools
+import numpy as np
+
 class OptimizerItem(QTableWidgetItem):
     def __init__(self, optimizer):
         super().__init__()
@@ -120,17 +123,70 @@ class OptimizerPopup(QWidget, ProcessHandler):
         self.progress_timer.start(100)
 
     def plot(self):
-        points, costs = self.optimizer.sampler.get_history(include_database = self.use_database_checkbox.isChecked())
-        if points.shape[1] == 1:
-            full_name =  self.optimizer.sampler.history.columns[0]
+        ''' Show cost vs time, parameters vs time, and parameters vs cost '''
+        t, points, costs = self.optimizer.sampler.get_history(include_database = self.use_database_checkbox.isChecked())
+        t = t.copy()-t[0]
+        num_inputs = points.shape[1]
+        control = self.optimizer.parent
+
+        ''' costs vs parameters '''
+        fig, ax = plt.subplots(2,num_inputs, figsize=(10, 8))
+        if num_inputs > 1:
+            ax0 = ax[0]
+        else:
+            ax0 = ax
+        ax0[0].set_ylabel(self.optimizer.cost.__name__)
+        for i in range(num_inputs):
+            p = points[:,i]
+            full_name =  self.optimizer.sampler.history.columns[i]
             dev = full_name.split('.')[0]
             input = full_name.split('.')[1]
-            control = self.optimizer.parent
             limits = {full_name.replace('.', ': '): control.settings[dev][input]}
-            plot_1D(points, costs, limits = limits, cost_name = self.optimizer.cost.__name__)
-        elif points.shape[1] == 2:
-            plot_2D(points, costs)
-        self.optimizer.plot_optimization()
+            plot_1D(p, costs, limits=limits, cost_name = self.optimizer.cost.__name__, ax = ax0[i])
+            ax0[i].set_xlabel(full_name)
+
+        ''' parameters vs time '''
+        for i in range(num_inputs):
+            p = points[:,i]
+            full_name =  self.optimizer.sampler.history.columns[i]
+            dev = full_name.split('.')[0]
+            input = full_name.split('.')[1]
+            limits = {full_name.replace('.', ': '): control.settings[dev][input]}
+            name = list(limits.keys())[0]
+            p = limits[name]['min'] + p*(limits[name]['max']-limits[name]['min'])
+
+            if num_inputs == 1:
+                cax = ax[1]
+            else:
+                cax = ax[1][i]
+            plot_1D(t, p, cost_name = self.optimizer.cost.__name__, ax = cax)
+            cax.set_ylabel(full_name)
+            cax.set_xlabel('Time (s)')
+
+        ''' 2d plots '''
+        axis_combos = list(itertools.combinations(range(num_inputs),2))
+        for a in axis_combos:
+            limits = {}
+            for ax in a:
+                full_name =  self.optimizer.sampler.history.columns[ax]
+                dev = full_name.split('.')[0]
+                input = full_name.split('.')[1]
+                limits[full_name.replace('.', ': ')] =  control.settings[dev][input]
+            p = points[:,a]
+            plot_2D(p, costs, limits = limits)
+        # try:
+        #     if points.shape[1] == 1:
+        #         full_name =  self.optimizer.sampler.history.columns[0]
+        #         dev = full_name.split('.')[0]
+        #         input = full_name.split('.')[1]
+        #         control = self.optimizer.parent
+        #         limits = {full_name.replace('.', ': '): control.settings[dev][input]}
+        #         plot_1D(points, costs, limits = limits, cost_name = self.optimizer.cost.__name__)
+        #     elif points.shape[1] == 2:
+        #         plot_2D(points, costs)
+        # except Exception:
+        #     pass
+        # self.optimizer.plot_optimization()
 
     def check_progress(self):
         if not self.optimizer.active:
