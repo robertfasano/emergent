@@ -13,7 +13,6 @@ import os
 from scipy.interpolate import griddata
 from scipy.stats import norm
 import matplotlib.pyplot as plt
-plt.ion()
 
 from emergent.archetypes.visualization import plot_1D, plot_2D
 # from algorithms.neural_network import NeuralNetwork

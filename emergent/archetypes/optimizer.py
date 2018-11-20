@@ -13,7 +13,6 @@ import os
 from scipy.interpolate import griddata
 from scipy.stats import norm
 import matplotlib.pyplot as plt
-plt.ion()
 from scipy.optimize import curve_fit, minimize, differential_evolution, basinhopping
 char = {'nt': '\\', 'posix': '/'}[os.name]
 sys.path.append(char.join(os.getcwd().split(char)[0:-2]))

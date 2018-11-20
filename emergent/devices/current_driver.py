@@ -7,7 +7,6 @@ from emergent.archetypes.parallel import ProcessHandler
 from scipy.stats import linregress
 from scipy.optimize import newton
 import matplotlib.pyplot as plt
-plt.ion()
 import time
 import logging as log
 

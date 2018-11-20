@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from matplotlib.ticker import NullFormatter
 import matplotlib.gridspec as gridspec
-
+plt.ioff()
 
 def plot_1D(points, costs, cost_name = 'Cost', normalized_cost = False, limits = None,
             save = False, ax = None):
