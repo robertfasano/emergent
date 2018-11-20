@@ -3,6 +3,7 @@ from emergent.devices.labjackT7 import LabJack
 import functools
 import time
 import numpy as np
+
 class IntensityServo(Device):
     ''' Device driver for a four-channel intensity servo with an embedded pair of
         LabJack T4 DAQs for control.
@@ -16,15 +17,14 @@ class IntensityServo(Device):
     def __init__(self, name, id1, id2, parent = None):
         super().__init__(name, parent = parent)
         self.labjack = []
-        self.labjack.append(None)
-        # self.labjack.append(LabJack(devid=id1))
+        self.labjack.append(LabJack(devid=id1))
         self.labjack.append(LabJack(devid=id2))
 
         # for ch in [0,1,2,3]:
         for ch in [2,3]:
             self.lock(ch, 0)
 
-        # self.add_input('V0')
+        self.add_input('V0')
         # self.add_input('V1')
         self.add_input('V2')
         self.add_input('V3')
@@ -55,7 +55,7 @@ class IntensityServo(Device):
                 state (int): 0 or 1
         '''
         lj = [self.labjack[0], self.labjack[0], self.labjack[1], self.labjack[1]][channel]
-        ch = [6, 7, 6, 7][channel]
+        ch = [2, 3, 2, 3][channel]
         self.integrator = state
         lj.DOut('FIO%i'%ch, int(1-state))
 
