@@ -129,16 +129,21 @@ class Sampler():
         return arr
 
     ''' Logistics functions '''
-    def _cost(self, state, cost):
-        ''' Unnormalizes the state dict, computes the cost, and logs. '''
-        c = cost(self.unnormalize(state))
-        self.history.loc[time.time()] = -c
+    def _cost(self, state, params = {}):
+        ''' Computes the cost and logs. '''
+        c = self.cost(state, params)
+        t = time.time()
+        self.history.loc[time.time()] = c
+        for dev in state:
+            for input in state[dev]:
+                self.history.loc[t,dev+'.'+input] = state[dev][input]
         return c
 
     def initialize(self, state, cost, params, cost_params):
         ''' Creates a history dataframe to log the sampling. Normalizes the
             state in terms of the min/max of each Input node, then prepares a
             bounds array. '''
+        self.cost = cost
         self.cost_name = cost.__name__
         self.params = params
         self.cost_params = cost_params

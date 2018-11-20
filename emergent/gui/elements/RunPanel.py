@@ -79,11 +79,12 @@ class RunLayout(QVBoxLayout, ProcessHandler):
 
         return settings
 
-    def run_experiment(self, control, experiment, cost_params, delay, iterations, optimizer, index, t, stopped = None):
+    def run_experiment(self, sampler, control, cost_params, delay, iterations, optimizer, index, t, stopped = None):
         count = 0
         while not stopped():
             state = control.state
-            result = experiment(state, params=cost_params)
+            result = sampler._cost(state, params=cost_params)
+            # result = experiment(state, params=cost_params)
             # self.runResultEdit.setText(str(result))
             # qApp.processEvents(QEventLoop.ExcludeUserInputEvents)
             count += 1
@@ -92,7 +93,7 @@ class RunLayout(QVBoxLayout, ProcessHandler):
                 if count >= iterations:
                     break
         control.optimizers[index]['status'] = 'Done'
-        optimizer.log(t.replace(':','') + ' - ' + experiment.__name__)
+        optimizer.log(t.replace(':','') + ' - ' + sampler.cost.__name__)
 
     def start_experiment(self, *args, settings = {'callback': None, 'delay': None, 'iterations': None, 'control':None, 'cost_name': None, 'params': None, 'cost_params': None}):
         ''' Load any non-passed settings from the GUI '''
@@ -109,12 +110,13 @@ class RunLayout(QVBoxLayout, ProcessHandler):
         cost_params['cycles per sample'] = 1#int(self.cycles_per_sample_edit.text())
 
         optimizer, index = control.attach_optimizer(control.state, experiment)
-        optimizer.sampler.initialize(control.state, experiment, None, cost_params)
+        sampler = optimizer.sampler
+        sampler.initialize(control.state, experiment, None, cost_params)
         if iterations != 'Continuous':
             iterations = int(iterations)
         t = datetime.datetime.strftime(datetime.datetime.now(), '%H:%M')
         row = self.parent.parent.historyPanel.add_event(t, settings['cost_name'], None, 'Sampling', optimizer)
-        self._run_thread(self.run_experiment, args = (control, experiment, cost_params, delay, iterations, optimizer, index, t))
+        self._run_thread(self.run_experiment, args = (sampler, control, cost_params, delay, iterations, optimizer, index, t))
 
     def stop_experiment(self):
         self._quit_thread(self.run_experiment)
