@@ -21,7 +21,6 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         QVBoxLayout.__init__(self)
         ProcessHandler.__init__(self)
         self.parent = parent
-        self.cost_box = QComboBox()
         self.tabWidget = QTabWidget()
         self.addWidget(self.tabWidget)
 

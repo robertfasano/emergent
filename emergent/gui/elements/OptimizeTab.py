@@ -16,8 +16,10 @@ class OptimizeLayout(QVBoxLayout, ProcessHandler):
         self.parent = parent
         self.current_algorithm = None
         self.current_control = None
+        self.cost_box = QComboBox()
 
-        self.addWidget(parent.cost_box)
+        self.addWidget(self.cost_box)
+
         self.algorithm_box = QComboBox()
         self.addWidget(self.algorithm_box)
         paramsLayout = QHBoxLayout()
@@ -40,7 +42,7 @@ class OptimizeLayout(QVBoxLayout, ProcessHandler):
         self.addLayout(plotLayout)
         parent.parent.treeWidget.itemSelectionChanged.connect(self.update_control)
         self.algorithm_box.currentTextChanged.connect(self.update_algorithm)
-        parent.cost_box.currentTextChanged.connect(self.update_experiment)
+        self.cost_box.currentTextChanged.connect(self.update_experiment)
         optimizeButtonsLayout = QHBoxLayout()
         parent.optimizer_button = QPushButton('Go!')
         parent.optimizer_button.clicked.connect(self.prepare_optimizer)
@@ -57,7 +59,7 @@ class OptimizeLayout(QVBoxLayout, ProcessHandler):
             log.warn('Select inputs before starting optimization!')
             return
         state = self.parent.parent.treeWidget.get_selected_state()
-        cost_name = self.parent.cost_box.currentText()
+        cost_name = self.cost_box.currentText()
         cost = getattr(control, cost_name)
         optimizer, index = control.attach_optimizer(state, cost)
         control.optimizers[index]['status'] = 'Optimizing'
@@ -112,9 +114,9 @@ class OptimizeLayout(QVBoxLayout, ProcessHandler):
         self.algorithm_box.clear()
         for item in list_algorithms():
             self.algorithm_box.addItem(item.replace('_',' '))
-        self.parent.cost_box.clear()
+        self.cost_box.clear()
         for item in control.list_costs():
-            self.parent.cost_box.addItem(item)
+            self.cost_box.addItem(item)
         self.update_algorithm()
 
     def update_control(self):
@@ -127,10 +129,10 @@ class OptimizeLayout(QVBoxLayout, ProcessHandler):
 
     def update_experiment(self):
         ''' Read default params dict from source code and insert it in self.cost_params_edit. '''
-        if self.parent.cost_box.currentText() is not '':
+        if self.cost_box.currentText() is not '':
             try:
                 control = self.parent.parent.treeWidget.get_selected_control()
             except IndexError:
                 return
-            f = getattr(control, self.parent.cost_box.currentText())
+            f = getattr(control, self.cost_box.currentText())
             self.parent.docstring_to_edit(f, self.cost_params_edit)

@@ -18,9 +18,12 @@ class RunLayout(QVBoxLayout, ProcessHandler):
         QVBoxLayout.__init__(self)
         ProcessHandler.__init__(self)
         self.parent = parent
+        self.cost_box = QComboBox()
+        self.current_control = None
 
-        self.addWidget(self.parent.cost_box)
-        self.parent.cost_box.currentTextChanged.connect(self.update_experiment)
+        self.addWidget(self.cost_box)
+        self.cost_box.currentTextChanged.connect(self.update_experiment)
+        parent.parent.treeWidget.itemSelectionChanged.connect(self.update_control)
 
         self.run_experimentParamsLayout = QVBoxLayout()
         self.cost_params_edit = QTextEdit('')
@@ -63,7 +66,7 @@ class RunLayout(QVBoxLayout, ProcessHandler):
 
     def get_settings_from_gui(self):
         settings = {}
-        settings['cost_name'] = self.parent.cost_box.currentText()
+        settings['cost_name'] = self.cost_box.currentText()
         try:
             settings['control'] = self.parent.parent.treeWidget.get_selected_control()
         except IndexError:
@@ -120,6 +123,18 @@ class RunLayout(QVBoxLayout, ProcessHandler):
     def stop_experiment(self):
         self._quit_thread(self.run_experiment)
 
+
+
+    def update_control(self):
+        control = self.parent.parent.treeWidget.currentItem().root
+        if control == self.current_control:
+            return
+        else:
+            self.current_control = control
+        self.cost_box.clear()
+        for item in control.list_costs():
+            self.cost_box.addItem(item)
+
     def updateIterations(self):
         try:
             val = self.runIterationsSlider.value()
@@ -133,10 +148,10 @@ class RunLayout(QVBoxLayout, ProcessHandler):
 
     def update_experiment(self):
         ''' Read default params dict from source code and insert it in self.cost_params_edit. '''
-        if self.parent.cost_box.currentText() is not '':
+        if self.cost_box.currentText() is not '':
             try:
                 control = self.parent.parent.treeWidget.get_selected_control()
             except IndexError:
                 return
-            f = getattr(control, self.parent.cost_box.currentText())
+            f = getattr(control, self.cost_box.currentText())
             self.parent.docstring_to_edit(f, self.cost_params_edit)
