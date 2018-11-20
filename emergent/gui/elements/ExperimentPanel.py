@@ -159,7 +159,7 @@ class OptimizerLayout(QVBoxLayout, ProcessHandler):
         cost_params['cycles per sample'] = int(self.cycles_per_sample_edit.text())
 
         optimizer, index = control.attach_optimizer(control.state, experiment)
-        optimizer.initialize_optimizer(control.state, experiment, None, cost_params)
+        optimizer.sampler.initialize(control.state, experiment, None, cost_params)
         if iterations != 'Continuous':
             iterations = int(iterations)
         t = datetime.datetime.strftime(datetime.datetime.now(), '%H:%M')
