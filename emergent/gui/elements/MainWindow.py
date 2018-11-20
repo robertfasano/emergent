@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import (QApplication, QAbstractItemView,QCheckBox, QComboBo
 from PyQt5.QtCore import *
 import json
 from emergent.archetypes.optimizer import Optimizer
-from emergent.gui.elements.ExperimentPanel import OptimizerLayout
+from emergent.gui.elements.ExperimentPanel import ExperimentLayout
 # from emergent.gui.elements.sequencer import SequencerLayout
 from emergent.gui.elements.NetworkPanel import NodeTree
 from emergent.gui.elements.HistoryPanel import HistoryPanel
@@ -77,7 +77,7 @@ class MainFrame(QMainWindow):
         self.treeLayout.addWidget(self.saveButton)
 
         ''' Create optimizer layout '''
-        self.optimizer = OptimizerLayout(self)
+        self.optimizer = ExperimentLayout(self)
         layout.addLayout(self.optimizer)
 
         ''' Create sequencer layout '''

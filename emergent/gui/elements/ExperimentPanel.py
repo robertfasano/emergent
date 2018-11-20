@@ -16,7 +16,7 @@ from scipy.stats import linregress
 import numpy as np
 import datetime
 
-class OptimizerLayout(QVBoxLayout, ProcessHandler):
+class ExperimentLayout(QVBoxLayout, ProcessHandler):
     def __init__(self, parent):
         QVBoxLayout.__init__(self)
         ProcessHandler.__init__(self)
