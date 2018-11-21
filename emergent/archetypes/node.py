@@ -6,6 +6,7 @@ import time
 import inspect
 from emergent.archetypes.historian import Historian
 from emergent.archetypes.optimizer import Optimizer
+from emergent.archetypes.sampler import Sampler
 from PyQt5.QtWidgets import QWidget
 from emergent.utility import methodsWithDecorator
 import logging as log
@@ -251,8 +252,8 @@ class Control(Node):
             pathlib.Path(p).mkdir(parents=True, exist_ok=True)
 
         self.historian = Historian(self)
-        # self.optimizer = Optimizer(self)
         self.optimizers = {}
+        self.samplers = {}
 
         self.node_type = 'control'
         self.load_costs()
@@ -281,6 +282,16 @@ class Control(Node):
         index = len(self.optimizers)
         self.optimizers[index] = {'state':state, 'optimizer':optimizer, 'status':'Ready'}
         return optimizer, index
+
+    def attach_sampler(self, state, cost, optimizer = None):
+        if optimizer is None:
+            sampler = Sampler(self, cost=cost)
+        else:
+            sampler = optimizer.sampler
+            sampler.optimizer = optimizer
+        index = len(self.samplers)
+        self.samplers[index] = {'state':state, 'sampler':sampler, 'status':'Ready'}
+        return sampler, index
 
     def get_history(self, dev, inputs, cost):
         ''' Return a multidimensional array and corresponding points from the dataframe storage of the control node '''

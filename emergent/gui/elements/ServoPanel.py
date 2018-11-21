@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import (QComboBox, QLabel, QTextEdit, QPushButton, QVBoxLay
         QWidget, QProgressBar, qApp, QHBoxLayout, QCheckBox, QTabWidget, QLineEdit, QSlider)
 from PyQt5.QtCore import *
 from emergent.archetypes.optimizer import Optimizer
+from emergent.archetypes.sampler import Sampler
 from emergent.archetypes.parallel import ProcessHandler
 from emergent.utility import list_algorithms, list_triggers
 import inspect
@@ -78,24 +79,29 @@ class ServoLayout(QVBoxLayout, ProcessHandler):
 
         settings['cost'] = getattr(settings['control'], settings['cost_name'])
         optimizer, index = settings['control'].attach_optimizer(settings['state'], settings['cost'])
-        settings['control'].optimizers[index]['status'] = 'Servoing'
+        sampler, index = settings['control'].attach_sampler(settings['state'], settings['cost'], optimizer=optimizer)
+        sampler.initialize(settings['control'].state, settings['cost'], None, settings['error_params'])
+
+        # settings['control'].optimizers[index]['status'] = 'Servoing'
+        settings['control'].samplers[index]['status'] = 'Servoing'
+
         t = datetime.datetime.strftime(datetime.datetime.now(), '%H:%M')
-        row = self.parent.parent.historyPanel.add_event(t, settings['cost_name'], 'PID', 'Servoing', optimizer)
-        func = optimizer.PID
+        row = self.parent.parent.historyPanel.add_event(t, settings['cost_name'], 'PID', 'Servoing', sampler)
+        func = getattr(optimizer,'PID')
 
         if settings['state'] == {}:
             log.warn('Please select at least one Input node for optimization.')
         else:
             log.info('Started optimization of %s experiment using %s algorithm.'%(settings['cost_name'], 'PID'))
-            self._run_thread(self.start_optimizer, args=(func, settings, optimizer, index, row, t, 'PID'), stoppable=False)
+            self._run_thread(self.start_optimizer, args=(func, settings, sampler, index, row, t, 'PID'), stoppable=False)
 
-    def start_optimizer(self, func, settings, optimizer, index, row, t, algorithm_name):
+    def start_optimizer(self, func, settings, sampler, index, row, t, algorithm_name):
         func(settings['state'], settings['cost'], settings['params'], settings['error_params'], callback = settings['callback'])
         log.info('Optimization complete!')
-        settings['control'].optimizers[index]['status'] = 'Done'
-        optimizer.log(t.replace(':','') + ' - ' + settings['cost_name'] + ' - ' + algorithm_name)
+        settings['control'].samplers[index]['status'] = 'Done'
+        sampler.log(t.replace(':','') + ' - ' + settings['cost_name'] + ' - ' + algorithm_name)
 
     def stop_optimizer(self):
         control = self.parent.parent.treeWidget.get_selected_control()
-        for d in control.optimizers.values():
-            d['optimizer'].terminate()
+        for d in control.samplers.values():
+            d['sampler'].terminate()
