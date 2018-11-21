@@ -3,7 +3,6 @@ from PyQt5.QtWidgets import (QComboBox, QLabel, QTextEdit, QPushButton, QVBoxLay
 from PyQt5.QtCore import *
 from emergent.archetypes.parallel import ProcessHandler
 from emergent.archetypes.optimizer import Optimizer
-from emergent.utility import list_algorithms
 import inspect
 import datetime
 import json
@@ -24,9 +23,9 @@ class OptimizeLayout(QVBoxLayout, ProcessHandler):
         self.addWidget(self.algorithm_box)
         paramsLayout = QHBoxLayout()
         optimizerParamsLayout = QVBoxLayout()
-        self.params_edit = QTextEdit('')
+        self.algo_params_edit = QTextEdit('')
         optimizerParamsLayout.addWidget(QLabel('Algorithm parameters'))
-        optimizerParamsLayout.addWidget(self.params_edit)
+        optimizerParamsLayout.addWidget(self.algo_params_edit)
         paramsLayout.addLayout(optimizerParamsLayout)
         experimentParamsLayout = QVBoxLayout()
         self.cost_params_edit = QTextEdit('')
@@ -40,9 +39,8 @@ class OptimizeLayout(QVBoxLayout, ProcessHandler):
         plotLayout.addWidget(QLabel('Cycles per sample'))
         plotLayout.addWidget(self.cycles_per_sample_edit)
         self.addLayout(plotLayout)
-        parent.parent.treeWidget.itemSelectionChanged.connect(self.update_control)
-        self.algorithm_box.currentTextChanged.connect(self.update_algorithm)
-        self.cost_box.currentTextChanged.connect(self.update_experiment)
+        self.algorithm_box.currentTextChanged.connect(lambda: self.parent.update_algorithm_and_experiment(self))
+        self.cost_box.currentTextChanged.connect(lambda: self.parent.update_algorithm_and_experiment(self))
         optimizeButtonsLayout = QHBoxLayout()
         parent.optimizer_button = QPushButton('Go!')
         parent.optimizer_button.clicked.connect(self.prepare_optimizer)
@@ -66,7 +64,7 @@ class OptimizeLayout(QVBoxLayout, ProcessHandler):
         t = datetime.datetime.strftime(datetime.datetime.now(), '%H:%M')
         row = self.parent.parent.historyPanel.add_event(t, cost_name, algorithm_name, 'Optimizing', optimizer)
         func = getattr(optimizer, algorithm_name.replace(' ','_'))
-        params = self.params_edit.toPlainText().replace('\n','').replace("'", '"')
+        params = self.algo_params_edit.toPlainText().replace('\n','').replace("'", '"')
         params = '{' + params + '}'
         params = json.loads(params)
 
@@ -92,47 +90,3 @@ class OptimizeLayout(QVBoxLayout, ProcessHandler):
         control = self.parent.parent.treeWidget.get_selected_control()
         for d in control.optimizers.values():
             d['optimizer'].terminate()
-
-
-    def update_algorithm(self):
-        algo = self.algorithm_box.currentText()
-        if algo == self.current_algorithm or algo is '':
-            return
-        else:
-            self.current_algorithm = algo
-        if self.algorithm_box.currentText() is not '':
-            f = getattr(Optimizer, self.algorithm_box.currentText().replace(' ','_'))
-            ''' Read default params dict from source code and insert in self.params_edit. '''
-            self.parent.docstring_to_edit(f, self.params_edit)
-
-
-
-    def update_algorithm_display(self):
-        ''' Updates the algorithm box with the methods available to the currently selected control. '''
-        tree = self.parent.parent.treeWidget
-        control = tree.currentItem().root
-        self.algorithm_box.clear()
-        for item in list_algorithms():
-            self.algorithm_box.addItem(item.replace('_',' '))
-        self.cost_box.clear()
-        for item in control.list_costs():
-            self.cost_box.addItem(item)
-        self.update_algorithm()
-
-    def update_control(self):
-        control = self.parent.parent.treeWidget.currentItem().root
-        if control == self.current_control:
-            return
-        else:
-            self.current_control = control
-        self.update_algorithm_display()
-
-    def update_experiment(self):
-        ''' Read default params dict from source code and insert it in self.cost_params_edit. '''
-        if self.cost_box.currentText() is not '':
-            try:
-                control = self.parent.parent.treeWidget.get_selected_control()
-            except IndexError:
-                return
-            f = getattr(control, self.cost_box.currentText())
-            self.parent.docstring_to_edit(f, self.cost_params_edit)

@@ -30,7 +30,7 @@ def warn(*args, **kwargs):
     pass
 import warnings
 warnings.warn = warn
-from emergent.utility import methodsWithDecorator, algorithm
+from emergent.utility import methodsWithDecorator, algorithm, servo
 from copy import deepcopy
 from emergent.archetypes.sampler import Sampler
 class Optimizer():
@@ -287,6 +287,7 @@ class Optimizer():
     #     return points, costs
 
     ''' Control methods '''
+    @servo
     def PID(self, state, error, params={'proportional_gain':1, 'integral_gain':0, 'derivative_gain':0, 'sign':1}, error_params = {}, callback = None):
         self.sampler.initialize(state, error, params, error_params)
         if callback is None:

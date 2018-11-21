@@ -19,68 +19,48 @@ class ServoLayout(QVBoxLayout, ProcessHandler):
         ProcessHandler.__init__(self)
         self.parent = parent
 
-        self.error_box = QComboBox()
-        self.addWidget(self.error_box)
+        self.algorithm_box = QComboBox()
+        self.addWidget(self.algorithm_box)
+
+        self.cost_box = QComboBox()
+        self.addWidget(self.cost_box)
 
         self.current_control = None
         paramsLayout = QHBoxLayout()
         optimizerParamsLayout = QVBoxLayout()
-        self.params_edit = QTextEdit('')
+        self.algo_params_edit = QTextEdit('')
         optimizerParamsLayout.addWidget(QLabel('Algorithm parameters'))
-        optimizerParamsLayout.addWidget(self.params_edit)
+        optimizerParamsLayout.addWidget(self.algo_params_edit)
         paramsLayout.addLayout(optimizerParamsLayout)
         experimentParamsLayout = QVBoxLayout()
-        self.error_params_edit = QTextEdit('')
+        self.cost_params_edit = QTextEdit('')
         experimentParamsLayout.addWidget(QLabel('Experiment parameters'))
-        experimentParamsLayout.addWidget(self.error_params_edit)
+        experimentParamsLayout.addWidget(self.cost_params_edit)
         paramsLayout.addLayout(experimentParamsLayout)
         self.addLayout(paramsLayout)
-        self.parent.parent.treeWidget.itemSelectionChanged.connect(self.update_control)
-        self.error_box.currentTextChanged.connect(self.update_experiment)
+        # self.cost_box.currentTextChanged.connect(self.update_algorithm_and_experiment)
+        self.cost_box.currentTextChanged.connect(lambda: self.parent.update_algorithm_and_experiment(self))
+
         optimizeButtonsLayout = QHBoxLayout()
         self.optimizer_button = QPushButton('Go!')
         self.optimizer_button.clicked.connect(self.prepare_optimizer)
         optimizeButtonsLayout.addWidget(self.optimizer_button)
         self.addLayout(optimizeButtonsLayout)
 
-    def update_algorithm(self):
-        control = self.parent.parent.treeWidget.currentItem().root
-        optimizer, index = control.attach_optimizer(None, None)
-        f = optimizer.PID
-        ''' Read default params dict from source code and insert in self.params_edit. '''
-        self.parent.docstring_to_edit(f, self.params_edit)
-
-    def update_algorithm_display(self):
-        ''' Updates the algorithm box with the methods available to the currently selected control. '''
-        tree = self.parent.parent.treeWidget
-        control = tree.currentItem().root
-        self.error_box.clear()
-        for item in control.list_errors():
-            self.error_box.addItem(item)
-        self.update_algorithm()
-
-    def update_control(self):
-        control = self.parent.parent.treeWidget.currentItem().root
-        if control == self.current_control:
-            return
-        else:
-            self.current_control = control
-        self.update_algorithm_display()
-
     def get_settings_from_gui(self):
         settings = {}
         settings['state'] = self.parent.parent.treeWidget.get_selected_state()
-        settings['cost_name'] = self.error_box.currentText()
+        settings['cost_name'] = self.cost_box.currentText()
         try:
             settings['control'] = self.parent.parent.treeWidget.get_selected_control()
         except IndexError:
             log.warn('Select inputs before starting optimization!')
             return
-        params = self.params_edit.toPlainText().replace('\n',',').replace("'", '"')
+        params = self.algo_params_edit.toPlainText().replace('\n',',').replace("'", '"')
         params = '{' + params + '}'
 
         settings['params'] = json.loads(params)
-        error_params = self.error_params_edit.toPlainText().replace('\n',',').replace("'", '"')
+        error_params = self.cost_params_edit.toPlainText().replace('\n',',').replace("'", '"')
         error_params = '{' + error_params + '}'
         settings['error_params'] = json.loads(error_params)
         settings['callback'] = None
@@ -119,39 +99,3 @@ class ServoLayout(QVBoxLayout, ProcessHandler):
         control = self.parent.parent.treeWidget.get_selected_control()
         for d in control.optimizers.values():
             d['optimizer'].terminate()
-
-    def update_experiment(self, params=None):
-        ''' Read default params dict from source code and insert it in self.error_params_edit.
-            If a params dict is passed, this will insert any duplicate entries into that dict
-            instead of this one - this allows you to save algorithm parameters for each
-            experiment separately.'''
-        if self.error_box.currentText() is not '':
-            try:
-                control = self.parent.parent.treeWidget.get_selected_control()
-            except IndexError:
-                return
-            f = getattr(control, self.error_box.currentText())
-            args = inspect.signature(f).parameters
-            args = list(args.items())
-            for a in args:
-                name = a[0]
-                if name == 'params':
-                    default = str(a[1])
-                    if default == name:
-                        default = 'Enter'
-                    else:
-                        default = default.split('=')[1]
-
-                        if params is not None:
-                            exp_params = json.loads(default.replace("'", '"'))
-                            params_list = list(exp_params.keys())
-                            for param in params_list:
-                                if param in params:
-                                    params[param] = exp_params[param]
-                                    del exp_params[param]
-                            default = json.dumps(exp_params)
-                        default = default.replace('{', '')
-                        default = default.replace(',', '\n')
-                        default = default.replace('}', '')
-                        self.error_params_edit.setText(default)
-                        return params

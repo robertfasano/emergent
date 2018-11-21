@@ -7,7 +7,7 @@ from emergent.archetypes.parallel import ProcessHandler
 from emergent.gui.elements.ServoPanel import ServoLayout
 from emergent.gui.elements.RunPanel import RunLayout
 
-from emergent.utility import list_algorithms, list_triggers
+from emergent.utility import list_algorithms, list_triggers, list_servos
 import inspect
 import json
 import logging as log
@@ -23,6 +23,8 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         self.parent = parent
         self.tabWidget = QTabWidget()
         self.addWidget(self.tabWidget)
+        self.current_control = None
+        self.parent.treeWidget.itemSelectionChanged.connect(self.update_control)
 
         ''' Create Optimizer tab '''
         optimizeTab = QWidget()
@@ -42,19 +44,82 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         runTab.setLayout(self.runPanel)
         self.tabWidget.addTab(runTab, 'Run')
 
-    def docstring_to_edit(self, f, edit):
-        ''' Reads the signature of the method f, then prepares a human-readable format for
-            the QLineEdit edit. '''
+    def double_parse(self, algo, experiment, algo_edit, experiment_edit):
+        ''' Updates the QLineEdits for algorithm and experiment parameters
+            with the default dicts parsed from file. For any duplicate keys,
+            overwrite from experiment to algorithm. For example, to always use
+            20 steps in a grid search, just include "steps":20 in the params
+            dict for the @experiment. '''
+        exp_params = self.file_to_dict(experiment)
+        algo_params = self.file_to_dict(algo)
+        for p in algo_params:
+            if p in exp_params:
+                algo_params[p] = exp_params[p]
+                del exp_params[p]
+        self.dict_to_edit(exp_params, experiment_edit)
+        self.dict_to_edit(algo_params, algo_edit)
+
+    def dict_to_edit(self, d, edit):
+        string = json.dumps(d).replace('{', '').replace(',', '\n').replace('}', '')
+        edit.setText(string)
+
+    def file_to_dict(self, f):
         args = inspect.signature(f).parameters
         args = list(args.items())
-        arguments = []
         for a in args:
-            name = a[0]
-            if name == 'params':
-                default = str(a[1])
-                default = default.split('=')[1]
-                default = default.replace('{', '')
-                default = default.replace(',', '\n')
-                default = default.replace('}', '')
-                if edit is not None:
-                    edit.setText(default)
+            if a[0] != 'params':
+                continue
+            d = str(a[1]).split('=')[1]
+            d = json.loads(d.replace("'", '"'))
+        return d
+
+
+    def update_control_panel(self, panel, exp_or_error, algo):
+        ''' Updates the algorithm box with the methods available to the currently selected control. '''
+        control = self.parent.treeWidget.currentItem().root
+        if algo:
+            panel.algorithm_box.clear()
+            if exp_or_error == 'experiment':
+                for item in list_algorithms():
+                    panel.algorithm_box.addItem(item.replace('_',' '))
+            elif exp_or_error == 'error':
+                for item in list_servos():
+                    panel.algorithm_box.addItem(item.replace('_',' '))
+        if exp_or_error == 'error':
+            panel.cost_box.clear()
+            for item in control.list_errors():
+                panel.cost_box.addItem(item)
+        elif exp_or_error == 'experiment':
+            panel.cost_box.clear()
+            for item in control.list_costs():
+                panel.cost_box.addItem(item)
+
+    def update_control(self):
+        control = self.parent.treeWidget.currentItem().root
+        if control == self.current_control:
+            return
+        else:
+            self.current_control = control
+        self.update_control_panel(self.optimizePanel, 'experiment', True)
+        self.update_algorithm_and_experiment(self.optimizePanel)
+        self.update_control_panel(self.runPanel, 'experiment', False)
+        self.update_experiment(self.runPanel)
+        self.update_control_panel(self.servoPanel, 'error', True)
+        self.update_algorithm_and_experiment(self.servoPanel)
+
+    def update_experiment(self, panel):
+        ''' Read default params dict from source code and insert it in self.cost_params_edit. '''
+        if panel.cost_box.currentText() is '':
+            return
+        control = self.parent.treeWidget.get_selected_control()
+        experiment = getattr(control, panel.cost_box.currentText())
+        d = self.file_to_dict(experiment)
+        self.dict_to_edit(d, panel.cost_params_edit)
+
+    def update_algorithm_and_experiment(self, panel):
+        if panel.cost_box.currentText() is '':
+            return
+        algo = getattr(Optimizer, panel.algorithm_box.currentText().replace(' ','_'))
+        control = self.parent.treeWidget.get_selected_control()
+        experiment = getattr(control, panel.cost_box.currentText())
+        self.double_parse(algo, experiment, panel.algo_params_edit, panel.cost_params_edit)

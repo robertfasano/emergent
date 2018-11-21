@@ -51,6 +51,12 @@ def list_algorithms():
     from emergent.archetypes.optimizer import Optimizer
     return methodsWithDecorator(Optimizer, 'algorithm')
 
+def list_servos():
+    ''' Returns a list of all methods tagged with the '@servo' decorator '''
+    from emergent.archetypes.optimizer import Optimizer
+    return methodsWithDecorator(Optimizer, 'servo')
+
+
 def list_triggers(control):
     ''' Returns a list of all methods tagged with the '@trigger' decorator '''
     return methodsWithDecorator(control.__class__, 'trigger')
@@ -101,6 +107,11 @@ def algorithm(func, *args, **kwargs):
     func(*args, **kwargs)
     args[0].parent.save(tag='optimize')
 
+@decorator.decorator
+def servo(func, *args, **kwargs):
+    func(*args, **kwargs)
+    args[0].parent.save(tag='servo')
+
 def get_classes(directory, decoratorName):
     classes = {}
     mod = importlib.import_module(directory)
@@ -134,5 +145,5 @@ def extract_pulses(data, threshold):
 
 def get_args(cls, func):
     f = getattr(cls, func)
-    ''' Read default params dict from source code and insert in self.params_edit. '''
+    ''' Read default params dict from source code and insert in self.algo_params_edit. '''
     args = inspect.signature(f).parameters

@@ -22,8 +22,8 @@ class RunLayout(QVBoxLayout, ProcessHandler):
         self.current_control = None
 
         self.addWidget(self.cost_box)
-        self.cost_box.currentTextChanged.connect(self.update_experiment)
-        parent.parent.treeWidget.itemSelectionChanged.connect(self.update_control)
+        # self.cost_box.currentTextChanged.connect(self.update_experiment)
+        self.cost_box.currentTextChanged.connect(lambda: self.parent.update_experiment(self))
 
         self.run_experimentParamsLayout = QVBoxLayout()
         self.cost_params_edit = QTextEdit('')
@@ -123,18 +123,6 @@ class RunLayout(QVBoxLayout, ProcessHandler):
     def stop_experiment(self):
         self._quit_thread(self.run_experiment)
 
-
-
-    def update_control(self):
-        control = self.parent.parent.treeWidget.currentItem().root
-        if control == self.current_control:
-            return
-        else:
-            self.current_control = control
-        self.cost_box.clear()
-        for item in control.list_costs():
-            self.cost_box.addItem(item)
-
     def updateIterations(self):
         try:
             val = self.runIterationsSlider.value()
@@ -145,13 +133,3 @@ class RunLayout(QVBoxLayout, ProcessHandler):
             self.runIterationsEdit.setText(text[val])
         except AttributeError:
             return
-
-    def update_experiment(self):
-        ''' Read default params dict from source code and insert it in self.cost_params_edit. '''
-        if self.cost_box.currentText() is not '':
-            try:
-                control = self.parent.parent.treeWidget.get_selected_control()
-            except IndexError:
-                return
-            f = getattr(control, self.cost_box.currentText())
-            self.parent.docstring_to_edit(f, self.cost_params_edit)
