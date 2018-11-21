@@ -24,7 +24,6 @@ class RunLayout(QVBoxLayout, ProcessHandler):
         self.current_control = None
 
         self.addWidget(self.cost_box)
-        # self.cost_box.currentTextChanged.connect(self.update_experiment)
         self.cost_box.currentTextChanged.connect(lambda: self.parent.update_experiment(self))
 
         self.run_experimentParamsLayout = QVBoxLayout()
@@ -53,7 +52,8 @@ class RunLayout(QVBoxLayout, ProcessHandler):
 
         self.runButtonsLayout = QHBoxLayout()
         self.runExperimentButton = QPushButton('Run')
-        self.runExperimentButton.clicked.connect(self.start_experiment)
+        self.runExperimentButton.clicked.connect(lambda: parent.start_process(process='run', panel = self, settings = {}))
+
         self.runButtonsLayout.addWidget(self.runExperimentButton)
         self.stopExperimentButton = QPushButton('Stop')
         self.stopExperimentButton.clicked.connect(self.stop_experiment)
@@ -74,12 +74,17 @@ class RunLayout(QVBoxLayout, ProcessHandler):
         except IndexError:
             log.warn('Select inputs before starting optimization!')
             return
+        settings['state'] = settings['control'].state
         cost_params = self.cost_params_edit.toPlainText().replace('\n',',').replace("'", '"')
         cost_params = '{' + cost_params + '}'
         settings['cost_params'] = json.loads(cost_params)
         settings['iterations'] = self.runIterationsEdit.text()
+        if settings['iterations'] != 'Continuous':
+            settings['iterations'] = int(settings['iterations'])
         settings['delay'] = float(self.runDelayEdit.text())
         settings['callback'] = None
+        settings['cycles per sample'] = 1#int(self.cycles_per_sample_edit.text())
+        settings['algo_params'] = {}
 
         return settings
 
@@ -98,31 +103,6 @@ class RunLayout(QVBoxLayout, ProcessHandler):
                     break
         control.samplers[index]['status'] = 'Done'
         sampler.log(t.replace(':','') + ' - ' + sampler.cost.__name__)
-
-    def start_experiment(self, *args, settings = {'callback': None, 'delay': None, 'iterations': None, 'control':None, 'cost_name': None, 'cost_params': None}):
-        ''' Load any non-passed settings from the GUI '''
-        gui_settings = self.get_settings_from_gui()
-        print(settings)
-        for s in settings:
-            if settings[s] is None:
-                settings[s] = gui_settings[s]
-        iterations = settings['iterations']
-        control = settings['control']
-        experiment = getattr(control, settings['cost_name'])
-        delay = settings['delay']
-        cost_params = settings['cost_params']
-        cost_params['cycles per sample'] = 1#int(self.cycles_per_sample_edit.text())
-
-        # optimizer, index = control.attach_optimizer(control.state, experiment)
-        sampler, index = control.attach_sampler(control.state, experiment)
-
-        # sampler = optimizer.sampler
-        sampler.initialize(control.state, experiment, None, cost_params)
-        if iterations != 'Continuous':
-            iterations = int(iterations)
-        t = datetime.datetime.strftime(datetime.datetime.now(), '%H:%M')
-        row = self.parent.parent.historyPanel.add_event(t, settings['cost_name'], None, 'Sampling', sampler)
-        self._run_thread(self.run_experiment, args = (sampler, control, cost_params, delay, iterations, index, t))
 
     def stop_experiment(self):
         self._quit_thread(self.run_experiment)

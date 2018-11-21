@@ -44,7 +44,8 @@ class ServoLayout(QVBoxLayout, ProcessHandler):
 
         optimizeButtonsLayout = QHBoxLayout()
         self.optimizer_button = QPushButton('Go!')
-        self.optimizer_button.clicked.connect(self.prepare_optimizer)
+        self.optimizer_button.clicked.connect(lambda: parent.start_process(process='servo', panel = self, settings = {}))
+
         optimizeButtonsLayout.addWidget(self.optimizer_button)
         self.addLayout(optimizeButtonsLayout)
 
@@ -60,43 +61,15 @@ class ServoLayout(QVBoxLayout, ProcessHandler):
         params = self.algo_params_edit.toPlainText().replace('\n',',').replace("'", '"')
         params = '{' + params + '}'
 
-        settings['params'] = json.loads(params)
+        settings['algo_params'] = json.loads(params)
         error_params = self.cost_params_edit.toPlainText().replace('\n',',').replace("'", '"')
         error_params = '{' + error_params + '}'
-        settings['error_params'] = json.loads(error_params)
+        settings['cost_params'] = json.loads(error_params)
         settings['callback'] = None
         return settings
 
-    def prepare_optimizer(self, *args, settings = {'callback': None, 'control':None, 'state':None, 'cost_name': None, 'params': None, 'error_params': None}):
-        ''' Call chosen optimization routine with user-selected cost function and parameters '''
-
-        ''' Load any non-passed settings from the GUI '''
-        gui_settings = self.get_settings_from_gui()
-        print(settings)
-        for s in settings:
-            if settings[s] is None:
-                settings[s] = gui_settings[s]
-
-        settings['cost'] = getattr(settings['control'], settings['cost_name'])
-        optimizer, index = settings['control'].attach_optimizer(settings['state'], settings['cost'])
-        sampler, index = settings['control'].attach_sampler(settings['state'], settings['cost'], optimizer=optimizer)
-        sampler.initialize(settings['control'].state, settings['cost'], None, settings['error_params'])
-
-        # settings['control'].optimizers[index]['status'] = 'Servoing'
-        settings['control'].samplers[index]['status'] = 'Servoing'
-
-        t = datetime.datetime.strftime(datetime.datetime.now(), '%H:%M')
-        row = self.parent.parent.historyPanel.add_event(t, settings['cost_name'], 'PID', 'Servoing', sampler)
-        func = getattr(optimizer,'PID')
-
-        if settings['state'] == {}:
-            log.warn('Please select at least one Input node for optimization.')
-        else:
-            log.info('Started optimization of %s experiment using %s algorithm.'%(settings['cost_name'], 'PID'))
-            self._run_thread(self.start_optimizer, args=(func, settings, sampler, index, row, t, 'PID'), stoppable=False)
-
     def start_optimizer(self, func, settings, sampler, index, row, t, algorithm_name):
-        func(settings['state'], settings['cost'], settings['params'], settings['error_params'], callback = settings['callback'])
+        func(settings['state'], settings['cost'], settings['algo_params'], settings['cost_params'], callback = settings['callback'])
         log.info('Optimization complete!')
         settings['control'].samplers[index]['status'] = 'Done'
         sampler.log(t.replace(':','') + ' - ' + settings['cost_name'] + ' - ' + algorithm_name)

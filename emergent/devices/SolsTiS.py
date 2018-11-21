@@ -42,8 +42,8 @@ class SolsTiS(Device):
 
         error = 999
         while np.abs(error) > 1:
-            error_params={'setpoint': 394798.3, 'wait': 0.1}
-            params = {'threshold': 'None',
+            cost_params={'setpoint': 394798.3, 'wait': 0.1}
+            algo_params = {'threshold': 'None',
                       'proportional_gain':0.5,
                       'integral_gain':0.05,
                       'derivative_gain':0,
@@ -52,8 +52,8 @@ class SolsTiS(Device):
             settings = {'control': self.parent,
                         'state': {self.name: self.state},
                         'cost_name': 'error',
-                        'params': params,
-                        'error_params': error_params,
+                        'algo_params': algo_params,
+                        'cost_params': cost_params,
                         'callback': self.callback}
             servoPanel.prepare_optimizer(settings=settings)
             error = self.parent.error(error_params)

@@ -43,46 +43,33 @@ class OptimizeLayout(QVBoxLayout, ProcessHandler):
         self.cost_box.currentTextChanged.connect(lambda: self.parent.update_algorithm_and_experiment(self))
         optimizeButtonsLayout = QHBoxLayout()
         parent.optimizer_button = QPushButton('Go!')
-        parent.optimizer_button.clicked.connect(self.prepare_optimizer)
+        parent.optimizer_button.clicked.connect(lambda: parent.start_process(process='optimize', panel = self, settings = {}))
+
         optimizeButtonsLayout.addWidget(parent.optimizer_button)
         self.addLayout(optimizeButtonsLayout)
 
-
-    def prepare_optimizer(self):
-        ''' Call chosen optimization routine with user-selected cost function and parameters '''
-        algorithm_name = self.algorithm_box.currentText()
+    def get_settings_from_gui(self):
+        settings = {}
+        settings['state'] = self.parent.parent.treeWidget.get_selected_state()
+        settings['cost_name'] = self.cost_box.currentText()
         try:
-            control = self.parent.parent.treeWidget.get_selected_control()
+            settings['control'] = self.parent.parent.treeWidget.get_selected_control()
         except IndexError:
             log.warn('Select inputs before starting optimization!')
             return
-        state = self.parent.parent.treeWidget.get_selected_state()
-        cost_name = self.cost_box.currentText()
-        cost = getattr(control, cost_name)
-        optimizer, index = control.attach_optimizer(state, cost)
-        sampler, index = control.attach_sampler(state, cost, optimizer=optimizer)
-        control.samplers[index]['status'] = 'Optimizing'
-        t = datetime.datetime.strftime(datetime.datetime.now(), '%H:%M')
-        row = self.parent.parent.historyPanel.add_event(t, cost_name, algorithm_name, 'Optimizing', sampler)
-        func = getattr(optimizer, algorithm_name.replace(' ','_'))
-        params = self.algo_params_edit.toPlainText().replace('\n','').replace("'", '"')
+        params = self.algo_params_edit.toPlainText().replace('\n',',').replace("'", '"')
         params = '{' + params + '}'
-        params = json.loads(params)
 
-        cost_params = self.cost_params_edit.toPlainText().replace('\n',',').replace("'", '"')
-        cost_params = '{' + cost_params + '}'
-        cost_params = json.loads(cost_params)
-        cost_params['cycles per sample'] = int(self.cycles_per_sample_edit.text())
-        sampler.initialize(state, cost=cost, params=params, cost_params=cost_params)
+        settings['algo_params'] = json.loads(params)
+        error_params = self.cost_params_edit.toPlainText().replace('\n',',').replace("'", '"')
+        error_params = '{' + error_params + '}'
+        settings['cost_params'] = json.loads(error_params)
+        settings['callback'] = None
+        settings['cycles per sample'] = int(self.cycles_per_sample_edit.text())
+        return settings
 
-        if state == {}:
-            log.warn('Please select at least one Input node for optimization.')
-        else:
-            log.info('Started optimization of %s experiment using %s algorithm.'%(cost_name, algorithm_name))
-            self._run_thread(self.start_optimizer, args=(func, state, cost, params, cost_params, control, sampler, index, row, t, cost_name, algorithm_name), stoppable=False)
-
-    def start_optimizer(self, func, state, cost, params, cost_params, control, sampler, index, row, t, cost_name, algorithm_name):
-        func(state, cost, params, cost_params)
+    def start_optimizer(self, algo, state, cost, params, cost_params, control, sampler, index, row, t, cost_name, algorithm_name):
+        algo(state, cost, params, cost_params)
         log.info('Optimization complete!')
         control.samplers[index]['status'] = 'Done'
         # self.parent.parent.historyPanel.update_event_status(row, 'Done')

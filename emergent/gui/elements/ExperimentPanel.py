@@ -123,3 +123,52 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         control = self.parent.treeWidget.get_selected_control()
         experiment = getattr(control, panel.cost_box.currentText())
         self.double_parse(algo, experiment, panel.algo_params_edit, panel.cost_params_edit)
+
+
+    def start_process(self, *args, process = '', panel = None, settings = {}):
+        ''' Load any non-passed settings from the GUI '''
+        gui_settings = panel.get_settings_from_gui()
+        for s in gui_settings:
+            if s in settings:
+                if settings[s] is None:
+                    settings[s] = gui_settings[s]
+            else:
+                settings[s] = gui_settings[s]
+
+        control = settings['control']
+        cost = getattr(control, settings['cost_name'])
+        algo_params = settings['algo_params']
+        cost_params = settings['cost_params']
+        settings['cost'] = cost
+        state = settings['state']
+
+        ''' Create optimizer/sampler '''
+        optimizer, index = settings['control'].attach_optimizer(state, cost)
+        sampler, index = settings['control'].attach_sampler(state, cost, optimizer=optimizer)
+        sampler.initialize(state, cost, algo_params, cost_params)
+        control.optimizers[index]['status'] = process
+        control.samplers[index]['status'] = process
+
+        if hasattr(panel, 'algorithm_box'):
+            algorithm_name = panel.algorithm_box.currentText().replace(' ', '_')
+            algo = getattr(optimizer, algorithm_name)
+        else:
+            algorithm_name = 'Run'
+
+        ''' Create HistoryPanel task '''
+        t = datetime.datetime.strftime(datetime.datetime.now(), '%H:%M')
+        row = self.parent.historyPanel.add_event(t, cost.__name__, algorithm_name, process, sampler)
+
+        ''' Run process '''
+        if state == {} and process != 'run':
+            log.warn('Please select at least one Input node for optimization.')
+            return
+
+        if process == 'run':
+            cost_params['cycles per sample'] = settings['cycles per sample']
+            panel._run_thread(panel.run_experiment, args = (sampler, control, cost_params, settings['delay'], settings['iterations'], index, t))
+        elif process == 'optimize':
+            cost_params['cycles per sample'] = settings['cycles per sample']
+            panel._run_thread(panel.start_optimizer, args=(algo, state, cost, algo_params, cost_params, control, sampler, index, row, t, cost.__name__, algorithm_name), stoppable=False)
+        elif process == 'servo':
+            panel._run_thread(panel.start_optimizer, args=(algo, settings, sampler, index, row, t, 'PID'), stoppable=False)
