@@ -39,7 +39,6 @@ class ServoLayout(QVBoxLayout, ProcessHandler):
         experimentParamsLayout.addWidget(self.cost_params_edit)
         paramsLayout.addLayout(experimentParamsLayout)
         self.addLayout(paramsLayout)
-        # self.cost_box.currentTextChanged.connect(self.update_algorithm_and_experiment)
         self.cost_box.currentTextChanged.connect(lambda: self.parent.update_algorithm_and_experiment(self))
 
         optimizeButtonsLayout = QHBoxLayout()
@@ -68,13 +67,8 @@ class ServoLayout(QVBoxLayout, ProcessHandler):
         settings['callback'] = None
         return settings
 
-    def run_process(self, sampler, settings, index, t, stopped = None):
+    def run_process(self, sampler, settings, index, t):
         settings['algo'](settings['state'], settings['cost'], settings['algo_params'], settings['cost_params'], callback = settings['callback'])
         log.info('Optimization complete!')
         settings['control'].samplers[index]['status'] = 'Done'
         sampler.log(t.replace(':','') + ' - ' + settings['cost_name'] + ' - ' + settings['algo'].__name__)
-
-    def stop_optimizer(self):
-        control = self.parent.parent.treeWidget.get_selected_control()
-        for d in control.samplers.values():
-            d['sampler'].terminate()

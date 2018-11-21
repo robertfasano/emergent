@@ -60,12 +60,6 @@ class RunLayout(QVBoxLayout, ProcessHandler):
         self.runButtonsLayout.addWidget(self.stopExperimentButton)
         self.addLayout(self.runButtonsLayout)
 
-        # self.runResultLayout = QHBoxLayout()
-        # self.runResultLayout.addWidget(QLabel('Result'))
-        # self.runResultEdit = QLineEdit('')
-        # self.runResultLayout.addWidget(self.runResultEdit)
-        # self.addLayout(self.runResultLayout)
-
     def get_settings_from_gui(self):
         settings = {}
         settings['cost_name'] = self.cost_box.currentText()
