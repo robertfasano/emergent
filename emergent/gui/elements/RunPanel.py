@@ -78,28 +78,27 @@ class RunLayout(QVBoxLayout, ProcessHandler):
         cost_params = self.cost_params_edit.toPlainText().replace('\n',',').replace("'", '"')
         cost_params = '{' + cost_params + '}'
         settings['cost_params'] = json.loads(cost_params)
+        settings['cost_params']['cycles per sample'] = 1#int(self.cycles_per_sample_edit.text())
         settings['iterations'] = self.runIterationsEdit.text()
         if settings['iterations'] != 'Continuous':
             settings['iterations'] = int(settings['iterations'])
         settings['delay'] = float(self.runDelayEdit.text())
         settings['callback'] = None
-        settings['cycles per sample'] = 1#int(self.cycles_per_sample_edit.text())
         settings['algo_params'] = {}
 
         return settings
 
-    def run_experiment(self, sampler, control, cost_params, delay, iterations, index, t, stopped = None):
+    def run_process(self, sampler, settings, index, t, stopped = None):
         count = 0
+        control = settings['control']
+        cost_params = settings['cost_params']
         while not stopped():
             state = control.state
             result = sampler._cost(state, params=cost_params)
-            # result = experiment(state, params=cost_params)
-            # self.runResultEdit.setText(str(result))
-            # qApp.processEvents(QEventLoop.ExcludeUserInputEvents)
             count += 1
-            time.sleep(delay/1000)
-            if type(iterations) is int:
-                if count >= iterations:
+            time.sleep(settings['delay']/1000)
+            if type(settings['iterations']) is int:
+                if count >= settings['iterations']:
                     break
         control.samplers[index]['status'] = 'Done'
         sampler.log(t.replace(':','') + ' - ' + sampler.cost.__name__)

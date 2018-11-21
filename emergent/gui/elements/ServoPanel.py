@@ -68,11 +68,11 @@ class ServoLayout(QVBoxLayout, ProcessHandler):
         settings['callback'] = None
         return settings
 
-    def start_optimizer(self, func, settings, sampler, index, row, t, algorithm_name):
-        func(settings['state'], settings['cost'], settings['algo_params'], settings['cost_params'], callback = settings['callback'])
+    def run_process(self, sampler, settings, index, t, stopped = None):
+        settings['algo'](settings['state'], settings['cost'], settings['algo_params'], settings['cost_params'], callback = settings['callback'])
         log.info('Optimization complete!')
         settings['control'].samplers[index]['status'] = 'Done'
-        sampler.log(t.replace(':','') + ' - ' + settings['cost_name'] + ' - ' + algorithm_name)
+        sampler.log(t.replace(':','') + ' - ' + settings['cost_name'] + ' - ' + settings['algo'].__name__)
 
     def stop_optimizer(self):
         control = self.parent.parent.treeWidget.get_selected_control()

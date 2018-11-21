@@ -65,15 +65,20 @@ class OptimizeLayout(QVBoxLayout, ProcessHandler):
         error_params = '{' + error_params + '}'
         settings['cost_params'] = json.loads(error_params)
         settings['callback'] = None
-        settings['cycles per sample'] = int(self.cycles_per_sample_edit.text())
+        settings['cost_params']['cycles per sample'] = int(self.cycles_per_sample_edit.text())
         return settings
 
-    def start_optimizer(self, algo, state, cost, params, cost_params, control, sampler, index, row, t, cost_name, algorithm_name):
+    def run_process(self, sampler, settings, index, t, stopped = None):
+        algo = settings['algo']
+        state = settings['state']
+        cost = settings['cost']
+        params = settings['algo_params']
+        cost_params = settings['cost_params']
+        control = settings['control']
         algo(state, cost, params, cost_params)
         log.info('Optimization complete!')
         control.samplers[index]['status'] = 'Done'
-        # self.parent.parent.historyPanel.update_event_status(row, 'Done')
-        sampler.log(t.replace(':','') + ' - ' + cost_name + ' - ' + algorithm_name)
+        sampler.log(t.replace(':','') + ' - ' + cost.__name__ + ' - ' + algo.__name__)
 
     def stop_optimizer(self):
         control = self.parent.parent.treeWidget.get_selected_control()

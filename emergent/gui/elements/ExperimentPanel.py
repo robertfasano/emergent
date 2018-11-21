@@ -152,6 +152,7 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         if hasattr(panel, 'algorithm_box'):
             algorithm_name = panel.algorithm_box.currentText().replace(' ', '_')
             algo = getattr(optimizer, algorithm_name)
+            settings['algo'] = algo
         else:
             algorithm_name = 'Run'
 
@@ -164,11 +165,7 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
             log.warn('Please select at least one Input node for optimization.')
             return
 
+        stoppable = False
         if process == 'run':
-            cost_params['cycles per sample'] = settings['cycles per sample']
-            panel._run_thread(panel.run_experiment, args = (sampler, control, cost_params, settings['delay'], settings['iterations'], index, t))
-        elif process == 'optimize':
-            cost_params['cycles per sample'] = settings['cycles per sample']
-            panel._run_thread(panel.start_optimizer, args=(algo, state, cost, algo_params, cost_params, control, sampler, index, row, t, cost.__name__, algorithm_name), stoppable=False)
-        elif process == 'servo':
-            panel._run_thread(panel.start_optimizer, args=(algo, settings, sampler, index, row, t, 'PID'), stoppable=False)
+            stoppable = True
+        panel._run_thread(panel.run_process, args = (sampler, settings, index, t), stoppable=stoppable)
