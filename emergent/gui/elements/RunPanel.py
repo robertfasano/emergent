@@ -96,6 +96,7 @@ class RunLayout(QVBoxLayout, ProcessHandler):
                     break
         control.samplers[index]['status'] = 'Done'
         sampler.log(t.replace(':','') + ' - ' + sampler.cost.__name__)
+        sampler.active = False
 
     def stop_experiment(self):
         self._quit_thread(self.run_experiment)

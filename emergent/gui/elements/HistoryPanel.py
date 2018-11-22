@@ -62,7 +62,7 @@ class HistoryPanel(QVBoxLayout):
         sampler = self.table.item(row, 4).sampler
         algorithm = self.table.item(row, 2).text()
         self.popup = OptimizerPopup(sampler, algorithm, self, row)
-        self.popup.show()
+        # self.popup.show()
 
 class OptimizerPopup(QWidget, ProcessHandler):
     def __init__(self, sampler, algorithm, parent, row):
@@ -126,7 +126,9 @@ class OptimizerPopup(QWidget, ProcessHandler):
         self.progress_timer.timeout.connect(self.check_progress)
         self.progress_timer.start(100)
 
-    def plot(self):
+        self.plot()
+
+    def generate_figures(self):
         ''' Show cost vs time, parameters vs time, and parameters vs cost '''
         t, points, costs = self.sampler.get_history(include_database = self.use_database_checkbox.isChecked())
         t = t.copy()-t[0]
@@ -191,22 +193,13 @@ class OptimizerPopup(QWidget, ProcessHandler):
             p = points[:,a]
             fig2d[axis_combo_name] = plot_2D(p, costs, limits = limits)
         hist_fig = self.sampler.plot_optimization()
-        self.pw = PlotWidget(self.sampler, self.algorithm, inputs, hist_fig, cvp, pvt, fig2d, title='Visualizer: %s'%self.sampler.cost.__name__)
+        return hist_fig, cvp, pvt, fig2d
 
+    def plot(self):
+        hist_fig, cvp, pvt, fig2d = self.generate_figures()
+        inputs = list(cvp.keys())
+        self.pw = PlotWidget(self, self.sampler, self.algorithm, inputs, hist_fig, cvp, pvt, fig2d, title='Visualizer: %s'%self.sampler.cost.__name__)
         self.pw.show()
-        # try:
-        #     if points.shape[1] == 1:
-        #         full_name =  self.sampler.history.columns[0]
-        #         dev = full_name.split('.')[0]
-        #         input = full_name.split('.')[1]
-        #         control = self.sampler.parent
-        #         limits = {full_name.replace('.', ': '): control.settings[dev][input]}
-        #         plot_1D(points, costs, limits = limits, cost_name = self.sampler.cost.__name__)
-        #     elif points.shape[1] == 2:
-        #         plot_2D(points, costs)
-        # except Exception:
-        #     pass
-        # self.sampler.plot_optimization()
 
     def check_progress(self):
         if not self.sampler.active:

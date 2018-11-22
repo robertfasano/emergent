@@ -6,10 +6,11 @@ import random
 from matplotlib.figure import Figure
 import json
 plt.ioff()
-
+from PyQt5.QtCore import QTimer
 class PlotWidget(QWidget):
-    def __init__(self, sampler, algorithm, inputs, hist_fig, cvp, pvt, fig2d, parent = None, title=''):
+    def __init__(self, container, sampler, algorithm, inputs, hist_fig, cvp, pvt, fig2d, parent = None, title=''):
         super(PlotWidget, self).__init__(parent)
+        self.container = container
         self.sampler = sampler
         self.algorithm = algorithm
         self.canvas = []
@@ -54,12 +55,23 @@ class PlotWidget(QWidget):
         self.layout.addWidget(QLabel(params), 1, 4)
 
 
+        ''' Buttons '''
+        self.buttons_layout = QHBoxLayout()
+        self.vert_layout.addLayout(self.buttons_layout)
+        self.terminate_button = QPushButton('Terminate')
+        self.terminate_button.clicked.connect(self.sampler.terminate)
+        self.buttons_layout.addWidget(self.terminate_button)
+
+        self.refresh_button = QPushButton('Refresh')
+        self.refresh_button.clicked.connect(self.update_figs)
+        self.buttons_layout.addWidget(self.refresh_button)
         ''' optimization history '''
+        self.canvas_hist_layout = QHBoxLayout()
+        self.vert_layout.addLayout(self.canvas_hist_layout)
+        self.canvas_hist = None
 
-        self.canvas_hist = FigureCanvas(self.hist_fig)
+        self.draw_hist_fig()
 
-        self.vert_layout.addWidget(self.canvas_hist)
-        self.canvas_hist.draw()
 
         ''' 1D tab '''
         self.tab1 = QWidget()
@@ -107,8 +119,10 @@ class PlotWidget(QWidget):
             self.tab2d_layout.addLayout(self.tab2d_inputs_layout)
             self.choose_input_pair()
 
-
-
+        ''' Setup auto-update '''
+        self.update_timer = QTimer(self)
+        self.update_timer.timeout.connect(self.update_figs)
+        self.update_timer.start(1000)
 
     def choose_input(self):
         if self.canvas1 is not None:
@@ -138,19 +152,23 @@ class PlotWidget(QWidget):
         self.tab2d_layout.addWidget(self.canvas2d)
         self.canvas2d.draw()
 
-    def addTab(self, fig):
-        self.tab2 = QWidget()
-        self.tabs.addTab(self.tab2,"2D")
-        self.fig2 = fig
-        self.canvas2d = FigureCanvas(self.fig2)
-        self.tab2_layout = QVBoxLayout()
-        self.tab2_layout.addWidget(self.canvas2d)
-        self.tab2.setLayout(self.tab2_layout)
-        self.canvas2d.draw()
-        self.canvas.append(self.canvas2d)
-        # self.tabs.setCurrentIndex(1)
-
     def draw(self):
         for c in self.canvas:
             if c is not None:
                 c.draw()
+
+    def draw_hist_fig(self):
+        if self.canvas_hist is not None:
+            self.canvas_hist_layout.removeWidget(self.canvas_hist)
+            self.canvas_hist.deleteLater()
+        self.canvas_hist = FigureCanvas(self.hist_fig)
+        self.canvas_hist_layout.addWidget(self.canvas_hist)
+        self.canvas_hist.draw()
+
+    def update_figs(self):
+        self.hist_fig, self.cvp, self.pvt, self.fig2d = self.container.generate_figures()
+        self.choose_input()
+        self.draw_hist_fig()
+
+        if not self.sampler.active:
+            self.update_timer.stop()
