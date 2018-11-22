@@ -332,12 +332,12 @@ class Optimizer():
         ''' Plots an optimization time series stored in self.sampler.history. '''
         func = self.sampler.history.copy()
         func.index -= func.index[0]
-        plt.figure()
+        fig = plt.figure()
         plt.plot(func['cost'])
         plt.yscale(yscale)
         plt.ylabel(self.cost.__name__)
         plt.xlabel('Time (s)')
-        plt.show()
+        return fig
 
     def plot_history_slice(self, i):
         ''' Plots a slice of the ith element of the history. '''

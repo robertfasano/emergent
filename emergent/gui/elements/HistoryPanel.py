@@ -70,6 +70,8 @@ class OptimizerPopup(QWidget, ProcessHandler):
         QWidget().__init__()
         ProcessHandler.__init__(self)
         self.parent = parent
+        self.sampler = sampler
+        self.algorithm = algorithm
         self.row = row
         with open('gui/stylesheet.txt',"r") as file:
             self.setStyleSheet(file.read())
@@ -138,21 +140,27 @@ class OptimizerPopup(QWidget, ProcessHandler):
         else:
             ax0 = ax
         ax0[0].set_ylabel(self.sampler.cost.__name__)
+        cvp = {}
         for i in range(num_inputs):
             p = points[:,i]
             full_name =  self.sampler.history.columns[i]
             dev = full_name.split('.')[0]
             input = full_name.split('.')[1]
             limits = {full_name.replace('.', ': '): control.settings[dev][input]}
-            plot_1D(p, costs, limits=limits, cost_name = self.sampler.cost.__name__, ax = ax0[i])
+            # plot_1D(p, costs, limits=limits, cost_name = self.sampler.cost.__name__, ax = ax0[i])
+            new_ax, fig = plot_1D(p, costs, limits=limits, cost_name = self.sampler.cost.__name__)
+            cvp[full_name] = fig
             ax0[i].set_xlabel(full_name)
 
         ''' parameters vs time '''
+        inputs = []
+        pvt = {}
         for i in range(num_inputs):
             p = points[:,i]
             full_name =  self.sampler.history.columns[i]
             dev = full_name.split('.')[0]
             input = full_name.split('.')[1]
+            inputs.append(full_name)
             limits = {full_name.replace('.', ': '): control.settings[dev][input]}
             name = list(limits.keys())[0]
             p = limits[name]['min'] + p*(limits[name]['max']-limits[name]['min'])
@@ -161,23 +169,30 @@ class OptimizerPopup(QWidget, ProcessHandler):
                 cax = ax[1]
             else:
                 cax = ax[1][i]
-            plot_1D(t, p, cost_name = self.sampler.cost.__name__, ax = cax)
+            # plot_1D(t, p, cost_name = self.sampler.cost.__name__, ax = cax)
+            new_ax, fig = plot_1D(t, p, cost_name = self.sampler.cost.__name__, xlabel = 'Time (s)', ylabel = full_name)
+            pvt[full_name] = fig
             cax.set_ylabel(full_name)
             cax.set_xlabel('Time (s)')
-        self.pw = PlotWidget(fig1=fig, title='Visualizer: %s'%self.sampler.cost.__name__)
 
         ''' 2d plots '''
         axis_combos = list(itertools.combinations(range(num_inputs),2))
+        fig2d = {}
         for a in axis_combos:
             limits = {}
+            full_names = []
             for ax in a:
                 full_name =  self.sampler.history.columns[ax]
+                full_names.append(full_name)
                 dev = full_name.split('.')[0]
                 input = full_name.split('.')[1]
                 limits[full_name.replace('.', ': ')] =  control.settings[dev][input]
+            axis_combo_name = full_names[0] + '/' + full_names[1]
             p = points[:,a]
-            fig = plot_2D(p, costs, limits = limits)
-            self.pw.addTab(fig)
+            fig2d[axis_combo_name] = plot_2D(p, costs, limits = limits)
+        hist_fig = self.sampler.plot_optimization()
+        self.pw = PlotWidget(self.sampler, self.algorithm, inputs, hist_fig, cvp, pvt, fig2d, title='Visualizer: %s'%self.sampler.cost.__name__)
+
         self.pw.show()
         # try:
         #     if points.shape[1] == 1:

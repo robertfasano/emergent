@@ -9,13 +9,14 @@ import matplotlib.gridspec as gridspec
 plt.ioff()
 
 def plot_1D(points, costs, cost_name = 'Cost', normalized_cost = False, limits = None,
-            save = False, ax = None):
+            save = False, ax = None, xlabel = None, ylabel = None):
     if threading.current_thread() is not threading.main_thread():
         log.warn('Cannot create matplotlib plot in thread.')
         return
-
+    passed_ax = ax
+    fig = None
     if ax is None:
-        plt.figure()
+        fig = plt.figure()
         ax = plt.gca()
 
     points = points.copy()
@@ -25,11 +26,15 @@ def plot_1D(points, costs, cost_name = 'Cost', normalized_cost = False, limits =
         name = list(limits.keys())[0]
         points = limits[name]['min'] + points*(limits[name]['max']-limits[name]['min'])
     ax.plot(points, costs, '.')
-    if limits is not None and ax is None:
+    if limits is not None and passed_ax is None:
         plt.xlabel(name)
         plt.ylabel(cost_name)
-
-    return ax
+    if xlabel is not None:
+        plt.xlabel(xlabel)
+    if ylabel is not None:
+        plt.ylabel(ylabel)
+    plt.tight_layout(pad=4)
+    return ax, fig
 
 def plot_2D(points, costs, normalized_cost = False, limits = None,
             save = False, color_map='viridis_r', ax = None):
@@ -100,4 +105,6 @@ def plot_2D(points, costs, normalized_cost = False, limits = None,
         axx.set_xlabel(names[0])
         axy.set_ylabel(names[1])
         axy.yaxis.set_label_position("right")
+
+    plt.tight_layout(pad=0.5)
     return fig
