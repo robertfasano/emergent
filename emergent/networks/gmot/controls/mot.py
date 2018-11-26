@@ -4,16 +4,21 @@ from utility import experiment
 from scipy.stats import linregress
 from scipy.optimize import curve_fit
 import numpy as np
+from emergent.archetypes.parallel import ProcessHandler
+from emergent.devices.labjackT7 import LabJack
+import matplotlib.pyplot as plt
 
 class MOT(Control):
     def __init__(self, name, parent = None, path='.'):
         super().__init__(name, parent = parent, path=path)
+        self.process_manager = ProcessHandler()
+        self.trigger_labjack = LabJack(devid='440010734', name = 'trigger')
 
     def add_labjack(self, labjack):
         self.labjack = labjack
         self.labjack.prepare_streamburst(channel=0)
-        self.labjack.AOut(7,-5,HV=True)
-        self.labjack.AOut(6,5, HV=True)
+        self.labjack.AOut(3,-5,HV=True)
+        self.labjack.AOut(2,5, HV=True)
         self.set_offset(0)
 
     def set_offset(self, offset):
@@ -40,13 +45,37 @@ class MOT(Control):
             self.set_offset(self.offset+gain*signal)
             print('signal:',signal)
 
-    def stream(self, period = 1, amplitude = 0.1):
-        key='coils.I1'
-        self.cycle_time = period
-        self.inputs[key].sequence = [(0,0), (period/2, amplitude)]
-        data = self.clock.prepare_stream(key)
+    @experiment
+    def probe_pulse(self, state, params = {'loading time': 1, 'probe time': 0.1, 'trigger delay': 0.01}):
+        ''' Queue triggered stream-out on intensity servo channels '''
+        self.actuate(state)
+        cycle_time = params['loading time'] + params['probe time']
+        servo = self.children['servo']
 
-        self.labjack.stream_out(0, data)
+        probe_labjack = servo.labjack[0]
+        probe_stream = np.array([[0,0], [params['loading time'], self.state['servo']['V0']]])
+        probe_labjack.prepare_stream_out(trigger=0)
+        sequence, scanRate = probe_labjack.resample(probe_stream, cycle_time)
+        probe_labjack.stream_out([0], sequence, scanRate, loop=0)
+
+        trap_labjack = servo.labjack[1]
+        t = np.linspace(0,cycle_time, 1000)
+        y = np.zeros((len(t),2))
+        y[t<params['loading time'], 0] = self.state['servo']['V2']
+        y[t<params['loading time'], 1] = self.state['servo']['V3']
+        trap_labjack.prepare_stream_out(trigger=0)
+        sequence, scanRate = trap_labjack.resample(y, cycle_time)
+        trap_labjack.stream_out([0,1], sequence, scanRate, loop=0)
+
+        ''' Queue triggered stream-in on self.labjack '''
+        if self.labjack.stream_mode is not 'in-triggered':
+            self.labjack.prepare_streamburst(0, trigger=0)
+        self.process_manager._run_thread(self.probe_trigger, args=(params['trigger delay'],), stoppable=False)
+        data = self.labjack.streamburst(cycle_time)
+        print(np.max(data))
+        plt.plot(data)
+        self.actuate(state)
+        return -np.max(data)
 
     @experiment
     def pulsed_slowing(self, state = None, params = {'pulse time': 0.5, 'settling time': 0.05}):
@@ -61,149 +90,25 @@ class MOT(Control):
         return -high    # low is subtracted out by SRS
 
     @experiment
-    def pulsed_slowing_slope(self, state = None, params = {'pulse time': 0.5, 'settling time': 0.05}):
-        if state is not None:
-            self.actuate(state)
-        # state = self.state['servo']['V2']
-        # min = self.settings['servo']['V2']['min']
-        # self.children['servo']._actuate({'V2':min})
-        self.children['servo'].lock(2,0)
-        self.labjack.DOut(4,0)
-        time.sleep(params['pulse time'])
-        # self.children['servo']._actuate({'V2':state})
-        self.labjack.DOut(4,1)
-        self.children['servo'].lock(2,1)
-
-        data = self.labjack.streamburst(duration=params['pulse time'], operation = None)
-        axis = np.linspace(0,params['pulse time'],len(data))
-
-        slope, intercept, r, p, err = linregress(axis, data)
-        z = slope/err
-        return -slope
-
-    @experiment
-    def pulsed_field_mean(self, state):
-        ''' Toggle between high and low magnetic field; measure mean fluorescence
-            in both cases and return the difference. '''
-        self.actuate({'coils':{'I1':0, 'I2':0}})
-        time.sleep(0.075)
-        self.labjack.AOut(1, 0) # output DC level for subtraction with SRS
-        low = self.labjack.streamburst(duration=0.2, operation = 'mean')
-        self.actuate(state)
-        self.labjack.AOut(1, low) # output DC level for subtraction with SRS
-        time.sleep(0.075)
-        high = self.labjack.streamburst(duration=0.2, operation = 'mean')
-
-        return -high
-
-    @experiment
-    def pulsed_field_slope(self, state, params = {'pulse time': 0.8, 'settling time': 0.05}):
-        ''' Toggle between high and low magnetic field; measure mean fluorescence
-            in both cases and return the difference. '''
-        self.children['coils'].disable_setpoint(1)
-        time.sleep(params['settling time'])
-        self.actuate(state)
-        self.children['coils'].enable_setpoint(1)
-        time.sleep(params['settling time'])
-        data = self.labjack.streamburst(duration=params['pulse time'], operation = None)
-        axis = np.linspace(0,params['pulse time'],len(data))
-
-        slope, intercept, r, p, err = linregress(axis, data)
-        z = slope/err
-        return -slope
-
-    @experiment
-    def pulsed_field(self, state, params = {'pulse time': 0.8, 'settling time': 0.2}):
-        ''' Toggle between high and low magnetic field and returns the raw data.'''
-        self.children['coils'].disable_setpoint(1)
-        time.sleep(params['settling time'])
-        self.actuate(state)
-
-        self.children['coils'].enable_setpoint(1)
-        data = self.labjack.streamburst(duration=params['pulse time'], operation = None)
-        t = np.linspace(0,params['pulse time'],len(data))
-
-        return data
-
-    @experiment
     def fluorescence(self, state, params = {'settling time': 0.1, 'duration': 0.25}):
         self.actuate(state)
         time.sleep(params['settling time'])
         data = self.labjack.streamburst(duration=params['duration'], operation = None)
-
+        print(str(np.mean(data)) + '+/-' + str(np.std(data)))
         return -np.mean(data)
 
     @experiment
-    def pulsed_field_fit(self, state):
-        ''' Toggle between high and low magnetic field; stream in the resulting
-            fluorescent waveform and fit it to determine the capture rate.'''
-        pulse_time = 0.8
-        self.children['coils'].disable_setpoint(1)
-        time.sleep(0.2)
-        self.actuate(state)
+    def probe_switch(self, state, params = {'loading time': 1, 'probe time': 0.1, 'trigger delay': 0.01}):
+        ''' Stream on the digital channels to switch RF switches '''
 
-        self.children['coils'].enable_setpoint(1)
-        data = self.labjack.streamburst(duration=pulse_time, operation = None)
-        t = np.linspace(0,pulse_time,len(data))
-
-        p0 = [np.max(data), 0, pulse_time, 0.5, 40e-3, 1e-4]
-        popt, pcov = curve_fit(self.pulsed_field_model, t, data, p0=p0)
-        A_actual, t0_actual, tp_actual, tau_trap_actual, tau_field_actual, capture_rate_actual = popt
-
-        return -capture_rate_actual
-
-    def pulsed_field_model(t, A, t0, tp, tau_trap, tau_field, capture_rate, noise = 0):
-        square = np.heaviside(t-t0,0) * np.heaviside(-(t-t0-tp),0)
-        rising_induction = 1-np.exp(-(t-t0)/tau_field)
-        falling_induction = np.exp(-(t-t0-tp)/tau_field)*np.heaviside(t-t0-tp,0)
-        loading = tau_trap*capture_rate * (1-np.exp(-(t-t0)/tau_trap)) * square
-        peak = A + tau_trap*capture_rate*(1-np.exp(-tp/tau_trap))
-
-        fluorescence = (A*square*rising_induction+loading)+peak*falling_induction*np.heaviside(t-tp-t0,0)
-        fluorescence *= (1+np.random.normal(0,noise,len(fluorescence)))
-        return fluorescence
+    def probe_trigger(self, delay = 1):
+        time.sleep(delay)
+        for i in range(10):
+            time.sleep(0.001)
+            self.trigger_labjack.DOut(4, i%2)
 
     def wave(self, frequency=2):
         V = 3.3
         seq = [[0,0], [1/frequency/2,V]]
         stream, scanRate = self.labjack.sequence2stream(seq, 1/frequency, 1)
         self.labjack.stream_out([0], stream, scanRate, loop = True)
-
-    def align(self, dim=2, numpoints = 10, span = 10):
-        import msvcrt
-        import numpy as np
-
-        xmin = -span/2
-        xmax = span/2
-        ''' Form search grid '''
-        grid = []
-        for n in range(dim):
-            space = np.linspace(xmin, xmax, numpoints)
-            grid.append(space)
-        grid = np.array(grid)
-        points = np.transpose(np.meshgrid(*[grid[n] for n in range(dim)])).reshape(-1,dim)
-
-        ''' Start at origin and step through points with manual actuation '''
-        X = np.zeros(dim)
-
-        for point in points:
-            ''' Generate next point '''
-            diff = point-X
-            X = point
-            ''' Give instructions to user and wait for keypress '''
-            print('Next point:', X)
-            instructions = ''
-            for ax in range(dim):
-                ax_instructions = 'Axis %i change: -%f\t'%(ax, diff[ax])
-                instructions += ax_instructions
-            print(instructions)
-            msvcrt.getch()          # wait for keypress
-            ''' Measure cost and write to file '''
-            state = {'coils':{'I1':62.9, 'I2':65.5}}
-            cost = self.pulsed_field(state)
-            with open(self.data_path+'manual_alignment.txt', 'a') as file:
-                string = ''
-                for ax in range(dim):
-                    string += '%f\t'%X[ax]
-                string += '%f\n'%cost
-                file.write(string)
