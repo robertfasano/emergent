@@ -313,7 +313,7 @@ class LabJack(ProcessHandler, Device):
         self.stream_mode = 'out-triggered'
 
     def stream_out(self, channels, data, scanRate, loop = 0):
-        ''' Streams data at a given scan rate..
+        ''' Streams data at a given scan rate. Currently only supports analog channels.
 
             Args:
                 channels (list): Output channels to stream on, e.g. ['DAC0', 'DAC1']
