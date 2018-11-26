@@ -83,57 +83,11 @@ class OptimizerPopup(QWidget, ProcessHandler):
         self.layout= QGridLayout()
         self.setLayout(self.layout)
 
-        self.layout.addWidget(QLabel('Experiment:'), 0, 0)
-        self.layout.addWidget(QLabel(self.sampler.cost_name), 0, 1)
-
-        self.layout.addWidget(QLabel('Inputs:'), 1, 0)
-        inputs_string = json.dumps(self.sampler.inputs).replace('{', '').replace('}', '').replace('],', ']\n').replace('"', '')
-        self.layout.addWidget(QLabel(inputs_string), 1,1)
-
-        self.layout.addWidget(QLabel('Experiment parameters'), 2, 0)
-        cost_params = self.sampler.cost_params
-        cost_params = str(cost_params).replace('{', '').replace(',', ',\n').replace('}', '')
-
-        self.layout.addWidget(QLabel(cost_params), 2, 1)
-        self.layout.addWidget(QLabel('Algorithm'), 3, 0)
-        self.layout.addWidget(QLabel(algorithm), 3, 1)
-
-        self.layout.addWidget(QLabel('Algorithm parameters'), 4, 0)
-        params = self.sampler.params
-        params = str(params).replace('{', '').replace(',', ',\n').replace('}', '')
-        self.layout.addWidget(QLabel(params), 4, 1)
-        self.layout.addWidget(QLabel('Result'), 5, 0)
-        try:
-            result = str(self.sampler.history['cost'].iloc[-1])
-        except IndexError:
-            result = ''
-        self.result_label = QLabel(result)
-        self.layout.addWidget(self.result_label, 5, 1)
-
-        self.layout.addWidget(QLabel('Progress:'), 6, 0)
-        self.progress_label = QLabel(str(self.sampler.progress))
-        self.layout.addWidget(self.progress_label, 6, 1)
-
-        self.use_database_checkbox = QCheckBox()
-        self.layout.addWidget(QLabel('Include database in plot'), 7, 0)
-        self.layout.addWidget(self.use_database_checkbox, 7, 1)
-        self.terminate_button = QPushButton('Terminate')
-        self.terminate_button.clicked.connect(self.sampler.terminate)
-        self.layout.addWidget(self.terminate_button, 8, 0)
-
-        self.plot_button = QPushButton('Plot result')
-        self.plot_button.clicked.connect(self.plot)
-        self.layout.addWidget(self.plot_button, 8, 1)
-
-        self.progress_timer = QTimer(self)
-        self.progress_timer.timeout.connect(self.check_progress)
-        self.progress_timer.start(100)
-
         self.plot()
 
     def generate_figures(self):
         ''' Show cost vs time, parameters vs time, and parameters vs cost '''
-        t, points, costs = self.sampler.get_history(include_database = self.use_database_checkbox.isChecked())
+        t, points, costs = self.sampler.get_history(include_database = False)
         t = t.copy()-t[0]
         num_inputs = points.shape[1]
         control = self.sampler.parent
