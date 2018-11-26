@@ -103,7 +103,7 @@ class PlotWidget(QWidget):
         self.choose_input()
 
         ''' 2d tab '''
-        if len(inputs) > 1:
+        if len(inputs) > 1 and self.container.process_type == 'optimize':
             self.axis_combos = list(self.fig2d.keys())
             self.tab2d = QWidget()
             self.tabs.addTab(self.tab2d,"2D")

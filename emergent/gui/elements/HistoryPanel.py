@@ -22,9 +22,10 @@ import numpy as np
 from emergent.gui.elements.PlotWindow import PlotWidget
 
 class OptimizerItem(QTableWidgetItem):
-    def __init__(self, sampler):
+    def __init__(self, sampler, process_type):
         super().__init__()
         self.sampler = sampler
+        self.process_type = process_type
 
 class HistoryPanel(QVBoxLayout):
     def __init__(self):
@@ -50,7 +51,7 @@ class HistoryPanel(QVBoxLayout):
         self.table.setItem(row, 1, QTableWidgetItem(experiment))
         self.table.setItem(row, 2, QTableWidgetItem(event))
         self.table.setItem(row, 3, QTableWidgetItem(status))
-        self.table.setItem(row, 4, OptimizerItem(sampler))
+        self.table.setItem(row, 4, OptimizerItem(sampler, status))
 
         return row
 
@@ -60,18 +61,20 @@ class HistoryPanel(QVBoxLayout):
 
     def on_double_click(self, row, col):
         sampler = self.table.item(row, 4).sampler
+        process_type = self.table.item(row, 4).process_type
         algorithm = self.table.item(row, 2).text()
-        self.popup = OptimizerPopup(sampler, algorithm, self, row)
+        self.popup = OptimizerPopup(sampler, algorithm, self, row, process_type)
         # self.popup.show()
 
 class OptimizerPopup(QWidget, ProcessHandler):
-    def __init__(self, sampler, algorithm, parent, row):
+    def __init__(self, sampler, algorithm, parent, row, process_type):
         super(OptimizerPopup, self).__init__()
         QWidget().__init__()
         ProcessHandler.__init__(self)
         self.parent = parent
         self.sampler = sampler
         self.algorithm = algorithm
+        self.process_type = process_type
         self.row = row
         with open('gui/stylesheet.txt',"r") as file:
             self.setStyleSheet(file.read())
@@ -178,20 +181,22 @@ class OptimizerPopup(QWidget, ProcessHandler):
             cax.set_xlabel('Time (s)')
 
         ''' 2d plots '''
+
         axis_combos = list(itertools.combinations(range(num_inputs),2))
         fig2d = {}
-        for a in axis_combos:
-            limits = {}
-            full_names = []
-            for ax in a:
-                full_name =  self.sampler.history.columns[ax]
-                full_names.append(full_name)
-                dev = full_name.split('.')[0]
-                input = full_name.split('.')[1]
-                limits[full_name.replace('.', ': ')] =  control.settings[dev][input]
-            axis_combo_name = full_names[0] + '/' + full_names[1]
-            p = points[:,a]
-            fig2d[axis_combo_name] = plot_2D(p, costs, limits = limits)
+        if self.process_type == 'optimize':
+            for a in axis_combos:
+                limits = {}
+                full_names = []
+                for ax in a:
+                    full_name =  self.sampler.history.columns[ax]
+                    full_names.append(full_name)
+                    dev = full_name.split('.')[0]
+                    input = full_name.split('.')[1]
+                    limits[full_name.replace('.', ': ')] =  control.settings[dev][input]
+                axis_combo_name = full_names[0] + '/' + full_names[1]
+                p = points[:,a]
+                fig2d[axis_combo_name] = plot_2D(p, costs, limits = limits)
         hist_fig = self.sampler.plot_optimization()
         return hist_fig, cvp, pvt, fig2d
 
