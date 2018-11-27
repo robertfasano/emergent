@@ -46,7 +46,11 @@ class MOT(Control):
 
 
     @experiment
+<<<<<<< HEAD
     def probe_switch(self, state, params = {'stream step': 0.001, 'loading time': 1, 'probe delay': 0.0005, 'probe time': 0.1, 'trigger delay': 0.01}):
+=======
+    def probe_switch(self, state, params = {'loading time': 1, 'probe delay': 0.0005, 'probe time': 0.1, 'trigger delay': 0.01}):
+>>>>>>> 188d6f22ffc5957779f73e116cf2e91047321910
         ''' Queue triggered stream-out on intensity servo channels '''
         if 'servo' in state:
             state['servo']['V0'] = 0
@@ -55,14 +59,21 @@ class MOT(Control):
         cycle_time = params['loading time'] + params['probe time']
         servo = self.children['servo']
         lj = servo.labjack
+<<<<<<< HEAD
         max_samples = int(cycle_time/params['stream step'])
+=======
+>>>>>>> 188d6f22ffc5957779f73e116cf2e91047321910
 
         t = np.linspace(0,cycle_time, 1000)
         y = np.zeros((len(t),2))
         y[t<params['loading time'], 0] = 3.3
         y[t>params['loading time']+params['probe delay'], 1] = 3.3
         lj.prepare_stream_out(trigger=0)
+<<<<<<< HEAD
         sequence, scanRate = lj.resample(y, cycle_time, max_samples = max_samples)
+=======
+        sequence, scanRate = lj.resample(y, cycle_time)
+>>>>>>> 188d6f22ffc5957779f73e116cf2e91047321910
         lj.stream_out([0,1], sequence, scanRate, loop=0)
 
         ''' Queue triggered stream-in on self.labjack '''
@@ -133,7 +144,12 @@ class MOT(Control):
         print(str(np.mean(data)) + '+/-' + str(np.std(data)))
         return -np.mean(data)
 
+<<<<<<< HEAD
     def probe_trigger(self, trigger_delay = 0.001):
+=======
+    def probe_trigger(self, delay = 1):
+        time.sleep(delay)
+>>>>>>> 188d6f22ffc5957779f73e116cf2e91047321910
         for i in range(10):
             time.sleep(trigger_delay)
             self.trigger_labjack.DOut(4, i%2)

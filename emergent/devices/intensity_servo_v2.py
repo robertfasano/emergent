@@ -7,12 +7,21 @@ import numpy as np
 class IntensityServo(Device):
     ''' Device driver for a four-channel intensity servo with an embedded pair of
         LabJack T4 DAQs for control.
+<<<<<<< HEAD
 
         DAC0: probe TTL for integrator/rf switch
         DAC1: slow/trap TTL for integrator/rf switch
         FIO0: trigger for streaming
         FIO4-7: LJTick-DAC for channel 0-3 setpoints
         AIN0-3: channel 0-3 monitors
+=======
+        OUTDATED DOCS BELOW:
+        LJ0 DAC0/1: channel 1/2 setpoint
+        LJ0 FIO6/7: channel 1/2 on/off
+
+        LJ1 DAC0/1: channel 3/4 setpoint
+        LJ1 FIO6/7: channel 3/4 on/off
+>>>>>>> 188d6f22ffc5957779f73e116cf2e91047321910
     '''
     def __init__(self, name, devid,  parent = None):
         super().__init__(name, parent = parent)
@@ -34,12 +43,21 @@ class IntensityServo(Device):
         '''
         for name in state:
             channel = int(name[1])
+<<<<<<< HEAD
             self.labjack.AOut(channel+4, state[name], HV=True)
+=======
+<<<<<<< HEAD
+            self.labjack.AOut(channel+4, state[name], HV=True)
+=======
+            self.labjack.AOut(channel+4, state[name])
+>>>>>>> 9093ff1c3d539551a8bc718e6f290114182e5adb
+>>>>>>> 188d6f22ffc5957779f73e116cf2e91047321910
 
     def _connect(self):
         return
 
     def lock_all(self):
+<<<<<<< HEAD
         # self.labjack.DOut('FIO1', 0)
         self.labjack.AOut(0,0)
         self.labjack.AOut(1,0)
@@ -48,6 +66,12 @@ class IntensityServo(Device):
         # self.labjack.DOut('FIO1', 1)
         self.labjack.AOut(0,1)
         self.labjack.AOut(1,1)
+=======
+        self.labjack.DOut('FIO1', 0)
+
+    def lock_all(self):
+        self.labjack.DOut('FIO1', 1)
+>>>>>>> 188d6f22ffc5957779f73e116cf2e91047321910
 
     # def autolock(self, channel, frac = 0.9):
     #     ''' Locks the servo to the specified fraction of the unlocked power. '''
