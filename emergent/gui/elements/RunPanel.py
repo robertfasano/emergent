@@ -55,9 +55,9 @@ class RunLayout(QVBoxLayout, ProcessHandler):
         self.runExperimentButton.clicked.connect(lambda: parent.start_process(process='run', panel = self, settings = {}))
 
         self.runButtonsLayout.addWidget(self.runExperimentButton)
-        self.stopExperimentButton = QPushButton('Stop')
-        self.stopExperimentButton.clicked.connect(self.stop_experiment)
-        self.runButtonsLayout.addWidget(self.stopExperimentButton)
+        # self.stopExperimentButton = QPushButton('Stop')
+        # self.stopExperimentButton.clicked.connect(self.stop_experiment)
+        # self.runButtonsLayout.addWidget(self.stopExperimentButton)
         self.addLayout(self.runButtonsLayout)
 
     def get_settings_from_gui(self):
@@ -67,7 +67,7 @@ class RunLayout(QVBoxLayout, ProcessHandler):
             settings['control'] = self.parent.parent.treeWidget.get_selected_control()
         except IndexError:
             log.warn('Select inputs before starting optimization!')
-            return
+            return 
         settings['state'] = settings['control'].state
         cost_params = self.cost_params_edit.toPlainText().replace('\n',',').replace("'", '"')
         cost_params = '{' + cost_params + '}'
@@ -86,7 +86,7 @@ class RunLayout(QVBoxLayout, ProcessHandler):
         count = 0
         control = settings['control']
         cost_params = settings['cost_params']
-        while not stopped():
+        while sampler.active:
             state = control.state
             result = sampler._cost(state, params=cost_params)
             count += 1
