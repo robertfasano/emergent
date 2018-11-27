@@ -111,7 +111,8 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         ''' Read default params dict from source code and insert it in self.cost_params_edit. '''
         if panel.cost_box.currentText() is '':
             return
-        control = self.parent.treeWidget.get_selected_control()
+        # control = self.parent.treeWidget.get_selected_control()
+        control = self.parent.treeWidget.currentItem().root
         experiment = getattr(control, panel.cost_box.currentText())
         d = self.file_to_dict(experiment)
         self.dict_to_edit(d, panel.cost_params_edit)
@@ -119,15 +120,21 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
     def update_algorithm_and_experiment(self, panel):
         if panel.cost_box.currentText() is '':
             return
-        algo = getattr(Optimizer, panel.algorithm_box.currentText().replace(' ','_'))
-        control = self.parent.treeWidget.get_selected_control()
-        experiment = getattr(control, panel.cost_box.currentText())
-        self.double_parse(algo, experiment, panel.algo_params_edit, panel.cost_params_edit)
+        try:
+            algo = getattr(Optimizer, panel.algorithm_box.currentText().replace(' ','_'))
+            # control = self.parent.treeWidget.get_selected_control()
+            control = self.parent.treeWidget.currentItem().root
+            experiment = getattr(control, panel.cost_box.currentText())
+            self.double_parse(algo, experiment, panel.algo_params_edit, panel.cost_params_edit)
+        except AttributeError:
+            return
 
 
     def start_process(self, *args, process = '', panel = None, settings = {}):
         ''' Load any non-passed settings from the GUI '''
         gui_settings = panel.get_settings_from_gui()
+        if gui_settings is None:
+            return
         for s in gui_settings:
             if s in settings:
                 if settings[s] is None:
