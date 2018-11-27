@@ -34,7 +34,11 @@ class IntensityServo(Device):
         '''
         for name in state:
             channel = int(name[1])
+<<<<<<< HEAD
             self.labjack.AOut(channel+4, state[name], HV=True)
+=======
+            self.labjack.AOut(channel+4, state[name])
+>>>>>>> 9093ff1c3d539551a8bc718e6f290114182e5adb
 
     def _connect(self):
         return
