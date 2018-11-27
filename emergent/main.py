@@ -15,17 +15,7 @@ import argparse
 import importlib
 import time
 
-class Timer():
-    def __init__(self):
-        import time
-        self.times = [time.time()]
 
-    def log(self, name = None):
-        self.times.append(time.time())
-        if name is not None:
-            log.debug('%s:%f'%(name, self.times[-1]-self.times[-2]))
-
-timer = Timer()
 
 try:
     import ctypes

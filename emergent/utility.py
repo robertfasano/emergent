@@ -5,6 +5,7 @@ import datetime
 import decorator
 import numpy as np
 import time
+import logging as log
 
 def unit_test(self, func, *args, **kwargs):
     tests = 100
@@ -71,6 +72,17 @@ def methodsWithDecorator(cls, decoratorName):
             name = nextLine.split('def')[1].split('(')[0].strip()
             methods.append(name)
     return methods
+
+class Timer():
+    def __init__(self):
+        import time
+        self.times = [time.time()]
+
+    def log(self, name = None):
+        self.times.append(time.time())
+        if name is not None:
+            log.info('%s:%f'%(name, self.times[-1]-self.times[-2]))
+
 
 def dev(func):
     return func
