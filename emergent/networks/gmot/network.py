@@ -21,11 +21,9 @@ mems_slowing = PicoAmp('MEMS', labjack_slowing, parent=slowing)
 
 ''' Define MOT control hub '''
 mot = MOT(name='MOT', path='networks/%s'%sys.argv[1])
-labjack_MOT = LabJack(devid='470017907', name='labjack', parent=mot)
-mot.add_labjack(labjack_MOT)
 # feedthrough = NetControls('feedthrough', 'COM11', parent = mot)
 novatech = Novatech('novatech', 'COM4', parent = mot)
-servo = IntensityServo('servo', '470016973', '470016970', parent = mot)
+servo = IntensityServo('servo', '470016973', parent = mot)
 # agilis = Agilis('COM15', 'agilis', parent=mot)
 labjack_coils = LabJack(devid='440010680', name = 'labjack')
 coils = CurrentDriver('coils', 'COM13', 'COM18', parent = mot,labjack = labjack_coils)
