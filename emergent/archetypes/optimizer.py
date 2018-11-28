@@ -258,6 +258,72 @@ class Optimizer():
 
         return None, None
 
+    @algorithm
+    def pattern_search(self, state, cost, params={'step size': 0.1, 'samples': 5, 'tolerance': 0.01}, cost_params = {}):
+        X, bounds = self.sampler.initialize(state, cost, params, cost_params)
+        delta = params['step size']
+        N = params['samples']
+
+        while delta > params['tolerance']:
+
+            ''' Form all search steps '''
+            steps = []
+            for i in range(len(X)):
+                step = np.zeros(len(X))
+                step[i] = delta
+                steps.append(step.copy())
+                step[i] = -delta
+                steps.append(step.copy())
+
+            ''' Sample cost function for all steps '''
+            updated = False
+            for i in range(len(X)):
+                step = np.zeros(len(X))
+                step[i] = delta
+                ''' take steps in either direction'''
+                f_X = []
+                f_p = []
+                f_n = []
+                for n in range(N):
+                    f_X.append(self.sampler.cost_from_array(X, state, cost, cost_params))
+                    f_p.append(self.sampler.cost_from_array(X+step, state, cost, cost_params))
+                    f_n.append(self.sampler.cost_from_array(X-step, state, cost, cost_params))
+
+                z_p = (np.mean(f_X)-np.mean(f_p))/np.sqrt(np.std(f_X)**2/N+np.std(f_p)**2/N)
+                z_n = (np.mean(f_X)-np.mean(f_n))/np.sqrt(np.std(f_X)**2/N+np.std(f_n)**2/N)
+
+                significance_level = 1
+                if z_p > significance_level/(2*len(X)):
+                    X = X+step
+                    updated = True
+                elif z_n > significance_level/(2*len(X)):
+                    X = X-step
+                    updated = True
+                else:
+                    ''' measure contracted cost '''
+                    f_p = []
+                    f_n = []
+                    for n in range(N):
+                        f_p.append(self.sampler.cost_from_array(X+step/2, state, cost, cost_params))
+                        f_n.append(self.sampler.cost_from_array(X-step/2, state, cost, cost_params))
+
+                    z_p = (np.mean(f_X)-np.mean(f_p))/np.sqrt(np.std(f_X)**2/N+np.std(f_p)**2/N)
+                    z_n = (np.mean(f_X)-np.mean(f_n))/np.sqrt(np.std(f_X)**2/N+np.std(f_n)**2/N)
+
+                    if z_p > significance_level/(2*len(X)):
+                        X = X+step/2
+                        delta /= 2
+                        updated = True
+                    elif z_n > significance_level/(2*len(X)):
+                        X = X-step/2
+                        delta /= 2
+                        updated = True
+                    else:
+                        N *= 2
+            if not updated:
+                delta /= 2
+
+
     # @algorithm
     # def neural_network(self, state, cost, params={'layers':10, 'neurons':64, 'optimizer':'adam', 'activation':'erf', 'initial_points':100, 'cycles':500, 'samples':1000}):
     #     X, bounds = self.sampler.initialize(state, cost, params, cost_params)
