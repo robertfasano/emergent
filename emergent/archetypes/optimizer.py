@@ -193,20 +193,20 @@ class Optimizer():
                 self.progress = (j+i*params['batch size'])/params['batch size']/params['iterations']
         best_point = self.sampler.array2state(X[np.argmin(c)], state)
         self.actuate(self.sampler.unnormalize(best_point))
-        if params['plot']:
-            self.plot_optimization(lbl = 'Gaussian Processing')     # plot trajectory
-            ''' Predict and plot cost landscape '''
-            grid = []
-            N = X.shape[1]
-            for n in range(N):
-                space = np.linspace(bounds[n][0], bounds[n][1], 30)
-                grid.append(space)
-            grid = np.array(grid)
-            predict_points = np.transpose(np.meshgrid(*[grid[n] for n in range(N)])).reshape(-1,N)
-            predict_costs = np.array([])
-            for point in predict_points:
-                predict_costs = np.append(predict_costs, self.gp.predict(np.atleast_2d(point)))
-            plot_2D(predict_points, predict_costs)
+        # if params['plot']:
+        #     self.plot_optimization(lbl = 'Gaussian Processing')     # plot trajectory
+        #     ''' Predict and plot cost landscape '''
+        #     grid = []
+        #     N = X.shape[1]
+        #     for n in range(N):
+        #         space = np.linspace(bounds[n][0], bounds[n][1], 30)
+        #         grid.append(space)
+        #     grid = np.array(grid)
+        #     predict_points = np.transpose(np.meshgrid(*[grid[n] for n in range(N)])).reshape(-1,N)
+        #     predict_costs = np.array([])
+        #     for point in predict_points:
+        #         predict_costs = np.append(predict_costs, self.gp.predict(np.atleast_2d(point)))
+        #     plot_2D(predict_points, predict_costs)
         self.progress = 1
         return X, c
 
