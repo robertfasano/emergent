@@ -27,6 +27,23 @@ class TestControl(Control):
             return cost
 
         @experiment
+        def rosenbrock_banana(self, state, params={'a': 1, 'b': 100}):
+            self.actuate(state)
+            x = self.state['deviceA']['X']
+            y = self.state['deviceA']['Y']
+            return (params['a']-x)**2+params['b']*(y-x**2)**2
+
+        @experiment
+        def line_distance(self, state, params = {'amplitude': 1, 'y0': 0.5, 'yspan':0.5}):
+            ''' Measures the distance from the point (X,Y) of deviceA and the line x-y = 0, modulated by a Gaussian envelope '''
+            self.actuate(state)
+            x = self.state['deviceA']['X']
+            y = self.state['deviceA']['Y']
+            d = np.abs(x-y)/np.sqrt(2)
+
+            return d+params['amplitude']/np.exp(-(y-params['y0'])**2/params['yspan']**2)
+
+        @experiment
         def cost_ramp(self, sequence, params = {'steps':10}):
             ''' Evaluate a cost function similar to an optical scattering force,
                 which is maximized for a ramp x(t)=1/t. '''
