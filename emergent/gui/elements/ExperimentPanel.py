@@ -16,6 +16,8 @@ from scipy.stats import linregress
 import numpy as np
 import datetime
 import __main__
+import os
+
 class ExperimentLayout(QVBoxLayout, ProcessHandler):
     def __init__(self, parent):
         QVBoxLayout.__init__(self)
@@ -71,6 +73,8 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         network_name = __main__.network_path.split('.')[2]
         control = self.parent.treeWidget.currentItem().root
 
+        if not os.path.exists('./networks/%s/params/'%network_name):
+            os.mkdir('./networks/%s/params/'%network_name)
         params_filename = './networks/%s/params/'%network_name + '%s.%s.txt'%(control.name, experiment.__name__)
         try:
             ''' Load params from file '''
