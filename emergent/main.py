@@ -41,6 +41,7 @@ simulation = args.simulation
 
 ''' Import network '''
 # from network import *
+network_path = 'emergent.networks.%s'%sys.argv[1]
 network = importlib.import_module('emergent.networks.%s'%sys.argv[1]+'.network')
 if "__all__" in network.__dict__:
     names = network.__dict__["__all__"]

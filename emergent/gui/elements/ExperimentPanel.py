@@ -15,7 +15,7 @@ import time
 from scipy.stats import linregress
 import numpy as np
 import datetime
-
+import __main__
 class ExperimentLayout(QVBoxLayout, ProcessHandler):
     def __init__(self, parent):
         QVBoxLayout.__init__(self)
@@ -50,8 +50,8 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
             overwrite from experiment to algorithm. For example, to always use
             20 steps in a grid search, just include "steps":20 in the params
             dict for the @experiment. '''
-        exp_params = self.file_to_dict(experiment)
-        algo_params = self.file_to_dict(algo)
+        exp_params = self.file_to_dict(experiment, experiment, 'experiment')
+        algo_params = self.file_to_dict(algo, experiment, 'algorithm')
         for p in algo_params:
             if p in exp_params:
                 algo_params[p] = exp_params[p]
@@ -63,16 +63,114 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         string = json.dumps(d).replace('{', '').replace(',', '\n').replace('}', '')
         edit.setText(string)
 
-    def file_to_dict(self, f):
-        args = inspect.signature(f).parameters
-        args = list(args.items())
-        for a in args:
-            if a[0] != 'params':
-                continue
-            d = str(a[1]).split('=')[1]
-            d = json.loads(d.replace("'", '"'))
-        return d
+    def file_to_dict(self, algo, experiment, param_type):
+        ''' Generates parameter suggestions for either the algorithm or experiment
+            params, based on the choice of param_type. First attempts to pull relevant
+            parameters from a json file in the network's params directory; if this fails,
+            then it reads default values from the code. '''
+        network_name = __main__.network_path.split('.')[2]
+        control = self.parent.treeWidget.currentItem().root
 
+        params_filename = './networks/%s/params/'%network_name + '%s.%s.txt'%(control.name, experiment.__name__)
+        try:
+            ''' Load params from file '''
+            with open(params_filename, 'r') as file:
+                params = json.load(file)
+        except OSError:
+            ''' If file does not exist, then load from introspection '''
+            params = {'experiment': {}, 'algorithm': {}}
+            if param_type == 'algorithm':
+                params['algorithm'][algo.__name__] = {}
+
+            ''' load experiment params '''
+            args = inspect.signature(experiment).parameters
+            args = list(args.items())
+            for a in args:
+                if a[0] != 'params':
+                    continue
+                d = str(a[1]).split('=')[1]
+                d = json.loads(d.replace("'", '"'))
+            params['experiment'] = d
+
+            if param_type == 'algorithm':
+                args = inspect.signature(algo).parameters
+                args = list(args.items())
+                for a in args:
+                    if a[0] != 'params':
+                        continue
+                    d = str(a[1]).split('=')[1]
+                    d = json.loads(d.replace("'", '"'))
+                params['algorithm'][algo.__name__] = d
+
+            with open(params_filename, 'w') as file:
+                json.dump(params, file)
+
+        ''' Make sure the current algorithm's parameters are contained '''
+        if param_type == 'algorithm':
+            if algo.__name__ in params['algorithm']:
+                return params['algorithm'][algo.__name__]
+            else:
+                args = inspect.signature(algo).parameters
+                args = list(args.items())
+                for a in args:
+                    if a[0] != 'params':
+                        continue
+                    d = str(a[1]).split('=')[1]
+                    d = json.loads(d.replace("'", '"'))
+                with open(params_filename, 'r') as file:
+                    params = json.load(file)
+                params['algorithm'][algo.__name__] = d
+                with open(params_filename, 'w') as file:
+                    json.dump(params, file)
+                return d
+        else:
+            return params['experiment']
+    #
+    # def save_experiment_params(self, panel):
+    #     network_name = __main__.network_path.split('.')[2]
+    #     control = self.parent.treeWidget.currentItem().root
+    #     experiment = getattr(control, panel.cost_box.currentText())
+    #     params_filename = './networks/%s/params/'%network_name + '%s.%s.txt'%(control.name, experiment.__name__)
+    #
+    #     ''' Pull params from gui '''
+    #     edit = panel.cost_params_edit
+    #     cost_params = edit.toPlainText().replace('\n',',').replace("'", '"')
+    #     cost_params = json.loads('{' + cost_params + '}')
+    #     ''' Load old params from file '''
+    #     with open(params_filename, 'r') as file:
+    #         old_cost_params = json.load(file)
+    #
+    #     ''' Update old params with new values and save to file '''
+    #     for p in cost_params:
+    #         old_cost_params['experiment'][p] = cost_params[p]
+    #     with open(params_filename, 'w') as file:
+    #         json.dump(old_cost_params, file)
+
+    def save_params(self, panel, param_type):
+        ''' param_type: 'experiment' or 'algorithm' '''
+        network_name = __main__.network_path.split('.')[2]
+        control = self.parent.treeWidget.currentItem().root
+        algorithm = getattr(Optimizer, panel.algorithm_box.currentText().replace(' ', '_'))
+        experiment = getattr(control, panel.cost_box.currentText())
+        params_filename = './networks/%s/params/'%network_name + '%s.%s.txt'%(control.name, experiment.__name__)
+
+        ''' Pull params from gui '''
+        edit_name = {'experiment': 'cost', 'algorithm': 'algorithm'}[param_type]
+        edit = getattr(panel, edit_name + '_params_edit')
+        params = edit.toPlainText().replace('\n',',').replace("'", '"')
+        params = json.loads('{' + params + '}')
+        ''' Load old params from file '''
+        with open(params_filename, 'r') as file:
+            old_params = json.load(file)
+
+        ''' Update old params with new values and save to file '''
+        for p in params:
+            if param_type == 'experiment':
+                old_params[param_type][p] = params[p]
+            else:
+                old_params[param_type][algorithm.__name__][p] = params[p]
+        with open(params_filename, 'w') as file:
+            json.dump(old_params, file)
 
     def update_control_panel(self, panel, exp_or_error, algo):
         ''' Updates the algorithm box with the methods available to the currently selected control. '''
@@ -114,7 +212,7 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         # control = self.parent.treeWidget.get_selected_control()
         control = self.parent.treeWidget.currentItem().root
         experiment = getattr(control, panel.cost_box.currentText())
-        d = self.file_to_dict(experiment)
+        d = self.file_to_dict(experiment, experiment, 'experiment')
         self.dict_to_edit(d, panel.cost_params_edit)
 
     def update_algorithm_and_experiment(self, panel):
@@ -125,7 +223,11 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
             # control = self.parent.treeWidget.get_selected_control()
             control = self.parent.treeWidget.currentItem().root
             experiment = getattr(control, panel.cost_box.currentText())
-            self.double_parse(algo, experiment, panel.algo_params_edit, panel.cost_params_edit)
+            exp_params = self.file_to_dict(experiment, experiment, 'experiment')
+            algo_params = self.file_to_dict(algo, experiment, 'algorithm')
+            self.dict_to_edit(exp_params, panel.cost_params_edit)
+            self.dict_to_edit(algo_params, panel.algorithm_params_edit)
+
         except AttributeError:
             return
 
@@ -159,7 +261,7 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         if hasattr(panel, 'algorithm_box'):
             algorithm_name = panel.algorithm_box.currentText().replace(' ', '_')
             algo = getattr(optimizer, algorithm_name)
-            settings['algo'] = algo
+            settings['algorithm'] = algo
         else:
             algorithm_name = 'Run'
 

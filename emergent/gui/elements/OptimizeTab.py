@@ -23,9 +23,9 @@ class OptimizeLayout(QVBoxLayout, ProcessHandler):
         self.addWidget(self.algorithm_box)
         paramsLayout = QHBoxLayout()
         optimizerParamsLayout = QVBoxLayout()
-        self.algo_params_edit = QTextEdit('')
+        self.algorithm_params_edit = QTextEdit('')
         optimizerParamsLayout.addWidget(QLabel('Algorithm parameters'))
-        optimizerParamsLayout.addWidget(self.algo_params_edit)
+        optimizerParamsLayout.addWidget(self.algorithm_params_edit)
         paramsLayout.addLayout(optimizerParamsLayout)
         experimentParamsLayout = QVBoxLayout()
         self.cost_params_edit = QTextEdit('')
@@ -33,6 +33,15 @@ class OptimizeLayout(QVBoxLayout, ProcessHandler):
         experimentParamsLayout.addWidget(self.cost_params_edit)
         paramsLayout.addLayout(experimentParamsLayout)
         self.addLayout(paramsLayout)
+        self.saveLayout = QHBoxLayout()
+        self.save_algorithm_button = QPushButton('Save')
+        self.save_algorithm_button.clicked.connect(lambda: self.parent.save_params(self, 'algorithm'))
+        self.saveLayout.addWidget(self.save_algorithm_button)
+        self.save_experiment_button = QPushButton('Save')
+        self.save_experiment_button.clicked.connect(lambda: self.parent.save_params(self, 'experiment'))
+        self.saveLayout.addWidget(self.save_experiment_button)
+        self.addLayout(self.saveLayout)
+
         plotLayout = QHBoxLayout()
         self.cycles_per_sample_edit = QLineEdit('1')
         self.cycles_per_sample_edit.setMaximumWidth(100)
@@ -57,7 +66,7 @@ class OptimizeLayout(QVBoxLayout, ProcessHandler):
         except IndexError:
             log.warn('Select inputs before starting optimization!')
             return
-        params = self.algo_params_edit.toPlainText().replace('\n',',').replace("'", '"')
+        params = self.algorithm_params_edit.toPlainText().replace('\n',',').replace("'", '"')
         params = '{' + params + '}'
 
         settings['algo_params'] = json.loads(params)
@@ -69,7 +78,7 @@ class OptimizeLayout(QVBoxLayout, ProcessHandler):
         return settings
 
     def run_process(self, sampler, settings, index, t):
-        algo = settings['algo']
+        algo = settings['algorithm']
         state = settings['state']
         cost = settings['cost']
         params = settings['algo_params']

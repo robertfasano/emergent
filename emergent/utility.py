@@ -157,5 +157,5 @@ def extract_pulses(data, threshold):
 
 def get_args(cls, func):
     f = getattr(cls, func)
-    ''' Read default params dict from source code and insert in self.algo_params_edit. '''
+    ''' Read default params dict from source code and insert in self.algorithm_params_edit. '''
     args = inspect.signature(f).parameters

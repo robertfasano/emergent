@@ -29,9 +29,9 @@ class ServoLayout(QVBoxLayout, ProcessHandler):
         self.current_control = None
         paramsLayout = QHBoxLayout()
         optimizerParamsLayout = QVBoxLayout()
-        self.algo_params_edit = QTextEdit('')
+        self.algorithm_params_edit = QTextEdit('')
         optimizerParamsLayout.addWidget(QLabel('Algorithm parameters'))
-        optimizerParamsLayout.addWidget(self.algo_params_edit)
+        optimizerParamsLayout.addWidget(self.algorithm_params_edit)
         paramsLayout.addLayout(optimizerParamsLayout)
         experimentParamsLayout = QVBoxLayout()
         self.cost_params_edit = QTextEdit('')
@@ -57,7 +57,7 @@ class ServoLayout(QVBoxLayout, ProcessHandler):
         except IndexError:
             log.warn('Select inputs before starting optimization!')
             return
-        params = self.algo_params_edit.toPlainText().replace('\n',',').replace("'", '"')
+        params = self.algorithm_params_edit.toPlainText().replace('\n',',').replace("'", '"')
         params = '{' + params + '}'
 
         settings['algo_params'] = json.loads(params)
@@ -68,8 +68,8 @@ class ServoLayout(QVBoxLayout, ProcessHandler):
         return settings
 
     def run_process(self, sampler, settings, index, t):
-        settings['algo'](settings['state'], settings['cost'], settings['algo_params'], settings['cost_params'], callback = settings['callback'])
+        settings['algorithm'](settings['state'], settings['cost'], settings['algo_params'], settings['cost_params'], callback = settings['callback'])
         log.info('Optimization complete!')
         settings['control'].samplers[index]['status'] = 'Done'
-        sampler.log(t.replace(':','') + ' - ' + settings['cost_name'] + ' - ' + settings['algo'].__name__)
+        sampler.log(t.replace(':','') + ' - ' + settings['cost_name'] + ' - ' + settings['algorithm'].__name__)
         sampler.active = False

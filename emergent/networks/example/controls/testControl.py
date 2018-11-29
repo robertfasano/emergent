@@ -13,7 +13,7 @@ class TestControl(Control):
             return self.cost_uncoupled(state, theta=30*np.pi/180)
 
         @experiment
-        def cost_uncoupled(self, state, params = {'steps':20, 'sigma_x': 0.3, 'sigma_y': 0.8, 'x0': 0.3, 'y0': 0.6, 'theta':0, 'noise':0}):
+        def cost_uncoupled(self, state, params = {'sigma_x': 0.3, 'sigma_y': 0.8, 'x0': 0.3, 'y0': 0.6, 'theta':0, 'noise':0}):
             theta = params['theta']
             self.actuate(state)
             x=self.state['deviceA']['X']*np.cos(theta) - self.state['deviceA']['Y']*np.sin(theta)
