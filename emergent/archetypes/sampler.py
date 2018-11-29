@@ -23,7 +23,6 @@ def warn(*args, **kwargs):
 import warnings
 warnings.warn = warn
 from emergent.utility import methodsWithDecorator, algorithm
-from copy import deepcopy
 
 class Sampler():
     ''' General methods '''
@@ -91,7 +90,7 @@ class Sampler():
 
     def search_database(self, points, costs, state, cost):
         ''' Prepare a state dict of all variables which are held constant during optimization '''
-        constant_state = deepcopy(self.parent.state)
+        constant_state = self.parent.state.copy()
         for dev in state.keys():
             for input in state[dev]:
                 del constant_state[dev][input]

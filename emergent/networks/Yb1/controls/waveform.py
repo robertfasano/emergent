@@ -33,7 +33,7 @@ class Ramp(Device):
                 self.remove_input(input)
 
     def _actuate(self, state):
-        state = self.get_missing_keys(state, None)
+        state = self.state.update(state)
         if self.initialized:
             t = np.linspace(0,self.duration, 1000)
             y = np.zeros((len(t),len(self.type)))

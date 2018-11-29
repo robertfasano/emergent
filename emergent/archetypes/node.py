@@ -7,6 +7,7 @@ import inspect
 from emergent.archetypes.historian import Historian
 from emergent.archetypes.optimizer import Optimizer
 from emergent.archetypes.sampler import Sampler
+from emergent.archetypes.state import State
 from PyQt5.QtWidgets import QWidget
 from emergent.utility import methodsWithDecorator
 import logging as log
@@ -179,32 +180,6 @@ class Device(Node):
         self._actuate(state)
         self.update(state)
 
-    def get_missing_keys(self, state, keys):
-        """Returns the state dict with any missing keys filled in from self.state.
-
-        Note:
-            This is useful when using secondary functions which depend on multiple
-            inputs. Consider two inputs X and Y with two secondary inputs u=X+Y
-            and v=X-Y. If we actuate just X or Y, the secondary inputs still need
-            to know the value of the non-actuated input to update their state.
-            This method pulls the latest value of any parameters specified in
-            keys so that the secondary inputs can be calculated.
-
-        Args:
-            state (dict): Target state, e.g. {'param1':value1, 'param2':value2}.
-            keys (list): List of parameters not contained in state, e.g. ['param3'].
-
-        Returns:
-            state (dict): State containing both specified changes and previous values, etc {'param1':value1,'param2':value2, 'param3':self.state['param3']}.
-        """
-        total_state = {}
-        for input in self.state:
-            try:
-                total_state[input] = state[input]
-            except KeyError:
-                total_state[input] = self.state[input]
-        return total_state
-
     def update(self,state):
         """Synchronously updates the state of the Input, Device, and Control.
 
@@ -212,12 +187,11 @@ class Device(Node):
             state (dict): New state, e.g. {'param1':value1, 'param2':value2}.
         """
         t = datetime.datetime.now()
-        for input_name in state:
-            self.state[input_name] = state[input_name]    # update Device
-            input = self.children[input_name]
-            input.state = state[input_name]   # update Input
-            self.parent.state[self.name][input_name] = state[input_name]   # update Control
-            input.actuate_signal.emit(state[input_name])   # emit Qt signal
+        for input in state:
+            self.state[input] = state[input]    # update Device
+            self.children[input].state = state[input]   # update Input
+            self.parent.state[self.name][input] = state[input]   # update Control
+            self.children[input].actuate_signal.emit(state[input])   # emit Qt signal
 
 class Control(Node):
     ''' The Control node oversees connected Devices, allowing the Inputs to be
@@ -240,7 +214,7 @@ class Control(Node):
 
         super().__init__(name, parent)
         self.inputs = {}
-        self.state = {}
+        self.state = State()
         self.settings = {}
         self.actuating = 0
         self.cycle_time = 0
@@ -269,10 +243,8 @@ class Control(Node):
             # self.actuating = 1
         ''' Aggregate states by device '''
         dev_states = {}
-        for dev_name in state:
-            dev = self.children[dev_name]
-            dev_state = state[dev_name]
-            dev.actuate(dev_state)
+        for dev in state:
+            self.children[dev].actuate(state[dev])
         #     self.actuating = 0
         # else:
         #     log.warn('Actuate blocked by already running actuation.')
@@ -292,34 +264,6 @@ class Control(Node):
         index = len(self.samplers)
         self.samplers[index] = {'state':state, 'sampler':sampler, 'status':'Ready'}
         return sampler, index
-
-    def get_history(self, dev, inputs, cost):
-        ''' Return a multidimensional array and corresponding points from the dataframe storage of the control node '''
-        arrays = []
-        costs = self.dataframe['cost'][cost]
-        df = pd.DataFrame()
-        for name in inputs:
-            df[name] = self.dataframe[dev][name]['state']
-        df = df.loc[list(costs.index)]
-
-        for col in df.columns:
-            arrays.append(df[col].values)
-        return np.vstack(arrays).T, costs.values.T[0]
-
-    def get_substate(self, substate):
-        """Returns a state dict containing only the specified keys.
-
-        Args:
-            keys (list): full_name variables of Input nodes to retrieve, e.g. ['deviceA.input1', 'deviceB.input1'].
-        """
-        state = {}
-        for dev in substate:
-            state[dev] = {}
-            for input in dev:
-                state[dev][input] = self.state[dev][input]
-        # for key in keys:
-        #     state[key] = self.state[key]
-        return state
 
     def list_costs(self):
         """Returns a list of all methods tagged with the '@experiment' decorator."""

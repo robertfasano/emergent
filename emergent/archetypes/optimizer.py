@@ -31,7 +31,6 @@ def warn(*args, **kwargs):
 import warnings
 warnings.warn = warn
 from emergent.utility import methodsWithDecorator, algorithm, servo
-from copy import deepcopy
 from emergent.archetypes.sampler import Sampler
 class Optimizer():
     ''' General methods '''
