@@ -52,7 +52,7 @@ class NeuralNetwork():
     def append(self, sample, X, y):
         ''' Appends a new sample to old observations'''
         sample = np.atleast_2d(sample)
-        state = self.parent.array2state(sample[0], self.state)
+        state = self.parent.array2state(sample[0])
 
         X = np.append(X, sample, axis=0)
         y = np.append(y, self.cost(state))
@@ -72,7 +72,7 @@ class NeuralNetwork():
     def optimize(self, online = True):
         ''' Start by randomly sampling the parameter space '''
         X = np.array(np.random.uniform(self.bounds[:,0], self.bounds[:,1], size=(1,len(self.state))))
-        state = self.parent.array2state(X[0], self.state)
+        state = self.parent.array2state(X[0])
         y = [self.cost(state)]
         for i in range(self.params['initial_points']):
             sample = np.random.uniform(self.bounds[:,0], self.bounds[:,1], size=(1,len(self.state)))
@@ -112,7 +112,7 @@ class NeuralNetwork():
         X_pred = np.random.uniform(self.bounds[:,0], self.bounds[:,1], size=(self.params['samples'],len(self.state)))
         y_pred = self.predict(X_pred)
         X_pred = X_pred[np.argmin(y_pred)]
-        state = self.parent.array2state(X_pred, self.state)
+        state = self.parent.array2state(X_pred)
         y_pred = self.cost(state)
 
         return X_pred, y_pred

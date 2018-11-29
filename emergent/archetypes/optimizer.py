@@ -135,7 +135,7 @@ class Optimizer():
         ''' Generate search grid '''
         points, costs = self.grid_sampling(state, cost, params, cost_params, params['steps'])
 
-        best_point = self.sampler.array2state(points[np.argmin(costs)], state)
+        best_point = self.sampler.array2state(points[np.argmin(costs)])
         self.actuate(self.sampler.unnormalize(best_point))
         self.progress = 1
         return points, costs
@@ -191,7 +191,7 @@ class Optimizer():
                 X = np.append(X, X_new, axis=0)
                 c = np.append(c, self.sampler._cost(X[-1]))
                 self.progress = (j+i*params['batch size'])/params['batch size']/params['iterations']
-        best_point = self.sampler.array2state(X[np.argmin(c)], state)
+        best_point = self.sampler.array2state(X[np.argmin(c)])
         self.actuate(self.sampler.unnormalize(best_point))
         # if params['plot']:
         #     self.plot_optimization(lbl = 'Gaussian Processing')     # plot trajectory
@@ -327,7 +327,7 @@ class Optimizer():
     # @algorithm
     # def neural_network(self, state, cost, params={'layers':10, 'neurons':64, 'optimizer':'adam', 'activation':'erf', 'initial_points':100, 'cycles':500, 'samples':1000}):
     #     X, bounds = self.sampler.initialize(state, cost, params, cost_params)
-    #     norm_state = self.sampler.array2state(X,state)
+    #     norm_state = self.sampler.array2state(X)
     #     NeuralNetwork(self, norm_state, cost, bounds, params=params)
     #
     #     return None, None

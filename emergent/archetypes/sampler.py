@@ -49,13 +49,13 @@ class Sampler():
             self.optimizer.active = False
 
     ''' State conversion functions '''
-    def array2state(self, arr, d):
-        ''' Converts a numpy array into a state dict with the specified keys. '''
+    def array2state(self, arr):
+        ''' Converts a numpy array into a state dict with keys matching self.state. '''
         state = {}
         i = 0
-        for dev in d:
+        for dev in self.state:
             state[dev] = {}
-            for input in d[dev]:
+            for input in self.state[dev]:
                 state[dev][input] = arr[i]
                 i += 1
         return state
@@ -119,7 +119,7 @@ class Sampler():
         ''' Converts the array back to the form of d,
             unnormalizes it, and returns cost evaluated on the result. '''
         if type(state) is np.ndarray:
-            norm_target = self.array2state(state, self.state)
+            norm_target = self.array2state(state)
         else:
             norm_target = state
         target = self.unnormalize(norm_target)
