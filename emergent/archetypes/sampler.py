@@ -67,7 +67,7 @@ class Sampler():
             for input in state[dev]:
                 arr = np.append(arr, state[dev][input])
         return arr
-        
+
     def get_history(self, include_database = False):
         ''' Return a multidimensional array and corresponding points from the history df'''
         arrays = []
@@ -115,10 +115,13 @@ class Sampler():
         return points, costs
 
     ''' Logistics functions '''
-    def cost_from_array(self, arr, d):
+    def _cost(self, state):
         ''' Converts the array back to the form of d,
             unnormalizes it, and returns cost evaluated on the result. '''
-        norm_target = self.array2state(arr, d)
+        if type(state) is np.ndarray:
+            norm_target = self.array2state(state, self.state)
+        else:
+            norm_target = state
         target = self.unnormalize(norm_target)
 
         c = self.cost(target, self.cost_params)
@@ -126,21 +129,9 @@ class Sampler():
         t = time.time()
         self.history.loc[t,'cost']=c
         self.result = c
-        for dev in d:
-            for input in d[dev]:
+        for dev in target:
+            for input in target[dev]:
                 self.history.loc[t,dev+'.'+input] = norm_target[dev][input]
-        return c
-
-    def _cost(self, state, params = {}):
-        ''' Computes the cost and logs. Note: this logs the unnormalized cost,
-            while the more commonly-used cost_from_array logs the normalized cost -
-            I need to fix this discrepancy. '''
-        c = self.cost(state, params)
-        t = time.time()
-        self.history.loc[time.time()] = c
-        for dev in state:
-            for input in state[dev]:
-                self.history.loc[t,dev+'.'+input] = state[dev][input]
         return c
 
     def initialize(self, state, cost, params, cost_params):
@@ -148,6 +139,7 @@ class Sampler():
             state in terms of the min/max of each Input node, then prepares a
             bounds array. '''
         self.cost = cost
+        self.state = state
         self.cost_name = cost.__name__
         self.params = params
         self.cost_params = cost_params
