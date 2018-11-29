@@ -85,7 +85,7 @@ class Optimizer():
         for point in points:
             if not callback():
                 return points[0:len(costs)], costs
-            c = self.sampler.cost_from_array(point, state, cost, cost_params)
+            c = self.sampler.cost_from_array(point, state)
             costs = np.append(costs, c)
             self.progress = len(costs) / len(points)
 
@@ -105,7 +105,7 @@ class Optimizer():
         for point in points:
             if not callback():
                 return points[0:len(costs)], costs
-            c = self.sampler.cost_from_array(point, state, cost, cost_params)
+            c = self.sampler.cost_from_array(point, state)
             costs.append(c)
 
         return points, costs
@@ -173,7 +173,7 @@ class Optimizer():
         if callback is None:
             callback = self.callback
         X, bounds = self.sampler.initialize(state, cost, params, cost_params)
-        c = np.array([self.sampler.cost_from_array(X, state,cost, cost_params)])
+        c = np.array([self.sampler.cost_from_array(X, state)])
         points, costs = self.sample(state, cost, cost_params, 'random_sampling', params['presampled points'])
         X = np.append(np.atleast_2d(X), points, axis=0)
         c = np.append(c, costs)
@@ -189,7 +189,7 @@ class Optimizer():
                 X_new = self.gp_next_sample(X, bounds, b, self.gp_effective_cost, self.gp, restarts=10)
                 X_new = np.atleast_2d(X_new)
                 X = np.append(X, X_new, axis=0)
-                c = np.append(c, self.sampler.cost_from_array(X[-1], state, cost, cost_params))
+                c = np.append(c, self.sampler.cost_from_array(X[-1], state))
                 self.progress = (j+i*params['batch size'])/params['batch size']/params['iterations']
         best_point = self.sampler.array2state(X[np.argmin(c)], state)
         self.actuate(self.sampler.unnormalize(best_point))
@@ -218,7 +218,7 @@ class Optimizer():
         res = minimize(fun=self.sampler.cost_from_array,
                    x0=arr,
                    bounds=bounds,
-                   args = (state, cost, cost_params),
+                   args = (state,),
                    method=params['method'],
                    tol = params['tol'])
 
@@ -232,7 +232,7 @@ class Optimizer():
         X, bounds = self.sampler.initialize(state, cost, params, cost_params)
         res = minimize(fun=self.sampler.cost_from_array,
                    x0=X,
-                   args = (state, cost, cost_params),
+                   args = (state,),
                    method='Nelder-Mead',
                    tol = params['tol'])
 
@@ -247,7 +247,7 @@ class Optimizer():
         keys = list(state.keys())
         res = differential_evolution(func=self.sampler.cost_from_array,
                    bounds=bounds,
-                   args = (state, cost, cost_params),
+                   args = (state,),
                    strategy=params['strategy'],
                    tol = params['tol'],
                    mutation = params['mutation'],
@@ -285,9 +285,9 @@ class Optimizer():
                 f_p = []
                 f_n = []
                 for n in range(N):
-                    f_X.append(self.sampler.cost_from_array(X, state, cost, cost_params))
-                    f_p.append(self.sampler.cost_from_array(X+step, state, cost, cost_params))
-                    f_n.append(self.sampler.cost_from_array(X-step, state, cost, cost_params))
+                    f_X.append(self.sampler.cost_from_array(X, state))
+                    f_p.append(self.sampler.cost_from_array(X+step, state))
+                    f_n.append(self.sampler.cost_from_array(X-step, state))
 
                 z_p = (np.mean(f_X)-np.mean(f_p))/np.sqrt(np.std(f_X)**2/N+np.std(f_p)**2/N)
                 z_n = (np.mean(f_X)-np.mean(f_n))/np.sqrt(np.std(f_X)**2/N+np.std(f_n)**2/N)
@@ -304,8 +304,8 @@ class Optimizer():
                     f_p = []
                     f_n = []
                     for n in range(N):
-                        f_p.append(self.sampler.cost_from_array(X+step/2, state, cost, cost_params))
-                        f_n.append(self.sampler.cost_from_array(X-step/2, state, cost, cost_params))
+                        f_p.append(self.sampler.cost_from_array(X+step/2, state))
+                        f_n.append(self.sampler.cost_from_array(X-step/2, state))
 
                     z_p = (np.mean(f_X)-np.mean(f_p))/np.sqrt(np.std(f_X)**2/N+np.std(f_p)**2/N)
                     z_n = (np.mean(f_X)-np.mean(f_n))/np.sqrt(np.std(f_X)**2/N+np.std(f_n)**2/N)

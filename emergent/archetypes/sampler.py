@@ -60,22 +60,14 @@ class Sampler():
                 i += 1
         return state
 
-    def cost_from_array(self, arr, d, cost, cost_params):
-        ''' Converts the array back to the form of d,
-            unnormalizes it, and returns cost evaluated on the result. '''
-        norm_target = self.array2state(arr, d)
-        target = self.unnormalize(norm_target)
-
-        c = cost(target, cost_params)
-        ''' Update history '''
-        t = time.time()
-        self.history.loc[t,'cost']=c
-        self.result = c
-        for dev in d:
-            for input in d[dev]:
-                self.history.loc[t,dev+'.'+input] = norm_target[dev][input]
-        return c
-
+    def state2array(self, state):
+        ''' Converts a state dict into a numpy array. '''
+        arr = np.array([])
+        for dev in state:
+            for input in state[dev]:
+                arr = np.append(arr, state[dev][input])
+        return arr
+        
     def get_history(self, include_database = False):
         ''' Return a multidimensional array and corresponding points from the history df'''
         arrays = []
@@ -122,17 +114,27 @@ class Sampler():
                     costs = np.append(costs, subdf.iloc[i][cost.__name__])
         return points, costs
 
-    def state2array(self, state):
-        ''' Converts a state dict into a numpy array. '''
-        arr = np.array([])
-        for dev in state:
-            for input in state[dev]:
-                arr = np.append(arr, state[dev][input])
-        return arr
-
     ''' Logistics functions '''
+    def cost_from_array(self, arr, d):
+        ''' Converts the array back to the form of d,
+            unnormalizes it, and returns cost evaluated on the result. '''
+        norm_target = self.array2state(arr, d)
+        target = self.unnormalize(norm_target)
+
+        c = self.cost(target, self.cost_params)
+        ''' Update history '''
+        t = time.time()
+        self.history.loc[t,'cost']=c
+        self.result = c
+        for dev in d:
+            for input in d[dev]:
+                self.history.loc[t,dev+'.'+input] = norm_target[dev][input]
+        return c
+
     def _cost(self, state, params = {}):
-        ''' Computes the cost and logs. '''
+        ''' Computes the cost and logs. Note: this logs the unnormalized cost,
+            while the more commonly-used cost_from_array logs the normalized cost -
+            I need to fix this discrepancy. '''
         c = self.cost(state, params)
         t = time.time()
         self.history.loc[time.time()] = c
