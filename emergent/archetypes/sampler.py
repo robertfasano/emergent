@@ -114,15 +114,17 @@ class Sampler():
         return points, costs
 
     ''' Logistics functions '''
-    def _cost(self, state):
+    def _cost(self, state, norm=True):
         ''' Converts the array back to the form of d,
             unnormalizes it, and returns cost evaluated on the result. '''
         if type(state) is np.ndarray:
             norm_target = self.array2state(state)
         else:
             norm_target = state
-        target = self.unnormalize(norm_target)
-
+        if norm:
+            target = self.unnormalize(norm_target)
+        else:
+            target = norm_target
         c = self.cost(target, self.cost_params)
         ''' Update history '''
         t = time.time()

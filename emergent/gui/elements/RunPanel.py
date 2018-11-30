@@ -67,7 +67,7 @@ class RunLayout(QVBoxLayout, ProcessHandler):
             settings['control'] = self.parent.parent.treeWidget.get_selected_control()
         except IndexError:
             log.warn('Select inputs before starting optimization!')
-            return 
+            return
         settings['state'] = settings['control'].state
         cost_params = self.cost_params_edit.toPlainText().replace('\n',',').replace("'", '"')
         cost_params = '{' + cost_params + '}'
@@ -88,7 +88,7 @@ class RunLayout(QVBoxLayout, ProcessHandler):
         cost_params = settings['cost_params']
         while sampler.active:
             state = control.state
-            result = sampler._cost(state, params=cost_params)
+            result = sampler._cost(state, norm=False)
             count += 1
             time.sleep(settings['delay']/1000)
             if type(settings['iterations']) is int:
