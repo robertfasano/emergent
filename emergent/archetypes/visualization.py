@@ -9,7 +9,7 @@ import matplotlib.gridspec as gridspec
 plt.ioff()
 
 def plot_1D(points, costs, cost_name = 'Cost', normalized_cost = False, limits = None,
-            save = False, ax = None, xlabel = None, ylabel = None):
+            save = False, ax = None, xlabel = None, ylabel = None, errors = None):
     if threading.current_thread() is not threading.main_thread():
         log.warn('Cannot create matplotlib plot in thread.')
         return
@@ -25,7 +25,10 @@ def plot_1D(points, costs, cost_name = 'Cost', normalized_cost = False, limits =
     if limits is not None:
         name = list(limits.keys())[0]
         points = limits[name]['min'] + points*(limits[name]['max']-limits[name]['min'])
-    ax.plot(points, costs, '.')
+    if errors is None:
+        ax.plot(points, costs, '.')
+    else:
+        ax.errorbar(points, costs, yerr=errors, fmt='.')
     if limits is not None and passed_ax is None:
         plt.xlabel(name)
         plt.ylabel(cost_name)

@@ -95,13 +95,17 @@ def experiment(func, *args, **kwargs):
         c = func(*args, **kwargs)
         results.append(c)
     c = np.mean(results)
+    error = None
+    if len(results) > 1:
+        error = np.std(results)/np.sqrt(len(results))
+    # print(c, error)
     t = datetime.datetime.now()
     for dev_name in args[0].inputs:
         for input in args[0].inputs[dev_name]:
             args[0].update_dataframe(t, dev_name, input, args[0].inputs[dev_name][input].state)
     args[0].update_cost(t, c, func.__name__)
 
-    return c
+    return c, error
 
 @decorator.decorator
 def error(func, *args, **kwargs):

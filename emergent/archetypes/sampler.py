@@ -72,9 +72,12 @@ class Sampler():
         arrays = []
         state = {}
         costs = self.history['cost'].values
+        errors = self.history['error'].values
+        if np.isnan(errors).any():
+            errors = None
         t = self.history.index.values
         for col in self.history.columns:
-            if col != 'cost':
+            if col not in ['cost', 'error']:
                 arrays.append(self.history[col].values)
                 dev = col.split('.')[0]
                 input = col.split('.')[1]
@@ -86,7 +89,7 @@ class Sampler():
 
         if include_database:
             points, costs = self.search_database(points, costs, state, self.cost)
-        return t, points, costs
+        return t, points, costs, errors
 
     def search_database(self, points, costs, state, cost):
         ''' Prepare a state dict of all variables which are held constant during optimization '''
@@ -125,10 +128,11 @@ class Sampler():
             target = self.unnormalize(norm_target)
         else:
             target = norm_target
-        c = self.cost(target, self.cost_params)
+        c, error = self.cost(target, self.cost_params)
         ''' Update history '''
         t = time.time()
         self.history.loc[t,'cost']=c
+        self.history.loc[t,'error'] = error
         self.result = c
         for dev in target:
             for input in target[dev]:

@@ -72,7 +72,8 @@ class RunLayout(QVBoxLayout, ProcessHandler):
         cost_params = self.cost_params_edit.toPlainText().replace('\n',',').replace("'", '"')
         cost_params = '{' + cost_params + '}'
         settings['cost_params'] = json.loads(cost_params)
-        settings['cost_params']['cycles per sample'] = 1#int(self.cycles_per_sample_edit.text())
+        if 'cycles per sample' not in settings['cost_params']:
+            settings['cost_params']['cycles per sample'] = 1#int(self.cycles_per_sample_edit.text())
         settings['iterations'] = self.runIterationsEdit.text()
         if settings['iterations'] != 'Continuous':
             settings['iterations'] = int(settings['iterations'])
