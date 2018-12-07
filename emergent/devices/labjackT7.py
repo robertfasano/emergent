@@ -153,6 +153,30 @@ class LabJack(ProcessHandler, Device):
             channel = 'FIO%i'%channel
         self._command(channel, state)
 
+    def DIO_STATE(self, channels, states):
+        # prepare inhibit array
+        inhibit = ''
+        for i in range(23):
+            if 23-i-1 in channels:
+                inhibit += '0'
+            else:
+                inhibit += '1'
+        inhibit = int(inhibit, 2)
+        self._command('DIO_INHIBIT', inhibit)
+
+        # set direction
+        bitmask = 0
+        for ch in channels:
+            bitmask = bitmask | 1 << ch
+        self._command('DIO_DIRECTION', bitmask)
+
+        # prepare state array
+        bitmask = 0
+        for i in range(len(channels)):
+            bitmask = bitmask | (states[i] << channels[i])
+        self._command('DIO_STATE', bitmask)
+
+
     def PWM(self, channel, frequency, duty_cycle):
         ''' Starts pulse width modulation on an FIO channel.
 
@@ -220,6 +244,56 @@ class LabJack(ProcessHandler, Device):
         self._command("SPI_GO", 1)  # Do the SPI communications
 
     ''' Streaming methods '''
+    def prepare_digital_stream(self, channels):
+        # prepare inhibit array
+        inhibit = ''
+        for i in range(23):
+            if 23-i-1 in channels:
+                inhibit += '0'
+            else:
+                inhibit += '1'
+        inhibit = int(inhibit, 2)
+        self._command('DIO_INHIBIT', inhibit)
+
+        # set direction
+        bitmask = 0
+        for ch in channels:
+            bitmask = bitmask | 1 << ch
+        self._command('DIO_DIRECTION', bitmask)
+
+    def state_bitmask(self, channels, states):
+        bitmask = 0
+        for i in range(len(channels)):
+            bitmask = bitmask | (states[i] << channels[i])
+        return bitmask
+
+    def digital_stream(self, channels = [1,3], period = 1e-3):
+        self.prepare_digital_stream(channels)
+        t = np.linspace(0,1,100)
+        Y = np.zeros((len(t),2))
+
+        Y[t<0.5, 0] = 1
+        Y[t<0.7, 1] = 1
+
+        ''' convert multidimensional array to array of bitmasks '''
+        y = self.array_to_bitmask(Y, channels)
+
+        self.prepare_stream_out()
+        y, f = self.resample(np.atleast_2d(y).T, period)
+
+        self.stream_out(['FIO_STATE'], y.astype(int), f, loop = 1)
+
+    def array_to_bitmask(self, arr, channels):
+        ''' Convert multidimensional array with one column for each channel to an array of bitmasks. '''
+        y = np.zeros(len(arr))
+        for i in range(len(arr)):
+            states = arr[i,:]
+            bitmask = 0
+            for j in range(len(channels)):
+                bitmask = bitmask | (int(states[j]) << channels[j])
+            y[i] = bitmask
+        return y
+
     def prepare_streamburst(self, channel, max_samples = 2**13-1, trigger = None):
         ''' Sets up the LabJack for burst input streaming on a target channel. '''
         self.aScanList = ljm.namesToAddresses(1, ['AIN%i'%channel])[0]  # Scan list addresses for streamBurst
@@ -334,9 +408,17 @@ class LabJack(ProcessHandler, Device):
             aNames =["STREAM_OUT%i_TARGET"%i,
                            "STREAM_OUT%i_BUFFER_SIZE"%i,
                            "STREAM_OUT%i_ENABLE"%i]
-            aValues = [1000+i*2, buffer_size, 1]
+            ch = channels[i]
+            if ch == 'FIO_STATE':
+                target = 2500
+            else:
+                target = 1000+2*ch
+            aValues = [target, buffer_size, 1]
             self._write_array(aNames, aValues)
-            target = ['STREAM_OUT%i_BUFFER_F32'%i] * len(data)
+            if ch == 'FIO_STATE':
+                target = ['STREAM_OUT%i_BUFFER_U16'%i]*len(data)
+            else:
+                target = ['STREAM_OUT%i_BUFFER_F32'%i] * len(data)
             try:
                 target_array = data[:,i]
             except IndexError:
