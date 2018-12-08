@@ -176,6 +176,7 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
             if exp_or_error == 'experiment':
                 for item in self.list_algorithms(panel):
                     panel.algorithm_box.addItem(item.replace('_',' '))
+                    panel.algorithm_box.setCurrentText('GridSearch')
             elif exp_or_error == 'error':
                 for item in self.list_algorithms(panel):
                     panel.algorithm_box.addItem(item.replace('_',' '))
