@@ -14,7 +14,8 @@ class TestDevice(Device):
         ''' Usually this method would change a physical state, but for our
             virtual network we only print the argument (note: the virtual state
             is updated within the public calling method Device.actuate()).'''
-        print(state)
+        # print(state)
+        return
 
     def _connect(self):
         return 1
