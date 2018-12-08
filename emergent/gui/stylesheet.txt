@@ -1,17 +1,19 @@
-QComboBox {color:"#3a4055"; font-family: "Agency FB"; font-size: 18px}
-QPushButton {color:"#3a4055"; font-family: "Agency FB"; font-size: 18px}
-QTextEdit {color:"#3a4055"; font-family: "Agency FB"; font-size: 18px}
-QTreeWidget {color:"#3a4055"; font-family: "Agency FB"; font-size: 18px}
+QComboBox {color:"#3a4055"; font-family: "Agency FB"; font-size: 15px}
+QPushButton {color:"#3a4055"; font-family: "Agency FB"; font-size: 15px}
+QTextEdit {color:"#3a4055"; font-family: "Agency FB"; font-size: 15px}
+QTreeWidget {color:"#3a4055"; font-family: "Agency FB"; font-size: 15px; border-radius: 15px; border: 3px}
 
-QLabel {color:"#3a4055"; font-weight: bold; font-family: "Agency FB"; font-size: 15px}
-QTableWidget {color:"#3a4055"; font-weight: bold; font-family: "Agency FB"; font-size: 15px}
-QTableWidgetItem {color:"#3a4055"; font-weight: bold; font-family: "Agency FB"; font-size: 15px}
-QWindow {color:"#3a4055"; font-weight: bold; font-family: "Agency FB"; font-size: 15px}
-QTabWidget {color:"#3a4055"; font-weight: bold; font-family: "Agency FB"; font-size: 15px}
+QLabel {color:"#3a4055"; font-weight: thin; font-family: "Agency FB"; font-size: 12px}
+QTableWidget {color:"#3a4055"; font-weight: thin; font-family: "Agency FB"; font-size: 12px}
+QTableWidgetItem {color:"#3a4055"; font-weight: thin; font-family: "Agency FB"; font-size: 12px}
+QWindow {color:"#3a4055"; font-weight: thin; font-family: "Agency FB"; font-size: 12px}
+QTabWidget {color:"#3a4055"; font-weight: thin; font-family: "Agency FB"; font-size: 12px}
 QTableWidget::item:hover{background-color:#d7d8dd;}
 QTableWidget::item:selected{background-color:#3a4055; color: white}
 
-QHeaderView::section {color:"#3a4055"; font-weight: bold; font-family: "Agency FB"; font-size: 15px}
+QHeaderView::section {color:"#3a4055"; font-weight: thin; font-family: "Agency FB"; font-size: 12px}
+
+QTreeView{border-radius: 15px;}
 
 QTreeView::item:hover{background-color:#d7d8dd;}
 QTreeWidget::item:pressed,QTreeWidget::item:selected{background-color:#3a4055; color: white}
@@ -39,3 +41,4 @@ QTreeView::branch:open:has-children:has-siblings  {
         border-image: none;
         image: url(gui/media/branch-open.png);
 }
+//QMainWindow{background-color: qlineargradient(x1: 0.5, y1: 1 x2: 0.5, y2: 0, stop: 0 #3a4055, stop: 1 #616676 );}
