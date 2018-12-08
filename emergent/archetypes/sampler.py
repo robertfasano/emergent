@@ -72,9 +72,11 @@ class Sampler():
         arrays = []
         state = {}
         costs = self.history['cost'].values
-        errors = self.history['error'].values
-        if np.isnan(errors).any():
-            errors = None
+        errors = None
+        if 'error' in self.history.columns:
+            errors = self.history['error'].values
+            if np.isnan(errors).any():
+                errors = None
         t = self.history.index.values
         for col in self.history.columns:
             if col not in ['cost', 'error']:
