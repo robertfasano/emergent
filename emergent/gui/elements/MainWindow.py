@@ -37,6 +37,8 @@ class MainFrame(QMainWindow):
         height_fraction = width_fraction/1.618
         width = self.app.desktop().screenGeometry().width()*width_fraction
         height = self.app.desktop().screenGeometry().height()*height_fraction
+        width = 1440
+        height = 720
         self.resize(width, height)
 
         ''' Create menu bar '''

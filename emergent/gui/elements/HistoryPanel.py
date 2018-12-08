@@ -42,6 +42,7 @@ class HistoryPanel(QVBoxLayout):
         self.table.hideColumn(4)
         self.table.setHorizontalHeaderLabels(['Time', 'Experiment', 'Event', 'Status', 'Object'])
         self.table.cellDoubleClicked.connect(self.on_double_click)
+        self.table.horizontalHeader().setStretchLastSection(True)
 
 
     def add_event(self, timestamp, experiment, event, status, sampler):
