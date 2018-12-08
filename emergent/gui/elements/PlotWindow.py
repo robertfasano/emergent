@@ -10,6 +10,8 @@ from PyQt5.QtCore import QTimer
 class PlotWidget(QWidget):
     def __init__(self, container, sampler, algorithm, inputs, hist_fig, cvp, pvt, fig2d, parent = None, title=''):
         super(PlotWidget, self).__init__(parent)
+        with open('gui/stylesheet.txt',"r") as file:
+            self.setStyleSheet(file.read())
         self.container = container
         self.sampler = sampler
         self.algorithm = algorithm
