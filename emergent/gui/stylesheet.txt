@@ -8,9 +8,14 @@ QTableWidget {color:"#3a4055"; font-weight: bold; font-family: "Agency FB"; font
 QTableWidgetItem {color:"#3a4055"; font-weight: bold; font-family: "Agency FB"; font-size: 15px}
 QWindow {color:"#3a4055"; font-weight: bold; font-family: "Agency FB"; font-size: 15px}
 QTabWidget {color:"#3a4055"; font-weight: bold; font-family: "Agency FB"; font-size: 15px}
+QTableWidget::item:hover{background-color:#d7d8dd;}
+QTableWidget::item:selected{background-color:#3a4055; color: white}
 
 QHeaderView::section {color:"#3a4055"; font-weight: bold; font-family: "Agency FB"; font-size: 15px}
 
+QTreeView::item:hover{background-color:#d7d8dd;}
+QTreeWidget::item:pressed,QTreeWidget::item:selected{background-color:#3a4055; color: white}
+QTreeView::branch {background: white;}
 QTreeView::branch:has-siblings:!adjoins-item {
     border-image: url(gui/media/vline.png) 0;
 }
