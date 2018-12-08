@@ -6,17 +6,17 @@ class Adam():
         ''' Define default parameters '''
         self.name = 'Adam'
         self.params = {}
-        self.params['learning rate'] = Parameter(name= 'Learning rate',
+        self.params['Learning rate'] = Parameter(name= 'Learning rate',
                                             value = 0.1,
                                             min = 0.001,
                                             max = 0.1,
                                             description = 'Scaling factor for steps along the gradient')
-        self.params['iterations'] = Parameter(name= 'Iterations',
+        self.params['Iterations'] = Parameter(name= 'Iterations',
                                             value = 100,
                                             min = 10,
                                             max = 1000,
                                             description = 'Number of iterations')
-        self.params['dither'] = Parameter(name= 'Dither',
+        self.params['Dither'] = Parameter(name= 'Dither',
                                             value = 0.01,
                                             min = 0.0001,
                                             max = 0.1,
