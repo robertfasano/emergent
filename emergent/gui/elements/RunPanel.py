@@ -46,12 +46,6 @@ class RunLayout(QVBoxLayout, ProcessHandler):
         self.runIterationsSlider.setValue(8)
         self.addLayout(self.runIterationsLayout)
 
-        self.runDelayLayout = QHBoxLayout()
-        self.runDelayLayout.addWidget(QLabel('Delay (ms)'))
-        self.runDelayEdit = QLineEdit('0')
-        self.runDelayLayout.addWidget(self.runDelayEdit)
-        self.addLayout(self.runDelayLayout)
-
         self.runButtonsLayout = QHBoxLayout()
         self.runExperimentButton = QPushButton('Run')
         self.runExperimentButton.clicked.connect(lambda: parent.start_process(process='run', panel = self, settings = {}))
@@ -74,7 +68,6 @@ class RunLayout(QVBoxLayout, ProcessHandler):
         settings['iterations'] = self.runIterationsEdit.text()
         if settings['iterations'] != 'Continuous':
             settings['iterations'] = int(settings['iterations'])
-        settings['delay'] = float(self.runDelayEdit.text())
         settings['callback'] = None
         settings['algo_params'] = {}
 
@@ -88,7 +81,6 @@ class RunLayout(QVBoxLayout, ProcessHandler):
             state = control.state
             result = sampler._cost(state, norm=False)
             count += 1
-            time.sleep(settings['delay']/1000)
             if type(settings['iterations']) is int:
                 if count >= settings['iterations']:
                     break
