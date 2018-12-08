@@ -1,4 +1,4 @@
-from emergent.archetypes.node import Control
+from emergent.archetypes import Control
 
 class TemplateControl(Control):
     def __init__(self, name, parent = None, path='.'):

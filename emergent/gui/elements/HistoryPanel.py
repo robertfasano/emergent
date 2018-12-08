@@ -9,16 +9,16 @@ from PyQt5.QtWidgets import (QApplication, QAbstractItemView,QCheckBox, QComboBo
         QWidget, QMenu, QAction, QTreeWidget, QTreeWidgetItem, QTableWidget, QTableWidgetItem, QDialog)
 from PyQt5.QtCore import *
 import json
-from emergent.gui.elements.ExperimentPanel import ExperimentLayout
-from emergent.archetypes.node import Control, Device, Input, ActuateSignal, SettingsSignal
+from emergent.gui.elements import ExperimentLayout, PlotWidget
+from emergent.archetypes import Control, Device, Input
+from emergent.signals import ActuateSignal, SettingsSignal
 import functools
 from emergent.archetypes.visualization import plot_2D, plot_1D
-from emergent.archetypes.parallel import ProcessHandler
+from emergent.archetypes import ProcessHandler
 import matplotlib.pyplot as plt
 import json
 import itertools
 import numpy as np
-from emergent.gui.elements.PlotWindow import PlotWidget
 
 class OptimizerItem(QTableWidgetItem):
     def __init__(self, sampler, process_type):
@@ -63,12 +63,12 @@ class HistoryPanel(QVBoxLayout):
         sampler = self.table.item(row, 4).sampler
         process_type = self.table.item(row, 4).process_type
         algorithm = self.table.item(row, 2).text()
-        self.popup = OptimizerPopup(sampler, algorithm, self, row, process_type)
+        self.popup = Visualizer(sampler, algorithm, self, row, process_type)
         # self.popup.show()
 
-class OptimizerPopup(QWidget, ProcessHandler):
+class Visualizer(QWidget, ProcessHandler):
     def __init__(self, sampler, algorithm, parent, row, process_type):
-        super(OptimizerPopup, self).__init__()
+        super(Visualizer, self).__init__()
         QWidget().__init__()
         ProcessHandler.__init__(self)
         self.parent = parent

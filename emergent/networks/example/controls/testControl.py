@@ -1,5 +1,5 @@
 import numpy as np
-from emergent.archetypes.node import Control
+from emergent.archetypes import Control
 from utility import experiment, error
 import datetime
 import time

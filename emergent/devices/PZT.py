@@ -1,5 +1,5 @@
 from emergent.devices.labjackT7 import LabJack
-from emergent.archetypes.node import Device
+from emergent.archetypes import Device
 
 class PZT(Device):
     def __init__(self, params, name = 'PZT', parent = None):

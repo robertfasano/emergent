@@ -1,10 +1,8 @@
 from PyQt5.QtWidgets import (QComboBox, QLabel, QTextEdit, QPushButton, QVBoxLayout,
         QWidget, QProgressBar, qApp, QHBoxLayout, QCheckBox, QTableWidgetItem, QTabWidget, QLineEdit, QSlider)
 from PyQt5.QtCore import *
-from emergent.gui.elements.OptimizeTab import OptimizeLayout
+from emergent.gui.elements import OptimizeLayout, ServoLayout, RunLayout
 from emergent.archetypes.parallel import ProcessHandler
-from emergent.gui.elements.ServoPanel import ServoLayout
-from emergent.gui.elements.RunPanel import RunLayout
 import inspect
 import json
 import logging as log

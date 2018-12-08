@@ -6,7 +6,7 @@ sys.path.append(char.join(os.getcwd().split(char)[0:-3]))
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import QCoreApplication
 from emergent.remote.viewer import Viewer
-from emergent.archetypes.node import Control
+from emergent.archetypes import Control
 import numpy as np
 import logging as log
 import argparse

@@ -9,7 +9,7 @@ import time
 from threading import Thread
 from emergent.archetypes.parallel import ProcessHandler
 from emergent.archetypes.fifo import FIFO
-from emergent.archetypes.node import Device
+from emergent.archetypes import Device
 import logging as log
 import decorator
 

@@ -1,4 +1,4 @@
-from emergent.archetypes.node import Control
+from emergent.archetypes import Control
 import time
 from utility import experiment
 from scipy.stats import linregress

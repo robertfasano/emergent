@@ -1,8 +1,7 @@
 from PyQt5.QtWidgets import (QComboBox, QLabel, QTextEdit, QPushButton, QVBoxLayout,
-        QWidget, QProgressBar, qApp, QTableWidget, QTableWidgetItem, QHBoxLayout, QCheckBox, QTabWidget, QLineEdit, QSlider)
+        QTableWidget, QTableWidgetItem, QHBoxLayout, QSlider)
 from PyQt5.QtCore import *
-from emergent.archetypes.parallel import ProcessHandler
-from emergent.archetypes.sampler import Sampler
+from emergent.archetypes import ProcessHandler, Sampler
 import inspect
 import json
 import logging as log
@@ -38,7 +37,7 @@ class RunLayout(QVBoxLayout, ProcessHandler):
         self.runIterationsSlider.setRange(1,8)
         self.runIterationsSlider.setSingleStep(1)
         self.runIterationsLayout.addWidget(self.runIterationsSlider)
-        self.runIterationsEdit = QLineEdit('')
+        self.runIterationsEdit = QTextEdit('')
         self.runIterationsLayout.addWidget(self.runIterationsEdit)
         self.runIterationsSlider.setValue(8)
         self.addLayout(self.runIterationsLayout)

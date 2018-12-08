@@ -1,8 +1,7 @@
 from PyQt5.QtWidgets import (QComboBox, QLabel, QTextEdit, QPushButton, QVBoxLayout,
-        QWidget, QProgressBar, qApp, QTableWidget, QGridLayout, QTableWidgetItem, QHBoxLayout, QCheckBox, QTabWidget, QLineEdit, QSlider)
+        QTableWidget, QGridLayout, QTableWidgetItem, QHBoxLayout)
 from PyQt5.QtCore import *
-from emergent.archetypes.sampler import Sampler
-from emergent.archetypes.parallel import ProcessHandler
+from emergent.archetypes import Sampler, ProcessHandler
 import inspect
 import json
 import logging as log

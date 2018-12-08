@@ -9,8 +9,9 @@ from PyQt5.QtWidgets import (QApplication, QAbstractItemView,QCheckBox, QComboBo
         QWidget, QMenu, QAction, QTreeWidget, QTreeWidgetItem)
 from PyQt5.QtCore import *
 import json
-from emergent.gui.elements.ExperimentPanel import ExperimentLayout
-from emergent.archetypes.node import Control, Device, Input, ActuateSignal, SettingsSignal
+from emergent.gui.elements import ExperimentLayout
+from emergent.archetypes import Control, Device, Input
+from emergent.signals import ActuateSignal, SettingsSignal
 import functools
 
 class NodeTree(QTreeWidget):

@@ -1,7 +1,6 @@
 from emergent.protocols.serial import Serial, PARITY_NONE, STOPBITS_ONE, EIGHTBITS
 import numpy as np
-from emergent.archetypes.node import Device
-from emergent.archetypes.parallel import ProcessHandler
+from emergent.archetypes import Device, ProcessHandler
 
 class NetControls(Device, ProcessHandler):
     def __init__(self, name, port = 'COM11', parent = None):

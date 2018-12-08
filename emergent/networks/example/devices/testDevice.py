@@ -1,4 +1,4 @@
-from emergent.archetypes.node import Device
+from emergent.archetypes import Device
 from utility import dev
 import numpy as np
 @dev

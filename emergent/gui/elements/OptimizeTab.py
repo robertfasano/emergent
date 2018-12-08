@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import (QComboBox, QLabel, QTextEdit, QPushButton, QVBoxLayout,
-        QWidget, QScrollArea, QProgressBar, QTableWidgetItem, QTableWidget, qApp, QHBoxLayout, QCheckBox, QTabWidget, QLineEdit, QSlider, QGridLayout)
+        QTableWidgetItem, QTableWidget, QHBoxLayout, QGridLayout)
 from PyQt5.QtCore import *
 from emergent.archetypes.parallel import ProcessHandler
 import inspect

@@ -4,16 +4,11 @@ import inspect
 import sys
 import types
 from PyQt5.QtGui import QIcon, QStandardItem, QStandardItemModel, QFont
-from PyQt5.QtWidgets import (QApplication, QAbstractItemView,QCheckBox, QComboBox, QGridLayout,
-        QGroupBox, QHBoxLayout, QLabel, QTextEdit, QTreeView, QPushButton, QTableView,QVBoxLayout,
+from PyQt5.QtWidgets import (QHBoxLayout, QLabel, QTreeView, QPushButton, QVBoxLayout,
         QWidget, QMenu, QAction, QTreeWidget, QTreeWidgetItem, QMainWindow, QStatusBar, QMenuBar)
 from PyQt5.QtCore import *
 import json
-from emergent.gui.elements.ExperimentPanel import ExperimentLayout
-# from emergent.gui.elements.sequencer import SequencerLayout
-from emergent.gui.elements.NetworkPanel import NodeTree
-from emergent.gui.elements.HistoryPanel import HistoryPanel
-from emergent.gui.elements.ServoPanel import ServoLayout
+from emergent.gui.elements import ExperimentLayout, HistoryPanel, ServoLayout, NodeTree
 import os
 import psutil
 import sys

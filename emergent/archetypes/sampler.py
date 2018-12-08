@@ -15,7 +15,6 @@ from scipy.stats import norm
 import matplotlib.pyplot as plt
 
 from emergent.archetypes.visualization import plot_1D, plot_2D
-# from algorithms.neural_network import NeuralNetwork
 import pandas as pd
 import time
 def warn(*args, **kwargs):

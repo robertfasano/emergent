@@ -4,9 +4,7 @@ import weakref
 import pathlib
 import time
 import inspect
-from emergent.archetypes.historian import Historian
-from emergent.archetypes.sampler import Sampler
-from emergent.archetypes.state import State
+from emergent.archetypes import Historian, Sampler, State
 from PyQt5.QtWidgets import QWidget
 from emergent.utility import methodsWithDecorator
 import logging as log

@@ -2,7 +2,7 @@ import sys
 import numpy as np
 sys.path.append('O:/Public/Yb clock')
 from emergent.devices.genesys import Genesys
-from emergent.archetypes.node import Device
+from emergent.archetypes import Device
 from emergent.archetypes.parallel import ProcessHandler
 from scipy.stats import linregress
 from scipy.optimize import newton

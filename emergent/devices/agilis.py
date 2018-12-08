@@ -3,7 +3,7 @@ import os
 import numpy as np
 from emergent.protocols import serial
 import serial as ser
-from emergent.archetypes.node import Device
+from emergent.archetypes import Device
 from emergent.archetypes.parallel import ProcessHandler
 from emergent.utility import getChar
 import time

@@ -1,7 +1,7 @@
 import serial
 import sys
 from emergent.protocols.serial import Serial
-from emergent.archetypes.node import Device
+from emergent.archetypes import Device
 import logging as log
 
 class Novatech(Device):

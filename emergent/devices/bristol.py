@@ -1,4 +1,4 @@
-from emergent.archetypes.node import Device
+from emergent.archetypes import Device
 import bristol671
 
 class Wavemeter(Device):

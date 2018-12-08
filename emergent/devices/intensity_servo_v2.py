@@ -1,4 +1,4 @@
-from emergent.archetypes.node import Device
+from emergent.archetypes import Device
 from emergent.devices.labjackT7 import LabJack
 import functools
 import time
