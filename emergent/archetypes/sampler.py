@@ -202,25 +202,11 @@ class Sampler():
     ''' Visualization methods '''
     def plot_optimization(self, yscale = 'linear'):
         ''' Plots an optimization time series stored in self.history. '''
-        func = self.history.copy()
-        func.index -= func.index[0]
-        fig = plt.figure()
-        plt.plot(-func['cost'])
-        plt.yscale(yscale)
-        plt.ylabel(self.cost.__name__)
-        plt.xlabel('Time (s)')
-        return fig
+        t, points, costs, errors = self.get_history()
+        t -= t[0]
+        ax, fig = plot_1D(t, -costs, errors=errors, xlabel='Time (s)', ylabel = self.cost.__name__)
 
-    def plot_history_slice(self, i):
-        ''' Plots a slice of the ith element of the history. '''
-        df = self.history.iloc[i]
-        del df['cost']
-        df.plot()
-        plt.ylim([-5,8])
-        plt.xlabel('Time')
-        plt.ylabel('Setpoint')
-        plt.savefig(self.parent.data_path + 'history%i.png'%i)
-        plt.close()
+        return fig
 
     ''' Sampling methods '''
     def sample(self, state, cost, cost_params, method='random_sampling', points = 1, bounds = None):

@@ -130,7 +130,7 @@ class OptimizerPopup(QWidget, ProcessHandler):
             else:
                 cax = ax[1][i]
             # plot_1D(t, p, cost_name = self.sampler.cost.__name__, ax = cax)
-            new_ax, fig = plot_1D(t, p, cost_name = self.sampler.cost.__name__, xlabel = 'Time (s)', ylabel = full_name)
+            new_ax, fig = plot_1D(t, p, cost_name = self.sampler.cost.__name__, xlabel = 'Time (s)', ylabel = full_name, errors = errors)
             pvt[full_name] = fig
             cax.set_ylabel(full_name)
             cax.set_xlabel('Time (s)')
