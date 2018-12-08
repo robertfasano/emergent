@@ -144,23 +144,28 @@ class Optimizer():
         arr, bounds = self.sampler.initialize(state, cost, params, cost_params)
         m = np.zeros(len(arr))
         v = np.zeros(len(arr))
-        for s in range(params['steps']):
+        for s in range(int(params['steps'])):
             ''' compute gradient '''
-            g = np.array([])
-            for i in range(len(arr)):
-                step = np.zeros(len(arr))
-                step[i] = params['dither']
-                gi = (self.sampler._cost(arr+step/2)-self.sampler._cost(arr-step/2))/params['dither']
-                g = np.append(g, gi)
-                m = params['beta_1']*m+(1-params['beta_1'])*g
-                v = params['beta_2']*v + (1-params['beta_2'])*g**2
+            g = self.estimate_gradient(arr, params['dither'])
+            m = params['beta_1']*m+(1-params['beta_1'])*g
+            v = params['beta_2']*v + (1-params['beta_2'])*g**2
 
-                mhat = m/(1-params['beta_1'])
-                vhat = v/(1-params['beta_2'])
+            mhat = m/(1-params['beta_1'])
+            vhat = v/(1-params['beta_2'])
 
             ''' move along gradient '''
             arr = arr - params['learning rate']*mhat/(np.sqrt(vhat)+params['epsilon'])
 
+        self.sampler._cost(arr)
+
+    def estimate_gradient(self, arr, step_size):
+        g = np.array([])
+        for i in range(len(arr)):
+            step = np.zeros(len(arr))
+            step[i] = step_size
+            gi = (self.sampler._cost(arr+step/2)-self.sampler._cost(arr-step/2))/step_size
+            g = np.append(g, gi)
+        return g
 
 
 
