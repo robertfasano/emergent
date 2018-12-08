@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import (QComboBox, QLabel, QTextEdit, QPushButton, QVBoxLayout,
-        QWidget, QProgressBar, qApp, QHBoxLayout, QCheckBox, QTabWidget, QLineEdit, QSlider)
+        QWidget, QProgressBar, qApp, QTableWidget, QTableWidgetItem, QHBoxLayout, QCheckBox, QTabWidget, QLineEdit, QSlider)
 from PyQt5.QtCore import *
 from emergent.archetypes.optimizer import Optimizer
 from emergent.archetypes.parallel import ProcessHandler
@@ -27,11 +27,18 @@ class RunLayout(QVBoxLayout, ProcessHandler):
         self.addWidget(self.cost_box)
         self.cost_box.currentTextChanged.connect(lambda: self.parent.update_experiment(self))
 
-        self.run_experimentParamsLayout = QVBoxLayout()
-        self.cost_params_edit = QTextEdit('')
-        self.run_experimentParamsLayout.addWidget(QLabel('Experiment parameters'))
-        self.run_experimentParamsLayout.addWidget(self.cost_params_edit)
-        self.addLayout(self.run_experimentParamsLayout)
+        # self.run_experimentParamsLayout = QVBoxLayout()
+        # self.run_experimentParamsLayout.addWidget(QLabel('Experiment parameters'))
+        # self.run_experimentParamsLayout.addWidget(self.cost_params_edit)
+        # self.addLayout(self.run_experimentParamsLayout)
+
+        ''' Experiment parameters '''
+        self.epl = QTableWidget()
+        self.addWidget(self.epl)
+        self.epl.insertColumn(0)
+        self.epl.insertColumn(1)
+        self.epl.setHorizontalHeaderLabels(['Parameter', 'Value'])
+        self.epl.horizontalHeader().setStretchLastSection(True)
 
         self.runIterationsLayout = QHBoxLayout()
         self.runIterationsLayout.addWidget(QLabel('Iterations'))
@@ -70,9 +77,7 @@ class RunLayout(QVBoxLayout, ProcessHandler):
             log.warn('Select inputs before starting optimization!')
             return
         settings['state'] = settings['control'].state
-        cost_params = self.cost_params_edit.toPlainText().replace('\n',',').replace("'", '"')
-        cost_params = '{' + cost_params + '}'
-        settings['cost_params'] = json.loads(cost_params)
+        settings['cost_params'] = self.parent.get_cost_params(self)
         if 'cycles per sample' not in settings['cost_params']:
             settings['cost_params']['cycles per sample'] = 1#int(self.cycles_per_sample_edit.text())
         settings['iterations'] = self.runIterationsEdit.text()

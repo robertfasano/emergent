@@ -74,40 +74,6 @@ class OptimizeLayout(QVBoxLayout, ProcessHandler):
         optimizeButtonsLayout.addWidget(parent.optimizer_button)
         self.addLayout(optimizeButtonsLayout)
 
-    def clear_parameters(self):
-        self.apl.setRowCount(0)
-
-    def clear_cost_parameters(self):
-        self.epl.setRowCount(0)
-
-    def get_params(self):
-        params = {}
-        for row in range(self.apl.rowCount()):
-            name = self.apl.item(row, 0).text()
-            value = self.apl.item(row, 1).text()
-            params[name] = float(value)
-        return params
-
-    def get_cost_params(self):
-        params = {}
-        for row in range(self.epl.rowCount()):
-            name = self.epl.item(row, 0).text()
-            value = self.epl.item(row, 1).text()
-            params[name] = float(value)
-        return params
-
-    def add_parameter(self, name, value):
-        row = self.apl.rowCount()
-        self.apl.insertRow(row)
-        self.apl.setItem(row, 0, QTableWidgetItem(name))
-        self.apl.setItem(row, 1, QTableWidgetItem(str(value)))
-
-    def add_cost_parameter(self, name, value):
-        row = self.epl.rowCount()
-        self.epl.insertRow(row)
-        self.epl.setItem(row, 0, QTableWidgetItem(name))
-        self.epl.setItem(row, 1, QTableWidgetItem(str(value)))
-
     def get_settings_from_gui(self):
         settings = {}
         settings['state'] = self.parent.parent.treeWidget.get_selected_state()
@@ -118,8 +84,8 @@ class OptimizeLayout(QVBoxLayout, ProcessHandler):
             log.warn('Select inputs before starting optimization!')
             return
 
-        settings['algo_params'] = self.get_params()
-        settings['cost_params'] = self.get_cost_params()
+        settings['algo_params'] = self.parent.get_params(self)
+        settings['cost_params'] = self.parent.get_cost_params(self)
         settings['callback'] = None
         settings['cost_params']['cycles per sample'] = int(self.cycles_per_sample_edit.text())
         return settings

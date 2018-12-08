@@ -1,8 +1,8 @@
 from PyQt5.QtWidgets import (QComboBox, QLabel, QTextEdit, QPushButton, QVBoxLayout,
-        QWidget, QProgressBar, qApp, QHBoxLayout, QCheckBox, QTabWidget, QLineEdit, QSlider)
+        QWidget, QProgressBar, qApp, QHBoxLayout, QCheckBox, QTableWidgetItem, QTabWidget, QLineEdit, QSlider)
 from PyQt5.QtCore import *
 from emergent.archetypes.optimizer import Optimizer
-from emergent.gui.elements.OptimizeTab import OptimizeTab
+from emergent.gui.elements.OptimizeTab import OptimizeLayout
 from emergent.archetypes.parallel import ProcessHandler
 from emergent.gui.elements.ServoPanel import ServoLayout
 from emergent.gui.elements.RunPanel import RunLayout
@@ -164,9 +164,8 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         params = edit.toPlainText().replace('\n',',').replace("'", '"')
         params = json.loads('{' + params + '}')
 
-        if panel.name == 'Optimize':
-            f = {'algorithm': panel.get_params, 'experiment': panel.get_cost_params}[param_type]
-            params = f()
+        f = {'algorithm': lambda: self.get_params(panel), 'experiment': lambda: self.get_cost_params(panel)}[param_type]
+        params = f()
 
         ''' Load old params from file '''
         with open(params_filename, 'r') as file:
@@ -222,7 +221,10 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         control = self.parent.treeWidget.currentItem().root
         experiment = getattr(control, panel.cost_box.currentText())
         d = self.file_to_dict(experiment, experiment, 'experiment')
-        self.dict_to_edit(d, panel.cost_params_edit)
+
+        self.clear_cost_parameters(panel)
+        for p in d:
+            self.add_cost_parameter(panel, p, str(d[p]))
 
     def update_algorithm_and_experiment(self, panel):
         if panel.cost_box.currentText() is '':
@@ -234,20 +236,16 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         experiment = getattr(control, panel.cost_box.currentText())
         exp_params = self.file_to_dict(experiment, experiment, 'experiment')
         algo_params = self.file_to_dict(algo, experiment, 'algorithm')
-        self.dict_to_edit(exp_params, panel.cost_params_edit)
-        self.dict_to_edit(algo_params, panel.algorithm_params_edit)
 
         # except AttributeError:
         #     print('attribute error!')
         #     return
-
-        if panel.name == 'Optimize':
-            panel.clear_parameters()
-            for p in algo_params:
-                panel.add_parameter(p, str(algo_params[p]))
-            panel.clear_cost_parameters()
-            for p in exp_params:
-                panel.add_cost_parameter(p, str(exp_params[p]))
+        self.clear_parameters(panel)
+        for p in algo_params:
+            self.add_parameter(panel, p, str(algo_params[p]))
+        self.clear_cost_parameters(panel)
+        for p in exp_params:
+            self.add_cost_parameter(panel, p, str(exp_params[p]))
 
 
 
@@ -298,3 +296,37 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         if process == 'run':
             stoppable = True
         panel._run_thread(panel.run_process, args = (sampler, settings, index, t), stoppable=stoppable)
+
+    def clear_parameters(self, panel):
+        panel.apl.setRowCount(0)
+
+    def clear_cost_parameters(self, panel):
+        panel.epl.setRowCount(0)
+
+    def get_params(self, panel):
+        params = {}
+        for row in range(panel.apl.rowCount()):
+            name = panel.apl.item(row, 0).text()
+            value = panel.apl.item(row, 1).text()
+            params[name] = float(value)
+        return params
+
+    def get_cost_params(self, panel):
+        params = {}
+        for row in range(panel.epl.rowCount()):
+            name = panel.epl.item(row, 0).text()
+            value = panel.epl.item(row, 1).text()
+            params[name] = float(value)
+        return params
+
+    def add_parameter(self, panel, name, value):
+        row = panel.apl.rowCount()
+        panel.apl.insertRow(row)
+        panel.apl.setItem(row, 0, QTableWidgetItem(name))
+        panel.apl.setItem(row, 1, QTableWidgetItem(str(value)))
+
+    def add_cost_parameter(self, panel, name, value):
+        row = panel.epl.rowCount()
+        panel.epl.insertRow(row)
+        panel.epl.setItem(row, 0, QTableWidgetItem(name))
+        panel.epl.setItem(row, 1, QTableWidgetItem(str(value)))

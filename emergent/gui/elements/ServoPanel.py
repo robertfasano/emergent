@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import (QComboBox, QLabel, QTextEdit, QPushButton, QVBoxLayout,
-        QWidget, QProgressBar, qApp, QHBoxLayout, QCheckBox, QTabWidget, QLineEdit, QSlider)
+        QWidget, QProgressBar, qApp, QTableWidget, QGridLayout, QTableWidgetItem, QHBoxLayout, QCheckBox, QTabWidget, QLineEdit, QSlider)
 from PyQt5.QtCore import *
 from emergent.archetypes.optimizer import Optimizer
 from emergent.archetypes.sampler import Sampler
@@ -27,18 +27,38 @@ class ServoLayout(QVBoxLayout, ProcessHandler):
         self.addWidget(self.cost_box)
 
         self.current_control = None
-        paramsLayout = QHBoxLayout()
-        optimizerParamsLayout = QVBoxLayout()
-        self.algorithm_params_edit = QTextEdit('')
-        optimizerParamsLayout.addWidget(QLabel('Algorithm parameters'))
-        optimizerParamsLayout.addWidget(self.algorithm_params_edit)
-        paramsLayout.addLayout(optimizerParamsLayout)
-        experimentParamsLayout = QVBoxLayout()
-        self.cost_params_edit = QTextEdit('')
-        experimentParamsLayout.addWidget(QLabel('Experiment parameters'))
-        experimentParamsLayout.addWidget(self.cost_params_edit)
-        paramsLayout.addLayout(experimentParamsLayout)
-        self.addLayout(paramsLayout)
+
+        # paramsLayout = QHBoxLayout()
+        # optimizerParamsLayout = QVBoxLayout()
+        # self.algorithm_params_edit = QTextEdit('')
+        # optimizerParamsLayout.addWidget(QLabel('Algorithm parameters'))
+        # optimizerParamsLayout.addWidget(self.algorithm_params_edit)
+        # paramsLayout.addLayout(optimizerParamsLayout)
+        # experimentParamsLayout = QVBoxLayout()
+        # self.cost_params_edit = QTextEdit('')
+        # experimentParamsLayout.addWidget(QLabel('Experiment parameters'))
+        # experimentParamsLayout.addWidget(self.cost_params_edit)
+        # paramsLayout.addLayout(experimentParamsLayout)
+        # self.addLayout(paramsLayout)
+        layout = QGridLayout()
+        self.addLayout(layout)
+
+        ''' Algorithm parameters '''
+        self.apl = QTableWidget()
+        layout.addWidget(self.apl, 0, 0)
+        self.apl.insertColumn(0)
+        self.apl.insertColumn(1)
+        self.apl.setHorizontalHeaderLabels(['Parameter', 'Value'])
+        self.apl.horizontalHeader().setStretchLastSection(True)
+
+        ''' Experiment parameters '''
+        self.epl = QTableWidget()
+        layout.addWidget(self.epl, 0, 1)
+        self.epl.insertColumn(0)
+        self.epl.insertColumn(1)
+        self.epl.setHorizontalHeaderLabels(['Parameter', 'Value'])
+        self.epl.horizontalHeader().setStretchLastSection(True)
+
         self.cost_box.currentTextChanged.connect(lambda: self.parent.update_algorithm_and_experiment(self))
 
         optimizeButtonsLayout = QHBoxLayout()
@@ -57,13 +77,10 @@ class ServoLayout(QVBoxLayout, ProcessHandler):
         except IndexError:
             log.warn('Select inputs before starting optimization!')
             return
-        params = self.algorithm_params_edit.toPlainText().replace('\n',',').replace("'", '"')
-        params = '{' + params + '}'
 
-        settings['algo_params'] = json.loads(params)
-        error_params = self.cost_params_edit.toPlainText().replace('\n',',').replace("'", '"')
-        error_params = '{' + error_params + '}'
-        settings['cost_params'] = json.loads(error_params)
+        settings['algo_params'] = self.parent.get_params(self)
+        settings['cost_params'] = self.parent.get_cost_params(self)
+
         settings['callback'] = None
         return settings
 
