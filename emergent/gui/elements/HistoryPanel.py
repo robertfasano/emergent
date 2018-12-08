@@ -88,6 +88,7 @@ class OptimizerPopup(QWidget, ProcessHandler):
     def generate_figures(self):
         ''' Show cost vs time, parameters vs time, and parameters vs cost '''
         t, points, costs, errors = self.sampler.get_history(include_database = False)
+        costs *= -1
         t = t.copy()-t[0]
         num_inputs = points.shape[1]
         control = self.sampler.parent

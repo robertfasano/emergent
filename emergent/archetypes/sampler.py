@@ -205,7 +205,7 @@ class Sampler():
         func = self.history.copy()
         func.index -= func.index[0]
         fig = plt.figure()
-        plt.plot(func['cost'])
+        plt.plot(-func['cost'])
         plt.yscale(yscale)
         plt.ylabel(self.cost.__name__)
         plt.xlabel('Time (s)')
