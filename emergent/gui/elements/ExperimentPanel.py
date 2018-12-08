@@ -45,97 +45,100 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         self.tabWidget.addTab(runTab, 'Run')
 
     def get_default_params(self, name, panel):
-        if panel.name == 'Optimize':
-            algorithms = importlib.__import__('optimizers')
-        else:
-            algorithms = importlib.__import__('servos')
-        inst = getattr(algorithms, name)
-        params = inst().params
+        inst = self.get_algorithm(name, panel)
+        params = inst.params
         algo_params = {}
         for p in params:
             algo_params[p] = params[p].value
 
         return algo_params
 
-    def get_algorithm(self, name, panel):
+    def load_module(self, panel):
         if panel.name == 'Optimize':
-            algorithms = importlib.__import__('optimizers')
+            module = importlib.__import__('optimizers')
         else:
-            algorithms = importlib.__import__('servos')
-        inst = getattr(algorithms, name)
-        return inst()
+            module = importlib.__import__('servos')
+        return module
+
+    def get_algorithm(self, name, panel):
+        module = self.load_module(panel)
+        return getattr(module, name)()
 
     def get_description(self, panel, algo_name, parameter):
-        if panel.name == 'Optimize':
-            algorithms = importlib.__import__('optimizers')
-        else:
-            algorithms = importlib.__import__('servos')
-        inst = getattr(algorithms, algo_name)
-        params = inst().params
+        params = self.get_algorithm(algo_name, panel).params
         return params[parameter].description
 
 
     def list_algorithms(self, panel):
-        if panel.name == 'Optimize':
-            algorithms = importlib.__import__('optimizers')
-        else:
-            algorithms = importlib.__import__('servos')
+        module = self.load_module(panel)
         names = []
-        for a in dir(algorithms):
+        for a in dir(module):
             if '__' not in a:
-                inst = getattr(algorithms, a)
+                inst = getattr(module, a)
                 names.append(inst().name)
         return names
 
-    def file_to_dict(self, algo, experiment, param_type, panel):
+
+    def file_to_dict(self, algo, experiment, param_type, panel, default = False):
         ''' Generates parameter suggestions for either the algorithm or experiment
-            params, based on the choice of param_type. First attempts to pull relevant
-            parameters from a json file in the network's params directory; if this fails,
-            then it reads default values from the code. '''
+            params, based on the choice of param_type. '''
+
+        ''' Look for relevant parameters in the json file in the network's params directory '''
         network_name = __main__.network_path.split('.')[2]
         control = self.parent.treeWidget.currentItem().root
 
         if not os.path.exists('./networks/%s/params/'%network_name):
             os.mkdir('./networks/%s/params/'%network_name)
         params_filename = './networks/%s/params/'%network_name + '%s.%s.txt'%(control.name, experiment.__name__)
-        try:
-            ''' Load params from file '''
-            with open(params_filename, 'r') as file:
-                params = json.load(file)
-        except OSError:
-            ''' If file does not exist, then load from introspection '''
-            params = {'experiment': {}, 'algorithm': {}}
-            if param_type == 'algorithm':
-                params['algorithm'][algo.name] = {}
-
-            ''' load experiment params '''
-            args = inspect.signature(experiment).parameters
-            args = list(args.items())
-            for a in args:
-                if a[0] != 'params':
-                    continue
-                d = str(a[1]).split('=')[1]
-                d = json.loads(d.replace("'", '"'))
-            params['experiment'] = d
-
-            if param_type == 'algorithm':
-                params['algorithm'][algo.name] = self.get_default_params(algo.name, panel)
-
-            with open(params_filename, 'w') as file:
-                json.dump(params, file)
-
-        ''' Make sure the current algorithm's parameters are contained '''
-        if param_type == 'algorithm':
-            if algo.name in params['algorithm']:
-                return params['algorithm'][algo.name]
-            else:
-                d = self.get_default_params(algo.name, panel)
+        if not default:
+            try:
+                ''' Load params from file '''
                 with open(params_filename, 'r') as file:
                     params = json.load(file)
-                params['algorithm'][algo.name] = d
-                with open(params_filename, 'w') as file:
-                    json.dump(params, file)
-                return d
+
+
+                ''' Make sure the current algorithm's parameters are contained '''
+                if param_type == 'algorithm':
+                    if algo.name in params['algorithm']:
+                        return params['algorithm'][algo.name]
+                    else:
+                        d = self.get_default_params(algo.name, panel)
+                        with open(params_filename, 'r') as file:
+                            params = json.load(file)
+                        params['algorithm'][algo.name] = d
+                        with open(params_filename, 'w') as file:
+                            json.dump(params, file)
+                        return d
+                else:
+                    if 'cycles per sample' not in params['experiment']:
+                        params['experiment']['cycles per sample'] = 1
+                    return params['experiment']
+
+            except OSError:
+                pass
+        ''' If file does not exist, then load from introspection '''
+        params = {'experiment': {}, 'algorithm': {}}
+        if param_type == 'algorithm':
+            params['algorithm'][algo.name] = {}
+
+        ''' load experiment params '''
+        args = inspect.signature(experiment).parameters
+        args = list(args.items())
+        for a in args:
+            if a[0] != 'params':
+                continue
+            d = str(a[1]).split('=')[1]
+            d = json.loads(d.replace("'", '"'))
+        params['experiment'] = d
+
+        if param_type == 'algorithm':
+            params['algorithm'][algo.name] = self.get_default_params(algo.name, panel)
+
+        with open(params_filename, 'w') as file:
+            json.dump(params, file)
+
+        if param_type == 'algorithm':
+            return params['algorithm'][algo.name]
         else:
             if 'cycles per sample' not in params['experiment']:
                 params['experiment']['cycles per sample'] = 1
@@ -212,25 +215,28 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         for p in d:
             self.add_cost_parameter(panel, p, str(d[p]))
 
-    def update_algorithm_and_experiment(self, panel):
+    def update_algorithm_and_experiment(self, panel, default = False, update_algorithm = True, update_experiment = True):
         if panel.cost_box.currentText() is '':
             return
         if panel.algorithm_box.currentText() is '':
             return
-        algo = panel.algorithm_box.currentText()
         control = self.parent.treeWidget.currentItem().root
         experiment = getattr(control, panel.cost_box.currentText())
-        exp_params = self.file_to_dict(experiment, experiment, 'experiment', panel)
-        algo = self.get_algorithm(algo, panel)
-        algo_params = self.file_to_dict(algo, experiment, 'algorithm', panel)
 
-        self.clear_parameters(panel)
-        for p in algo_params:
-            desc = self.get_description(panel, algo.name, p)
-            self.add_parameter(panel, p, str(algo_params[p]), desc)
-        self.clear_cost_parameters(panel)
-        for p in exp_params:
-            self.add_cost_parameter(panel, p, str(exp_params[p]))
+        if update_algorithm:
+            algo_name = panel.algorithm_box.currentText()
+            algo = self.get_algorithm(algo_name, panel)
+            algo_params = self.file_to_dict(algo, experiment, 'algorithm', panel, default = default)
+            self.clear_parameters(panel)
+            for p in sorted(algo_params):
+                desc = self.get_description(panel, algo.name, p)
+                self.add_parameter(panel, p, str(algo_params[p]), desc)
+
+        if update_experiment:
+            exp_params = self.file_to_dict(experiment, experiment, 'experiment', panel, default = default)
+            self.clear_cost_parameters(panel)
+            for p in sorted(exp_params):
+                self.add_cost_parameter(panel, p, str(exp_params[p]))
 
     def start_process(self, *args, process = '', panel = None, settings = {}):
         ''' Load any non-passed settings from the GUI '''
