@@ -276,11 +276,16 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
     def add_parameter(self, panel, name, value):
         row = panel.apl.rowCount()
         panel.apl.insertRow(row)
-        panel.apl.setItem(row, 0, QTableWidgetItem(name))
+        name_item = QTableWidgetItem(name)
+        name_item.setFlags(name_item.flags() ^ Qt.ItemIsEditable)
+
+        panel.apl.setItem(row, 0, name_item)
         panel.apl.setItem(row, 1, QTableWidgetItem(str(value)))
 
     def add_cost_parameter(self, panel, name, value):
         row = panel.epl.rowCount()
         panel.epl.insertRow(row)
-        panel.epl.setItem(row, 0, QTableWidgetItem(name))
+        name_item = QTableWidgetItem(name)
+        name_item.setFlags(name_item.flags() ^ Qt.ItemIsEditable)
+        panel.epl.setItem(row, 0, name_item)
         panel.epl.setItem(row, 1, QTableWidgetItem(str(value)))
