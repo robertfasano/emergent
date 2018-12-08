@@ -19,7 +19,7 @@ class ServoLayout(QVBoxLayout, ProcessHandler):
         QVBoxLayout.__init__(self)
         ProcessHandler.__init__(self)
         self.parent = parent
-
+        self.name = 'Servo'
         self.algorithm_box = QComboBox()
         self.addWidget(self.algorithm_box)
 

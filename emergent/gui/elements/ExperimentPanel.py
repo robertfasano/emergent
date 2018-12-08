@@ -2,7 +2,7 @@ from PyQt5.QtWidgets import (QComboBox, QLabel, QTextEdit, QPushButton, QVBoxLay
         QWidget, QProgressBar, qApp, QHBoxLayout, QCheckBox, QTabWidget, QLineEdit, QSlider)
 from PyQt5.QtCore import *
 from emergent.archetypes.optimizer import Optimizer
-from emergent.gui.elements.OptimizeTab import OptimizeLayout
+from emergent.gui.elements.OptimizeTab import OptimizeTab
 from emergent.archetypes.parallel import ProcessHandler
 from emergent.gui.elements.ServoPanel import ServoLayout
 from emergent.gui.elements.RunPanel import RunLayout
@@ -163,6 +163,11 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         edit = getattr(panel, edit_name + '_params_edit')
         params = edit.toPlainText().replace('\n',',').replace("'", '"')
         params = json.loads('{' + params + '}')
+
+        if panel.name == 'Optimize':
+            f = {'algorithm': panel.get_params, 'experiment': panel.get_cost_params}[param_type]
+            params = f()
+
         ''' Load old params from file '''
         with open(params_filename, 'r') as file:
             old_params = json.load(file)
@@ -222,18 +227,29 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
     def update_algorithm_and_experiment(self, panel):
         if panel.cost_box.currentText() is '':
             return
-        try:
-            algo = getattr(Optimizer, panel.algorithm_box.currentText().replace(' ','_'))
-            # control = self.parent.treeWidget.get_selected_control()
-            control = self.parent.treeWidget.currentItem().root
-            experiment = getattr(control, panel.cost_box.currentText())
-            exp_params = self.file_to_dict(experiment, experiment, 'experiment')
-            algo_params = self.file_to_dict(algo, experiment, 'algorithm')
-            self.dict_to_edit(exp_params, panel.cost_params_edit)
-            self.dict_to_edit(algo_params, panel.algorithm_params_edit)
+        # try:
+        algo = getattr(Optimizer, panel.algorithm_box.currentText().replace(' ','_'))
+        # control = self.parent.treeWidget.get_selected_control()
+        control = self.parent.treeWidget.currentItem().root
+        experiment = getattr(control, panel.cost_box.currentText())
+        exp_params = self.file_to_dict(experiment, experiment, 'experiment')
+        algo_params = self.file_to_dict(algo, experiment, 'algorithm')
+        self.dict_to_edit(exp_params, panel.cost_params_edit)
+        self.dict_to_edit(algo_params, panel.algorithm_params_edit)
 
-        except AttributeError:
-            return
+        # except AttributeError:
+        #     print('attribute error!')
+        #     return
+
+        if panel.name == 'Optimize':
+            panel.clear_parameters()
+            for p in algo_params:
+                panel.add_parameter(p, str(algo_params[p]))
+            panel.clear_cost_parameters()
+            for p in exp_params:
+                panel.add_cost_parameter(p, str(exp_params[p]))
+
+
 
 
     def start_process(self, *args, process = '', panel = None, settings = {}):

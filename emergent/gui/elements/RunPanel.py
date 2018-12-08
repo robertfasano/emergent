@@ -20,6 +20,7 @@ class RunLayout(QVBoxLayout, ProcessHandler):
         QVBoxLayout.__init__(self)
         ProcessHandler.__init__(self)
         self.parent = parent
+        self.name = 'Run'
         self.cost_box = QComboBox()
         self.current_control = None
 
