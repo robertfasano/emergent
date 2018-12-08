@@ -65,6 +65,16 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         inst = getattr(algorithms, name)
         return inst()
 
+    def get_description(self, panel, algo_name, parameter):
+        if panel.name == 'Optimize':
+            algorithms = importlib.__import__('optimizers')
+        else:
+            algorithms = importlib.__import__('servos')
+        inst = getattr(algorithms, algo_name)
+        params = inst().params
+        return params[parameter].description
+
+
     def list_algorithms(self, panel):
         if panel.name == 'Optimize':
             algorithms = importlib.__import__('optimizers')
@@ -214,10 +224,10 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         algo = self.get_algorithm(algo, panel)
         algo_params = self.file_to_dict(algo, experiment, 'algorithm', panel)
 
-
         self.clear_parameters(panel)
         for p in algo_params:
-            self.add_parameter(panel, p, str(algo_params[p]))
+            desc = self.get_description(panel, algo.name, p)
+            self.add_parameter(panel, p, str(algo_params[p]), desc)
         self.clear_cost_parameters(panel)
         for p in exp_params:
             self.add_cost_parameter(panel, p, str(exp_params[p]))
@@ -291,11 +301,11 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
             params[name] = float(value)
         return params
 
-    def add_parameter(self, panel, name, value):
+    def add_parameter(self, panel, name, value, description):
         row = panel.apl.rowCount()
         panel.apl.insertRow(row)
         name_item = QTableWidgetItem(name)
-        name_item.setToolTip(name)
+        name_item.setToolTip(description)
         name_item.setFlags(name_item.flags() ^ Qt.ItemIsEditable)
 
         panel.apl.setItem(row, 0, name_item)
