@@ -87,11 +87,19 @@ class Timer():
 def dev(func):
     return func
 
+class Parameter():
+    def __init__(self, name, value, min, max, description):
+        self.name = name
+        self.value = value
+        self.min = min
+        self.max = max
+        self.description = description
+
 @decorator.decorator
 def experiment(func, *args, **kwargs):
     results = []
     params = args[2]
-    for i in range(params['cycles per sample']):
+    for i in range(int(params['cycles per sample'])):
         c = func(*args, **kwargs)
         results.append(c)
     c = np.mean(results)

@@ -32,6 +32,7 @@ import warnings
 warnings.warn = warn
 from emergent.utility import methodsWithDecorator, algorithm, servo
 from emergent.archetypes.sampler import Sampler
+
 class Optimizer():
     ''' General methods '''
     def __init__(self, control_node, cost = None):
@@ -54,61 +55,6 @@ class Optimizer():
     def terminate(self):
         self.active = False
 
-    ''' Sampling methods '''
-    def sample(self, state, cost, cost_params, method='random_sampling', points = 1, bounds = None):
-        ''' Returns a list of points sampled with the specified method, as well as
-            the cost function evaluated at these points. '''
-        if bounds is None:
-            bounds = np.array(list(itertools.repeat([0,1], len(state.keys()))))
-        func = getattr(self, method)
-        points, cost = func(state, cost, cost_params, points, bounds)
-
-        return points, cost
-
-    def grid_sampling(self, state, cost, params, cost_params, points,  args=None, norm = True, callback = None):
-        ''' Performs a uniformly-spaced sampling of the cost function in the
-            space spanned by the passed-in state dict. '''
-        if callback is None:
-            callback = self.callback
-        arr, bounds = self.sampler.initialize(state, cost, params, cost_params)
-        N = len(arr)
-        grid = []
-        for n in range(N):
-            space = np.linspace(bounds[n][0], bounds[n][1], points)
-            grid.append(space)
-        grid = np.array(grid)
-        points = np.transpose(np.meshgrid(*[grid[n] for n in range(N)])).reshape(-1,N)
-
-        ''' Actuate search '''
-        costs = np.array([])
-        for point in points:
-            if not callback():
-                return points[0:len(costs)], costs
-            c = self.sampler._cost(point)
-            costs = np.append(costs, c)
-            self.progress = len(costs) / len(points)
-
-        # points = np.array(points)
-        # costs = np.array(costs)
-
-        return points, costs
-
-    def random_sampling(self,state, cost, cost_params, points, bounds, callback = None):
-        ''' Performs a random sampling of the cost function at N points within
-            the specified bounds. '''
-        if callback is None:
-            callback = self.callback
-        dof = sum(len(state[x]) for x in state)
-        points = np.random.uniform(size=(points,dof))
-        costs = []
-        for point in points:
-            if not callback():
-                return points[0:len(costs)], costs
-            c = self.sampler._cost(point)
-            costs.append(c)
-
-        return points, costs
-
     def dijkstra_sampling(self, points, weights = None):
         ''' Determines the sampling order of the given points array to minimize
             the distance between points, weighted by an optional vector. The
@@ -127,259 +73,31 @@ class Optimizer():
         dist_matrix = dijkstra(G)
 
     ''' Optimization routines '''
-    @algorithm
-    def grid_search(self, state, cost, params={'steps':10}, cost_params = {}):
-        ''' An N-dimensional grid search (brute force) optimizer. '''
-        arr, bounds = self.sampler.initialize(state, cost, params, cost_params)
-        ''' Generate search grid '''
-        points, costs = self.grid_sampling(state, cost, params, cost_params, params['steps'])
-
-        best_point = self.sampler.array2state(points[np.argmin(costs)])
-        self.actuate(self.sampler.unnormalize(best_point))
-        self.progress = 1
-        return points, costs
-
-    @algorithm
-    def adam(self, state, cost, params={'learning rate':1, 'steps': 100, 'dither': 0.01, 'beta_1': 0.9, 'beta_2': 0.999, 'epsilon': 1e-8}, cost_params = {}):
-        arr, bounds = self.sampler.initialize(state, cost, params, cost_params)
-        m = np.zeros(len(arr))
-        v = np.zeros(len(arr))
-        for s in range(int(params['steps'])):
-            ''' compute gradient '''
-            g = self.estimate_gradient(arr, params['dither'])
-            m = params['beta_1']*m+(1-params['beta_1'])*g
-            v = params['beta_2']*v + (1-params['beta_2'])*g**2
-
-            mhat = m/(1-params['beta_1'])
-            vhat = v/(1-params['beta_2'])
-
-            ''' move along gradient '''
-            arr = arr - params['learning rate']*mhat/(np.sqrt(vhat)+params['epsilon'])
-
-        self.sampler._cost(arr)
-
-    def estimate_gradient(self, arr, step_size):
-        g = np.array([])
-        for i in range(len(arr)):
-            step = np.zeros(len(arr))
-            step[i] = step_size
-            gi = (self.sampler._cost(arr+step/2)-self.sampler._cost(arr-step/2))/step_size
-            g = np.append(g, gi)
-        return g
 
 
-
-    def gp_next_sample(self, X, bounds, b, cost, gaussian_process, restarts=25):
-        ''' Generates the next sampling point by minimizing cost on the virtual
-            response surface modeled by the Gaussian process. '''
-        best_x = None
-        best_acquisition_value = 999
-
-        for starting_point in np.random.uniform(bounds[0][0], bounds[0][1], size=(restarts, X.shape[1])):
-            res = minimize(fun=cost,
-                       x0=starting_point.reshape(1, -1),
-                       bounds=bounds,
-                       method='L-BFGS-B',
-                       args=(b, gaussian_process))
-            if res.fun < best_acquisition_value:
-                best_acquisition_value = res.fun
-                best_x = res.x
-
-        return best_x
-
-    def gp_effective_cost(self, x, b, gp):
-        ''' Computes an effective cost for Gaussian process optimization, featuring
-            some tradeoff between optimization and learning. '''
-        ''' Watch for function recieveing a 2d x with higher dimensional state vectors (disagreement with internal GP dimension) '''
-        mu, sigma = gp.predict(np.atleast_2d(x), return_std = True)
-       # return (b*mu+np.sqrt(1-b**2)*sigma)
-        return b*mu-(1-b)*sigma
-
-    @algorithm
-    def gaussian_process(self, state, cost, params={'presampled points': 15, 'iterations':10, 'batch size':10, 'kernel amplitude': 1, 'kernel length scale': 1, 'kernel noise': 0.1}, cost_params = {}, callback = None):
-        ''' Online Gaussian process regression. Batch sampling is done with
-            points with varying trade-off of optimization vs. exploration. '''
-        if callback is None:
-            callback = self.callback
-        X, bounds = self.sampler.initialize(state, cost, params, cost_params)
-        c = np.array([self.sampler._cost(X)])
-        points, costs = self.sample(state, cost, cost_params, 'random_sampling', params['presampled points'])
-        X = np.append(np.atleast_2d(X), points, axis=0)
-        c = np.append(c, costs)
-        kernel = C(params['kernel amplitude'], (1e-3, 1e3)) * RBF(params['kernel length scale'], (1e-2, 1e2)) + WhiteKernel(params['kernel noise'])
-        self.gp = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=10)
-        for i in range(params['iterations']):
-            if not callback():
-                return points[0:len(costs)], costs
-            self.gp.fit(X,c)
-            a = i / (params['iterations']-1)        # scale from explorer to optimizer through iterations
-            for j in range(params['batch size']):
-                b = a * j / (params['batch size']-1)        # scale from explorer to optimizer throughout batch
-                X_new = self.gp_next_sample(X, bounds, b, self.gp_effective_cost, self.gp, restarts=10)
-                X_new = np.atleast_2d(X_new)
-                X = np.append(X, X_new, axis=0)
-                c = np.append(c, self.sampler._cost(X[-1]))
-                self.progress = (j+i*params['batch size'])/params['batch size']/params['iterations']
-        best_point = self.sampler.array2state(X[np.argmin(c)])
-        self.actuate(self.sampler.unnormalize(best_point))
-        # if params['plot']:
-        #     self.plot_optimization(lbl = 'Gaussian Processing')     # plot trajectory
-        #     ''' Predict and plot cost landscape '''
-        #     grid = []
-        #     N = X.shape[1]
-        #     for n in range(N):
-        #         space = np.linspace(bounds[n][0], bounds[n][1], 30)
-        #         grid.append(space)
-        #     grid = np.array(grid)
-        #     predict_points = np.transpose(np.meshgrid(*[grid[n] for n in range(N)])).reshape(-1,N)
-        #     predict_costs = np.array([])
-        #     for point in predict_points:
-        #         predict_costs = np.append(predict_costs, self.gp.predict(np.atleast_2d(point)))
-        #     plot_2D(predict_points, predict_costs)
-        self.progress = 1
-        return X, c
-
-    @algorithm
-    def scipy_minimize(self, state, cost, params={'method':'L-BFGS-B', 'tol':1e-7}, cost_params = {}):
-        ''' Runs a specified scipy minimization method on the target axes and cost. '''
-        arr, bounds = self.sampler.initialize(state, cost, params, cost_params)
-        keys = list(state.keys())
-        res = minimize(fun=self.sampler._cost,
-                   x0=arr,
-                   bounds=bounds,
-                   args = (state,),
-                   method=params['method'],
-                   tol = params['tol'])
-
-        self.parent.save(tag='optimize')
-
-        return None, None
-
-    @algorithm
-    def simplex(self, state, cost, params={'tol':4e-3}, cost_params = {}):
-        ''' Nelder-Mead algorithm from scipy.optimize. '''
-        X, bounds = self.sampler.initialize(state, cost, params, cost_params)
-        res = minimize(fun=self.sampler._cost,
-                   x0=X,
-                   args = (state,),
-                   method='Nelder-Mead',
-                   tol = params['tol'])
-
-        self.parent.save(tag='optimize')
-
-        return None, None
-
-    @algorithm
-    def differential_evolution(self, state, cost, params={'strategy':'best1bin', 'popsize':15, 'tol':0.01, 'mutation': 1,'recombination':0.7}, cost_params = {}):
-        ''' Differential evolution algorithm from scipy.optimize. '''
-        X, bounds = self.sampler.initialize(state, cost, params, cost_params)
-        keys = list(state.keys())
-        res = differential_evolution(func=self.sampler._cost,
-                   bounds=bounds,
-                   args = (state,),
-                   strategy=params['strategy'],
-                   tol = params['tol'],
-                   mutation = params['mutation'],
-                   recombination = params['recombination'],
-                   popsize = params['popsize'])
-
-        self.parent.save(tag='optimize')
-
-        return None, None
-
-    @algorithm
-    def pattern_search(self, state, cost, params={'step size': 0.1, 'samples': 5, 'tolerance': 0.01}, cost_params = {}):
-        X, bounds = self.sampler.initialize(state, cost, params, cost_params)
-        delta = params['step size']
-        N = params['samples']
-
-        while delta > params['tolerance']:
-
-            ''' Form all search steps '''
-            steps = []
-            for i in range(len(X)):
-                step = np.zeros(len(X))
-                step[i] = delta
-                steps.append(step.copy())
-                step[i] = -delta
-                steps.append(step.copy())
-
-            ''' Sample cost function for all steps '''
-            updated = False
-            for i in range(len(X)):
-                step = np.zeros(len(X))
-                step[i] = delta
-                ''' take steps in either direction'''
-                f_X = []
-                f_p = []
-                f_n = []
-                for n in range(N):
-                    f_X.append(self.sampler._cost(X))
-                    f_p.append(self.sampler._cost(X+step))
-                    f_n.append(self.sampler._cost(X-step))
-
-                z_p = (np.mean(f_X)-np.mean(f_p))/np.sqrt(np.std(f_X)**2/N+np.std(f_p)**2/N)
-                z_n = (np.mean(f_X)-np.mean(f_n))/np.sqrt(np.std(f_X)**2/N+np.std(f_n)**2/N)
-
-                significance_level = 1
-                if z_p > significance_level/(2*len(X)):
-                    X = X+step
-                    updated = True
-                elif z_n > significance_level/(2*len(X)):
-                    X = X-step
-                    updated = True
-                else:
-                    ''' measure contracted cost '''
-                    f_p = []
-                    f_n = []
-                    for n in range(N):
-                        f_p.append(self.sampler._cost(X+step/2))
-                        f_n.append(self.sampler._cost(X-step/2))
-
-                    z_p = (np.mean(f_X)-np.mean(f_p))/np.sqrt(np.std(f_X)**2/N+np.std(f_p)**2/N)
-                    z_n = (np.mean(f_X)-np.mean(f_n))/np.sqrt(np.std(f_X)**2/N+np.std(f_n)**2/N)
-
-                    if z_p > significance_level/(2*len(X)):
-                        X = X+step/2
-                        delta /= 2
-                        updated = True
-                    elif z_n > significance_level/(2*len(X)):
-                        X = X-step/2
-                        delta /= 2
-                        updated = True
-                    else:
-                        N *= 2
-            if not updated:
-                delta /= 2
-
-
-    # @algorithm
-    # def neural_network(self, state, cost, params={'layers':10, 'neurons':64, 'optimizer':'adam', 'activation':'erf', 'initial_points':100, 'cycles':500, 'samples':1000}):
-    #     X, bounds = self.sampler.initialize(state, cost, params, cost_params)
-    #     norm_state = self.sampler.array2state(X)
-    #     NeuralNetwork(self, norm_state, cost, bounds, params=params)
-    #
-    #     return None, None
-
-    # ''' Hyperparameter optimization '''
-    # def hypercost(self, params, args):
-    #     ''' Returns the optimization time for a given algorithm, cost, and initial state '''
-    #     algo, state, cost = args
-    #     algo(state, cost, params)
-    #     c = self.sampler.history.index[-1]-self.sampler.history.index[0]
-    #     return c
-    #
-    # @algorithm
-    # def grid_hypertune(self, state, cost, params={'steps':10}):
-    #     algo = self.differential_evolution
-    #     hyperparams = {'popsize':15, 'recombination':0.7}
-    #     bounds = np.array([[10,20],[0.3,1]])
-    #     args = (algo, state, cost)
-    #     points, costs = self.grid_sampling(hyperparams, self.hypercost, params['steps'], bounds, args=args, norm=False)
-    #
-    #     plot_2D(points,costs)
-    #
-    #     return points, costs
+    ''' Hyperparameter optimization '''
+    def tune(self):
+        state = {'deviceA': {'X': 0, 'Y': 0}}
+        cost_params = {"x0": 0.3,
+                       "noise": 0.01,
+                       "y0": 0.6,
+                       "sigma_y": 0.8,
+                       "theta": 0,
+                       "sigma_x": 0.3,
+                       "cycles per sample": 1}
+        cost = self.sampler.parent.cost_uncoupled
+        algorithm = self.adam
+        params={'learning rate':0.1, 'steps': 100, 'dither': 0.01, 'beta_1': 0.9, 'beta_2': 0.999, 'epsilon': 1e-8}
+        pmin = 0.001
+        pmax = 0.1
+        steps = 10
+        loss = []
+        for p in np.logspace(pmin, pmax, steps):
+            params['dither'] = p
+            algorithm(state, cost, params, cost_params)
+            loss.append(self.sampler.history['cost'].iloc[-1])
+            print(loss)
+        return loss
 
     ''' Control methods '''
     @servo

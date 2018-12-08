@@ -141,6 +141,15 @@ class Sampler():
                 self.history.loc[t,dev+'.'+input] = norm_target[dev][input]
         return c
 
+    def estimate_gradient(self, arr, step_size):
+        g = np.array([])
+        for i in range(len(arr)):
+            step = np.zeros(len(arr))
+            step[i] = step_size
+            gi = (self._cost(arr+step/2)-self._cost(arr-step/2))/step_size
+            g = np.append(g, gi)
+        return g
+
     def initialize(self, state, cost, params, cost_params):
         ''' Creates a history dataframe to log the sampling. Normalizes the
             state in terms of the min/max of each Input node, then prepares a
@@ -214,3 +223,54 @@ class Sampler():
         plt.ylabel('Setpoint')
         plt.savefig(self.parent.data_path + 'history%i.png'%i)
         plt.close()
+
+    ''' Sampling methods '''
+    def sample(self, state, cost, cost_params, method='random_sampling', points = 1, bounds = None):
+        ''' Returns a list of points sampled with the specified method, as well as
+            the cost function evaluated at these points. '''
+        if bounds is None:
+            bounds = np.array(list(itertools.repeat([0,1], len(state.keys()))))
+        func = getattr(self, method)
+        points, cost = func(state, cost, cost_params, int(points), bounds)
+
+        return points, cost
+
+    def random_sampling(self,state, cost, cost_params, points, bounds, callback = None):
+        ''' Performs a random sampling of the cost function at N points within
+            the specified bounds. '''
+        if callback is None:
+            callback = self.callback
+        dof = sum(len(state[x]) for x in state)
+        points = np.random.uniform(size=(int(points),dof))
+        costs = []
+        for point in points:
+            if not callback():
+                return points[0:len(costs)], costs
+            c = self._cost(point)
+            costs.append(c)
+
+        return points, costs
+    def grid_sampling(self, state, cost, params, cost_params, points,  args=None, norm = True, callback = None):
+        ''' Performs a uniformly-spaced sampling of the cost function in the
+            space spanned by the passed-in state dict. '''
+        if callback is None:
+            callback = self.callback
+        arr, bounds = self.initialize(state, cost, params, cost_params)
+        N = len(arr)
+        grid = []
+        for n in range(N):
+            space = np.linspace(bounds[n][0], bounds[n][1], int(points))
+            grid.append(space)
+        grid = np.array(grid)
+        points = np.transpose(np.meshgrid(*[grid[n] for n in range(N)])).reshape(-1,N)
+
+        ''' Actuate search '''
+        costs = np.array([])
+        for point in points:
+            if not callback():
+                return points[0:len(costs)], costs
+            c = self._cost(point)
+            costs = np.append(costs, c)
+            self.progress = len(costs) / len(points)
+
+        return points, costs
