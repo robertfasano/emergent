@@ -44,8 +44,6 @@ class Sampler():
 
     def terminate(self):
         self.active = False
-        if hasattr(self, 'optimizer'):
-            self.optimizer.active = False
 
     ''' State conversion functions '''
     def array2state(self, arr):

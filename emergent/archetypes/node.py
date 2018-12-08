@@ -5,7 +5,6 @@ import pathlib
 import time
 import inspect
 from emergent.archetypes.historian import Historian
-from emergent.archetypes.optimizer import Optimizer
 from emergent.archetypes.sampler import Sampler
 from emergent.archetypes.state import State
 from PyQt5.QtWidgets import QWidget
@@ -248,12 +247,6 @@ class Control(Node):
         #     self.actuating = 0
         # else:
         #     log.warn('Actuate blocked by already running actuation.')
-
-    def attach_optimizer(self, state, cost):
-        optimizer = Optimizer(self, cost=cost)
-        index = len(self.optimizers)
-        self.optimizers[index] = {'state':state, 'optimizer':optimizer, 'status':'Ready'}
-        return optimizer, index
 
     def attach_sampler(self, state, cost, optimizer = None):
         if optimizer is None:

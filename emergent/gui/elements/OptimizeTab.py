@@ -2,7 +2,6 @@ from PyQt5.QtWidgets import (QComboBox, QLabel, QTextEdit, QPushButton, QVBoxLay
         QWidget, QScrollArea, QProgressBar, QTableWidgetItem, QTableWidget, qApp, QHBoxLayout, QCheckBox, QTabWidget, QLineEdit, QSlider, QGridLayout)
 from PyQt5.QtCore import *
 from emergent.archetypes.parallel import ProcessHandler
-from emergent.archetypes.optimizer import Optimizer
 import inspect
 import datetime
 import json

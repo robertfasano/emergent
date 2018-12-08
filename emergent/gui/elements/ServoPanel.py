@@ -1,10 +1,8 @@
 from PyQt5.QtWidgets import (QComboBox, QLabel, QTextEdit, QPushButton, QVBoxLayout,
         QWidget, QProgressBar, qApp, QTableWidget, QGridLayout, QTableWidgetItem, QHBoxLayout, QCheckBox, QTabWidget, QLineEdit, QSlider)
 from PyQt5.QtCore import *
-from emergent.archetypes.optimizer import Optimizer
 from emergent.archetypes.sampler import Sampler
 from emergent.archetypes.parallel import ProcessHandler
-from emergent.utility import list_algorithms, list_triggers
 import inspect
 import json
 import logging as log

@@ -1,13 +1,10 @@
 from PyQt5.QtWidgets import (QComboBox, QLabel, QTextEdit, QPushButton, QVBoxLayout,
         QWidget, QProgressBar, qApp, QHBoxLayout, QCheckBox, QTableWidgetItem, QTabWidget, QLineEdit, QSlider)
 from PyQt5.QtCore import *
-from emergent.archetypes.optimizer import Optimizer
 from emergent.gui.elements.OptimizeTab import OptimizeLayout
 from emergent.archetypes.parallel import ProcessHandler
 from emergent.gui.elements.ServoPanel import ServoLayout
 from emergent.gui.elements.RunPanel import RunLayout
-
-from emergent.utility import list_algorithms
 import inspect
 import json
 import logging as log
@@ -47,8 +44,11 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         runTab.setLayout(self.runPanel)
         self.tabWidget.addTab(runTab, 'Run')
 
-    def get_default_params(self, name):
-        algorithms = importlib.__import__('optimizers')
+    def get_default_params(self, name, panel):
+        if panel.name == 'Optimize':
+            algorithms = importlib.__import__('optimizers')
+        else:
+            algorithms = importlib.__import__('servos')
         inst = getattr(algorithms, name)
         params = inst().params
         algo_params = {}
@@ -77,7 +77,7 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
                 names.append(inst().name)
         return names
 
-    def file_to_dict(self, algo, experiment, param_type):
+    def file_to_dict(self, algo, experiment, param_type, panel):
         ''' Generates parameter suggestions for either the algorithm or experiment
             params, based on the choice of param_type. First attempts to pull relevant
             parameters from a json file in the network's params directory; if this fails,
@@ -109,7 +109,7 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
             params['experiment'] = d
 
             if param_type == 'algorithm':
-                params['algorithm'][algo.name] = self.get_default_params[algo.name]
+                params['algorithm'][algo.name] = self.get_default_params(algo.name, panel)
 
             with open(params_filename, 'w') as file:
                 json.dump(params, file)
@@ -119,7 +119,7 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
             if algo.name in params['algorithm']:
                 return params['algorithm'][algo.name]
             else:
-                d = self.get_default_params(algo.name)
+                d = self.get_default_params(algo.name, panel)
                 with open(params_filename, 'r') as file:
                     params = json.load(file)
                 params['algorithm'][algo.name] = d
@@ -196,7 +196,7 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
             return
         control = self.parent.treeWidget.currentItem().root
         experiment = getattr(control, panel.cost_box.currentText())
-        d = self.file_to_dict(experiment, experiment, 'experiment')
+        d = self.file_to_dict(experiment, experiment, 'experiment', panel)
 
         self.clear_cost_parameters(panel)
         for p in d:
@@ -206,21 +206,14 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         if panel.cost_box.currentText() is '':
             return
         if panel.algorithm_box.currentText() is '':
-            return 
-        # algo = getattr(Optimizer, panel.algorithm_box.currentText().replace(' ','_'))
+            return
         algo = panel.algorithm_box.currentText()
         control = self.parent.treeWidget.currentItem().root
         experiment = getattr(control, panel.cost_box.currentText())
-        exp_params = self.file_to_dict(experiment, experiment, 'experiment')
-        if panel.name == 'Optimize':
-            algo = self.get_algorithm(algo, panel)
-            # algo_params = self.get_default_params(algo)
-            algo_params = self.file_to_dict(algo, experiment, 'algorithm')
+        exp_params = self.file_to_dict(experiment, experiment, 'experiment', panel)
+        algo = self.get_algorithm(algo, panel)
+        algo_params = self.file_to_dict(algo, experiment, 'algorithm', panel)
 
-        else:
-            algo = self.get_algorithm(algo, panel)
-            # algo = getattr(Optimizer, algo.replace(' ','_'))
-            algo_params = self.file_to_dict(algo, experiment, 'algorithm')
 
         self.clear_parameters(panel)
         for p in algo_params:
@@ -249,23 +242,16 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         state = settings['state']
 
         ''' Create optimizer/sampler '''
-        optimizer, index = settings['control'].attach_optimizer(state, cost)
-        sampler, index = settings['control'].attach_sampler(state, cost, optimizer=optimizer)
+        sampler, index = settings['control'].attach_sampler(state, cost)
         sampler.initialize(state, cost, algo_params, cost_params)
-        control.optimizers[index]['status'] = process
         control.samplers[index]['status'] = process
 
         if hasattr(panel, 'algorithm_box'):
             algorithm_name = panel.algorithm_box.currentText()
-            if panel.name == 'Optimize':
-                algo = self.get_algorithm(algorithm_name)
-                algo.sampler = sampler
-                algo.parent = control
-                settings['algorithm'] = algo.run
-            else:
-                algorithm_name = algorithm_name.replace(' ', '_')
-                algo = getattr(optimizer, algorithm_name)
-                settings['algorithm'] = algo
+            algo = self.get_algorithm(algorithm_name, panel)
+            algo.sampler = sampler
+            algo.parent = control
+            settings['algorithm'] = algo.run
         else:
             algorithm_name = 'Run'
 

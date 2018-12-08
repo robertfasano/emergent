@@ -9,7 +9,6 @@ from PyQt5.QtWidgets import (QApplication, QAbstractItemView,QCheckBox, QComboBo
         QWidget, QMenu, QAction, QTreeWidget, QTreeWidgetItem, QMainWindow, QStatusBar, QMenuBar)
 from PyQt5.QtCore import *
 import json
-from emergent.archetypes.optimizer import Optimizer
 from emergent.gui.elements.ExperimentPanel import ExperimentLayout
 # from emergent.gui.elements.sequencer import SequencerLayout
 from emergent.gui.elements.NetworkPanel import NodeTree

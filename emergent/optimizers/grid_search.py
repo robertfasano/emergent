@@ -6,7 +6,7 @@ class GridSearch():
         ''' Define default parameters '''
         self.name = 'GridSearch'
         self.params = {}
-        self.params['steps'] = Parameter(name= 'Steps',
+        self.params['Steps'] = Parameter(name= 'Steps',
                                             value = 20,
                                             min = 5,
                                             max = 100,

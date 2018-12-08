@@ -47,17 +47,6 @@ def getChar():
 
     return getChar._func()
 
-def list_algorithms():
-    ''' Returns a list of all methods tagged with the '@algorithm' decorator '''
-    from emergent.archetypes.optimizer import Optimizer
-    return methodsWithDecorator(Optimizer, 'algorithm')
-
-def list_servos():
-    ''' Returns a list of all methods tagged with the '@servo' decorator '''
-    from emergent.archetypes.optimizer import Optimizer
-    return methodsWithDecorator(Optimizer, 'servo')
-
-
 def list_triggers(control):
     ''' Returns a list of all methods tagged with the '@trigger' decorator '''
     return methodsWithDecorator(control.__class__, 'trigger')
