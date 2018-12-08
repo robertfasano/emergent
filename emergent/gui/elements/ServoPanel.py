@@ -20,32 +20,18 @@ class ServoLayout(QVBoxLayout, ProcessHandler):
         ProcessHandler.__init__(self)
         self.parent = parent
         self.name = 'Servo'
-        self.algorithm_box = QComboBox()
-        self.addWidget(self.algorithm_box)
-
-        self.cost_box = QComboBox()
-        self.addWidget(self.cost_box)
-
-        self.current_control = None
-
-        # paramsLayout = QHBoxLayout()
-        # optimizerParamsLayout = QVBoxLayout()
-        # self.algorithm_params_edit = QTextEdit('')
-        # optimizerParamsLayout.addWidget(QLabel('Algorithm parameters'))
-        # optimizerParamsLayout.addWidget(self.algorithm_params_edit)
-        # paramsLayout.addLayout(optimizerParamsLayout)
-        # experimentParamsLayout = QVBoxLayout()
-        # self.cost_params_edit = QTextEdit('')
-        # experimentParamsLayout.addWidget(QLabel('Experiment parameters'))
-        # experimentParamsLayout.addWidget(self.cost_params_edit)
-        # paramsLayout.addLayout(experimentParamsLayout)
-        # self.addLayout(paramsLayout)
         layout = QGridLayout()
         self.addLayout(layout)
 
+        ''' Algorithm/experiment select layout '''
+        self.cost_box = QComboBox()
+        self.algorithm_box = QComboBox()
+        layout.addWidget(self.algorithm_box, 0, 0)
+        layout.addWidget(self.cost_box, 0, 1)
+
         ''' Algorithm parameters '''
         self.apl = QTableWidget()
-        layout.addWidget(self.apl, 0, 0)
+        layout.addWidget(self.apl, 1, 0)
         self.apl.insertColumn(0)
         self.apl.insertColumn(1)
         self.apl.setHorizontalHeaderLabels(['Parameter', 'Value'])
@@ -53,7 +39,7 @@ class ServoLayout(QVBoxLayout, ProcessHandler):
 
         ''' Experiment parameters '''
         self.epl = QTableWidget()
-        layout.addWidget(self.epl, 0, 1)
+        layout.addWidget(self.epl, 1, 1)
         self.epl.insertColumn(0)
         self.epl.insertColumn(1)
         self.epl.setHorizontalHeaderLabels(['Parameter', 'Value'])

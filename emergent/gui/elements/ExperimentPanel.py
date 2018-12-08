@@ -46,25 +46,6 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         runTab.setLayout(self.runPanel)
         self.tabWidget.addTab(runTab, 'Run')
 
-    def double_parse(self, algo, experiment, algo_edit, experiment_edit):
-        ''' Updates the QLineEdits for algorithm and experiment parameters
-            with the default dicts parsed from file. For any duplicate keys,
-            overwrite from experiment to algorithm. For example, to always use
-            20 steps in a grid search, just include "steps":20 in the params
-            dict for the @experiment. '''
-        exp_params = self.file_to_dict(experiment, experiment, 'experiment')
-        algo_params = self.file_to_dict(algo, experiment, 'algorithm')
-        for p in algo_params:
-            if p in exp_params:
-                algo_params[p] = exp_params[p]
-                del exp_params[p]
-        self.dict_to_edit(exp_params, experiment_edit)
-        self.dict_to_edit(algo_params, algo_edit)
-
-    def dict_to_edit(self, d, edit):
-        string = json.dumps(d).replace('{', '').replace(',', '\n').replace('}', '')
-        edit.setText(string)
-
     def file_to_dict(self, algo, experiment, param_type):
         ''' Generates parameter suggestions for either the algorithm or experiment
             params, based on the choice of param_type. First attempts to pull relevant
@@ -128,27 +109,9 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
                     json.dump(params, file)
                 return d
         else:
+            if 'cycles per sample' not in params['experiment']:
+                params['experiment']['cycles per sample'] = 1
             return params['experiment']
-    #
-    # def save_experiment_params(self, panel):
-    #     network_name = __main__.network_path.split('.')[2]
-    #     control = self.parent.treeWidget.currentItem().root
-    #     experiment = getattr(control, panel.cost_box.currentText())
-    #     params_filename = './networks/%s/params/'%network_name + '%s.%s.txt'%(control.name, experiment.__name__)
-    #
-    #     ''' Pull params from gui '''
-    #     edit = panel.cost_params_edit
-    #     cost_params = edit.toPlainText().replace('\n',',').replace("'", '"')
-    #     cost_params = json.loads('{' + cost_params + '}')
-    #     ''' Load old params from file '''
-    #     with open(params_filename, 'r') as file:
-    #         old_cost_params = json.load(file)
-    #
-    #     ''' Update old params with new values and save to file '''
-    #     for p in cost_params:
-    #         old_cost_params['experiment'][p] = cost_params[p]
-    #     with open(params_filename, 'w') as file:
-    #         json.dump(old_cost_params, file)
 
     def save_params(self, panel, param_type):
         ''' param_type: 'experiment' or 'algorithm' '''
@@ -217,7 +180,6 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         ''' Read default params dict from source code and insert it in self.cost_params_edit. '''
         if panel.cost_box.currentText() is '':
             return
-        # control = self.parent.treeWidget.get_selected_control()
         control = self.parent.treeWidget.currentItem().root
         experiment = getattr(control, panel.cost_box.currentText())
         d = self.file_to_dict(experiment, experiment, 'experiment')
@@ -229,26 +191,18 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
     def update_algorithm_and_experiment(self, panel):
         if panel.cost_box.currentText() is '':
             return
-        # try:
         algo = getattr(Optimizer, panel.algorithm_box.currentText().replace(' ','_'))
-        # control = self.parent.treeWidget.get_selected_control()
         control = self.parent.treeWidget.currentItem().root
         experiment = getattr(control, panel.cost_box.currentText())
         exp_params = self.file_to_dict(experiment, experiment, 'experiment')
         algo_params = self.file_to_dict(algo, experiment, 'algorithm')
 
-        # except AttributeError:
-        #     print('attribute error!')
-        #     return
         self.clear_parameters(panel)
         for p in algo_params:
             self.add_parameter(panel, p, str(algo_params[p]))
         self.clear_cost_parameters(panel)
         for p in exp_params:
             self.add_cost_parameter(panel, p, str(exp_params[p]))
-
-
-
 
     def start_process(self, *args, process = '', panel = None, settings = {}):
         ''' Load any non-passed settings from the GUI '''

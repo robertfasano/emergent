@@ -14,8 +14,6 @@ class OptimizeLayout(QVBoxLayout, ProcessHandler):
         ProcessHandler.__init__(self)
         self.parent = parent
         self.name = 'Optimize'
-        self.current_algorithm = None
-        self.current_control = None
 
         layout = QGridLayout()
 
@@ -25,10 +23,6 @@ class OptimizeLayout(QVBoxLayout, ProcessHandler):
         layout.addWidget(self.algorithm_box, 0, 0)
         layout.addWidget(self.cost_box, 0, 1)
         self.addLayout(layout)
-
-        ''' Pane labels layout '''
-        # layout.addWidget(QLabel('Algorithm parameters'), 1, 0)
-        # layout.addWidget(QLabel('Experiment parameters'), 1, 1)
 
         ''' Algorithm parameters '''
         self.apl = QTableWidget()
@@ -49,22 +43,13 @@ class OptimizeLayout(QVBoxLayout, ProcessHandler):
         self.epl.horizontalHeader().setStretchLastSection(True)
         self.cost_params_edit = QTextEdit('')
 
-
-        self.saveLayout = QHBoxLayout()
         self.save_algorithm_button = QPushButton('Save')
         self.save_algorithm_button.clicked.connect(lambda: self.parent.save_params(self, 'algorithm'))
-        self.saveLayout.addWidget(self.save_algorithm_button)
         self.save_experiment_button = QPushButton('Save')
         self.save_experiment_button.clicked.connect(lambda: self.parent.save_params(self, 'experiment'))
-        self.saveLayout.addWidget(self.save_experiment_button)
-        self.addLayout(self.saveLayout)
+        layout.addWidget(self.save_algorithm_button, 3, 0)
+        layout.addWidget(self.save_experiment_button, 3, 1)
 
-        plotLayout = QHBoxLayout()
-        self.cycles_per_sample_edit = QLineEdit('1')
-        self.cycles_per_sample_edit.setMaximumWidth(100)
-        plotLayout.addWidget(QLabel('Cycles per sample'))
-        plotLayout.addWidget(self.cycles_per_sample_edit)
-        self.addLayout(plotLayout)
         self.algorithm_box.currentTextChanged.connect(lambda: self.parent.update_algorithm_and_experiment(self))
         self.cost_box.currentTextChanged.connect(lambda: self.parent.update_algorithm_and_experiment(self))
         optimizeButtonsLayout = QHBoxLayout()
@@ -87,7 +72,8 @@ class OptimizeLayout(QVBoxLayout, ProcessHandler):
         settings['algo_params'] = self.parent.get_params(self)
         settings['cost_params'] = self.parent.get_cost_params(self)
         settings['callback'] = None
-        settings['cost_params']['cycles per sample'] = int(self.cycles_per_sample_edit.text())
+        if 'cycles per sample' not in settings['cost_params']:
+            settings['cost_params']['cycles per sample'] = 1
         return settings
 
     def run_process(self, sampler, settings, index, t):

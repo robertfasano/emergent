@@ -22,15 +22,9 @@ class RunLayout(QVBoxLayout, ProcessHandler):
         self.parent = parent
         self.name = 'Run'
         self.cost_box = QComboBox()
-        self.current_control = None
 
         self.addWidget(self.cost_box)
         self.cost_box.currentTextChanged.connect(lambda: self.parent.update_experiment(self))
-
-        # self.run_experimentParamsLayout = QVBoxLayout()
-        # self.run_experimentParamsLayout.addWidget(QLabel('Experiment parameters'))
-        # self.run_experimentParamsLayout.addWidget(self.cost_params_edit)
-        # self.addLayout(self.run_experimentParamsLayout)
 
         ''' Experiment parameters '''
         self.epl = QTableWidget()
@@ -63,9 +57,6 @@ class RunLayout(QVBoxLayout, ProcessHandler):
         self.runExperimentButton.clicked.connect(lambda: parent.start_process(process='run', panel = self, settings = {}))
 
         self.runButtonsLayout.addWidget(self.runExperimentButton)
-        # self.stopExperimentButton = QPushButton('Stop')
-        # self.stopExperimentButton.clicked.connect(self.stop_experiment)
-        # self.runButtonsLayout.addWidget(self.stopExperimentButton)
         self.addLayout(self.runButtonsLayout)
 
     def get_settings_from_gui(self):
