@@ -14,13 +14,17 @@ class Minimize():
                                             description = 'Convergence criterion')
 
     @algorithm
-    def run(self, state, cost, params={'Tolerance':1e-7}, cost_params = {}):
+    def run(self, state):
         ''' Runs a specified scipy minimization method on the target axes and cost. '''
-        arr, bounds = self.sampler.initialize(state, cost, params, cost_params)
+        arr, bounds = self.sampler.prepare(state)
         keys = list(state.keys())
         res = minimize(fun=self.sampler._cost,
                    x0=arr,
                    bounds=bounds,
                    args = (state,),
                    method='L-BFGS-B',
-                   tol = params['Tolerance'])
+                   tol = self.params['Tolerance'].value)
+
+    def set_params(self, params):
+        for p in params:
+            self.params[p].value = params[p]

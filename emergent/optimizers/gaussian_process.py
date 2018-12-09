@@ -67,30 +67,30 @@ class GaussianProcessRegression():
         return b*mu-(1-b)*sigma
 
     @algorithm
-    def run(self, state, cost, params={'Presampled points': 15, 'Iterations':10, 'Batch size':10, 'Kernel amplitude': 1, 'Kernel length scale': 1, 'Kernel noise': 0.1}, cost_params = {}, callback = None):
+    def run(self, state, callback = None):
         ''' Online Gaussian process regression. Batch sampling is done with
             points with varying trade-off of optimization vs. exploration. '''
         if callback is None:
             callback = self.sampler.callback
-        X, bounds = self.sampler.initialize(state, cost, params, cost_params)
+        X, bounds = self.sampler.prepare(state)
         c = np.array([self.sampler._cost(X)])
-        points, costs = self.sampler.sample(state, cost, cost_params, 'random_sampling', params['Presampled points'])
+        points, costs = self.sampler.sample(state, 'random_sampling', self.params['Presampled points'].value)
         X = np.append(np.atleast_2d(X), points, axis=0)
         c = np.append(c, costs)
-        kernel = C(params['Kernel amplitude'], (1e-3, 1e3)) * RBF(params['Kernel length scale'], (1e-2, 1e2)) + WhiteKernel(params['Kernel noise'])
+        kernel = C(self.params['Kernel amplitude'].value, (1e-3, 1e3)) * RBF(self.params['Kernel length scale'].value, (1e-2, 1e2)) + WhiteKernel(self.params['Kernel noise'].value)
         self.gp = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=10)
-        for i in range(int(params['Iterations'])):
+        for i in range(int(self.params['Iterations'].value)):
             if not callback():
                 return points[0:len(costs)], costs
             self.gp.fit(X,c)
-            a = i / (params['Iterations']-1)        # scale from explorer to optimizer through iterations
-            for j in range(int(params['Batch size'])):
-                b = a * j / (params['Batch size']-1)        # scale from explorer to optimizer throughout batch
+            a = i / (self.params['Iterations'].value-1)        # scale from explorer to optimizer through iterations
+            for j in range(int(self.params['Batch size'].value)):
+                b = a * j / (self.params['Batch size'].value-1)        # scale from explorer to optimizer throughout batch
                 X_new = self.next_sample(X, bounds, b, self.effective_cost, self.gp, restarts=10)
                 X_new = np.atleast_2d(X_new)
                 X = np.append(X, X_new, axis=0)
                 c = np.append(c, self.sampler._cost(X[-1]))
-                self.progress = (j+i*params['Batch size'])/params['Batch size']/params['Iterations']
+                self.progress = (j+i*self.params['Batch size'].value)/self.params['Batch size'].value/self.params['Iterations'].value
         best_point = self.sampler.array2state(X[np.argmin(c)])
         self.sampler.actuate(self.sampler.unnormalize(best_point))
         # if params['plot']:
@@ -108,3 +108,7 @@ class GaussianProcessRegression():
         #         predict_costs = np.append(predict_costs, self.gp.predict(np.atleast_2d(point)))
         #     plot_2D(predict_points, predict_costs)
         return X, c
+
+    def set_params(self, params):
+        for p in params:
+            self.params[p].value = params[p]

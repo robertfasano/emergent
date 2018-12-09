@@ -23,12 +23,12 @@ class PatternSearch():
                                             description = 'Convergence criterion')
 
     @algorithm
-    def run(self, state, cost, params={'Step size': 0.1, 'Samples': 5, 'Tolerance': 0.01}, cost_params = {}):
-        X, bounds = self.sampler.initialize(state, cost, params, cost_params)
-        delta = params['Step size']
-        N = int(params['Samples'])
+    def run(self, state):
+        X, bounds = self.sampler.prepare(state)
+        delta = self.params['Step size'].value
+        N = int(self.params['Samples'].value)
 
-        while delta > params['Tolerance']:
+        while delta > self.params['Tolerance'].value:
 
             ''' Form all search steps '''
             steps = []
@@ -86,3 +86,7 @@ class PatternSearch():
                         N *= 2
             if not updated:
                 delta /= 2
+
+    def set_params(self, params):
+        for p in params:
+            self.params[p].value = params[p]

@@ -11,11 +11,11 @@ class Adam():
                                             min = 0.001,
                                             max = 0.1,
                                             description = 'Scaling factor for steps along the gradient')
-        self.params['Iterations'] = Parameter(name= 'Iterations',
-                                            value = 100,
-                                            min = 10,
-                                            max = 1000,
-                                            description = 'Number of iterations')
+        self.params['Tolerance'] = Parameter(name= 'Tolerance',
+                                            value = 0.01,
+                                            min = 0.001,
+                                            max = 0.05,
+                                            description = 'Convergence is detected when the gradient is this fraction of the max gradient')
         self.params['Dither'] = Parameter(name= 'Dither',
                                             value = 0.01,
                                             min = 0.0001,
@@ -33,21 +33,36 @@ class Adam():
                                             description = 'Exponential decay rate for second-moment estimates')
 
     @algorithm
-    def run(self, state, cost, params={'Learning rate':1, 'Iterations': 100, 'Dither': 0.01, 'beta_1': 0.9, 'beta_2': 0.999}, cost_params = {}):
-        arr, bounds = self.sampler.initialize(state, cost, params, cost_params)
+    def run(self, state):
+        arr, bounds = self.sampler.prepare(state)
+        costs = [self.sampler._cost(arr)]
         m = np.zeros(len(arr))
         v = np.zeros(len(arr))
         epsilon = 1e-8
-        for s in range(int(params['Iterations'])):
+        gradients = []
+        while True:
             ''' compute gradient '''
-            g = self.sampler.estimate_gradient(arr, params['Dither'])
-            m = params['beta_1']*m+(1-params['beta_1'])*g
-            v = params['beta_2']*v + (1-params['beta_2'])*g**2
+            g = self.sampler.estimate_gradient(arr, self.params['Dither'].value)
+            gradients.append(g)
 
-            mhat = m/(1-params['beta_1'])
-            vhat = v/(1-params['beta_2'])
+            gmag = np.dot(g,g)
+            max_gmag = np.dot(np.max(gradients), np.max(gradients))
+            if gmag/max_gmag < self.params['Tolerance'].value and costs[-1] < np.max(costs):
+                break
+            m = self.params['beta_1'].value*m+(1-self.params['beta_1'].value)*g
+            v = self.params['beta_2'].value*v + (1-self.params['beta_2'].value)*g**2
+
+            mhat = m/(1-self.params['beta_1'].value)
+            vhat = v/(1-self.params['beta_2'].value)
 
             ''' move along gradient '''
-            arr = arr - params['Learning rate']*mhat/(np.sqrt(vhat)+epsilon)
+            arr = arr - self.params['Learning rate'].value*mhat/(np.sqrt(vhat)+epsilon)
+            costs.append(self.sampler._cost(arr))
+
+
 
         self.sampler._cost(arr)
+
+    def set_params(self, params):
+        for p in params:
+            self.params[p].value = params[p]

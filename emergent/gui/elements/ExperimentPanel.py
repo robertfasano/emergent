@@ -264,6 +264,7 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         if hasattr(panel, 'algorithm_box'):
             algorithm_name = panel.algorithm_box.currentText()
             algo = self.get_algorithm(algorithm_name, panel)
+            algo.set_params(algo_params)
             algo.sampler = sampler
             algo.parent = control
             settings['algorithm'] = algo.run

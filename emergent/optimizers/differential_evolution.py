@@ -1,5 +1,6 @@
 from utility import Parameter, algorithm
 import numpy as np
+from scipy.optimize import differential_evolution
 
 class DifferentialEvolution():
     def __init__(self):
@@ -28,15 +29,19 @@ class DifferentialEvolution():
                                             description = 'Crossover probability. Increasing this value allows a larger number of mutants to progress into the next generation, but at the risk of population stability.')
 
     @algorithm
-    def run(self, state, cost, params={'Population':15, 'Tolerance':0.01, 'Mutation': 1,'Recombination':0.7}, cost_params = {}):
+    def run(self, state):
         ''' Differential evolution algorithm from scipy.optimize. '''
-        X, bounds = self.sampler.initialize(state, cost, params, cost_params)
+        X, bounds = self.sampler.prepare(state)
         keys = list(state.keys())
         res = differential_evolution(func=self.sampler._cost,
                    bounds=bounds,
                    args = (state,),
                    strategy='best1bin',
-                   tol = params['Tolerance'],
-                   mutation = params['Mutation'],
-                   recombination = params['Recombination'],
-                   popsize = params['Population'])
+                   tol = self.params['Tolerance'].value,
+                   mutation = self.params['Mutation'].value,
+                   recombination = self.params['Recombination'].value,
+                   popsize = int(self.params['Population'].value))
+
+    def set_params(self, params):
+        for p in params:
+            self.params[p].value = params[p]

@@ -147,18 +147,10 @@ class Sampler():
             g = np.append(g, gi)
         return g
 
-    def initialize(self, state, cost, params, cost_params):
-        ''' Creates a history dataframe to log the sampling. Normalizes the
-            state in terms of the min/max of each Input node, then prepares a
-            bounds array. '''
-        self.cost = cost
-        self.state = state
-        self.cost_name = cost.__name__
-        self.params = params
-        self.cost_params = cost_params
-        self.inputs = {}
+    def prepare(self, state):
         num_items = 0
         cols = []
+        self.inputs = {}
         for dev in state:
             self.inputs[dev] = []
             for input in state[dev]:
@@ -170,7 +162,19 @@ class Sampler():
         self.history = pd.DataFrame(columns=cols)
         bounds = np.array(list(itertools.repeat([0,1], num_items)))
         state = self.state2array(state)
+
         return state, bounds
+
+    def initialize(self, state, cost, params, cost_params):
+        ''' Creates a history dataframe to log the sampling. Normalizes the
+            state in terms of the min/max of each Input node, then prepares a
+            bounds array. '''
+        self.cost = cost
+        self.state = state
+        self.cost_name = cost.__name__
+        self.params = params
+        self.cost_params = cost_params
+        return self.prepare(state)
 
     def normalize(self, unnorm):
         ''' Normalizes a state or substate based on min/max values of the Inputs,
@@ -208,17 +212,17 @@ class Sampler():
         return fig
 
     ''' Sampling methods '''
-    def sample(self, state, cost, cost_params, method='random_sampling', points = 1, bounds = None):
+    def sample(self, state, method='random_sampling', points = 1, bounds = None):
         ''' Returns a list of points sampled with the specified method, as well as
             the cost function evaluated at these points. '''
         if bounds is None:
             bounds = np.array(list(itertools.repeat([0,1], len(state.keys()))))
         func = getattr(self, method)
-        points, cost = func(state, cost, cost_params, int(points), bounds)
+        points, cost = func(state, int(points), bounds)
 
         return points, cost
 
-    def random_sampling(self,state, cost, cost_params, points, bounds, callback = None):
+    def random_sampling(self,state, points, bounds, callback = None):
         ''' Performs a random sampling of the cost function at N points within
             the specified bounds. '''
         if callback is None:
@@ -233,12 +237,14 @@ class Sampler():
             costs.append(c)
 
         return points, costs
-    def grid_sampling(self, state, cost, params, cost_params, points,  args=None, norm = True, callback = None):
+
+    def grid_sampling(self, state, points, args=None, norm = True, callback = None):
         ''' Performs a uniformly-spaced sampling of the cost function in the
             space spanned by the passed-in state dict. '''
         if callback is None:
             callback = self.callback
-        arr, bounds = self.initialize(state, cost, params, cost_params)
+        # arr, bounds = self.initialize(state, cost, params, cost_params)
+        arr, bounds = self.prepare(state)
         N = len(arr)
         grid = []
         for n in range(N):

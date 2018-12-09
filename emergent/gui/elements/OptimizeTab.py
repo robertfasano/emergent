@@ -90,7 +90,7 @@ class OptimizeLayout(QVBoxLayout, ProcessHandler):
         params = settings['algo_params']
         cost_params = settings['cost_params']
         control = settings['control']
-        algo(state, cost, params, cost_params)
+        algo(state)
         log.info('Optimization complete!')
         control.samplers[index]['status'] = 'Done'
         sampler.log(t.replace(':','') + ' - ' + cost.__name__ + ' - ' + algo.__name__)
