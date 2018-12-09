@@ -1,11 +1,79 @@
 from PyQt5.QtWidgets import (QComboBox, QLabel, QTextEdit, QPushButton, QVBoxLayout,
-        QTableWidgetItem, QTableWidget, QHBoxLayout, QGridLayout)
+        QTableWidgetItem, QTableWidget, QHBoxLayout, QGridLayout, QMenu, QAction)
 from PyQt5.QtCore import *
+from PyQt5.QtGui import QCursor
 from emergent.archetypes.parallel import ProcessHandler
 import inspect
 import datetime
 import json
 import logging as log
+import numpy as np
+
+class CustomTable(QTableWidget, ProcessHandler):
+    def __init__(self, parent):
+        QTableWidget.__init__(self)
+        ProcessHandler.__init__(self)
+        self.parent = parent
+
+    def contextMenuEvent(self, event):
+        self.menu = QMenu(self)
+        self.action = QAction('Tune')
+        self.action.triggered.connect(lambda: self._run_thread(self.tune))
+        self.menu.addAction(self.action)
+        self.menu.popup(QCursor.pos())
+
+    def tune(self, stopped):
+        pos = self.viewport().mapFromGlobal(QCursor.pos())
+        row = self.rowAt(pos.y())
+        name = self.item(row, 0).text()
+        settings = self.parent.get_settings_from_gui()
+        cost = getattr(settings['control'], settings['cost_name'])
+        sampler, index = settings['control'].attach_sampler(settings['state'], cost)
+        algorithm_name = self.parent.algorithm_box.currentText()
+        algorithm = self.parent.parent.get_algorithm(algorithm_name, self.parent)
+        algorithm.sampler = sampler
+        algorithm.parent = settings['control']
+        run = algorithm.run
+        default_params = algorithm.params
+        min = default_params[name].min
+        max = default_params[name].max
+        values = np.linspace(min, max, 3)
+
+        c = []
+        for v in values:
+            if stopped():
+                return
+            print('Running optimization with %s=%f...'%(name, v))
+            settings['algo_params'][name] = v
+            settings['control'].actuate(settings['state'])
+            run(settings['state'], cost, settings['algo_params'], settings['cost_params'])
+            c.append(algorithm.sampler.history['cost'].iloc[-1])
+            print('...result:', c[-1])
+
+        print(c)
+
+
+        # state = {'deviceA': {'X': 0, 'Y': 0}}
+        # cost_params = {"x0": 0.3,
+        #                "noise": 0.01,
+        #                "y0": 0.6,
+        #                "sigma_y": 0.8,
+        #                "theta": 0,
+        #                "sigma_x": 0.3,
+        #                "cycles per sample": 1}
+        # cost = self.sampler.parent.cost_uncoupled
+        # algorithm = self.adam
+        # params={'learning rate':0.1, 'steps': 100, 'dither': 0.01, 'beta_1': 0.9, 'beta_2': 0.999, 'epsilon': 1e-8}
+        # pmin = 0.001
+        # pmax = 0.1
+        # steps = 10
+        # loss = []
+        # for p in np.logspace(pmin, pmax, steps):
+        #     params['dither'] = p
+        #     algorithm(state, cost, params, cost_params)
+        #     loss.append(self.sampler.history['cost'].iloc[-1])
+        #     print(loss)
+        # return loss
 
 class OptimizeLayout(QVBoxLayout, ProcessHandler):
     def __init__(self, parent):
@@ -24,7 +92,7 @@ class OptimizeLayout(QVBoxLayout, ProcessHandler):
         self.addLayout(layout)
 
         ''' Algorithm parameters '''
-        self.apl = QTableWidget()
+        self.apl = CustomTable(self)
         layout.addWidget(self.apl, 2, 0)
         self.apl.insertColumn(0)
         self.apl.insertColumn(1)
@@ -56,7 +124,6 @@ class OptimizeLayout(QVBoxLayout, ProcessHandler):
         layout.addWidget(self.reset_algorithm_button, 4, 0)
         layout.addWidget(self.reset_experiment_button, 4, 1)
 
-
         self.algorithm_box.currentTextChanged.connect(lambda: self.parent.update_algorithm_and_experiment(self))
         self.cost_box.currentTextChanged.connect(lambda: self.parent.update_algorithm_and_experiment(self))
         optimizeButtonsLayout = QHBoxLayout()
@@ -65,6 +132,7 @@ class OptimizeLayout(QVBoxLayout, ProcessHandler):
 
         optimizeButtonsLayout.addWidget(parent.optimizer_button)
         self.addLayout(optimizeButtonsLayout)
+
 
     def get_settings_from_gui(self):
         settings = {}
@@ -95,3 +163,17 @@ class OptimizeLayout(QVBoxLayout, ProcessHandler):
         control.samplers[index]['status'] = 'Done'
         sampler.log(t.replace(':','') + ' - ' + cost.__name__ + ' - ' + algo.__name__)
         sampler.active = False
+
+    def openMenu(self, pos):
+        item = self.itemAt(pos)
+        print(item)
+        # globalPos = self.mapToGlobal(pos)
+        # menu = QMenu()
+        # actions = {}
+        # for option in item.node.options:
+        #     actions[option] = QAction(option, self)
+        #     func = item.node.options[option]
+        #     actions[option].triggered.connect(func)
+        #     menu.addAction(actions[option])
+        #
+        # selectedItem = menu.exec_(globalPos)
