@@ -119,10 +119,10 @@ class PlotWidget(QWidget):
             self.tab2d_layout.addLayout(self.tab2d_inputs_layout)
             self.choose_input_pair()
 
-        ''' Setup auto-update '''
-        self.update_timer = QTimer(self)
-        self.update_timer.timeout.connect(self.update_figs)
-        self.update_timer.start(1000)
+        # ''' Setup auto-update '''
+        # self.update_timer = QTimer(self)
+        # self.update_timer.timeout.connect(self.update_figs)
+        # self.update_timer.start(1000)
 
     def choose_input(self):
         if self.canvas1 is not None:
