@@ -81,7 +81,7 @@ class MainFrame(QMainWindow):
         # layout.addLayout(self.sequencer)
 
         ''' Create history panel '''
-        self.historyPanel = HistoryPanel()
+        self.historyPanel = HistoryPanel(self)
         layout.addLayout(self.historyPanel)
 
     def get_system_stats(self):

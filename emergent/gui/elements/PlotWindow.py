@@ -1,12 +1,32 @@
 from PyQt5.QtWidgets import (QComboBox, QLabel, QTextEdit, QPushButton, QVBoxLayout,
-        QWidget, QHBoxLayout, QTabWidget, QGridLayout)
+        QWidget, QHBoxLayout, QTabWidget, QGridLayout, QMenu, QAction)
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import random
 from matplotlib.figure import Figure
 import json
 plt.ioff()
-from PyQt5.QtCore import QTimer
+from PyQt5.QtCore import QTimer, Qt
+from PyQt5.QtGui import QCursor, QPixmap
+
+class Canvas(FigureCanvas):
+    def __init__(self, fig, parent):
+        FigureCanvas.__init__(self, fig)
+        self.parent = parent
+        self.app = self.parent.container.parent.parent.app
+
+    def contextMenuEvent(self, event):
+        self.menu = QMenu(self)
+        self.action = QAction('Clip')
+        self.action.triggered.connect(self.save_to_clipboard)
+        self.menu.addAction(self.action)
+        self.menu.popup(QCursor.pos())
+
+
+    def save_to_clipboard(self):
+        pixmap = self.grab()
+        self.app.clipboard().setPixmap(pixmap)
+
 class PlotWidget(QWidget):
     def __init__(self, container, sampler, algorithm, inputs, hist_fig, cvp, pvt, fig2d, parent = None, title=''):
         super(PlotWidget, self).__init__(parent)
@@ -79,8 +99,6 @@ class PlotWidget(QWidget):
         self.tab1 = QWidget()
         self.tab2 = QWidget()
         self.tabs.addTab(self.tab1,"1D")
-        # self.fig1 = fig1
-        # self.canvas1 = FigureCanvas(self.fig1)
         self.tab1_layout = QVBoxLayout()
 
         self.tab1_input_layout = QHBoxLayout()
@@ -93,9 +111,7 @@ class PlotWidget(QWidget):
 
         self.tab1_plot_layout = QHBoxLayout()
         self.tab1_layout.addLayout(self.tab1_plot_layout)
-        # self.tab1_layout.addWidget(self.canvas1)
         self.tab1.setLayout(self.tab1_layout)
-        # self.canvas1.draw()
 
         self.canvas1 = None
         self.canvas2 = None
@@ -134,8 +150,8 @@ class PlotWidget(QWidget):
             self.tab1_plot_layout.removeWidget(self.canvas2)
             self.canvas2.deleteLater()
         input = self.input_box.currentText()
-        self.canvas1 = FigureCanvas(self.cvp[input])
-        self.canvas2 = FigureCanvas(self.pvt[input])
+        self.canvas1 = Canvas(self.cvp[input], self)
+        self.canvas2 = Canvas(self.pvt[input], self)
 
         self.tab1_plot_layout.addWidget(self.canvas1)
         self.tab1_plot_layout.addWidget(self.canvas2)
@@ -143,13 +159,14 @@ class PlotWidget(QWidget):
         self.canvas1.draw()
         self.canvas2.draw()
 
+
     def choose_input_pair(self):
         if self.canvas2d is not None:
             self.tab2d_layout.removeWidget(self.canvas2d)
             self.canvas2d.deleteLater()
 
         pair = self.axis_combo_box.currentText()
-        self.canvas2d = FigureCanvas(self.fig2d[pair])
+        self.canvas2d = Canvas(self.fig2d[pair], self)
 
         self.tab2d_layout.addWidget(self.canvas2d)
         self.canvas2d.draw()
@@ -163,7 +180,7 @@ class PlotWidget(QWidget):
         if self.canvas_hist is not None:
             self.canvas_hist_layout.removeWidget(self.canvas_hist)
             self.canvas_hist.deleteLater()
-        self.canvas_hist = FigureCanvas(self.hist_fig)
+        self.canvas_hist = Canvas(self.hist_fig, self)
         self.canvas_hist_layout.addWidget(self.canvas_hist)
         self.canvas_hist.draw()
 

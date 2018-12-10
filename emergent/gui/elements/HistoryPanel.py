@@ -27,8 +27,9 @@ class OptimizerItem(QTableWidgetItem):
         self.process_type = process_type
 
 class HistoryPanel(QVBoxLayout):
-    def __init__(self):
+    def __init__(self, parent):
         super().__init__()
+        self.parent = parent
         self.addWidget(QLabel('Tasks'))
         self.table = QTableWidget()
         self.addWidget(self.table)
