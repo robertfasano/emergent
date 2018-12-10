@@ -1,5 +1,5 @@
 import numpy as np
-from emergent.archetypes.node import Control
+from emergent.archetypes import Control
 from utility import experiment, error
 import datetime
 import time
@@ -8,6 +8,7 @@ import numpy as np
 class TestControl(Control):
         def __init__(self, name, parent=None, path = '.'):
                 super().__init__(name, parent, path=path)
+                self.sampler, index = self.attach_sampler(self.state, self.cost_uncoupled)
 
         def cost_coupled(self, state, params={}):
             return self.cost_uncoupled(state, theta=30*np.pi/180)
@@ -70,11 +71,6 @@ class TestControl(Control):
             time.sleep(params['cycle delay'])
             return(e)
 
-        def optimize_sequence(self):
-            self.clock.prepare_constant(1, 'deviceA.X', 15)
-            s = self.get_subsequence(['deviceA.X'])
-            self.optimizer.scipy_minimize(s, self.cost_ramp, params={'method':'Nelder-Mead', 'tol':4e-3, 'plot':0})
-            self.optimizer.animate_sequence_history()
 
 
         def scramble(self):

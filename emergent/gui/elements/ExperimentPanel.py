@@ -1,13 +1,8 @@
 from PyQt5.QtWidgets import (QComboBox, QLabel, QTextEdit, QPushButton, QVBoxLayout,
-        QWidget, QProgressBar, qApp, QHBoxLayout, QCheckBox, QTabWidget, QLineEdit, QSlider)
+        QWidget, QProgressBar, qApp, QHBoxLayout, QCheckBox, QTableWidgetItem, QTabWidget, QLineEdit, QSlider)
 from PyQt5.QtCore import *
-from emergent.archetypes.optimizer import Optimizer
-from emergent.gui.elements.OptimizeTab import OptimizeLayout
+from emergent.gui.elements import OptimizeLayout, ServoLayout, RunLayout
 from emergent.archetypes.parallel import ProcessHandler
-from emergent.gui.elements.ServoPanel import ServoLayout
-from emergent.gui.elements.RunPanel import RunLayout
-
-from emergent.utility import list_algorithms, list_triggers, list_servos
 import inspect
 import json
 import logging as log
@@ -17,6 +12,7 @@ import numpy as np
 import datetime
 import __main__
 import os
+import importlib
 
 class ExperimentLayout(QVBoxLayout, ProcessHandler):
     def __init__(self, parent):
@@ -46,123 +42,119 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         runTab.setLayout(self.runPanel)
         self.tabWidget.addTab(runTab, 'Run')
 
-    def double_parse(self, algo, experiment, algo_edit, experiment_edit):
-        ''' Updates the QLineEdits for algorithm and experiment parameters
-            with the default dicts parsed from file. For any duplicate keys,
-            overwrite from experiment to algorithm. For example, to always use
-            20 steps in a grid search, just include "steps":20 in the params
-            dict for the @experiment. '''
-        exp_params = self.file_to_dict(experiment, experiment, 'experiment')
-        algo_params = self.file_to_dict(algo, experiment, 'algorithm')
-        for p in algo_params:
-            if p in exp_params:
-                algo_params[p] = exp_params[p]
-                del exp_params[p]
-        self.dict_to_edit(exp_params, experiment_edit)
-        self.dict_to_edit(algo_params, algo_edit)
+    def get_default_params(self, name, panel):
+        inst = self.get_algorithm(name, panel)
+        params = inst.params
+        algo_params = {}
+        for p in params:
+            algo_params[p] = params[p].value
 
-    def dict_to_edit(self, d, edit):
-        string = json.dumps(d).replace('{', '').replace(',', '\n').replace('}', '')
-        edit.setText(string)
+        return algo_params
 
-    def file_to_dict(self, algo, experiment, param_type):
+    def load_module(self, panel):
+        if panel.name == 'Optimize':
+            module = importlib.__import__('optimizers')
+        else:
+            module = importlib.__import__('servos')
+        return module
+
+    def get_algorithm(self, name, panel):
+        module = self.load_module(panel)
+        return getattr(module, name)()
+
+    def get_description(self, panel, algo_name, parameter):
+        params = self.get_algorithm(algo_name, panel).params
+        return params[parameter].description
+
+
+    def list_algorithms(self, panel):
+        module = self.load_module(panel)
+        names = []
+        for a in dir(module):
+            if '__' not in a:
+                inst = getattr(module, a)
+                names.append(inst().name)
+        return names
+
+
+    def file_to_dict(self, algo, experiment, param_type, panel, default = False):
         ''' Generates parameter suggestions for either the algorithm or experiment
-            params, based on the choice of param_type. First attempts to pull relevant
-            parameters from a json file in the network's params directory; if this fails,
-            then it reads default values from the code. '''
+            params, based on the choice of param_type. '''
+
+        ''' Look for relevant parameters in the json file in the network's params directory '''
         network_name = __main__.network_path.split('.')[2]
         control = self.parent.treeWidget.currentItem().root
 
         if not os.path.exists('./networks/%s/params/'%network_name):
             os.mkdir('./networks/%s/params/'%network_name)
         params_filename = './networks/%s/params/'%network_name + '%s.%s.txt'%(control.name, experiment.__name__)
-        try:
-            ''' Load params from file '''
-            with open(params_filename, 'r') as file:
-                params = json.load(file)
-        except OSError:
-            ''' If file does not exist, then load from introspection '''
-            params = {'experiment': {}, 'algorithm': {}}
-            if param_type == 'algorithm':
-                params['algorithm'][algo.__name__] = {}
-
-            ''' load experiment params '''
-            args = inspect.signature(experiment).parameters
-            args = list(args.items())
-            for a in args:
-                if a[0] != 'params':
-                    continue
-                d = str(a[1]).split('=')[1]
-                d = json.loads(d.replace("'", '"'))
-            params['experiment'] = d
-
-            if param_type == 'algorithm':
-                args = inspect.signature(algo).parameters
-                args = list(args.items())
-                for a in args:
-                    if a[0] != 'params':
-                        continue
-                    d = str(a[1]).split('=')[1]
-                    d = json.loads(d.replace("'", '"'))
-                params['algorithm'][algo.__name__] = d
-
-            with open(params_filename, 'w') as file:
-                json.dump(params, file)
-
-        ''' Make sure the current algorithm's parameters are contained '''
-        if param_type == 'algorithm':
-            if algo.__name__ in params['algorithm']:
-                return params['algorithm'][algo.__name__]
-            else:
-                args = inspect.signature(algo).parameters
-                args = list(args.items())
-                for a in args:
-                    if a[0] != 'params':
-                        continue
-                    d = str(a[1]).split('=')[1]
-                    d = json.loads(d.replace("'", '"'))
+        if not default:
+            try:
+                ''' Load params from file '''
                 with open(params_filename, 'r') as file:
                     params = json.load(file)
-                params['algorithm'][algo.__name__] = d
-                with open(params_filename, 'w') as file:
-                    json.dump(params, file)
-                return d
+
+
+                ''' Make sure the current algorithm's parameters are contained '''
+                if param_type == 'algorithm':
+                    if algo.name in params['algorithm']:
+                        return params['algorithm'][algo.name]
+                    else:
+                        d = self.get_default_params(algo.name, panel)
+                        with open(params_filename, 'r') as file:
+                            params = json.load(file)
+                        params['algorithm'][algo.name] = d
+                        with open(params_filename, 'w') as file:
+                            json.dump(params, file)
+                        return d
+                else:
+                    if 'cycles per sample' not in params['experiment']:
+                        params['experiment']['cycles per sample'] = 1
+                    return params['experiment']
+
+            except OSError:
+                pass
+        ''' If file does not exist, then load from introspection '''
+        params = {'experiment': {}, 'algorithm': {}}
+        if param_type == 'algorithm':
+            params['algorithm'][algo.name] = {}
+
+        ''' load experiment params '''
+        args = inspect.signature(experiment).parameters
+        args = list(args.items())
+        for a in args:
+            if a[0] != 'params':
+                continue
+            d = str(a[1]).split('=')[1]
+            d = json.loads(d.replace("'", '"'))
+        params['experiment'] = d
+
+        if param_type == 'algorithm':
+            params['algorithm'][algo.name] = self.get_default_params(algo.name, panel)
+
+        with open(params_filename, 'w') as file:
+            json.dump(params, file)
+
+        if param_type == 'algorithm':
+            return params['algorithm'][algo.name]
         else:
+            if 'cycles per sample' not in params['experiment']:
+                params['experiment']['cycles per sample'] = 1
             return params['experiment']
-    #
-    # def save_experiment_params(self, panel):
-    #     network_name = __main__.network_path.split('.')[2]
-    #     control = self.parent.treeWidget.currentItem().root
-    #     experiment = getattr(control, panel.cost_box.currentText())
-    #     params_filename = './networks/%s/params/'%network_name + '%s.%s.txt'%(control.name, experiment.__name__)
-    #
-    #     ''' Pull params from gui '''
-    #     edit = panel.cost_params_edit
-    #     cost_params = edit.toPlainText().replace('\n',',').replace("'", '"')
-    #     cost_params = json.loads('{' + cost_params + '}')
-    #     ''' Load old params from file '''
-    #     with open(params_filename, 'r') as file:
-    #         old_cost_params = json.load(file)
-    #
-    #     ''' Update old params with new values and save to file '''
-    #     for p in cost_params:
-    #         old_cost_params['experiment'][p] = cost_params[p]
-    #     with open(params_filename, 'w') as file:
-    #         json.dump(old_cost_params, file)
 
     def save_params(self, panel, param_type):
         ''' param_type: 'experiment' or 'algorithm' '''
         network_name = __main__.network_path.split('.')[2]
         control = self.parent.treeWidget.currentItem().root
-        algorithm = getattr(Optimizer, panel.algorithm_box.currentText().replace(' ', '_'))
+        algorithm_name = panel.algorithm_box.currentText()
+
         experiment = getattr(control, panel.cost_box.currentText())
         params_filename = './networks/%s/params/'%network_name + '%s.%s.txt'%(control.name, experiment.__name__)
 
         ''' Pull params from gui '''
-        edit_name = {'experiment': 'cost', 'algorithm': 'algorithm'}[param_type]
-        edit = getattr(panel, edit_name + '_params_edit')
-        params = edit.toPlainText().replace('\n',',').replace("'", '"')
-        params = json.loads('{' + params + '}')
+        f = {'algorithm': lambda: self.get_params(panel), 'experiment': lambda: self.get_cost_params(panel)}[param_type]
+        params = f()
+
         ''' Load old params from file '''
         with open(params_filename, 'r') as file:
             old_params = json.load(file)
@@ -172,7 +164,7 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
             if param_type == 'experiment':
                 old_params[param_type][p] = params[p]
             else:
-                old_params[param_type][algorithm.__name__][p] = params[p]
+                old_params[param_type][algorithm_name][p] = params[p]
         with open(params_filename, 'w') as file:
             json.dump(old_params, file)
 
@@ -182,10 +174,11 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         if algo:
             panel.algorithm_box.clear()
             if exp_or_error == 'experiment':
-                for item in list_algorithms():
+                for item in self.list_algorithms(panel):
                     panel.algorithm_box.addItem(item.replace('_',' '))
+                    panel.algorithm_box.setCurrentText('GridSearch')
             elif exp_or_error == 'error':
-                for item in list_servos():
+                for item in self.list_algorithms(panel):
                     panel.algorithm_box.addItem(item.replace('_',' '))
         if exp_or_error == 'error':
             panel.cost_box.clear()
@@ -213,28 +206,36 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         ''' Read default params dict from source code and insert it in self.cost_params_edit. '''
         if panel.cost_box.currentText() is '':
             return
-        # control = self.parent.treeWidget.get_selected_control()
         control = self.parent.treeWidget.currentItem().root
         experiment = getattr(control, panel.cost_box.currentText())
-        d = self.file_to_dict(experiment, experiment, 'experiment')
-        self.dict_to_edit(d, panel.cost_params_edit)
+        d = self.file_to_dict(experiment, experiment, 'experiment', panel)
 
-    def update_algorithm_and_experiment(self, panel):
+        self.clear_cost_parameters(panel)
+        for p in d:
+            self.add_cost_parameter(panel, p, str(d[p]))
+
+    def update_algorithm_and_experiment(self, panel, default = False, update_algorithm = True, update_experiment = True):
         if panel.cost_box.currentText() is '':
             return
-        try:
-            algo = getattr(Optimizer, panel.algorithm_box.currentText().replace(' ','_'))
-            # control = self.parent.treeWidget.get_selected_control()
-            control = self.parent.treeWidget.currentItem().root
-            experiment = getattr(control, panel.cost_box.currentText())
-            exp_params = self.file_to_dict(experiment, experiment, 'experiment')
-            algo_params = self.file_to_dict(algo, experiment, 'algorithm')
-            self.dict_to_edit(exp_params, panel.cost_params_edit)
-            self.dict_to_edit(algo_params, panel.algorithm_params_edit)
-
-        except AttributeError:
+        if panel.algorithm_box.currentText() is '':
             return
+        control = self.parent.treeWidget.currentItem().root
+        experiment = getattr(control, panel.cost_box.currentText())
 
+        if update_algorithm:
+            algo_name = panel.algorithm_box.currentText()
+            algo = self.get_algorithm(algo_name, panel)
+            algo_params = self.file_to_dict(algo, experiment, 'algorithm', panel, default = default)
+            self.clear_parameters(panel)
+            for p in sorted(algo_params):
+                desc = self.get_description(panel, algo.name, p)
+                self.add_parameter(panel, p, str(algo_params[p]), desc)
+
+        if update_experiment:
+            exp_params = self.file_to_dict(experiment, experiment, 'experiment', panel, default = default)
+            self.clear_cost_parameters(panel)
+            for p in sorted(exp_params):
+                self.add_cost_parameter(panel, p, str(exp_params[p]))
 
     def start_process(self, *args, process = '', panel = None, settings = {}):
         ''' Load any non-passed settings from the GUI '''
@@ -256,16 +257,17 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         state = settings['state']
 
         ''' Create optimizer/sampler '''
-        optimizer, index = settings['control'].attach_optimizer(state, cost)
-        sampler, index = settings['control'].attach_sampler(state, cost, optimizer=optimizer)
+        sampler, index = settings['control'].attach_sampler(state, cost)
         sampler.initialize(state, cost, algo_params, cost_params)
-        control.optimizers[index]['status'] = process
         control.samplers[index]['status'] = process
 
         if hasattr(panel, 'algorithm_box'):
-            algorithm_name = panel.algorithm_box.currentText().replace(' ', '_')
-            algo = getattr(optimizer, algorithm_name)
-            settings['algorithm'] = algo
+            algorithm_name = panel.algorithm_box.currentText()
+            algo = self.get_algorithm(algorithm_name, panel)
+            algo.set_params(algo_params)
+            algo.sampler = sampler
+            algo.parent = control
+            settings['algorithm'] = algo.run
         else:
             algorithm_name = 'Run'
 
@@ -282,3 +284,43 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         if process == 'run':
             stoppable = True
         panel._run_thread(panel.run_process, args = (sampler, settings, index, t), stoppable=stoppable)
+
+    def clear_parameters(self, panel):
+        panel.apl.setRowCount(0)
+
+    def clear_cost_parameters(self, panel):
+        panel.epl.setRowCount(0)
+
+    def get_params(self, panel):
+        params = {}
+        for row in range(panel.apl.rowCount()):
+            name = panel.apl.item(row, 0).text()
+            value = panel.apl.item(row, 1).text()
+            params[name] = float(value)
+        return params
+
+    def get_cost_params(self, panel):
+        params = {}
+        for row in range(panel.epl.rowCount()):
+            name = panel.epl.item(row, 0).text()
+            value = panel.epl.item(row, 1).text()
+            params[name] = float(value)
+        return params
+
+    def add_parameter(self, panel, name, value, description):
+        row = panel.apl.rowCount()
+        panel.apl.insertRow(row)
+        name_item = QTableWidgetItem(name)
+        name_item.setToolTip(description)
+        name_item.setFlags(name_item.flags() ^ Qt.ItemIsEditable)
+
+        panel.apl.setItem(row, 0, name_item)
+        panel.apl.setItem(row, 1, QTableWidgetItem(str(value)))
+
+    def add_cost_parameter(self, panel, name, value):
+        row = panel.epl.rowCount()
+        panel.epl.insertRow(row)
+        name_item = QTableWidgetItem(name)
+        name_item.setFlags(name_item.flags() ^ Qt.ItemIsEditable)
+        panel.epl.setItem(row, 0, name_item)
+        panel.epl.setItem(row, 1, QTableWidgetItem(str(value)))

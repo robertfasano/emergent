@@ -1,4 +1,4 @@
-from emergent.archetypes.node import Control
+from emergent.archetypes import Control
 from utility import experiment, extract_pulses
 import numpy as np
 import time

@@ -1,6 +1,7 @@
-from emergent.archetypes.node import Control
+from emergent.archetypes import Control
 from emergent.controls.autoAlign import AutoAlign
 from emergent.networks.gmot.controls.mot import MOT
+<<<<<<< HEAD
 from emergent.devices.labjackT7 import LabJack
 from emergent.devices.picoAmp import PicoAmp
 from emergent.devices.current_driver import CurrentDriver
@@ -9,6 +10,10 @@ from emergent.devices.netcontrols import NetControls
 from emergent.devices.novatech import Novatech
 from emergent.devices.agilis import Agilis
 from emergent.networks.gmot.controls.loader import Loader
+=======
+from emergent.devices import LabJack, PicoAmp, CurrentDriver, IntensityServo, NetControls, Novatech, Agilis
+
+>>>>>>> 6dbba65a1782fa48514052b60cbdec0e66ec883e
 from __main__ import *
 
 ''' Define autoAlign '''

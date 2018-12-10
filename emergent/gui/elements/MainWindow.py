@@ -4,17 +4,11 @@ import inspect
 import sys
 import types
 from PyQt5.QtGui import QIcon, QStandardItem, QStandardItemModel, QFont
-from PyQt5.QtWidgets import (QApplication, QAbstractItemView,QCheckBox, QComboBox, QGridLayout,
-        QGroupBox, QHBoxLayout, QLabel, QTextEdit, QTreeView, QPushButton, QTableView,QVBoxLayout,
+from PyQt5.QtWidgets import (QHBoxLayout, QLabel, QTreeView, QPushButton, QVBoxLayout,
         QWidget, QMenu, QAction, QTreeWidget, QTreeWidgetItem, QMainWindow, QStatusBar, QMenuBar)
 from PyQt5.QtCore import *
 import json
-from emergent.archetypes.optimizer import Optimizer
-from emergent.gui.elements.ExperimentPanel import ExperimentLayout
-# from emergent.gui.elements.sequencer import SequencerLayout
-from emergent.gui.elements.NetworkPanel import NodeTree
-from emergent.gui.elements.HistoryPanel import HistoryPanel
-from emergent.gui.elements.ServoPanel import ServoLayout
+from emergent.gui.elements import ExperimentLayout, HistoryPanel, ServoLayout, NodeTree
 import os
 import psutil
 import sys
@@ -37,6 +31,8 @@ class MainFrame(QMainWindow):
         height_fraction = width_fraction/1.618
         width = self.app.desktop().screenGeometry().width()*width_fraction
         height = self.app.desktop().screenGeometry().height()*height_fraction
+        width = 1440
+        height = 720
         self.resize(width, height)
 
         ''' Create menu bar '''
@@ -85,7 +81,7 @@ class MainFrame(QMainWindow):
         # layout.addLayout(self.sequencer)
 
         ''' Create history panel '''
-        self.historyPanel = HistoryPanel()
+        self.historyPanel = HistoryPanel(self)
         layout.addLayout(self.historyPanel)
 
     def get_system_stats(self):

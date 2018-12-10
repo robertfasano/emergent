@@ -1,6 +1,6 @@
 import asyncio
 import json
-from emergent.archetypes.node import Control
+from emergent.archetypes import Control
 from threading import Thread
 
 class Server():

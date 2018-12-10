@@ -47,17 +47,6 @@ def getChar():
 
     return getChar._func()
 
-def list_algorithms():
-    ''' Returns a list of all methods tagged with the '@algorithm' decorator '''
-    from emergent.archetypes.optimizer import Optimizer
-    return methodsWithDecorator(Optimizer, 'algorithm')
-
-def list_servos():
-    ''' Returns a list of all methods tagged with the '@servo' decorator '''
-    from emergent.archetypes.optimizer import Optimizer
-    return methodsWithDecorator(Optimizer, 'servo')
-
-
 def list_triggers(control):
     ''' Returns a list of all methods tagged with the '@trigger' decorator '''
     return methodsWithDecorator(control.__class__, 'trigger')
@@ -87,11 +76,19 @@ class Timer():
 def dev(func):
     return func
 
+class Parameter():
+    def __init__(self, name, value, min, max, description):
+        self.name = name
+        self.value = value
+        self.min = min
+        self.max = max
+        self.description = description
+
 @decorator.decorator
 def experiment(func, *args, **kwargs):
     results = []
     params = args[2]
-    for i in range(params['cycles per sample']):
+    for i in range(int(params['cycles per sample'])):
         c = func(*args, **kwargs)
         results.append(c)
     c = np.mean(results)

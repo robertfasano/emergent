@@ -1,6 +1,6 @@
 import time
 from emergent.devices.labjackT7 import LabJack
-from emergent.archetypes.node import Device
+from emergent.archetypes import Device
 import numpy as np
 import sys
 import os

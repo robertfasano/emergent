@@ -47,7 +47,7 @@ if __name__ == '__main__':
             except KeyError:
                 continue
 
-    from emergent.archetypes.parallel import ProcessHandler
+    from emergent.archetypes import ProcessHandler
     class TestClass(ProcessHandler):
         def __init__(self):
             super().__init__()

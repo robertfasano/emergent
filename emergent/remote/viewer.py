@@ -9,7 +9,6 @@ from PyQt5.QtWidgets import (QApplication, QAbstractItemView,QCheckBox, QComboBo
         QWidget, QMenu, QAction, QTreeWidget, QTreeWidgetItem, QMainWindow, QStatusBar)
 from PyQt5.QtCore import *
 import json
-from emergent.archetypes.optimizer import Optimizer
 from emergent.remote.NetworkPanel import NodeTree
 from emergent.archetypes.client import Client
 import os

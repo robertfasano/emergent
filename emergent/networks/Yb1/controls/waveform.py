@@ -1,4 +1,4 @@
-from emergent.archetypes.node import Device
+from emergent.archetypes import Device
 import logging as log
 import numpy as np
 import time
