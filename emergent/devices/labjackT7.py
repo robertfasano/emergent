@@ -80,7 +80,11 @@ class LabJack(ProcessHandler, Device):
                 for channels in [self.output_channels]:
                     for ch in channels:
                         self.add_input(ch)
-
+            try:
+                ''' Stop streaming if currently running '''
+                ljm.eStreamStop(self.handle)
+            except:
+                pass
             return 1
 
         except Exception as e:
