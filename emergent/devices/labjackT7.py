@@ -395,7 +395,10 @@ class LabJack(ProcessHandler, Device):
             aNames.append('STREAM_CLOCK_SOURCE')    # Enabling internally-clocked stream.
             aValues.append(0)
         self._write_array(aNames, aValues)
-        self.stream_mode = 'out-triggered'
+        if trigger is not None:
+            self.stream_mode = 'out-triggered'
+        else:
+            self.stream_mode = 'out'
 
     def stream_out(self, channels, data, scanRate, loop = 0):
         ''' Streams data at a given scan rate. Currently only supports analog channels.
