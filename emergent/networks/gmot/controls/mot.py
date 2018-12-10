@@ -17,123 +17,93 @@ class MOT(Control):
         self.labjack.prepare_streamburst(channel=0)
         self.labjack.AOut(3,-5,HV=True)
         self.labjack.AOut(2,5, HV=True)
-        self.trigger_labjack = LabJack(devid='440010734', name = 'trigger', parent=self)
-        self.set_offset(0)
+        self.TTL_labjack = LabJack(devid='470016970', name = 'TTL')
+        self.trigger_labjack = LabJack(devid='440010734', name='trigger')
+        self.timer = Timer()
+        self.MEMS_enable(1)
 
-    def set_offset(self, offset):
-        self.offset = offset
-        self.trigger_labjack.AOut(1,offset)
+    def MEMS_enable(self, state):
+        self.TTL_labjack.DOut(3, state)
 
-    def center_signal(self, threshold = .010, gain = .1):
-        ''' Applies an offset with DAC1 to zero the signal received on AIN0. '''
-        signal = 0
-        oscillation_count = 0
-        while True:
-            last_signal = signal
-            signal = self.labjack.AIn(0)
-            if np.sign(last_signal) != np.sign(signal):
-                oscillation_count += 1
-            else:
-                oscillation_count = 0
-            if oscillation_count > 2:
-                gain *= .5
-            if np.abs(signal) < threshold:
-                break
-            print('offset: %f to %f'%(self.offset, self.offset+gain))
-
-            self.set_offset(self.offset+gain*signal)
-            print('signal:',signal)
-
+    def MEMS_wave(self, period):
+        t = np.linspace(0,period, 100000)
+        y = np.zeros(len(t))
+        y[t>period/2] = 1
+        y = self.TTL_labjack.array_to_bitmask(np.atleast_2d(y).T, [3])
+        self.TTL_labjack.prepare_stream_out(trigger=None)
+        sequence, scanRate = self.TTL_labjack.resample(np.atleast_2d(y).T, period)
+        self.TTL_labjack.stream_out(['FIO_STATE'], sequence, scanRate, loop=1)
 
     @experiment
-    def probe_switch(self, state, params = {'stream step': 0.001, 'loading time': 1, 'probe delay': 0.0005, 'probe time': 0.1, 'trigger delay': 0.01}):
-        ''' Queue triggered stream-out on intensity servo channels '''
-        if 'servo' in state:
-            state['servo']['V0'] = 0
+    def probe_switch(self, state, params = {'samples': 1, 'trigger delay': 0.1, 'stream step': 0.001}):
+        results = []
+        self.TTL_labjack.DIO_STATE([1,2,3], [1,0,1])        # switch off light and integrators
         self.actuate(state)
 
+        for key in ['loading time', 'probe time', 'probe delay', 'gate time']:
+            params[key] = self.children['loader'].state[key]/1000
         cycle_time = params['loading time'] + params['probe time']
-        servo = self.children['servo']
-        lj = servo.labjack
         max_samples = int(cycle_time/params['stream step'])
 
-        t = np.linspace(0,cycle_time, 1000)
-        y = np.zeros((len(t),2))
-        y[t<params['loading time'], 0] = 3.3
-        y[t>params['loading time']+params['probe delay'], 1] = 3.3
-        lj.prepare_stream_out(trigger=0)
-        sequence, scanRate = lj.resample(y, cycle_time, max_samples = max_samples)
-        lj.stream_out([0,1], sequence, scanRate, loop=0)
+        ''' Prepare TTL stream '''
+        self.TTL_labjack.prepare_digital_stream([1,2,3,4])
 
-        ''' Queue triggered stream-in on self.labjack '''
-        self.timer.log('Preparing input stream')
-        if self.labjack.stream_mode is not 'in-triggered':
-            self.labjack.prepare_streamburst(0, trigger=0)
-        self.process_manager._run_thread(self.probe_trigger, args=(params['trigger delay'],), stoppable=False)
-        self.timer.log('Running input stream')
-        data = self.labjack.streamburst(cycle_time)
+        ''' Prepare TTL pattern '''
+        t = np.linspace(0,cycle_time, 100000)
+        y = np.zeros((len(t),4))
+        y[t<params['loading time'], 1] = 1          # TTL high shuts off probe RF switch (FIO2)
+        y[t<params['loading time'], 2] = 1          # TTL high to enable MOT MEMS (FIO3)
+        y[t<params['loading time'], 3] = 0          # TTL low to enable MOT integrators (FIO4)
 
-        time_per_point = cycle_time/len(data)
-        probe_point = int((params['loading time']+params['probe delay'])/time_per_point)
-        data = data[probe_point::]
-        print(np.max(data))
+        y[t>params['loading time'], 2] = 0          # TTL low to disable MOT MEMS (FIO3)
+        y[t>params['loading time'], 3] = 1          # TTL high to disable MOT integrators and start reading (FIO4)
 
-        return -np.max(data)
+        y[t>params['loading time']-params['probe delay'], 1] = 0    # TTL low to turn on probe RF switch/integrator (FIO2)
+        y[t>params['loading time']-params['probe delay'], 0] = 1    # TTL high to start acquisition (FIO1)
+        y = self.TTL_labjack.array_to_bitmask(y, [1,2,3,4])
 
-    #
-    # @experiment
-    # def probe_pulse(self, state, params = {'loading time': 1, 'probe time': 0.1, 'trigger delay': 0.01}):
-    #     ''' Queue triggered stream-out on intensity servo channels '''
-    #     self.actuate(state)
-    #     cycle_time = params['loading time'] + params['probe time']
-    #     servo = self.children['servo']
-    #
-    #     probe_labjack = servo.labjack[0]
-    #     probe_stream = np.array([[0,0], [params['loading time'], self.state['servo']['V0']]])
-    #     probe_labjack.prepare_stream_out(trigger=0)
-    #     sequence, scanRate = probe_labjack.resample(probe_stream, cycle_time)
-    #     probe_labjack.stream_out([0], sequence, scanRate, loop=0)
-    #
-    #     trap_labjack = servo.labjack[1]
-    #     t = np.linspace(0,cycle_time, 1000)
-    #     y = np.zeros((len(t),2))
-    #     y[t<params['loading time'], 0] = self.state['servo']['V2']
-    #     y[t<params['loading time'], 1] = self.state['servo']['V3']
-    #     trap_labjack.prepare_stream_out(trigger=0)
-    #     sequence, scanRate = trap_labjack.resample(y, cycle_time)
-    #     trap_labjack.stream_out([0,1], sequence, scanRate, loop=0)
-    #
-    #     ''' Queue triggered stream-in on self.labjack '''
-    #     if self.labjack.stream_mode is not 'in-triggered':
-    #         self.labjack.prepare_streamburst(0, trigger=0)
-    #     self.process_manager._run_thread(self.probe_trigger, args=(params['trigger delay'],), stoppable=False)
-    #     data = self.labjack.streamburst(cycle_time)
-    #     print(np.max(data))
-    #     plt.plot(data)
-    #     self.actuate(state)
-    #     return -np.max(data)
-    #
-    # @experiment
-    # def pulsed_slowing(self, state = None, params = {'pulse time': 0.5, 'settling time': 0.05}):
-    #     if state is not None:
-    #         self.actuate(state)
-    #     self.children['servo'].lock(2,0)
-    #     self.labjack.DOut(4,0)
-    #     low = self.labjack.streamburst(duration=params['pulse time'], operation = 'mean')
-    #     self.labjack.DOut(4,1)
-    #     self.children['servo'].lock(2,1)
-    #     high = self.labjack.streamburst(duration=params['pulse time'], operation = 'mean')
-    #     return -high    # low is subtracted out by SRS
+
+
+        for i in range(params['samples']):
+            self.TTL_labjack.DIO_STATE([1,2,3], [1,0,1])        # switch off light and integrators
+
+            ''' Write TTL pattern '''
+            self.TTL_labjack.prepare_stream_out(trigger=0)
+            sequence, scanRate = self.TTL_labjack.resample(np.atleast_2d(y).T, cycle_time)
+            self.TTL_labjack.stream_out(['FIO_STATE'], sequence, scanRate, loop=0)
+
+            ''' Queue triggered stream-in on self.labjack '''
+            if self.labjack.stream_mode is not 'in-triggered':
+                self.labjack.prepare_streamburst(0, trigger=0)
+            self.process_manager._run_thread(self.probe_trigger, args=(params['trigger delay'],), stoppable=False)
+            data = np.array(self.labjack.streamburst(params['probe time']))
+
+            ''' Process data '''
+            time_per_point = params['probe time']/len(data)
+            max_point = np.argmax(data)
+            data = data[max_point:max_point+int(params['gate time']/time_per_point)]
+            results.append(np.mean(data))
+
+        mean = np.mean(results)
+        error = np.std(results)/np.sqrt(len(results))
+        print(mean*1000, error*1000)
+        return -mean
+
 
     @experiment
     def fluorescence(self, state, params = {'settling time': 0.1, 'duration': 0.25}):
         self.actuate(state)
         time.sleep(params['settling time'])
         data = self.labjack.streamburst(duration=params['duration'], operation = None)
-        print(str(np.mean(data)) + '+/-' + str(np.std(data)))
+        print(str(np.mean(data)*1000) + '+/-' + str(np.std(data)*1000))
         return -np.mean(data)
+
+    # def probe_trigger(self, trigger_delay = 0.001):
+    #     for i in range(10):
+    #         time.sleep(trigger_delay)
+    #         self.trigger_labjack.DOut(4, i%2)
 
     def probe_trigger(self, trigger_delay = 0.001):
         for i in range(10):
             time.sleep(trigger_delay)
-            self.trigger_labjack.DOut(4, i%2)
+            self.trigger_labjack.AOut(0, 3.3*(i%2))
