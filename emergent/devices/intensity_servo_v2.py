@@ -22,9 +22,12 @@ class IntensityServo(Device):
         # self.add_input('V1')
         self.add_input('V2')
         self.add_input('V3')
-        self.options['Enable'] = self.lock_all
-        self.options['Disable'] = self.unlock_all
-        self.lock_all()
+
+        self.options['Probe'] = self.probe
+        self.options['Load'] = self.load
+
+        # enable MOT and disable probe to start
+        self.options['Load']()
 
     def _actuate(self, state):
         ''' Sets setpoint via analog out control.
@@ -34,21 +37,30 @@ class IntensityServo(Device):
         '''
         for name in state:
             channel = int(name[1])
-            self.labjack.AOut(channel+4, state[name], HV=True)
->>>>>>> 188d6f22ffc5957779f73e116cf2e91047321910
+            self.labjack.AOut(channel, state[name], HV=True)
 
     def _connect(self):
         return
 
-    def lock_all(self):
+    def enable(self):
+        ''' Switches on rf switches and integrator '''
         # self.labjack.DOut('FIO1', 0)
         self.labjack.AOut(0,0)
         self.labjack.AOut(1,0)
 
-    def unlock_all(self):
+    def disable(self):
+        ''' Switches off rf switch and integrator '''
         # self.labjack.DOut('FIO1', 1)
-        self.labjack.AOut(0,1)
-        self.labjack.AOut(1,1)
+        self.labjack.AOut(0,3.3)
+        self.labjack.AOut(1,3.3)
+
+    def load(self):
+        self.labjack.AOut(0, 3.3)
+        self.labjack.AOut(1, 0)
+
+    def probe(self):
+        self.labjack.AOut(0, 0)
+        self.labjack.AOut(1, 3.3)
 
     # def autolock(self, channel, frac = 0.9):
     #     ''' Locks the servo to the specified fraction of the unlocked power. '''
