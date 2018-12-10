@@ -335,8 +335,19 @@ class LabJack(ProcessHandler, Device):
             max_speed = 100000
         elif self.deviceType == ljm.constants.dtT4:
             max_speed = 40000
-        scanRate = np.min([max_samples / duration, max_speed])
-        scanRate, aData = ljm.streamBurst(self.handle, 1, self.aScanList, scanRate, max_samples)
+
+        cutoff = max_samples / max_speed
+        if duration >= cutoff:
+            samples = max_samples
+            scanRate = int(samples/duration)
+            # print('Speed limited; samples = %f, speed = %f'%(samples, speed))
+        else:
+            scanRate = max_speed
+            samples = int(duration*scanRate)
+        # scanRate = np.min([max_samples / duration, max_speed])
+        # samples = max_samples
+
+        scanRate, aData = ljm.streamBurst(self.handle, 1, self.aScanList, scanRate, samples)
 
         if operation is None:
             return aData
