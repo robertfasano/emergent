@@ -2,7 +2,7 @@ from emergent.archetypes import Control
 from emergent.controls.autoAlign import AutoAlign
 from emergent.networks.gmot.controls.mot import MOT
 from emergent.devices import LabJack, PicoAmp, CurrentDriver, IntensityServo, NetControls, Novatech, Agilis
-
+from emergent.networks.gmot.controls.loader import Loader
 from __main__ import *
 
 ''' Define autoAlign '''
