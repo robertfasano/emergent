@@ -45,8 +45,9 @@ class CustomTable(QTableWidget, ProcessHandler):
                 return
             print('Running optimization with %s=%f...'%(name, v))
             settings['algo_params'][name] = v
+            algorithm.set_params(settings['algo_params'])
             settings['control'].actuate(settings['state'])
-            run(settings['state'], cost, settings['algo_params'], settings['cost_params'])
+            run(settings['state'])
             c.append(algorithm.sampler.history['cost'].iloc[-1])
             print('...result:', c[-1])
 
