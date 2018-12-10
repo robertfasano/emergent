@@ -18,10 +18,10 @@ class IntensityServo(Device):
         super().__init__(name, parent = parent)
         self.labjack = LabJack(devid=devid)
 
-        self.add_input('V0')
+        self.add_input('probe')
         # self.add_input('V1')
-        self.add_input('V2')
-        self.add_input('V3')
+        self.add_input('slowing')
+        self.add_input('trapping')
 
         self.options['Probe'] = self.probe
         self.options['Load'] = self.load
@@ -36,7 +36,7 @@ class IntensityServo(Device):
                 state (dict): State dict of the form {'V1':1, 'V2':2,...}
         '''
         for name in state:
-            channel = int(name[1])
+            channel = {'probe': 0, 'slowing': 2, 'trapping': 3}[name]
             self.labjack.AOut(channel, state[name], HV=True)
 
     def _connect(self):

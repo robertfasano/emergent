@@ -9,8 +9,8 @@ class Novatech(Device):
         super().__init__(name='novatech', parent = parent)
         self.port = port
         # self._connected = self._connect()
-        self.add_input('f0')
-        self.add_input('f1')
+        self.add_input('slowing')
+        self.add_input('trapping')
         self.frequency = {}
         self.amplitude = {}
 
@@ -29,7 +29,8 @@ class Novatech(Device):
 
     def _actuate(self, state):
         for name in state:
-            self.set_frequency(int(name[1]), state[name])
+            ch = {'slowing': 0, 'trapping': 1}[name]
+            self.set_frequency(ch, state[name])
 
     def set_amplitude(self,ch, V):
         self.amplitude[ch] = V
