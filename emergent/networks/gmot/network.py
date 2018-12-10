@@ -8,6 +8,7 @@ from emergent.devices.intensity_servo_v2 import IntensityServo
 from emergent.devices.netcontrols import NetControls
 from emergent.devices.novatech import Novatech
 from emergent.devices.agilis import Agilis
+from emergent.networks.gmot.controls.loader import Loader
 from __main__ import *
 
 ''' Define autoAlign '''
@@ -21,6 +22,7 @@ mems_slowing = PicoAmp('MEMS', labjack_slowing, parent=slowing)
 
 ''' Define MOT control hub '''
 mot = MOT(name='MOT', path='networks/%s'%sys.argv[1])
+loader = Loader(name='loader', parent=mot)
 # feedthrough = NetControls('feedthrough', 'COM11', parent = mot)
 novatech = Novatech('novatech', 'COM4', parent = mot)
 servo = IntensityServo('servo', '470016973', parent = mot)
