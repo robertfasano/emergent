@@ -31,7 +31,7 @@ class CurrentDriver(Device, ProcessHandler):
                 port1 (str): Serial port for the first power supply (e.g. 'COM1').
                 port2 (str): Serial port for the second power supply (e.g. 'COM2').
                 parent (str): Name of the parent Control node.
-                labjack (archetypes.labjackT7.LabJack): LabJack instance to use.
+                labjack (archetypes.labjack.LabJack): LabJack instance to use.
         '''
         Device.__init__(self, name=name, parent = parent)
         ProcessHandler.__init__(self)

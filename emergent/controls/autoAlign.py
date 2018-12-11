@@ -1,5 +1,5 @@
 import time
-from emergent.devices.labjackT7 import LabJack
+from emergent.devices.labjack import LabJack
 from emergent.archetypes import Control
 import numpy as np
 import sys

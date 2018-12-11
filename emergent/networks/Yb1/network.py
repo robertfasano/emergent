@@ -1,7 +1,7 @@
 from emergent.networks.Yb1.controls.lattice import Lattice
 from emergent.networks.Yb1.controls.waveform import Ramp
 
-from emergent.devices.labjackT7 import LabJack
+from emergent.devices.labjack import LabJack
 
 from __main__ import *
 

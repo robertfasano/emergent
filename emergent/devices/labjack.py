@@ -247,6 +247,24 @@ class LabJack(ProcessHandler, Device):
         ljm.eWriteNameByteArray(self.handle, "SPI_DATA_TX", len(data), data)
         self._command("SPI_GO", 1)  # Do the SPI communications
 
+    ''' Digital streaming '''
+    def generate_pattern(self, sequence, cycle_time, steps = 1e6):
+        ''' Takes a sequence defined by FIO states for different channels at various
+            switching times, e.g. {0: [(0,0), (0.5,1)]} specifies that FIO0 should
+            switch from 0 to 1 at t=0.5. '''
+        t = np.linspace(0, cycle_time, int(steps))
+        y = np.zeros((len(t), len(sequence)))
+        for ch in sequence:
+            seq = sequence[ch]
+            for i in range(len(seq)):
+                t0 = seq[i][0]
+                state = seq[i][1]
+                y[t>=t0, ch-1] = state
+
+        return y
+
+
+
     ''' Streaming methods '''
     def prepare_digital_stream(self, channels):
         # prepare inhibit array
@@ -289,6 +307,7 @@ class LabJack(ProcessHandler, Device):
 
     def array_to_bitmask(self, arr, channels):
         ''' Convert multidimensional array with one column for each channel to an array of bitmasks. '''
+        print(channels)
         y = np.zeros(len(arr))
         for i in range(len(arr)):
             states = arr[i,:]

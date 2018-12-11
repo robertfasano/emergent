@@ -1,7 +1,7 @@
-Labjack T7
+Labjack
 ================
 
-.. automodule:: labjackT7
+.. automodule:: labjack
     :members:
     :undoc-members:
     :show-inheritance:

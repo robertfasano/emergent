@@ -1,5 +1,5 @@
 from emergent.archetypes import Device
-from emergent.devices.labjackT7 import LabJack
+from emergent.devices.labjack import LabJack
 import functools
 import time
 import numpy as np

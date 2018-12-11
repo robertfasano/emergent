@@ -1,4 +1,4 @@
-from emergent.devices.labjackT7 import LabJack
+from emergent.devices.labjack import LabJack
 from emergent.archetypes import Device
 
 class PZT(Device):
