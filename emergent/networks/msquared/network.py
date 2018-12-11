@@ -1,7 +1,5 @@
 from emergent.networks.msquared.controls.lock import Lock
-from emergent.devices.SolsTiS import SolsTiS
-from emergent.devices.bristol import Wavemeter
-from emergent.devices.PZT import PZT
+from emergent.networks.msquared.devices import PZT, SolsTiS, Wavemeter
 import sys
 
 lock = Lock('lattice')
