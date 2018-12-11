@@ -45,8 +45,8 @@ class CurrentDriver(Device, ProcessHandler):
 
         self.probe_coefficient = 2000/49.9
 
-        self.add_input('I1')
-        self.add_input('I2')
+        self.add_input('gradient')
+        self.add_input('zero')
 
         # self._connected = self._connect()
 
@@ -128,7 +128,7 @@ class CurrentDriver(Device, ProcessHandler):
              log.error('Failed to connect to coils:', e)
              return 0
 
-    def _actuate(self, state):
+    def _actuate_real(self, state):
         ''' Set the current of each coil.
 
             Args:
@@ -137,6 +137,16 @@ class CurrentDriver(Device, ProcessHandler):
         for key in state.keys():
             coil = int(key[1])
             self.set_current(coil, state[key])
+
+    def _actuate(self, state):
+        ''' Set the current of each coil.
+
+            Args:
+                state (dict): State dict containing target currents in amps, e.g. {'I1':50, 'I2':40}.
+        '''
+        self.state.update(state)
+        real_state = self.virtual_to_real(self.state['gradient'], self.state['zero'])
+        self._actuate_real(real_state)
 
     def set_current(self, coil, current):
         ''' Sets the current of the targeted coil based on the IV calibration.
@@ -158,6 +168,25 @@ class CurrentDriver(Device, ProcessHandler):
         '''
 
         return MU0/2 * (N1*I1*R1**2/(R1**2+(z-Z1)**2)**(3/2)-N2*I2*R2**2/(R2**2+(z-Z2)**2)**(3/2))
+
+    def virtual_to_real(self, grad, z0):
+        ''' Converts a virtual state with gradient and zero into a real state with
+            currents I1, I2.
+
+            Args:
+                state (dict): State dict with gradient in G/cm and zero position in mm, e.g. {'grad':50, 'zero':0}.
+            Returns:
+                real_state (dict): State dict with real currents in amps, e.g. {'I1':50, 'I2':40}.
+        '''
+        z0 /= 1000
+        grad /= 100
+        denom = (z0-Z1)*(R2**2+(z0-Z2)*(Z1-Z2))-R1**2*(z0-Z2)
+        alpha = 2/3/MU0 * (R1**2+(z0-Z1)**2)*(R2**2+(z0-Z2)**2)/denom
+        I1 = alpha * (R1**2+(z0-Z1)**2)**(3/2)/N1/R1**2 * grad
+        I2 = alpha * (R2**2+(z0-Z2)**2)**(3/2)/N2/R2**2 * grad
+
+        return {'I1':I1, 'I2':I2}
+
 
     def pulse(self, N=20, A=10, T=1):
         i=0

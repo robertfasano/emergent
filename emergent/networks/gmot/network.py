@@ -1,8 +1,7 @@
-from emergent.archetypes import Control
 from emergent.controls.autoAlign import AutoAlign
-from emergent.networks.gmot.controls.mot import MOT
-from emergent.devices import LabJack, PicoAmp, CurrentDriver, IntensityServo, NetControls, Novatech, Agilis
-from emergent.networks.gmot.controls.loader import Loader
+from emergent.networks.gmot.controls import MOT, Loader
+from emergent.devices import LabJack, PicoAmp, NetControls, Novatech
+from emergent.networks.gmot.devices import CurrentDriver, IntensityServo
 from __main__ import *
 
 ''' Define autoAlign '''
@@ -20,10 +19,5 @@ loader = Loader(name='loader', parent=mot)
 # feedthrough = NetControls('feedthrough', 'COM11', parent = mot)
 novatech = Novatech('novatech', 'COM4', parent = mot)
 servo = IntensityServo('servo', '470016973', parent = mot)
-# agilis = Agilis('COM15', 'agilis', parent=mot)
 labjack_coils = LabJack(devid='440010680', name = 'labjack')
 coils = CurrentDriver('coils', 'COM13', 'COM18', parent = mot,labjack = labjack_coils)
-
-# devid = '470016973'    # T7
-# labjack_MEMS = LabJack(devid=devid)
-# mems = PicoAmp('MEMS', labjack_MEMS, parent=mot, comm='analog')
