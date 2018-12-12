@@ -220,8 +220,10 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         if panel.algorithm_box.currentText() is '':
             return
         control = self.parent.treeWidget.currentItem().root
-        experiment = getattr(control, panel.cost_box.currentText())
-
+        try:
+            experiment = getattr(control, panel.cost_box.currentText())
+        except AttributeError:
+            return
         if update_algorithm:
             algo_name = panel.algorithm_box.currentText()
             algo = self.get_algorithm(algo_name, panel)
