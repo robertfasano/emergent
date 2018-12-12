@@ -121,21 +121,31 @@ class PlotWidget(QWidget):
         self.choose_input()
 
         ''' 2d tab '''
-        if len(inputs) > 1 and self.container.process_type == 'optimize':
-            self.axis_combos = list(self.fig2d.keys())
-            self.tab2d = QWidget()
-            self.tabs.addTab(self.tab2d,"2D")
-            self.tab2d_layout = QVBoxLayout()
-            self.tab2d.setLayout(self.tab2d_layout)
+        # if len(inputs) > 1 and self.container.process_type == 'optimize':
+        #     self.axis_combos = list(self.fig2d.keys())
+        #     self.tab2d = QWidget()
+        #     self.tabs.addTab(self.tab2d,"2D")
+        #     self.tab2d_layout = QVBoxLayout()
+        #     self.tab2d.setLayout(self.tab2d_layout)
+        #
+        #     self.tab2d_inputs_layout = QHBoxLayout()
+        #     self.axis_combo_box = QComboBox()
+        #     self.tab2d_inputs_layout.addWidget(self.axis_combo_box)
+        #     for pair in self.axis_combos:
+        #         self.axis_combo_box.addItem(pair)
+        #     self.axis_combo_box.currentTextChanged.connect(self.choose_input_pair)
+        #     self.tab2d_layout.addLayout(self.tab2d_inputs_layout)
+        #     self.choose_input_pair()
 
-            self.tab2d_inputs_layout = QHBoxLayout()
-            self.axis_combo_box = QComboBox()
-            self.tab2d_inputs_layout.addWidget(self.axis_combo_box)
-            for pair in self.axis_combos:
-                self.axis_combo_box.addItem(pair)
-            self.axis_combo_box.currentTextChanged.connect(self.choose_input_pair)
-            self.tab2d_layout.addLayout(self.tab2d_inputs_layout)
-            self.choose_input_pair()
+        if len(inputs) == 2:
+            self.tab_algo = QWidget()
+            self.tabs.addTab(self.tab_algo, 'Algorithm')
+            fig = self.sampler.algorithm.plot()
+            self.canvas_algorithm = Canvas(fig, self)
+            self.tab_algo_layout = QVBoxLayout(self.tab_algo)
+            self.tab_algo_layout.addWidget(self.canvas_algorithm)
+            self.canvas_algorithm.draw()
+
 
         # ''' Setup auto-update '''
         # self.update_timer = QTimer(self)

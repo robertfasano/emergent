@@ -266,6 +266,7 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
             algo = self.get_algorithm(algorithm_name, panel)
             algo.set_params(algo_params)
             algo.sampler = sampler
+            sampler.algorithm = algo
             algo.parent = control
             settings['algorithm'] = algo.run
         else:

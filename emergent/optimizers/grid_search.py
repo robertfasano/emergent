@@ -1,5 +1,6 @@
 from utility import Parameter, algorithm
 import numpy as np
+from emergent.archetypes import visualization
 
 class GridSearch():
     def __init__(self):
@@ -18,13 +19,15 @@ class GridSearch():
         # no longer uses params
         # arr, bounds = self.sampler.initialize(state, cost, params, cost_params)
         ''' Generate search grid '''
-        points, costs = self.sampler.grid_sampling(state, self.params['Steps'].value)
+        self.points, self.costs = self.sampler.grid_sampling(state, self.params['Steps'].value)
 
-        best_point = self.sampler.array2state(points[np.argmin(costs)])
+        best_point = self.sampler.array2state(self.points[np.argmin(self.costs)])
         # self.sampler.actuate(self.sampler.unnormalize(best_point))
         self.sampler._cost(best_point)
-        return points, costs
 
     def set_params(self, params):
         for p in params:
             self.params[p].value = params[p]
+
+    def plot(self):
+        return visualization.plot_2D(self.points, -self.costs)
