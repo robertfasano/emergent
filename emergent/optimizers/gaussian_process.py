@@ -92,8 +92,15 @@ class GaussianProcessRegression():
                 self.points = np.append(self.points, X_new, axis=0)
                 self.costs = np.append(self.costs, self.sampler._cost(self.points[-1]))
                 self.progress = (j+i*self.params['Batch size'].value)/self.params['Batch size'].value/self.params['Iterations'].value
+        self.gp.fit(self.points,self.costs)
         best_point = self.sampler.array2state(self.points[np.argmin(self.costs)])
         self.sampler.actuate(self.sampler.unnormalize(best_point))
+
+        self.params['Kernel length scale'] = self.gp.kernel_.get_params()['k1__k2__length_scale']
+        self.params['Kernel amplitude'] = self.gp.kernel_.get_params()['k1__k1__constant_value']
+        self.params['Kernel noise'] = self.gp.kernel_.get_params()['k2__noise_level']
+
+        return self.params
 
     def set_params(self, params):
         for p in params:
