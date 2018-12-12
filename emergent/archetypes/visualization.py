@@ -46,7 +46,9 @@ def plot_2D(points, costs, normalized_cost = False, limits = None,
         log.warn('Cannot create matplotlib plot in thread.')
         return
 
-    points = points.copy()
+    costs = costs.copy()[::-1]
+    points = points.copy()[::-1]        # ignore last point where we return to max, since this messes up the interpolation
+    norm_points = points.copy()[::-1]
     ordinate_index = 0
     abscissa_index = 1
     if limits is not None:
@@ -59,11 +61,12 @@ def plot_2D(points, costs, normalized_cost = False, limits = None,
         # cost_grid = griddata(points[:,[ordinate_index, abscissa_index]], normalized_costs, (ordinate_mesh,abscissa_mesh))
     # else:
     cost_grid = griddata(points[:,[ordinate_index, abscissa_index]], costs, (ordinate_mesh,abscissa_mesh))
-    # plot = ax.pcolormesh(ordinate_mesh, abscissa_mesh, cost_grid, cmap=color_map)
     i = int(len(points)/2)
-    best_point = points[np.argmin(costs)]
-    ix = int(best_point[0]*cost_grid.shape[0])
-    iy = int(best_point[1]*cost_grid.shape[1])
+    best_norm_point = norm_points[np.argmax(costs)]
+    best_point = points[np.argmax(costs)]
+
+    ix = int(best_norm_point[0]*cost_grid.shape[0])
+    iy = int(best_norm_point[1]*cost_grid.shape[1])
 
     xi = ordinate_mesh[ix,:]
     yi = abscissa_mesh[:,iy]
@@ -78,7 +81,7 @@ def plot_2D(points, costs, normalized_cost = False, limits = None,
     ax0 = plt.subplot(gs[0:8, 0:8])
     axx = plt.subplot(gs[8:10, 0:8])
     axy = plt.subplot(gs[0:8, 8:10])
-
+    # ax0.scatter(points[:,0], points[:,1])
     plot = ax0.pcolormesh(ordinate_mesh, abscissa_mesh, cost_grid, cmap=color_map)
     # plt.colorbar(plot, ax = ax0)
 
