@@ -17,67 +17,124 @@ class MOT(Control):
         self.labjack.prepare_streamburst(channel=0)
         self.labjack.AOut(3,-5,HV=True)
         self.labjack.AOut(2,5, HV=True)
-        self.TTL_labjack = LabJack(devid='470016970', name = 'TTL')
+        self.TTL = LabJack(devid='470016970', name = 'TTL')
         self.trigger_labjack = LabJack(devid='440010734', name='trigger')
         self.timer = Timer()
-        self.MEMS_enable(1)
 
-    def MEMS_enable(self, state):
-        self.TTL_labjack.DOut(3, state)
+        self.PROBE_LIGHT = 1 #done
+        self.MOT_RF = 2
+        self.MOT_INTEGRATOR = 4
+        self.ADC = self.MOT_INTEGRATOR
+        self.MOT_SHUTTER = 3
 
-    def MEMS_wave(self, period):
-        t = np.linspace(0,period, 100000)
-        y = np.zeros(len(t))
-        y[t>period/2] = 1
-        y = self.TTL_labjack.array_to_bitmask(np.atleast_2d(y).T, [3])
-        self.TTL_labjack.prepare_stream_out(trigger=None)
-        sequence, scanRate = self.TTL_labjack.resample(np.atleast_2d(y).T, period)
-        self.TTL_labjack.stream_out(['FIO_STATE'], sequence, scanRate, loop=1)
+        ''' Enable MOT '''
+        self.TTL.DOut(self.PROBE_LIGHT, 1)     # disable probe
+        self.TTL.DOut(self.MOT_RF, 0)     # enable MOT AOM
+        self.TTL.DOut(self.MOT_SHUTTER,1)      # open MOT shutter
+        self.TTL.DOut(self.MOT_INTEGRATOR,0)      # enable MOT integrator
+
+    def atom_number(self, signal, background):
+        ''' Experimental variables '''
+        probe_power = 4.05e-3
+        Delta = -2*np.pi*(223.5/2-110)*1e6
+        r = 6.5e-3
+        SRS_gain = 5
+        PMT_gain_voltage = 0.433
+
+        ''' Constants '''
+        Lambda = 399e-9
+        c = 3e8
+        h=6.626e-34
+        Gamma=2*np.pi*29e6
+        Energy=h*c/Lambda
+        window_transmission = np.sqrt(0.86)
+        solid_angle = 0.0355757
+
+        P1 = probe_power*window_transmission
+        P2 = probe_power*window_transmission**3
+        Isat = 600
+        beta1 = P1/(np.pi*r**2)/Isat
+        beta2 = P2/(np.pi*r**2)/Isat
+        R=Gamma/2*(beta1+beta2)/(1+beta1+beta2+4*Delta**2/Gamma**2)
+        gain = self.PMT_calibration(PMT_gain_voltage)
+        responsivity = 1e4*gain
+        signal = (signal-background)/SRS_gain
+        atom_number = 4*np.pi*signal/(solid_angle*responsivity*scattering_rate*energy*window_transmission)
+        return atom_number
+
+    def PMT_calibration(self, V):
+        y1=5000
+        y2=300000
+        x1=.5
+        x2=.8
+        m=np.log10(y2/y1)/np.log10(x2/x1)
+        c=y1/x1**m
+        return c*x**m
+
+    def prepare_pattern(self, cycle_time, params, accuracy = 1e-4):
+        steps = cycle_time/accuracy
+        sequence = {}
+
+        sequence[self.PROBE_LIGHT] = [(0, 1),
+                                      (params['loading time']+params['probe delay'], 0),
+                                      (params['loading time']+params['probe delay']+params['probe time'], 1)]       # ch1
+        sequence[self.MOT_RF] = [(0, 0),
+                                 (params['loading time'], 1),
+                                 (params['loading time']+params['AOM delay'], 0)]   #ch2
+        sequence[self.MOT_INTEGRATOR] = [(0, 0), (params['loading time'], 1)]   # ch4
+        sequence[self.MOT_SHUTTER] = [(0, 1), (params['loading time'], 0)]  #ch3
+        y = self.TTL.generate_pattern(sequence, cycle_time, steps = steps)
+        return y
+
+    def load_MOT(self):
+        ''' Switch to the loading stage '''
+        self.TTL.DIO_STATE([self.PROBE_LIGHT, self.MOT_RF, self.MOT_SHUTTER, self.MOT_INTEGRATOR], [1, 0, 1, 0])
+
+    def probe_MOT(self):
+        ''' Switch to the probing stage '''
+        self.TTL.DIO_STATE([self.PROBE_LIGHT, self.MOT_RF, self.MOT_SHUTTER, self.MOT_INTEGRATOR], [0, 1, 0, 1])
 
     @experiment
-    def probe_switch(self, state, params = {'samples': 1, 'trigger delay': 0.1, 'stream step': 0.001}):
+    def probe(self, state, params = {'samples': 1}):
         results = []
-        self.TTL_labjack.DIO_STATE([1,2,3], [1,0,1])        # switch off light and integrators
         self.actuate(state)
 
-        for key in ['loading time', 'probe time', 'probe delay', 'gate time']:
-            params[key] = self.children['loader'].state[key]/1000
-        cycle_time = params['loading time'] + params['probe time']
-        max_samples = int(cycle_time/params['stream step'])
-
         ''' Prepare TTL stream '''
-        self.TTL_labjack.prepare_digital_stream([1,2,3,4])
+        self.TTL.prepare_digital_stream([1, 2, 3, 4])
 
-        ''' Prepare TTL pattern '''
-        t = np.linspace(0,cycle_time, 100000)
-        y = np.zeros((len(t),4))
-        y[t<params['loading time'], 1] = 1          # TTL high shuts off probe RF switch (FIO2)
-        y[t<params['loading time'], 2] = 1          # TTL high to enable MOT MEMS (FIO3)
-        y[t<params['loading time'], 3] = 0          # TTL low to enable MOT integrators (FIO4)
+        ''' Initial state '''
+        self.TTL.DOut(self.PROBE_LIGHT, 1)     # disable probe
+        self.TTL.DOut(self.MOT_RF, 0)     # enable MOT AOM
+        self.TTL.DOut(self.MOT_SHUTTER,0)      # close MOT shutter
+        self.TTL.DOut(self.MOT_INTEGRATOR,1)      # disable MOT integrator
 
-        y[t>params['loading time'], 2] = 0          # TTL low to disable MOT MEMS (FIO3)
-        y[t>params['loading time'], 3] = 1          # TTL high to disable MOT integrators and start reading (FIO4)
+        self.TTL.prepare_stream_out(trigger=0)
 
-        y[t>params['loading time']-params['probe delay'], 1] = 0    # TTL low to turn on probe RF switch/integrator (FIO2)
-        y[t>params['loading time']-params['probe delay'], 0] = 1    # TTL high to start acquisition (FIO1)
-        y = self.TTL_labjack.array_to_bitmask(y, [1,2,3,4])
+        for i in range(int(params['samples'])):
+            ''' Form TTL pattern from GUI '''
+            for key in ['loading time', 'probe time', 'probe delay', 'gate time', 'AOM delay']:
+                params[key] = self.children['loader'].state[key]/1000
+            cycle_time = params['loading time'] + params['probe delay'] + params['probe time'] + 0.01
+            self.timer.log('Preparing pattern')
+            y = self.prepare_pattern(cycle_time, params)
 
+            y = self.TTL.array_to_bitmask(y, [1,2,3,4])
+            self.timer.log('Pattern prepared')
 
-
-        for i in range(params['samples']):
-            self.TTL_labjack.DIO_STATE([1,2,3], [1,0,1])        # switch off light and integrators
-
-            ''' Write TTL pattern '''
-            self.TTL_labjack.prepare_stream_out(trigger=0)
-            sequence, scanRate = self.TTL_labjack.resample(np.atleast_2d(y).T, cycle_time)
-            self.TTL_labjack.stream_out(['FIO_STATE'], sequence, scanRate, loop=0)
-
+            ''' Write TTL pattern to device '''
+            sequence, scanRate = self.TTL.resample(np.atleast_2d(y).T, cycle_time)
+            self.timer.log('Resampled')
+            self.TTL.stream_out(['FIO_STATE'], sequence, scanRate, loop=0)
+            self.timer.log('Wrote to labjack')
             ''' Queue triggered stream-in on self.labjack '''
             if self.labjack.stream_mode is not 'in-triggered':
+                print('Preparing burst stream.')
                 self.labjack.prepare_streamburst(0, trigger=0)
-            self.process_manager._run_thread(self.probe_trigger, args=(params['trigger delay'],), stoppable=False)
+            self.stream_complete = False
+            self.process_manager._run_thread(self.probe_trigger, args=(0,), stoppable=False)
             data = np.array(self.labjack.streamburst(params['probe time']))
 
+            self.stream_complete = True
             ''' Process data '''
             time_per_point = params['probe time']/len(data)
             max_point = np.argmax(data)
@@ -89,7 +146,6 @@ class MOT(Control):
         print(mean*1000, error*1000)
         return -mean
 
-
     @experiment
     def fluorescence(self, state, params = {'settling time': 0.1, 'duration': 0.25}):
         self.actuate(state)
@@ -98,12 +154,9 @@ class MOT(Control):
         print(str(np.mean(data)*1000) + '+/-' + str(np.std(data)*1000))
         return -np.mean(data)
 
-    # def probe_trigger(self, trigger_delay = 0.001):
-    #     for i in range(10):
-    #         time.sleep(trigger_delay)
-    #         self.trigger_labjack.DOut(4, i%2)
-
-    def probe_trigger(self, trigger_delay = 0.001):
-        for i in range(10):
+    def probe_trigger(self, trigger_delay = 0.1):
+        i = 0
+        while not self.stream_complete:
+            i = i+1
             time.sleep(trigger_delay)
-            self.trigger_labjack.AOut(0, 3.3*(i%2))
+            self.trigger_labjack.DOut(4, i%2)
