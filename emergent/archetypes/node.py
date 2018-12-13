@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import QWidget
 import logging as log
 import pandas as pd
 import datetime
-from emergent.signals import ActuateSignal, SettingsSignal, RemoveSignal, CreateSignal
+from emergent.signals import RemoveSignal, CreateSignal, ActuateSignal
 import numpy as np
 
 class Node():
@@ -67,8 +67,6 @@ class Input(Node):
         super().__init__(name, parent=parent)
         self.state = None
         self.node_type = 'input'
-        self.actuate_signal = ActuateSignal()
-        self.settings_signal = SettingsSignal()
 
 class Device(Node):
     ''' Device nodes represent apparatus which can control the state of Input
@@ -164,7 +162,6 @@ class Device(Node):
             self.state[input] = state[input]    # update Device
             self.children[input].state = state[input]   # update Input
             self.parent.state[self.name][input] = state[input]   # update Control
-            self.children[input].actuate_signal.emit(state[input])   # emit Qt signal
 
 class Control(Node):
     ''' The Control node oversees connected Devices, allowing the Inputs to be
@@ -197,6 +194,7 @@ class Control(Node):
         self.samplers = {}
 
         self.node_type = 'control'
+        self.signal = ActuateSignal()
 
     def actuate(self, state, save=True):
         """Updates all Inputs in the given state to the given values and optionally logs the state.
@@ -209,6 +207,7 @@ class Control(Node):
         dev_states = {}
         for dev in state:
             self.children[dev].actuate(state[dev])
+        self.signal.emit(self.state)
 
     def attach_sampler(self, state, cost, optimizer = None):
         if optimizer is None:

@@ -9,7 +9,7 @@ from PyQt5.QtCore import *
 import json
 from emergent.gui.elements import ExperimentLayout
 from emergent.archetypes import Control, Device, Input
-from emergent.signals import ActuateSignal, SettingsSignal
+from emergent.signals import ActuateSignal
 import functools
 
 class NodeTree(QTreeWidget):
@@ -70,6 +70,13 @@ class NodeTree(QTreeWidget):
             if isinstance(children, dict):
                 self._generateTree(children[child], child_item, level = level+1)
 
+    def actuate(self, control, state):
+        control_item = self.get_control(control)
+        for dev in state:
+            for input in state[dev]:
+                self.get_input(control, dev, input).updateStateText(state[dev][input])
+
+
     def close_editor(self):
         ''' Disable editing after the user clicks another node. '''
         try:
@@ -104,6 +111,29 @@ class NodeTree(QTreeWidget):
             top_item = self.topLevelItem(i)
             all_items.extend(self.get_subtree_nodes(top_item))
         return all_items
+
+    def get_input(self, device, name):
+        ''' Returns an input QTreeWidgetItem with the given device and name '''
+        return
+
+    def get_control(self, control):
+        ''' Return a QTreeWidgetItem with the given control name '''
+        for i in range(self.topLevelItemCount()):
+            if self.topLevelItem(i).text(0) == control:
+                return self.topLevelItem(i)
+
+    def get_device(self, control, device):
+        control_item = self.get_control(control)
+        for i in range(control_item.childCount()):
+            if control_item.child(i).text(0) == device:
+                return control_item.child(i)
+
+    def get_input(self, control, device, input):
+        control_item = self.get_control(control)
+        device_item = self.get_device(control, device)
+        for i in range(device_item.childCount()):
+            if device_item.child(i).text(0) == input:
+                return device_item.child(i)
 
     def get_selected_control(self):
         ''' Returns a control node corresponding to the selected input node. '''
@@ -201,14 +231,13 @@ class NodeWidget(QTreeWidgetItem):
         self.node.leaf = self
         self.root = self.get_root()
 
+        if self.node.node_type == 'control':
+            self.node.signal.connect(self.onActuateSignal)
         if self.node.node_type == 'device':
             self.node.create_signal.connect(self.onCreateSignal)
             self.node.remove_signal.connect(self.onRemoveSignal)
 
         elif self.node.node_type == 'input':
-            self.node.actuate_signal.connect(self.updateStateText)
-            self.node.settings_signal.connect(self.updateSettingsText)
-
             name = self.node.name
             device = self.node.parent.name
             self.setText(2, str(self.root.settings[device][name]['min']))
@@ -228,6 +257,9 @@ class NodeWidget(QTreeWidgetItem):
                 root = root.parent
             except AttributeError:
                 return root
+
+    def onActuateSignal(self, state):
+        self.treeWidget().actuate(self.node.name, state)
 
     def updateStateText(self, state):
         self.setText(1, str('%.2f'%state))

@@ -11,7 +11,6 @@ from PyQt5.QtCore import *
 import json
 from emergent.gui.elements import ExperimentLayout, PlotWidget
 from emergent.archetypes import Control, Device, Input
-from emergent.signals import ActuateSignal, SettingsSignal
 import functools
 from emergent.archetypes.visualization import plot_2D, plot_1D
 from emergent.archetypes import ProcessHandler
