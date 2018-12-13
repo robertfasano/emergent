@@ -40,6 +40,11 @@ class GaussianProcessRegression():
                                             min = 0,
                                             max = 10,
                                             description = 'Amplitude of modeled white noise process')
+        self.params['Tolerance'] = Parameter(name= 'Tolerance',
+                                            value = 0.01,
+                                            min = 1e-4,
+                                            max = 1e-1,
+                                            description = 'Relative tolerance required for convergence')
 
     def next_sample(self, X, b, cost, gaussian_process, restarts=25):
         ''' Generates the next sampling point by minimizing cost on the virtual
@@ -80,6 +85,7 @@ class GaussianProcessRegression():
         self.costs = np.append(self.costs, c)
         kernel = C(self.params['Kernel amplitude'].value, (1e-3, 1e3)) * RBF(self.params['Kernel length scale'].value, (1e-2, 1e2)) + WhiteKernel(self.params['Kernel noise'].value)
         self.gp = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=10)
+        best_points = []
         for i in range(int(self.params['Iterations'].value)):
             if not callback():
                 return self.points[0:len(self.costs)], self.costs
@@ -92,6 +98,16 @@ class GaussianProcessRegression():
                 self.points = np.append(self.points, X_new, axis=0)
                 self.costs = np.append(self.costs, self.sampler._cost(self.points[-1]))
                 self.progress = (j+i*self.params['Batch size'].value)/self.params['Batch size'].value/self.params['Iterations'].value
+            ''' Evaluate best point for convergence check '''
+            X_best = self.next_sample(self.points, 1, self.effective_cost, self.gp, restarts=10)
+            best_cost = self.sampler._cost(X_best)
+            self.points = np.append(self.points, np.atleast_2d(X_best), axis=0)
+            self.costs = np.append(self.costs, best_cost)
+            best_points.append(best_cost)
+            if len(best_points) > 1:
+                if (best_points[-1] - best_points[-2])/best_points[-2] < self.params['Tolerance'].value:
+                    break
+
         self.gp.fit(self.points,self.costs)
         best_point = self.sampler.array2state(self.points[np.argmin(self.costs)])
         self.sampler.actuate(self.sampler.unnormalize(best_point))
