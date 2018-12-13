@@ -47,12 +47,6 @@ class Node():
         self.parent = parent
         parent.children[self.name] = self
 
-    # def __getattribute__(self, name):
-    #     returned = object.__getattribute__(self, name)
-    #     if inspect.isfunction(returned) or inspect.ismethod(returned):
-    #         log.debug('called %s', returned.__name__)
-    #     return returned
-
 class Input(Node):
     ''' Input nodes represent physical variables which may affect the outcome of
         an experiment, such as laser frequency or beam alignment. '''
@@ -72,19 +66,9 @@ class Input(Node):
         """
         super().__init__(name, parent=parent)
         self.state = None
-        self.min = None
-        self.max = None
         self.node_type = 'input'
         self.actuate_signal = ActuateSignal()
         self.settings_signal = SettingsSignal()
-
-    def set_settings(self, d):
-        if 'max' in d:
-            self.max = d['max']
-        if 'min' in d:
-            self.min = d['min']
-        self.parent.parent.settings[self.parent.name][self.name] = d
-        self.settings_signal.emit({'min':self.min, 'max':self.max})
 
 class Device(Node):
     ''' Device nodes represent apparatus which can control the state of Input
@@ -95,7 +79,7 @@ class Device(Node):
         be accessed for a given type, e.g. Control.instances lists all Control
         nodes. '''
 
-    def __init__(self, name, parent):
+    def __init__(self, name, parent, params = {}):
         """Initializes a Device node.
 
         Args:
@@ -104,6 +88,7 @@ class Device(Node):
         """
         super().__init__(name, parent=parent)
         self.state = {}
+        self.params = params
         self.parent.state[self.name] = {}
         self.parent.settings[self.name] = {}
 
@@ -121,9 +106,6 @@ class Device(Node):
             'X' and 'Y' which are referenced in PicoAmp._actuate().'''
         input = Input(name, parent=self)
         self.children[name] = input
-        if self.name not in self.parent.inputs:
-            self.parent.inputs[self.name] = {}
-        self.parent.inputs[self.name][name] = input
         self.parent.load(self.name, name)
         self.state[name] = self.children[name].state
 
@@ -135,11 +117,8 @@ class Device(Node):
     def remove_input(self, name):
         ''' Detaches the Input node with the specified name. '''
         self.remove_signal.emit(self.parent, self, name)
-
         del self.children[name]
         del self.state[name]
-
-        del self.parent.inputs[self.name][name]
         del self.parent.state[self.name][name]
 
 
@@ -207,7 +186,6 @@ class Control(Node):
         """
 
         super().__init__(name, parent)
-        self.inputs = {}
         self.state = State()
         self.settings = {}
         self.state_path = path+'/state/'
@@ -256,7 +234,6 @@ class Control(Node):
             self.settings[device][name] = {}
             for setting in ['min', 'max']:
                 self.settings[device][name][setting] = state[device][name][setting]
-            self.inputs[device][name].set_settings(self.settings[device][name])
         except Exception as e:
             print('Exception:', e)
             self.state[device][name] = 0
