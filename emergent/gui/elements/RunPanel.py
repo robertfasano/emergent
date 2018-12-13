@@ -58,7 +58,7 @@ class RunLayout(QVBoxLayout, ProcessHandler):
             log.warn('Select inputs before starting optimization!')
             return
         settings['state'] = settings['control'].state
-        settings['cost_params'] = self.parent.get_cost_params(self)
+        settings['cost_params'] = self.parent.get_params(self.epl)
         if 'cycles per sample' not in settings['cost_params']:
             settings['cost_params']['cycles per sample'] = 1#int(self.cycles_per_sample_edit.text())
         settings['iterations'] = self.runIterationsEdit.text()

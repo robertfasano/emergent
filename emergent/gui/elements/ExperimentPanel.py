@@ -154,7 +154,7 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
 
         ''' Pull params from gui '''
         if params is None:
-            f = {'algorithm': lambda: self.get_params(panel), 'experiment': lambda: self.get_cost_params(panel)}[param_type]
+            f = {'algorithm': lambda: self.get_params(panel.apl), 'experiment': lambda: self.get_params(panel.epl)}[param_type]
             params = f()
 
         ''' Load old params from file '''
@@ -211,10 +211,7 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         control = self.parent.treeWidget.currentItem().root
         experiment = getattr(control, panel.cost_box.currentText())
         d = self.file_to_dict(experiment, experiment, 'experiment', panel)
-
-        self.clear_cost_parameters(panel)
-        for p in d:
-            self.add_cost_parameter(panel, p, str(d[p]))
+        self.set_parameters(panel.epl, d)
 
     def update_algorithm_and_experiment(self, panel, default = False, update_algorithm = True, update_experiment = True):
         if panel.cost_box.currentText() is '':
@@ -230,16 +227,11 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
             algo_name = panel.algorithm_box.currentText()
             algo = self.get_algorithm(algo_name, panel)
             algo_params = self.file_to_dict(algo, experiment, 'algorithm', panel, default = default)
-            self.clear_parameters(panel)
-            for p in sorted(algo_params):
-                desc = self.get_description(panel, algo.name, p)
-                self.add_parameter(panel, p, str(algo_params[p]), desc)
+            self.set_parameters(panel.apl, algo_params)
 
         if update_experiment:
             exp_params = self.file_to_dict(experiment, experiment, 'experiment', panel, default = default)
-            self.clear_cost_parameters(panel)
-            for p in sorted(exp_params):
-                self.add_cost_parameter(panel, p, str(exp_params[p]))
+            self.set_parameters(panel.epl, exp_params)
 
     def start_process(self, *args, process = '', panel = None, settings = {}):
         ''' Load any non-passed settings from the GUI '''
@@ -290,42 +282,27 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
             stoppable = True
         panel._run_thread(panel.run_process, args = (sampler, settings, index, t), stoppable=stoppable)
 
-    def clear_parameters(self, panel):
-        panel.apl.setRowCount(0)
-
-    def clear_cost_parameters(self, panel):
-        panel.epl.setRowCount(0)
-
-    def get_params(self, panel):
+    def get_params(self, table):
         params = {}
-        for row in range(panel.apl.rowCount()):
-            name = panel.apl.item(row, 0).text()
-            value = panel.apl.item(row, 1).text()
+        for row in range(table.rowCount()):
+            name = table.item(row, 0).text()
+            value = table.item(row, 1).text()
             params[name] = float(value)
         return params
 
-    def get_cost_params(self, panel):
-        params = {}
-        for row in range(panel.epl.rowCount()):
-            name = panel.epl.item(row, 0).text()
-            value = panel.epl.item(row, 1).text()
-            params[name] = float(value)
-        return params
+    def set_parameters(self, table, params):
+        table.setRowCount(0)
+        for p in sorted(params):
+            # desc = self.get_description(panel, algo.name, p)
+            self.add_parameter(table, p, str(params[p]))
 
-    def add_parameter(self, panel, name, value, description):
-        row = panel.apl.rowCount()
-        panel.apl.insertRow(row)
+    def add_parameter(self, table, name, value, description = ''):
+        row = table.rowCount()
+        table.insertRow(row)
         name_item = QTableWidgetItem(name)
-        name_item.setToolTip(description)
+        if description != '':
+            name_item.setToolTip(description)
         name_item.setFlags(name_item.flags() ^ Qt.ItemIsEditable)
 
-        panel.apl.setItem(row, 0, name_item)
-        panel.apl.setItem(row, 1, QTableWidgetItem(str(value)))
-
-    def add_cost_parameter(self, panel, name, value):
-        row = panel.epl.rowCount()
-        panel.epl.insertRow(row)
-        name_item = QTableWidgetItem(name)
-        name_item.setFlags(name_item.flags() ^ Qt.ItemIsEditable)
-        panel.epl.setItem(row, 0, name_item)
-        panel.epl.setItem(row, 1, QTableWidgetItem(str(value)))
+        table.setItem(row, 0, name_item)
+        table.setItem(row, 1, QTableWidgetItem(str(value)))

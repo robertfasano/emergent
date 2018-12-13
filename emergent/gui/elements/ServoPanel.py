@@ -61,8 +61,8 @@ class ServoLayout(QVBoxLayout, ProcessHandler):
             log.warn('Select inputs before starting optimization!')
             return
 
-        settings['algo_params'] = self.parent.get_params(self)
-        settings['cost_params'] = self.parent.get_cost_params(self)
+        settings['algo_params'] = self.parent.get_params(self.apl)
+        settings['cost_params'] = self.parent.get_params(self.epl)
 
         settings['callback'] = None
         return settings
