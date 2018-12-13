@@ -10,6 +10,23 @@ EMERGENT
 
 Overview
 -------------------
+What is an experiment? Broadly speaking, an experiment is a process which seeks
+to map out the relationship between a set of inputs and some measurable signal.
+Surprisingly many state-of-the-art experiments in modern science rely on grad students
+turning knobs, often following some informal algorithm gleaned from their own experience.
+I say this is surprising for two reasons. First, it is usually very simple to gain
+computer control of some knob, like a voltage setpoint or laser frequency. Second,
+there exist many powerful, often open-source, algorithms which can find a set of
+independent variables which extremizes an independent variable, and given computer
+control of your experiment, it is not too difficult to hook up the knobs to the
+algorithm to optimize your experiment. However, although it is simple to algorithmically
+optimize a simple problem like pointing a laser beam into a waveguide, it is not
+so simple to control a large experiment for a host of reasons:
+* As the number of input variables increases, more and more sophisticated algorithms are needed to explore the parameter space.
+* Many experiments have coupled inputs, where the optimum position of one knob depends on another.
+
+We wrote EMERGENT to attempt to solve these problems.
+
 EMERGENT (Explorative Machine-learning EnviRonment for Generalized Experiments of Networked Things) is a library featuring device drivers and abstract classes allowing
 universal autonomous control of laboratory experiments. The library was written based on the main belief that science progresses quickest when experimentalists
 are free to spend as much time thinking and as little time turning knobs and
