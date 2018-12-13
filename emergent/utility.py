@@ -51,6 +51,14 @@ def list_triggers(control):
     ''' Returns a list of all methods tagged with the '@trigger' decorator '''
     return methodsWithDecorator(control.__class__, 'trigger')
 
+def list_experiments(control):
+    ''' Returns a list of all methods tagged with the '@experiment' decorator '''
+    return methodsWithDecorator(control.__class__, 'experiment')
+
+def list_errors(control):
+    ''' Returns a list of all methods tagged with the '@error' decorator '''
+    return methodsWithDecorator(control.__class__, 'error')
+
 def methodsWithDecorator(cls, decoratorName):
     methods = []
     sourcelines = inspect.getsourcelines(cls)[0]
@@ -95,12 +103,6 @@ def experiment(func, *args, **kwargs):
     error = None
     if len(results) > 1:
         error = np.std(results)/np.sqrt(len(results))
-    # print(c, error)
-    t = datetime.datetime.now()
-    for dev_name in args[0].inputs:
-        for input in args[0].inputs[dev_name]:
-            args[0].update_dataframe(t, dev_name, input, args[0].inputs[dev_name][input].state)
-    args[0].update_cost(t, c, func.__name__)
 
     return c, error
 

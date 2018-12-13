@@ -13,6 +13,7 @@ import datetime
 import __main__
 import os
 import importlib
+from utility import list_errors, list_experiments
 
 class ExperimentLayout(QVBoxLayout, ProcessHandler):
     def __init__(self, parent):
@@ -152,8 +153,9 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         params_filename = './networks/%s/params/'%network_name + '%s.%s.txt'%(control.name, experiment.__name__)
 
         ''' Pull params from gui '''
-        f = {'algorithm': lambda: self.get_params(panel), 'experiment': lambda: self.get_cost_params(panel)}[param_type]
-        params = f()
+        if params is None:
+            f = {'algorithm': lambda: self.get_params(panel), 'experiment': lambda: self.get_cost_params(panel)}[param_type]
+            params = f()
 
         ''' Load old params from file '''
         with open(params_filename, 'r') as file:
@@ -182,11 +184,11 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
                     panel.algorithm_box.addItem(item.replace('_',' '))
         if exp_or_error == 'error':
             panel.cost_box.clear()
-            for item in control.list_errors():
+            for item in list_errors(control):
                 panel.cost_box.addItem(item)
         elif exp_or_error == 'experiment':
             panel.cost_box.clear()
-            for item in control.list_costs():
+            for item in list_experiments(control):
                 panel.cost_box.addItem(item)
 
     def update_control(self):

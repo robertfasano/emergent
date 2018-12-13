@@ -6,7 +6,6 @@ import time
 import inspect
 from emergent.archetypes import Historian, Sampler, State
 from PyQt5.QtWidgets import QWidget
-from emergent.utility import methodsWithDecorator
 import logging as log
 import pandas as pd
 import datetime
@@ -78,7 +77,6 @@ class Input(Node):
         self.node_type = 'input'
         self.actuate_signal = ActuateSignal()
         self.settings_signal = SettingsSignal()
-        self.parent.parent.dataframe[self.parent.name][self.name] = pd.DataFrame()
 
     def set_settings(self, d):
         if 'max' in d:
@@ -108,7 +106,6 @@ class Device(Node):
         self.state = {}
         self.parent.state[self.name] = {}
         self.parent.settings[self.name] = {}
-        self.parent.dataframe[self.name] = {}
 
         self.loaded = 0     # set to 1 after first state preparation
         self.node_type = 'device'
@@ -213,21 +210,16 @@ class Control(Node):
         self.inputs = {}
         self.state = State()
         self.settings = {}
-        self.actuating = 0
-        self.cycle_time = 0
         self.state_path = path+'/state/'
         self.data_path = path+'/data/'
-        self.dataframe = {}
-        self.dataframe['cost'] = {}
+
         for p in [self.state_path, self.data_path]:
             pathlib.Path(p).mkdir(parents=True, exist_ok=True)
 
         self.historian = Historian(self)
-        self.optimizers = {}
         self.samplers = {}
 
         self.node_type = 'control'
-        self.load_costs()
 
     def actuate(self, state, save=True):
         """Updates all Inputs in the given state to the given values and optionally logs the state.
@@ -236,15 +228,10 @@ class Control(Node):
             state (dict): Target state of the form {'deviceA.param1':1, 'deviceA.param1':2,...}
             save (bool): Whether or not to log.
         """
-        # if not self.actuating:
-            # self.actuating = 1
         ''' Aggregate states by device '''
         dev_states = {}
         for dev in state:
             self.children[dev].actuate(state[dev])
-        #     self.actuating = 0
-        # else:
-        #     log.warn('Actuate blocked by already running actuation.')
 
     def attach_sampler(self, state, cost, optimizer = None):
         if optimizer is None:
@@ -256,80 +243,40 @@ class Control(Node):
         self.samplers[index] = {'state':state, 'sampler':sampler, 'status':'Ready'}
         return sampler, index
 
-    def list_costs(self):
-        """Returns a list of all methods tagged with the '@experiment' decorator."""
-        return methodsWithDecorator(self.__class__, 'experiment')
-
-    def list_errors(self):
-        """Returns a list of all methods tagged with the '@error' decorator."""
-        return methodsWithDecorator(self.__class__, 'error')
-
-
     def load(self, device, name):
         """Loads the last saved state and attempts to reinitialize previous values for the Input node specified by full_name. If the input did not exist in the last state, then it is initialized with default values.
-
-        Args:
-            full_name (str): Specifies the Input node and its parent device, e.g. 'deviceA.input1'.
         """
-
-        full_name = self.name + '.' + device + '.' + name
-
-        ''' Load dataframe '''
+        if device not in self.state:
+            self.state[device] = {}
         try:
-            self.dataframe[device][name] = pd.read_csv(self.data_path+full_name+'.csv', index_col=0)
-            self.state[device][name] = self.dataframe[device][name]['state'].iloc[-1]
+            with open(self.state_path+self.name+'.json', 'r') as file:
+                state = json.load(file)
+
+            self.state[device][name] = state[device][name]['state']
             self.settings[device][name] = {}
             for setting in ['min', 'max']:
-                self.settings[device][name][setting] = self.dataframe[device][name][setting].iloc[-1]
+                self.settings[device][name][setting] = state[device][name][setting]
             self.inputs[device][name].set_settings(self.settings[device][name])
-
-
-        except FileNotFoundError:
-            self.dataframe[device][name] = pd.DataFrame()
+        except Exception as e:
+            print('Exception:', e)
             self.state[device][name] = 0
             self.settings[device][name] = {}
             for setting in ['min', 'max']:
                 self.settings[device][name][setting] = 0
-            log.warn('Could not find csv for input %s; creating new settings.'%full_name)
+            log.warn('Could not find csv for input %s; creating new settings.'%name)
 
-    def load_costs(self):
-        for cost_name in self.list_costs():
-            try:
-                self.dataframe['cost'][cost_name] = pd.read_csv(self.data_path+self.name+'.'+cost_name+'.csv', index_col=0)
-            except (FileNotFoundError, pd.errors.EmptyDataError):
-                self.dataframe['cost'][cost_name] = pd.DataFrame()
+    def save(self):
+        state = {}
+        for dev in self.state:
+            state[dev] = {}
+            for input in self.state[dev]:
+                state[dev][input] = {}
+                state[dev][input]['state'] = self.state[dev][input]
+                state[dev][input]['min'] = self.settings[dev][input]['min']
+                state[dev][input]['max'] = self.settings[dev][input]['max']
 
-    def save(self, tag = ''):
-        """Aggregates the self.state and self.settings variables into a dataframe and saves to csv.
-
-        Args:
-            tag (str): Label written to the third column of the log file which describes where the state was saved from, e.g. 'actuate' or 'optimize'.
-        """
-        ''' Save dataframes to csv '''
-        t= datetime.datetime.now()
-        for dev in self.inputs:
-            for input in self.inputs[dev]:
-                self.save_dataframe(t, dev, input)
-
-        for name in self.dataframe['cost']:
-            self.dataframe['cost'][name].to_csv(self.data_path+self.name+'.'+name+'.csv')
-
-    def save_dataframe(self, t, dev, input_name):
-        full_name = self.name + '.' + dev + '.' + input_name
-        input = self.inputs[dev][input_name]
-        self.update_dataframe(t, dev, input_name, input.state)
-        self.dataframe[dev][input_name].to_csv(self.data_path+full_name+'.csv')
-
-    def update_dataframe(self, t, dev, input_name, state):
-        self.dataframe[dev][input_name].loc[t, 'state'] = state
-        for setting in ['min', 'max']:
-            self.dataframe[dev][input_name].loc[t, setting] = self.settings[dev][input_name][setting]
-
-    def update_cost(self, t, cost, name):
-        self.dataframe['cost'][name].loc[t, name] = cost
-        for dev in self.children.values():
-            for input in dev.children.values():
-                self.dataframe['cost'][name].loc[t, dev.name + ': ' + input.name] = input.state
+        with open(self.state_path+self.name+'.json', 'w') as file:
+            json.dump(state, file)
 
     def onLoad(self):
         """Tasks to be carried out after all Devices and Inputs are initialized."""
