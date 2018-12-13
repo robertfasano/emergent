@@ -4,7 +4,7 @@ import weakref
 import pathlib
 import time
 import inspect
-from emergent.archetypes import Historian, Sampler, State
+from emergent.archetypes import Sampler, State
 from PyQt5.QtWidgets import QWidget
 import logging as log
 import pandas as pd
@@ -176,7 +176,7 @@ class Control(Node):
         nodes. '''
 
     def __init__(self, name, parent = None, path = '.'):
-        """Initializes a Control node and attaches Historian and Optimizer instances.
+        """Initializes a Control node.
 
         Args:
             name (str): node name. All Control nodes should have unique names.
@@ -194,7 +194,6 @@ class Control(Node):
         for p in [self.state_path, self.data_path]:
             pathlib.Path(p).mkdir(parents=True, exist_ok=True)
 
-        self.historian = Historian(self)
         self.samplers = {}
 
         self.node_type = 'control'
