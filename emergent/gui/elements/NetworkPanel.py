@@ -36,24 +36,24 @@ class NodeTree(QTreeWidget):
         root_labels = list(self.tree.keys())
         roots = []
         for r in root_labels:
-            roots.append(NodeWidget([r, ''], self.controls[r], 0))
+            roots.append(NodeWidget([r, ''], self.controls[r]))
         self.insertTopLevelItems(0, roots)
 
         for i in range(len(root_labels)):
             self._generateTree(self.tree[root_labels[i]], roots[i])
 
-        self.expand(0)
-        self.expand(1)
+        self.expand('control')
+        self.expand('device')
 
         ''' Ensure that only Inputs are selectable '''
         for item in self.get_all_items():
-            if item.level != 2:
+            if item.node.node_type != 'input':
                 item.setFlags(Qt.ItemIsEnabled)
 
         ''' Prepare initial GUI state '''
-        for item in self.get_all_items():
-            if item.node.node_type == 'device':
-                self.sync_inputs(item)
+        for c in controls:
+            node = self.get_control(c).node
+            self.actuate(c, node.state)
 
         self.setColumnWidth(0,200)
         for i in [1,2,3]:
@@ -63,8 +63,7 @@ class NodeTree(QTreeWidget):
         ''' Recursively add nodes to build the full network. '''
         for child in sorted(children):
             object = parent.node.children[child]
-
-            child_item = NodeWidget([child.replace('_',' ')], object, level)
+            child_item = NodeWidget([child.replace('_',' ')], object)
             parent.addChild(child_item)
 
             if isinstance(children, dict):
@@ -97,10 +96,10 @@ class NodeTree(QTreeWidget):
             if i.parent() is not item.parent():
                 i.setSelected(0)
 
-    def expand(self, layer):
+    def expand(self, node_type):
         ''' Expand all nodes in a given layer. '''
         items = self.get_all_items()
-        items = [x for x in items if x.level==layer]
+        items = [x for x in items if x.node.node_type==node_type]
         for item in items:
             item.setExpanded(True)
 
@@ -216,18 +215,10 @@ class NodeTree(QTreeWidget):
 
         selectedItem = menu.exec_(globalPos)
 
-    def sync_inputs(self, dev):
-        ''' Switches from primary to secondary inputs for the passed in device item.
-        '''
-        for input in dev.node.children.values():
-            input.leaf.setHidden(0)
-            input.leaf.setText(1,str(input.state))
-
 class NodeWidget(QTreeWidgetItem):
-    def __init__(self, name, node, level):
+    def __init__(self, name, node):
         super().__init__(name)
         self.node = node
-        self.level = level
         self.node.leaf = self
         self.root = self.get_root()
 
@@ -236,7 +227,6 @@ class NodeWidget(QTreeWidgetItem):
         if self.node.node_type == 'device':
             self.node.create_signal.connect(self.onCreateSignal)
             self.node.remove_signal.connect(self.onRemoveSignal)
-
         elif self.node.node_type == 'input':
             name = self.node.name
             device = self.node.parent.name
@@ -266,14 +256,10 @@ class NodeWidget(QTreeWidgetItem):
 
     def onCreateSignal(self, d):
         if self.node == d['device']:
-            child_item = NodeWidget([d['input']], d['device'].children[d['input']], self.level+1)
+            child_item = NodeWidget([d['input']], d['device'].children[d['input']])
             self.addChild(child_item)
 
     def onRemoveSignal(self, d):
         if self.node == d['device']:
             child_item = self.node.children[d['input']].leaf
             self.removeChild(child_item)
-
-    def updateSettingsText(self, d):
-        self.setText(2, str('%.2f'%float(d['min'])))
-        self.setText(3, str('%.2f'%float(d['max'])))
