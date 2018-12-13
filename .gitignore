@@ -1,11 +1,9 @@
 __pycache__
 .DS_Store
 *.pyc
-control.txt
-costs.txt
-points.txt
 docs/build/*
 build/*
 EMERGENT.egg-info/*
 dist/*
 *.csv
+*.txt
