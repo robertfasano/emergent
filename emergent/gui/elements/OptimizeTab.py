@@ -8,6 +8,7 @@ import datetime
 import json
 import logging as log
 import numpy as np
+from emergent.gui.elements.ParameterTable import ParameterTable
 
 class CustomTable(QTableWidget, ProcessHandler):
     def __init__(self, parent):
@@ -93,7 +94,7 @@ class OptimizeLayout(QVBoxLayout, ProcessHandler):
         self.addLayout(layout)
 
         ''' Algorithm parameters '''
-        self.apl = CustomTable(self)
+        self.apl = ParameterTable()
         layout.addWidget(self.apl, 2, 0)
         self.apl.insertColumn(0)
         self.apl.insertColumn(1)
@@ -103,7 +104,7 @@ class OptimizeLayout(QVBoxLayout, ProcessHandler):
         self.algorithm_params_edit = QTextEdit('')
 
         ''' Experiment parameters '''
-        self.epl = QTableWidget()
+        self.epl = ParameterTable()
         layout.addWidget(self.epl, 2, 1)
         self.epl.insertColumn(0)
         self.epl.insertColumn(1)
@@ -145,8 +146,8 @@ class OptimizeLayout(QVBoxLayout, ProcessHandler):
             log.warn('Select inputs before starting optimization!')
             return
 
-        settings['algo_params'] = self.parent.get_params(self.apl)
-        settings['cost_params'] = self.parent.get_params(self.epl)
+        settings['algo_params'] = self.apl.get_params()
+        settings['cost_params'] = self.epl.get_params()
         settings['callback'] = None
         if 'cycles per sample' not in settings['cost_params']:
             settings['cost_params']['cycles per sample'] = 1

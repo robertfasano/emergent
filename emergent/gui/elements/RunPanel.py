@@ -10,6 +10,7 @@ from scipy.stats import linregress
 import numpy as np
 import datetime
 import json
+from emergent.gui.elements.ParameterTable import ParameterTable
 
 class RunLayout(QVBoxLayout, ProcessHandler):
     def __init__(self, parent):
@@ -23,7 +24,7 @@ class RunLayout(QVBoxLayout, ProcessHandler):
         self.cost_box.currentTextChanged.connect(lambda: self.parent.update_experiment(self))
 
         ''' Experiment parameters '''
-        self.epl = QTableWidget()
+        self.epl = ParameterTable()
         self.addWidget(self.epl)
         self.epl.insertColumn(0)
         self.epl.insertColumn(1)
@@ -58,7 +59,7 @@ class RunLayout(QVBoxLayout, ProcessHandler):
             log.warn('Select inputs before starting optimization!')
             return
         settings['state'] = settings['control'].state
-        settings['cost_params'] = self.parent.get_params(self.epl)
+        settings['cost_params'] = self.epl.get_params()
         if 'cycles per sample' not in settings['cost_params']:
             settings['cost_params']['cycles per sample'] = 1#int(self.cycles_per_sample_edit.text())
         settings['iterations'] = self.runIterationsEdit.text()

@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import (QComboBox, QLabel, QTextEdit, QPushButton, QVBoxLayout,
-        QWidget, QProgressBar, qApp, QHBoxLayout, QCheckBox, QTableWidgetItem, QTabWidget, QLineEdit, QSlider)
+        QWidget, QProgressBar, qApp, QHBoxLayout, QCheckBox, QTabWidget, QLineEdit, QSlider)
 from PyQt5.QtCore import *
 from emergent.gui.elements import OptimizeLayout, ServoLayout, RunLayout
 from emergent.archetypes.parallel import ProcessHandler
@@ -14,6 +14,7 @@ import __main__
 import os
 import importlib
 from utility import list_errors, list_experiments
+
 
 class ExperimentLayout(QVBoxLayout, ProcessHandler):
     def __init__(self, parent):
@@ -154,7 +155,7 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
 
         ''' Pull params from gui '''
         if params is None:
-            f = {'algorithm': lambda: self.get_params(panel.apl), 'experiment': lambda: self.get_params(panel.epl)}[param_type]
+            f = {'algorithm': panel.apl.get_params(), 'experiment': lambda: panel.epl.get_params()}[param_type]
             params = f()
 
         ''' Load old params from file '''
@@ -211,7 +212,7 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         control = self.parent.treeWidget.currentItem().root
         experiment = getattr(control, panel.cost_box.currentText())
         d = self.file_to_dict(experiment, experiment, 'experiment', panel)
-        self.set_parameters(panel.epl, d)
+        panel.epl.set_parameters(d)
 
     def update_algorithm_and_experiment(self, panel, default = False, update_algorithm = True, update_experiment = True):
         if panel.cost_box.currentText() is '':
@@ -227,11 +228,11 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
             algo_name = panel.algorithm_box.currentText()
             algo = self.get_algorithm(algo_name, panel)
             algo_params = self.file_to_dict(algo, experiment, 'algorithm', panel, default = default)
-            self.set_parameters(panel.apl, algo_params)
+            panel.apl.set_parameters(algo_params)
 
         if update_experiment:
             exp_params = self.file_to_dict(experiment, experiment, 'experiment', panel, default = default)
-            self.set_parameters(panel.epl, exp_params)
+            panel.epl.set_parameters(exp_params)
 
     def start_process(self, *args, process = '', panel = None, settings = {}):
         ''' Load any non-passed settings from the GUI '''
@@ -281,28 +282,3 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         if process == 'run':
             stoppable = True
         panel._run_thread(panel.run_process, args = (sampler, settings, index, t), stoppable=stoppable)
-
-    def get_params(self, table):
-        params = {}
-        for row in range(table.rowCount()):
-            name = table.item(row, 0).text()
-            value = table.item(row, 1).text()
-            params[name] = float(value)
-        return params
-
-    def set_parameters(self, table, params):
-        table.setRowCount(0)
-        for p in sorted(params):
-            # desc = self.get_description(panel, algo.name, p)
-            self.add_parameter(table, p, str(params[p]))
-
-    def add_parameter(self, table, name, value, description = ''):
-        row = table.rowCount()
-        table.insertRow(row)
-        name_item = QTableWidgetItem(name)
-        if description != '':
-            name_item.setToolTip(description)
-        name_item.setFlags(name_item.flags() ^ Qt.ItemIsEditable)
-
-        table.setItem(row, 0, name_item)
-        table.setItem(row, 1, QTableWidgetItem(str(value)))

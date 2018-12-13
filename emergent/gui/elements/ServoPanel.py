@@ -10,6 +10,7 @@ from scipy.stats import linregress
 import numpy as np
 import datetime
 import json
+from emergent.gui.elements.ParameterTable import ParameterTable
 
 class ServoLayout(QVBoxLayout, ProcessHandler):
     def __init__(self, parent):
@@ -27,7 +28,7 @@ class ServoLayout(QVBoxLayout, ProcessHandler):
         layout.addWidget(self.cost_box, 0, 1)
 
         ''' Algorithm parameters '''
-        self.apl = QTableWidget()
+        self.apl = ParameterTable()
         layout.addWidget(self.apl, 1, 0)
         self.apl.insertColumn(0)
         self.apl.insertColumn(1)
@@ -35,7 +36,7 @@ class ServoLayout(QVBoxLayout, ProcessHandler):
         self.apl.horizontalHeader().setStretchLastSection(True)
 
         ''' Experiment parameters '''
-        self.epl = QTableWidget()
+        self.epl = ParameterTable()
         layout.addWidget(self.epl, 1, 1)
         self.epl.insertColumn(0)
         self.epl.insertColumn(1)
@@ -61,8 +62,8 @@ class ServoLayout(QVBoxLayout, ProcessHandler):
             log.warn('Select inputs before starting optimization!')
             return
 
-        settings['algo_params'] = self.parent.get_params(self.apl)
-        settings['cost_params'] = self.parent.get_params(self.epl)
+        settings['algo_params'] = self.apl.get_params()
+        settings['cost_params'] = self.epl.get_params()
 
         settings['callback'] = None
         return settings
