@@ -85,12 +85,13 @@ def dev(func):
     return func
 
 class Parameter():
-    def __init__(self, name, value, min, max, description):
+    def __init__(self, name, value, min = None, max = None, description = ''):
         self.name = name
         self.value = value
         self.min = min
         self.max = max
         self.description = description
+
 
 @decorator.decorator
 def experiment(func, *args, **kwargs):
