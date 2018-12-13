@@ -1,19 +1,19 @@
-QComboBox {color:"#3a4055"; font-family: "Agency FB"; font-size: 15px}
-QPushButton {color:"#3a4055"; font-family: "Agency FB"; font-size: 15px}
-QTextEdit {color:"#3a4055"; font-family: "Agency FB"; font-size: 15px}
-QTreeWidget {color:"#3a4055"; font-family: "Agency FB"; font-size: 15px; border-radius: 15px; border: 3px}
+QComboBox {color:"#3a4055"; font-family: "Agency FB"; font-size: 18px}
+QPushButton {color:"#3a4055"; font-family: "Agency FB"; font-size: 18px}
+QTextEdit {color:"#3a4055"; font-family: "Agency FB"; font-size: 18px}
+QTreeWidget {color:"#3a4055"; font-family: "Agency FB"; font-size: 18px; border-radius: 18px; border: 3px}
 
-QLabel {color:"#3a4055"; font-weight: thin; font-family: "Agency FB"; font-size: 12px}
-QTableWidget {color:"#3a4055"; font-weight: thin; font-family: "Agency FB"; font-size: 12px}
-QTableWidgetItem {color:"#3a4055"; font-weight: thin; font-family: "Agency FB"; font-size: 12px}
-QWindow {color:"#3a4055"; font-weight: thin; font-family: "Agency FB"; font-size: 12px}
-QTabWidget {color:"#3a4055"; font-weight: thin; font-family: "Agency FB"; font-size: 12px}
+QLabel {color:"#3a4055"; font-weight: thin; font-family: "Agency FB"; font-size: 18px}
+QTableWidget {color:"#3a4055"; font-weight: thin; font-family: "Agency FB"; font-size: 18px}
+QTableWidgetItem {color:"#3a4055"; font-weight: thin; font-family: "Agency FB"; font-size: 18px}
+QWindow {color:"#3a4055"; font-weight: thin; font-family: "Agency FB"; font-size: 18px}
+QTabWidget {color:"#3a4055"; font-weight: thin; font-family: "Agency FB"; font-size: 18px}
 QTableWidget::item:hover{background-color:#d7d8dd;}
 QTableWidget::item:selected{background-color:#3a4055; color: white}
 
-QHeaderView::section {color:"#3a4055"; font-weight: thin; font-family: "Agency FB"; font-size: 12px}
+QHeaderView::section {color:"#3a4055"; font-weight: thin; font-family: "Agency FB"; font-size: 18px}
 
-QTreeView{border-radius: 15px;}
+QTreeView{border-radius: 18px; font-size: 18px}
 
 QTreeView::item:hover{background-color:#d7d8dd;}
 QTreeWidget::item:pressed,QTreeWidget::item:selected{background-color:#3a4055; color: white}
@@ -29,7 +29,6 @@ QTreeView::branch:has-siblings:adjoins-item {
 QTreeView::branch:!has-children:!has-siblings:adjoins-item {
     border-image: url(gui/media/branch-end.png) 0;
 }
-
 QTreeView::branch:has-children:!has-siblings:closed,
 QTreeView::branch:closed:has-children:has-siblings {
         border-image: none;
