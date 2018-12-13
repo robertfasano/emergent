@@ -121,12 +121,12 @@ def trigger(func, *args, **kwargs):
 @decorator.decorator
 def algorithm(func, *args, **kwargs):
     func(*args, **kwargs)
-    args[0].parent.save(tag='optimize')
+    args[0].parent.save()
 
 @decorator.decorator
 def servo(func, *args, **kwargs):
     func(*args, **kwargs)
-    args[0].parent.save(tag='servo')
+    args[0].parent.save()
 
 def get_classes(directory, decoratorName):
     classes = {}
