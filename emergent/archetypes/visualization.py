@@ -68,6 +68,10 @@ def plot_2D(points, costs, normalized_cost = False, limits = None,
     ix = int(best_norm_point[0]*cost_grid.shape[0])
     iy = int(best_norm_point[1]*cost_grid.shape[1])
 
+    if ix == cost_grid.shape[0]:
+        ix -= 1
+    if iy == cost_grid.shape[1]:
+        iy -= 1
     xi = ordinate_mesh[ix,:]
     yi = abscissa_mesh[:,iy]
     zix = cost_grid[iy,:]
