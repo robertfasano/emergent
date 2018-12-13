@@ -143,7 +143,7 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
                 params['experiment']['cycles per sample'] = 1
             return params['experiment']
 
-    def save_params(self, panel, param_type):
+    def save_params(self, panel, param_type, params = None):
         ''' param_type: 'experiment' or 'algorithm' '''
         network_name = __main__.network_path.split('.')[2]
         control = self.parent.treeWidget.currentItem().root
