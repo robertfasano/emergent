@@ -45,17 +45,32 @@ class GaussianProcessRegression():
                                             min = 1e-4,
                                             max = 1e-1,
                                             description = 'Relative tolerance required for convergence')
+        self.params['Leash'] = Parameter(name= 'Leash',
+                                            value = 0.25,
+                                            min = 0.01,
+                                            max = 0.25,
+                                            description = 'Allowed search range relative to last best point')
 
     def next_sample(self, X, b, cost, gaussian_process, restarts=25):
         ''' Generates the next sampling point by minimizing cost on the virtual
             response surface modeled by the Gaussian process. '''
         best_x = None
         best_acquisition_value = 999
-
-        for starting_point in np.random.uniform(self.bounds[0][0], self.bounds[0][1], size=(restarts, X.shape[1])):
+        best_point = self.points[np.argmin(self.costs)]
+        leash = self.params['Leash'].value * (self.bounds[0][1] - self.bounds[0][0])
+        ''' Form random vector within allowed range of last best point '''
+        x0 = np.zeros((X.shape[1], restarts))
+        leashed_bounds = []
+        for i in range(X.shape[1]):
+            xmin = np.max([best_point[i] - leash, self.bounds[i][0]])
+            xmax = np.min([best_point[i] + leash, self.bounds[i][1]])
+            leashed_bounds.append([xmin, xmax])
+            x0[i] =  np.random.uniform(xmin, xmax, restarts)
+        x0 = x0.T
+        for starting_point in x0:
             res = minimize(fun=cost,
                        x0=starting_point.reshape(1, -1),
-                       bounds=self.bounds,
+                       bounds=leashed_bounds,
                        method='L-BFGS-B',
                        args=(b, gaussian_process))
             if res.fun < best_acquisition_value:
@@ -105,7 +120,7 @@ class GaussianProcessRegression():
             self.costs = np.append(self.costs, best_cost)
             best_points.append(best_cost)
             if len(best_points) > 1:
-                if (best_points[-1] - best_points[-2])/best_points[-2] < self.params['Tolerance'].value:
+                if np.abs((best_points[-1] - best_points[-2])/best_points[-2])< self.params['Tolerance'].value:
                     break
 
         self.gp.fit(self.points,self.costs)
@@ -134,5 +149,6 @@ class GaussianProcessRegression():
         predict_costs = np.array([])
         # for point in predict_points:
             # predict_costs = np.append(predict_costs, -self.gp.predict(np.atleast_2d(point)))
-        predict_costs = -self.gp.predict(predict_points)
+        predict_costs, predict_uncertainties = self.gp.predict(predict_points, return_std = True)
+        predict_costs *= -1
         return visualization.plot_2D(predict_points, predict_costs)
