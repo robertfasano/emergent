@@ -4,7 +4,7 @@ import inspect
 import sys
 import types
 from PyQt5.QtWidgets import (QAbstractItemView,QTreeView, QVBoxLayout,
-        QMenu, QAction, QTreeWidget, QTreeWidgetItem)
+        QMenu, QAction, QTreeWidget, QTreeWidgetItem, QHeaderView)
 from PyQt5.QtCore import *
 import json
 from emergent.gui.elements import ExperimentLayout
@@ -25,7 +25,10 @@ class NodeTree(QTreeWidget):
         self.setSelectionMode(QAbstractItemView.MultiSelection)
         self.setColumnCount(4)
         self.setHeaderLabels(["Node", "Value", "Min", "Max"])
-        self.header().resizeSection(1,60)
+        self.header().setSectionResizeMode(0, QHeaderView.ResizeToContents)
+        for i in range(1,4):
+            self.header().setSectionResizeMode(i, QHeaderView.Stretch)
+
         self.customContextMenuRequested.connect(self.openMenu)
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.itemDoubleClicked.connect(self.open_editor)

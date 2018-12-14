@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem
+from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QHeaderView
 from PyQt5.QtCore import Qt
 
 class ParameterTable(QTableWidget):
@@ -9,6 +9,8 @@ class ParameterTable(QTableWidget):
         self.setHorizontalHeaderLabels(['Parameter', 'Value'])
         self.horizontalHeader().setStretchLastSection(True)
 
+        self.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
+        self.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
     def get_params(self):
         params = {}
         for row in range(self.rowCount()):
