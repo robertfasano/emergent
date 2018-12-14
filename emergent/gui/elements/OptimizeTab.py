@@ -96,22 +96,12 @@ class OptimizeLayout(QVBoxLayout, ProcessHandler):
         ''' Algorithm parameters '''
         self.apl = ParameterTable()
         layout.addWidget(self.apl, 2, 0)
-        self.apl.insertColumn(0)
-        self.apl.insertColumn(1)
-        self.apl.setHorizontalHeaderLabels(['Parameter', 'Value'])
-        self.apl.horizontalHeader().setStretchLastSection(True)
-
         self.algorithm_params_edit = QTextEdit('')
 
         ''' Experiment parameters '''
         self.epl = ParameterTable()
         layout.addWidget(self.epl, 2, 1)
-        self.epl.insertColumn(0)
-        self.epl.insertColumn(1)
-        self.epl.setHorizontalHeaderLabels(['Parameter', 'Value'])
-        self.epl.horizontalHeader().setStretchLastSection(True)
         self.cost_params_edit = QTextEdit('')
-
 
         self.algorithm_box.currentTextChanged.connect(lambda: self.parent.update_algorithm_and_experiment(self))
         self.cost_box.currentTextChanged.connect(lambda: self.parent.update_algorithm_and_experiment(self))

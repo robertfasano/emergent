@@ -4,6 +4,10 @@ from PyQt5.QtCore import Qt
 class ParameterTable(QTableWidget):
     def __init__(self):
         QTableWidget.__init__(self)
+        self.insertColumn(0)
+        self.insertColumn(1)
+        self.setHorizontalHeaderLabels(['Parameter', 'Value'])
+        self.horizontalHeader().setStretchLastSection(True)
 
     def get_params(self):
         params = {}
