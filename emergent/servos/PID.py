@@ -68,3 +68,7 @@ class PID():
 
             target = proportional + integral + derivative
             state[dev][input] -= params['Sign']*target  # gets passed into error in the next loop
+
+    def set_params(self, params):
+        for p in params:
+            self.params[p].value = params[p]
