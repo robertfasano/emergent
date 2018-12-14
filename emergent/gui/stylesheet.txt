@@ -1,22 +1,23 @@
-QComboBox {color:"#3a4055"; font-family: "Exo 2"; font-size: 16px}
-QPushButton {color:"#3a4055"; font-family: "Exo 2"; font-size: 16px}
-QTextEdit {color:"#3a4055"; font-family: "Exo 2"; font-size: 16px}
-QTreeWidget {color:"#3a4055"; font-family: "Exo 2"; font-size: 16px; border-radius: 16px; border: 3px}
-
-QLabel {color:"#3a4055"; font-weight: thin; font-family: "Exo 2"; font-size: 16px}
-QTableWidget {color:"#3a4055"; font-weight: thin; font-family: "Exo 2"; font-size: 16px}
-QTableWidgetItem {color:"#3a4055"; font-weight: thin; font-family: "Exo 2"; font-size: 16px}
-QWindow {color:"#3a4055"; font-weight: thin; font-family: "Exo 2"; font-size: 16px}
-QTabWidget {color:"#3a4055"; font-weight: thin; font-family: "Exo 2"; font-size: 16px}
+QComboBox {color:"#000000"; font-family: "Exo 2"; font-size: 14px; font-weight: thin}
+QPushButton {color:"#000000"; font-family: "Exo 2"; font-size: 14px; font-weight: thin}
+QTextEdit {color:#000000; font-family: "Exo 2"; font-size: 14px; font-weight: thin}
+QTreeWidget {color:#000000; font-family: "Exo 2"; font-size: 14px; border-radius: 14px; border: 3px}
+QMenu {color:"#000000"; font-weight: thin; font-family: "Exo 2"; font-size: 14px}
+QMenuBar {color:"#000000"; font-weight: thin; font-family: "Exo 2"; font-size: 14px}
+QLabel {color:"#000000"; font-weight: thin; font-family: "Exo 2"; font-size: 14px}
+QTableWidget {color:"#000000"; font-weight: thin; font-family: "Exo 2"; font-size: 14px}
+QTableWidgetItem {color:"#000000"; font-weight: thin; font-family: "Exo 2"; font-size: 14px}
+QWindow {color:"#000000"; font-weight: thin; font-family: "Exo 2"; font-size: 14px}
+QTabWidget {color:"#000000"; font-weight: thin; font-family: "Exo 2"; font-size: 14px}
 QTableWidget::item:hover{background-color:#d7d8dd;}
-QTableWidget::item:selected{background-color:#3a4055; color: white}
+QTableWidget::item:selected{background-color:#000000; color: white}
 
-QHeaderView::section {color:"#3a4055"; font-weight: thin; font-family: "Exo 2"; font-size: 16px}
+QHeaderView::section {color:"#000000"; font-weight: thin; font-family: "Exo 2"; font-size: 14px}
 
-QTreeView{border-radius: 16px; font-size: 16px}
+QTreeView{border-radius: 14px; font-size: 14px}
 
 QTreeView::item:hover{background-color:#d7d8dd;}
-QTreeWidget::item:pressed,QTreeWidget::item:selected{background-color:#3a4055; color: white}
+QTreeWidget::item:pressed,QTreeWidget::item:selected{background-color:#000000; color: white}
 QTreeView::branch {background: white;}
 QTreeView::branch:has-siblings:!adjoins-item {
     border-image: url(gui/media/vline.png) 0;
@@ -40,4 +41,4 @@ QTreeView::branch:open:has-children:has-siblings  {
         border-image: none;
         image: url(gui/media/branch-open.png);
 }
-//QMainWindow{background-color: qlineargradient(x1: 0.5, y1: 1 x2: 0.5, y2: 0, stop: 0 #3a4055, stop: 1 #616676 );}
+//QMainWindow{background-color: qlineargradient(x1: 0.5, y1: 1 x2: 0.5, y2: 0, stop: 0 #000000, stop: 1 #616676 );}
