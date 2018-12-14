@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import (QComboBox, QLabel, QTextEdit, QPushButton, QVBoxLayout,
-        QWidget, QHBoxLayout, QTabWidget, QGridLayout, QMenu, QAction)
+        QWidget, QHBoxLayout, QTabWidget, QGridLayout, QMenu, QAction, QTreeWidget, QTreeWidgetItem)
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import random
@@ -52,9 +52,9 @@ class PlotWidget(QWidget):
         self.fig2d = fig2d
         self.hist_fig = hist_fig
 
-
         ''' info tab '''
         self.info_tab = QWidget()
+
         self.tabs.addTab(self.info_tab, "Summary")
         self.vert_layout = QVBoxLayout()
         self.layout = QGridLayout()
@@ -63,8 +63,21 @@ class PlotWidget(QWidget):
         self.layout.addWidget(QLabel(self.sampler.cost_name), 0, 2)
 
         self.layout.addWidget(QLabel('Inputs:'), 0, 0)
-        inputs_string = json.dumps(self.sampler.inputs).replace('{', '').replace('}', '').replace('],', ']\n').replace('"', '')
-        self.layout.addWidget(QLabel(inputs_string), 1,0)
+
+        tree = QTreeWidget()
+        control = self.sampler.parent
+        top = QTreeWidgetItem([control.name])
+        tree.insertTopLevelItems(0, [top])
+        for dev in self.sampler.inputs:
+            dev_item = QTreeWidgetItem([dev])
+            top.addChild(dev_item)
+            for input in self.sampler.inputs[dev]:
+                dev_item.addChild(QTreeWidgetItem([input]))
+        tree.header().hide()
+        tree.expandAll()
+        self.layout.addWidget(tree, 1,0)
+
+
 
         cost_params = ParameterTable()
         cost_params.set_parameters(self.sampler.cost_params)
