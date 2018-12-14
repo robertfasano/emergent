@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import (QComboBox, QLabel, QTextEdit, QPushButton, QVBoxLay
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import random
+from emergent.gui.elements.ParameterTable import ParameterTable
 from matplotlib.figure import Figure
 import json
 plt.ioff()
@@ -56,25 +57,22 @@ class PlotWidget(QWidget):
         self.layout = QGridLayout()
         self.info_tab.setLayout(self.vert_layout)
         self.vert_layout.addLayout(self.layout)
-        self.layout.addWidget(QLabel('Experiment:'), 0, 1)
         self.layout.addWidget(QLabel(self.sampler.cost_name), 0, 2)
 
         self.layout.addWidget(QLabel('Inputs:'), 0, 0)
         inputs_string = json.dumps(self.sampler.inputs).replace('{', '').replace('}', '').replace('],', ']\n').replace('"', '')
         self.layout.addWidget(QLabel(inputs_string), 1,0)
 
-        self.layout.addWidget(QLabel('Experiment parameters'), 1, 1)
-        cost_params = self.sampler.cost_params
-        cost_params = str(cost_params).replace('{', '').replace(',', ',\n').replace('}', '')
+        cost_params = ParameterTable()
+        cost_params.set_parameters(self.sampler.cost_params)
+        self.layout.addWidget(cost_params, 1, 2)
 
-        self.layout.addWidget(QLabel(cost_params), 1, 2)
-        self.layout.addWidget(QLabel('Algorithm'), 0, 3)
+
         self.layout.addWidget(QLabel(algorithm), 0, 4)
 
-        self.layout.addWidget(QLabel('Algorithm parameters'), 1, 3)
-        params = self.sampler.params
-        params = str(params).replace('{', '').replace(',', ',\n').replace('}', '')
-        self.layout.addWidget(QLabel(params), 1, 4)
+        params = ParameterTable()
+        params.set_parameters(self.sampler.params)
+        self.layout.addWidget(params, 1, 4)
 
 
         ''' Buttons '''
