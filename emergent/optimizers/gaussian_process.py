@@ -25,17 +25,17 @@ class GaussianProcessRegression():
                                             min = 1,
                                             max = 100,
                                             description = 'Points sampled per iteration')
-        self.params['Kernel amplitude'] = Parameter(name= 'Kernel amplitude',
+        self.params['Amplitude'] = Parameter(name= 'Kernel amplitude',
                                             value = 1,
                                             min = 0,
                                             max = 10,
                                             description = 'Amplitude of modeled cost landscape')
-        self.params['Kernel length scale'] = Parameter(name= 'Kernel length scale',
+        self.params['Length scale'] = Parameter(name= 'Kernel length scale',
                                             value = 1,
                                             min = 0,
                                             max = 10,
                                             description = 'Characteristic size of cost landscape')
-        self.params['Kernel noise'] = Parameter(name= 'Kernel noise',
+        self.params['Noise'] = Parameter(name= 'Kernel noise',
                                             value = 0.1,
                                             min = 0,
                                             max = 10,
