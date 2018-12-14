@@ -85,7 +85,6 @@ class MainFrame(QMainWindow):
         ''' Create menu bar '''
         self.menuBar = QMenuBar()
         self.setMenuBar(self.menuBar)
-        master_layout.addWidget(self.menuBar)
         self.network_menu = self.menuBar.addMenu('Network')
         self.algorithm_menu = self.menuBar.addMenu('Algorithm')
         self.experiment_menu = self.menuBar.addMenu('Experiment')
