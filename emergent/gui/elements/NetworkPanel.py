@@ -28,6 +28,7 @@ class NodeTree(QTreeWidget):
         self.header().setSectionResizeMode(0, QHeaderView.ResizeToContents)
         for i in range(1,4):
             self.header().setSectionResizeMode(i, QHeaderView.Stretch)
+        self.header().setFixedHeight(20)
 
         self.customContextMenuRequested.connect(self.openMenu)
         self.setContextMenuPolicy(Qt.CustomContextMenu)
