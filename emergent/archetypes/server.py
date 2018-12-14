@@ -2,7 +2,7 @@ import asyncio
 import json
 from emergent.archetypes import Control
 from threading import Thread
-
+import logging as log
 class Server():
     ''' Allows decentralized data viewing via asynchronous communications between the EMERGENT
         master and a remote client. '''
@@ -11,7 +11,7 @@ class Server():
         self.loop = asyncio.get_event_loop()
         coro = asyncio.start_server(self.handle_command, '127.0.0.1', 8888, loop=self.loop)
         self.server = self.loop.run_until_complete(coro)
-        print('Serving on {}'.format(self.server.sockets[0].getsockname()))
+        log.info('Serving on {}'.format(self.server.sockets[0].getsockname()))
         thread = Thread(target=self.start)
         thread.start()
 
