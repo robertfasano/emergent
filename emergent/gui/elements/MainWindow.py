@@ -92,16 +92,16 @@ class MainFrame(QMainWindow):
 
         self.task_menu = self.menuBar.addMenu('Tasks')
 
-        self.save_action = self.network_menu.addAction('Save network state')
+        self.save_action = self.network_menu.addAction('Save state')
         self.save_action.triggered.connect(self.save)
 
-        self.save_algorithm_action = self.algorithm_menu.addAction('Save algorithm parameters')
+        self.save_algorithm_action = self.algorithm_menu.addAction('Save parameters')
 
-        self.reset_algorithm_action = self.algorithm_menu.addAction('Reset algorithm parameters')
+        self.reset_algorithm_action = self.algorithm_menu.addAction('Reset parameters')
 
 
-        self.save_experiment_action = self.experiment_menu.addAction('Save experiment parameters')
-        self.reset_experiment_action = self.experiment_menu.addAction('Reset experiment parameters')
+        self.save_experiment_action = self.experiment_menu.addAction('Save parameters')
+        self.reset_experiment_action = self.experiment_menu.addAction('Reset parameters')
 
         self.save_experiment_action.triggered.connect(lambda: self.optimizer.save_params(self.optimizer.panel, 'experiment'))
         self.save_algorithm_action.triggered.connect(lambda: self.optimizer.save_params(self.optimizer.panel, 'algorithm'))
