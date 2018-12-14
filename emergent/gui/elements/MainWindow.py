@@ -17,7 +17,7 @@ class MainFrame(QMainWindow):
     def __init__(self, app, tree, controls):
         QMainWindow.__init__(self)
         self.setWindowTitle('EMERGENT: %s'%sys.argv[1])
-        QFontDatabase.addApplicationFont('gui/media/Exo2-Thin.ttf')
+        QFontDatabase.addApplicationFont('gui/media/Exo2-Light.ttf')
         with open('gui/stylesheet.txt',"r") as file:
             self.setStyleSheet(file.read())
         self.controls = controls

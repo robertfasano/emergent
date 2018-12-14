@@ -1,18 +1,18 @@
-QComboBox {color:"#000000"; font-family: "Exo 2"; font-size: 14px; font-weight: thin}
-QPushButton {color:"#000000"; font-family: "Exo 2"; font-size: 14px; font-weight: thin}
-QTextEdit {color:#000000; font-family: "Exo 2"; font-size: 14px; font-weight: thin}
+QComboBox {color:"#000000"; font-family: "Exo 2"; font-size: 14px; font-weight: light}
+QPushButton {color:"#000000"; font-family: "Exo 2"; font-size: 14px; font-weight: light}
+QTextEdit {color:#000000; font-family: "Exo 2"; font-size: 14px; font-weight: light}
 QTreeWidget {color:#000000; font-family: "Exo 2"; font-size: 14px; border-radius: 14px; border: 3px}
-QMenu {color:"#000000"; font-weight: thin; font-family: "Exo 2"; font-size: 14px}
-QMenuBar {color:"#000000"; font-weight: thin; font-family: "Exo 2"; font-size: 14px}
-QLabel {color:"#000000"; font-weight: thin; font-family: "Exo 2"; font-size: 14px}
-QTableWidget {color:"#000000"; font-weight: thin; font-family: "Exo 2"; font-size: 14px}
-QTableWidgetItem {color:"#000000"; font-weight: thin; font-family: "Exo 2"; font-size: 14px}
-QWindow {color:"#000000"; font-weight: thin; font-family: "Exo 2"; font-size: 14px}
-QTabWidget {color:"#000000"; font-weight: thin; font-family: "Exo 2"; font-size: 14px}
+QMenu {color:"#000000"; font-weight: light; font-family: "Exo 2"; font-size: 14px}
+QMenuBar {color:"#000000"; font-weight: light; font-family: "Exo 2"; font-size: 14px}
+QLabel {color:"#000000"; font-weight: light; font-family: "Exo 2"; font-size: 14px}
+QTableWidget {color:"#000000"; font-weight: light; font-family: "Exo 2"; font-size: 14px}
+QTableWidgetItem {color:"#000000"; font-weight: light; font-family: "Exo 2"; font-size: 14px}
+QWindow {color:"#000000"; font-weight: light; font-family: "Exo 2"; font-size: 14px}
+QTabWidget {color:"#000000"; font-weight: light; font-family: "Exo 2"; font-size: 14px}
 QTableWidget::item:hover{background-color:#d7d8dd;}
 QTableWidget::item:selected{background-color:#000000; color: white}
 
-QHeaderView::section {color:"#000000"; font-weight: thin; font-family: "Exo 2"; font-size: 14px}
+QHeaderView::section {color:"#000000"; font-weight: light; font-family: "Exo 2"; font-size: 14px}
 
 QTreeView{border-radius: 14px; font-size: 14px}
 
