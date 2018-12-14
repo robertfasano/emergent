@@ -19,8 +19,11 @@ class Canvas(FigureCanvas):
     def contextMenuEvent(self, event):
         self.menu = QMenu(self)
         self.action = QAction('Clip')
+        self.refresh = QAction('Refresh')
+        self.refresh.triggered.connect(self.parent.update_figs)
         self.action.triggered.connect(self.save_to_clipboard)
         self.menu.addAction(self.action)
+        self.menu.addAction(self.refresh)
         self.menu.popup(QCursor.pos())
 
 
@@ -75,16 +78,6 @@ class PlotWidget(QWidget):
         self.layout.addWidget(params, 1, 4)
 
 
-        ''' Buttons '''
-        self.buttons_layout = QHBoxLayout()
-        self.vert_layout.addLayout(self.buttons_layout)
-        self.terminate_button = QPushButton('Terminate')
-        self.terminate_button.clicked.connect(self.sampler.terminate)
-        self.buttons_layout.addWidget(self.terminate_button)
-
-        self.refresh_button = QPushButton('Refresh')
-        self.refresh_button.clicked.connect(self.update_figs)
-        self.buttons_layout.addWidget(self.refresh_button)
         ''' optimization history '''
         self.canvas_hist_layout = QHBoxLayout()
         self.vert_layout.addLayout(self.canvas_hist_layout)
@@ -198,4 +191,7 @@ class PlotWidget(QWidget):
         self.draw_hist_fig()
 
         if not self.sampler.active:
-            self.update_timer.stop()
+            try:
+                self.update_timer.stop()
+            except AttributeError:
+                pass

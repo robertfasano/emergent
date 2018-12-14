@@ -3,7 +3,7 @@
 import inspect
 import sys
 import types
-from PyQt5.QtGui import QStandardItem, QStandardItemModel, QFont, QWindow
+from PyQt5.QtGui import QStandardItem, QStandardItemModel, QFont, QWindow, QCursor
 from PyQt5.QtWidgets import (QApplication, QAbstractItemView,QCheckBox, QComboBox, QGridLayout,
         QGroupBox, QHBoxLayout, QGridLayout, QLabel, QTextEdit, QTreeView, QPushButton, QTableView,QVBoxLayout,
         QWidget, QMenu, QAction, QTreeWidget, QTreeWidgetItem, QTableWidget, QTableWidgetItem, QDialog)
@@ -19,18 +19,37 @@ import json
 import itertools
 import numpy as np
 
+class ContextTable(QTableWidget):
+    def __init__(self):
+        QTableWidget.__init__(self)
+
+    def contextMenuEvent(self, event):
+        self.menu = QMenu(self)
+        self.action = QAction('Terminate')
+        self.menu.addAction(self.action)
+        self.menu.popup(QCursor.pos())
+
+        pos = self.viewport().mapFromGlobal(QCursor.pos())
+        row = self.rowAt(pos.y())
+        name = self.item(row, 0).text()
+        sampler = self.item(row, 4).sampler
+        self.action.triggered.connect(sampler.terminate)
+
+
 class OptimizerItem(QTableWidgetItem):
     def __init__(self, sampler, process_type):
         super().__init__()
         self.sampler = sampler
         self.process_type = process_type
 
+
+
 class HistoryPanel(QVBoxLayout):
     def __init__(self, parent):
         super().__init__()
         self.parent = parent
         self.addWidget(QLabel('Tasks'))
-        self.table = QTableWidget()
+        self.table = ContextTable()
         self.addWidget(self.table)
         self.table.insertColumn(0)
         self.table.insertColumn(1)
