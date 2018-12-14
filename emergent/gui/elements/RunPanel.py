@@ -26,10 +26,6 @@ class RunLayout(QVBoxLayout, ProcessHandler):
         ''' Experiment parameters '''
         self.epl = ParameterTable()
         self.addWidget(self.epl)
-        self.epl.insertColumn(0)
-        self.epl.insertColumn(1)
-        self.epl.setHorizontalHeaderLabels(['Parameter', 'Value'])
-        self.epl.horizontalHeader().setStretchLastSection(True)
 
         self.runIterationsLayout = QHBoxLayout()
         self.runIterationsLayout.addWidget(QLabel('Iterations'))

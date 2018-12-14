@@ -30,18 +30,10 @@ class ServoLayout(QVBoxLayout, ProcessHandler):
         ''' Algorithm parameters '''
         self.apl = ParameterTable()
         layout.addWidget(self.apl, 1, 0)
-        self.apl.insertColumn(0)
-        self.apl.insertColumn(1)
-        self.apl.setHorizontalHeaderLabels(['Parameter', 'Value'])
-        self.apl.horizontalHeader().setStretchLastSection(True)
 
         ''' Experiment parameters '''
         self.epl = ParameterTable()
         layout.addWidget(self.epl, 1, 1)
-        self.epl.insertColumn(0)
-        self.epl.insertColumn(1)
-        self.epl.setHorizontalHeaderLabels(['Parameter', 'Value'])
-        self.epl.horizontalHeader().setStretchLastSection(True)
 
         self.cost_box.currentTextChanged.connect(lambda: self.parent.update_algorithm_and_experiment(self))
 
