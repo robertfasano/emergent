@@ -44,6 +44,13 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         runTab.setLayout(self.runPanel)
         self.tabWidget.addTab(runTab, 'Run')
 
+        self.update_panel()
+
+        self.tabWidget.currentChanged.connect(self.update_panel)
+
+    def update_panel(self):
+        self.panel = self.tabWidget.currentWidget().layout()
+
     def get_default_params(self, name, panel):
         inst = self.get_algorithm(name, panel)
         params = inst.params
@@ -155,8 +162,7 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
 
         ''' Pull params from gui '''
         if params is None:
-            f = {'algorithm': panel.apl.get_params(), 'experiment': lambda: panel.epl.get_params()}[param_type]
-            params = f()
+            params = {'algorithm': panel.apl.get_params(), 'experiment': lambda: panel.epl.get_params()}[param_type]
 
         ''' Load old params from file '''
         with open(params_filename, 'r') as file:

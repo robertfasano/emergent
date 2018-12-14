@@ -112,19 +112,6 @@ class OptimizeLayout(QVBoxLayout, ProcessHandler):
         self.epl.horizontalHeader().setStretchLastSection(True)
         self.cost_params_edit = QTextEdit('')
 
-        self.save_algorithm_button = QPushButton('Save')
-        self.save_algorithm_button.clicked.connect(lambda: self.parent.save_params(self, 'algorithm'))
-        self.save_experiment_button = QPushButton('Save')
-        self.save_experiment_button.clicked.connect(lambda: self.parent.save_params(self, 'experiment'))
-        layout.addWidget(self.save_algorithm_button, 3, 0)
-        layout.addWidget(self.save_experiment_button, 3, 1)
-
-        self.reset_algorithm_button = QPushButton('Reset')
-        self.reset_algorithm_button.clicked.connect(lambda: self.parent.update_algorithm_and_experiment(self, default=True, update_experiment=False))
-        self.reset_experiment_button = QPushButton('Reset')
-        self.reset_experiment_button.clicked.connect(lambda: self.parent.update_algorithm_and_experiment(self, default=True, update_algorithm=False))
-        layout.addWidget(self.reset_algorithm_button, 4, 0)
-        layout.addWidget(self.reset_experiment_button, 4, 1)
 
         self.algorithm_box.currentTextChanged.connect(lambda: self.parent.update_algorithm_and_experiment(self))
         self.cost_box.currentTextChanged.connect(lambda: self.parent.update_algorithm_and_experiment(self))

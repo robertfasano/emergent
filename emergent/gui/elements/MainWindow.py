@@ -35,10 +35,7 @@ class MainFrame(QMainWindow):
         height = 720
         self.resize(width, height)
 
-        ''' Create menu bar '''
-        # self.menuBar = QMenuBar()
-        # self.setMenuBar(self.menuBar)
-        # # master_layout.addWidget(self.menuBar)
+
         # self.viewMenu = self.menuBar.addMenu('View')
         # # optimizer = self.viewMenu.addAction("Optimizer")
         # self.show_servo = self.viewMenu.addAction("Servo")
@@ -68,9 +65,9 @@ class MainFrame(QMainWindow):
         self.treeLayout.addWidget(self.treeWidget)
         layout.addLayout(self.treeLayout)
 
-        self.saveButton = QPushButton('Save')
-        self.saveButton.clicked.connect(self.save)
-        self.treeLayout.addWidget(self.saveButton)
+        # self.saveButton = QPushButton('Save')
+        # self.saveButton.clicked.connect(self.save)
+        # self.treeLayout.addWidget(self.saveButton)
 
         ''' Create optimizer layout '''
         self.optimizer = ExperimentLayout(self)
@@ -83,6 +80,33 @@ class MainFrame(QMainWindow):
         ''' Create history panel '''
         self.historyPanel = HistoryPanel(self)
         layout.addLayout(self.historyPanel)
+
+        ''' Create menu bar '''
+        self.menuBar = QMenuBar()
+        self.setMenuBar(self.menuBar)
+        master_layout.addWidget(self.menuBar)
+        self.network_menu = self.menuBar.addMenu('Network')
+        self.algorithm_menu = self.menuBar.addMenu('Algorithm')
+        self.experiment_menu = self.menuBar.addMenu('Experiment')
+
+        self.task_menu = self.menuBar.addMenu('Tasks')
+
+        self.save_action = self.network_menu.addAction('Save network state')
+        self.save_action.triggered.connect(self.save)
+
+        self.save_algorithm_action = self.algorithm_menu.addAction('Save algorithm parameters')
+
+        self.reset_algorithm_action = self.algorithm_menu.addAction('Reset algorithm parameters')
+
+
+        self.save_experiment_action = self.experiment_menu.addAction('Save experiment parameters')
+        self.reset_experiment_action = self.experiment_menu.addAction('Reset experiment parameters')
+
+        self.save_experiment_action.triggered.connect(lambda: self.optimizer.save_params(self.optimizer.panel, 'experiment'))
+        self.save_algorithm_action.triggered.connect(lambda: self.optimizer.save_params(self.optimizer.panel, 'algorithm'))
+
+        self.reset_experiment_action.triggered.connect(lambda: self.optimizer.update_algorithm_and_experiment(self.optimizer.panel, default=True, update_algorithm=False))
+        self.reset_algorithm_action.triggered.connect(lambda: self.optimizer.update_algorithm_and_experiment(self.optimizer.panel, default=True, update_experiment=False))
 
     def get_system_stats(self):
         mem = 'Memory usage: %.2f GB'%(psutil.Process(os.getpid()).memory_info()[0]/2.**30)
