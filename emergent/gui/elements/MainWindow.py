@@ -3,7 +3,7 @@
 import inspect
 import sys
 import types
-from PyQt5.QtGui import QIcon, QStandardItem, QStandardItemModel, QFont
+from PyQt5.QtGui import QIcon, QStandardItem, QStandardItemModel, QFont, QFontDatabase
 from PyQt5.QtWidgets import (QHBoxLayout, QLabel, QTreeView, QPushButton, QVBoxLayout,
         QWidget, QMenu, QAction, QTreeWidget, QTreeWidgetItem, QMainWindow, QStatusBar, QMenuBar)
 from PyQt5.QtCore import *
@@ -17,6 +17,7 @@ class MainFrame(QMainWindow):
     def __init__(self, app, tree, controls):
         QMainWindow.__init__(self)
         self.setWindowTitle('EMERGENT: %s'%sys.argv[1])
+        QFontDatabase.addApplicationFont('gui/media/Exo2-Black.ttf')
         with open('gui/stylesheet.txt',"r") as file:
             self.setStyleSheet(file.read())
         self.controls = controls

@@ -1,19 +1,19 @@
-QComboBox {color:"#3a4055"; font-family: "Agency FB"; font-size: 18px}
-QPushButton {color:"#3a4055"; font-family: "Agency FB"; font-size: 18px}
-QTextEdit {color:"#3a4055"; font-family: "Agency FB"; font-size: 18px}
-QTreeWidget {color:"#3a4055"; font-family: "Agency FB"; font-size: 18px; border-radius: 18px; border: 3px}
+QComboBox {color:"#3a4055"; font-family: "Exo 2"; font-size: 16px}
+QPushButton {color:"#3a4055"; font-family: "Exo 2"; font-size: 16px}
+QTextEdit {color:"#3a4055"; font-family: "Exo 2"; font-size: 16px}
+QTreeWidget {color:"#3a4055"; font-family: "Exo 2"; font-size: 16px; border-radius: 16px; border: 3px}
 
-QLabel {color:"#3a4055"; font-weight: thin; font-family: "Agency FB"; font-size: 18px}
-QTableWidget {color:"#3a4055"; font-weight: thin; font-family: "Agency FB"; font-size: 18px}
-QTableWidgetItem {color:"#3a4055"; font-weight: thin; font-family: "Agency FB"; font-size: 18px}
-QWindow {color:"#3a4055"; font-weight: thin; font-family: "Agency FB"; font-size: 18px}
-QTabWidget {color:"#3a4055"; font-weight: thin; font-family: "Agency FB"; font-size: 18px}
+QLabel {color:"#3a4055"; font-weight: thin; font-family: "Exo 2"; font-size: 16px}
+QTableWidget {color:"#3a4055"; font-weight: thin; font-family: "Exo 2"; font-size: 16px}
+QTableWidgetItem {color:"#3a4055"; font-weight: thin; font-family: "Exo 2"; font-size: 16px}
+QWindow {color:"#3a4055"; font-weight: thin; font-family: "Exo 2"; font-size: 16px}
+QTabWidget {color:"#3a4055"; font-weight: thin; font-family: "Exo 2"; font-size: 16px}
 QTableWidget::item:hover{background-color:#d7d8dd;}
 QTableWidget::item:selected{background-color:#3a4055; color: white}
 
-QHeaderView::section {color:"#3a4055"; font-weight: thin; font-family: "Agency FB"; font-size: 18px}
+QHeaderView::section {color:"#3a4055"; font-weight: thin; font-family: "Exo 2"; font-size: 16px}
 
-QTreeView{border-radius: 18px; font-size: 18px}
+QTreeView{border-radius: 16px; font-size: 16px}
 
 QTreeView::item:hover{background-color:#d7d8dd;}
 QTreeWidget::item:pressed,QTreeWidget::item:selected{background-color:#3a4055; color: white}
