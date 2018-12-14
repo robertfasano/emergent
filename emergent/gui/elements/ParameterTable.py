@@ -11,6 +11,8 @@ class ParameterTable(QTableWidget):
 
         self.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
         self.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
+        self.verticalHeader().hide()
+
     def get_params(self):
         params = {}
         for row in range(self.rowCount()):
