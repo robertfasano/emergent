@@ -98,7 +98,7 @@ class GaussianProcessRegression():
         X, c = self.sampler.sample(state, 'random_sampling', self.params['Presampled points'].value)
         self.points = np.append(np.atleast_2d(self.points), X, axis=0)
         self.costs = np.append(self.costs, c)
-        kernel = C(self.params['Kernel amplitude'].value, (1e-3, 1e3)) * RBF(self.params['Kernel length scale'].value, (1e-2, 1e2)) + WhiteKernel(self.params['Kernel noise'].value)
+        kernel = C(self.params['Amplitude'].value, (1e-3, 1e3)) * RBF(self.params['Length scale'].value, (1e-2, 1e2)) + WhiteKernel(self.params['Noise'].value)
         self.gp = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=10)
         best_points = []
         for i in range(int(self.params['Iterations'].value)):
@@ -127,9 +127,9 @@ class GaussianProcessRegression():
         best_point = self.sampler.array2state(self.points[np.argmin(self.costs)])
         self.sampler.actuate(self.sampler.unnormalize(best_point))
 
-        self.params['Kernel length scale'] = self.gp.kernel_.get_params()['k1__k2__length_scale']
-        self.params['Kernel amplitude'] = self.gp.kernel_.get_params()['k1__k1__constant_value']
-        self.params['Kernel noise'] = self.gp.kernel_.get_params()['k2__noise_level']
+        self.params['Length scale'] = self.gp.kernel_.get_params()['k1__k2__length_scale']
+        self.params['Amplitude'] = self.gp.kernel_.get_params()['k1__k1__constant_value']
+        self.params['Noise'] = self.gp.kernel_.get_params()['k2__noise_level']
 
         return self.params
 
