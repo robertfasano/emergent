@@ -8,7 +8,6 @@ class ParameterTable(QTableWidget):
         self.insertColumn(1)
         self.setHorizontalHeaderLabels(['Parameter', 'Value'])
         self.horizontalHeader().setStretchLastSection(True)
-
         self.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
         self.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
         self.verticalHeader().hide()
