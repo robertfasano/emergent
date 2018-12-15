@@ -151,19 +151,20 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
                 params['experiment']['cycles per sample'] = 1
             return params['experiment']
 
-    def save_params(self, panel, param_type, params = None):
+    def save_params(self, panel, param_type):
         ''' param_type: 'experiment' or 'algorithm' '''
         network_name = __main__.network_path.split('.')[2]
         control = self.parent.treeWidget.currentItem().root
-        algorithm_name = panel.algorithm_box.currentText()
 
         experiment = getattr(control, panel.cost_box.currentText())
         params_filename = './networks/%s/params/'%network_name + '%s.%s.txt'%(control.name, experiment.__name__)
 
         ''' Pull params from gui '''
-        if params is None:
-            params = {'algorithm': panel.apl.get_params(), 'experiment': lambda: panel.epl.get_params()}[param_type]
-
+        if param_type == 'algorithm':
+            params = panel.apl.get_params()
+        else:
+            params = panel.epl.get_params()
+        print(params)
         ''' Load old params from file '''
         with open(params_filename, 'r') as file:
             old_params = json.load(file)
