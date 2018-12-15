@@ -24,7 +24,9 @@ class NodeTree(QTreeWidget):
 
         self.setSelectionMode(QAbstractItemView.MultiSelection)
         self.setColumnCount(4)
-        self.setHeaderLabels(["Node", "Value", "Min", "Max"])
+        # self.setHeaderLabels(["Node", "Value", "Min", "Max"])
+        header_item = QTreeWidgetItem(['Node', 'Value', 'Min', 'Max'])
+        self.setHeaderItem(header_item)
         self.header().setSectionResizeMode(0, QHeaderView.ResizeToContents)
         for i in range(1,4):
             self.header().setSectionResizeMode(i, QHeaderView.Stretch)
