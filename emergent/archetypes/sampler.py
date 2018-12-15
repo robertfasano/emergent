@@ -13,7 +13,7 @@ import os
 from scipy.interpolate import griddata
 from scipy.stats import norm
 import matplotlib.pyplot as plt
-
+import pickle
 from emergent.archetypes.visualization import plot_1D, plot_2D
 import pandas as pd
 import time
@@ -44,6 +44,16 @@ class Sampler():
         self.progress = 0
         self.result = None
         self.prepare(self.state)
+
+    def __getstate__(self):
+        d = {}
+        d['algorithm'] = self.__dict__['algorithm'].name
+        d['experiment'] = self.__dict__['experiment'].__name__
+
+        for x in ['algorithm_params', 'experiment_params', 'history', 'state']:
+            d[x] = self.__dict__[x]
+
+        return d
     def callback(self, *args):
         return self.active
 
@@ -200,6 +210,10 @@ class Sampler():
                 max = self.control.settings[dev][i]['max']
                 unnorm[dev][i] = min + norm[dev][i] * (max-min)
         return unnorm
+
+    def save(self, filename):
+        with open(self.control.data_path+'%s.sci'%filename, 'wb') as file:
+            pickle.dump(self, file)
 
     ''' Visualization methods '''
     def plot_optimization(self, yscale = 'linear'):
