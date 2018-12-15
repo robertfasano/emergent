@@ -7,3 +7,4 @@ EMERGENT.egg-info/*
 dist/*
 *.csv
 *.txt
+*.json
