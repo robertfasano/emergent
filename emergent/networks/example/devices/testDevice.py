@@ -1,12 +1,13 @@
 from emergent.archetypes import Device
 from utility import dev
 import numpy as np
+
 @dev
 class TestDevice(Device):
     ''' Device driver for the virtual network in the 'basic' example. '''
-    def __init__(self, name, parent):
+    def __init__(self, name, parent, params = {}):
         ''' Register with the network and create two Input nodes, 'X' and 'Y'. '''
-        super().__init__(name, parent)
+        super().__init__(name, parent, params = {})
         self.add_input('X')
         self.add_input('Y')
 
