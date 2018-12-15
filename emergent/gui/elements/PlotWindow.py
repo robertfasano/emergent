@@ -60,7 +60,7 @@ class PlotWidget(QWidget):
         self.layout = QGridLayout()
         self.info_tab.setLayout(self.vert_layout)
         self.vert_layout.addLayout(self.layout)
-        self.layout.addWidget(QLabel(self.sampler.cost_name), 0, 2)
+        self.layout.addWidget(QLabel(self.sampler.cost_name), 0, 1)
 
         self.layout.addWidget(QLabel('Inputs:'), 0, 0)
 
@@ -81,14 +81,13 @@ class PlotWidget(QWidget):
 
         cost_params = ParameterTable()
         cost_params.set_parameters(self.sampler.cost_params)
-        self.layout.addWidget(cost_params, 1, 2)
+        self.layout.addWidget(cost_params, 1, 1)
 
 
-        self.layout.addWidget(QLabel(algorithm), 0, 4)
-
+        self.layout.addWidget(QLabel(algorithm), 0, 2)
         params = ParameterTable()
         params.set_parameters(self.sampler.params)
-        self.layout.addWidget(params, 1, 4)
+        self.layout.addWidget(params, 1, 2)
 
 
         ''' optimization history '''
