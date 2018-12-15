@@ -263,7 +263,6 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         ''' Create optimizer/sampler '''
         sampler, index = settings['control'].attach_sampler(state, cost)
         sampler.initialize(state, cost, algo_params, cost_params)
-        control.samplers[index]['status'] = process
 
         if hasattr(panel, 'algorithm_box'):
             algorithm_name = panel.algorithm_box.currentText()

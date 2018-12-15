@@ -139,7 +139,6 @@ class OptimizeLayout(QVBoxLayout, ProcessHandler):
         control = settings['control']
         algo(state)
         log.info('Optimization complete!')
-        control.samplers[index]['status'] = 'Done'
         sampler.log(t.replace(':','') + ' - ' + cost.__name__ + ' - ' + algo.__name__)
         sampler.active = False
 

@@ -63,6 +63,5 @@ class ServoLayout(QVBoxLayout, ProcessHandler):
     def run_process(self, sampler, settings, index, t):
         settings['algorithm'](settings['state'], settings['cost'], settings['algo_params'], settings['cost_params'], callback = settings['callback'])
         log.info('Optimization complete!')
-        settings['control'].samplers[index]['status'] = 'Done'
         sampler.log(t.replace(':','') + ' - ' + settings['cost_name'] + ' - ' + settings['algorithm'].__name__)
         sampler.active = False

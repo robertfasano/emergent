@@ -77,7 +77,6 @@ class RunLayout(QVBoxLayout, ProcessHandler):
             if type(settings['iterations']) is int:
                 if count >= settings['iterations']:
                     break
-        control.samplers[index]['status'] = 'Done'
         sampler.log(t.replace(':','') + ' - ' + sampler.cost.__name__)
         sampler.active = False
 
