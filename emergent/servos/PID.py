@@ -30,8 +30,8 @@ class PID():
                                             description = 'Sign of correction')
 
     @servo
-    def run(self, state, error, params={'Proportional gain':1, 'Integral gain':0, 'Derivative gain':0, 'Sign':-1}, error_params = {}, callback = None):
-        self.sampler.initialize(state, error, params, error_params)
+    def run(self, state, params={'Proportional gain':1, 'Integral gain':0, 'Derivative gain':0, 'Sign':-1}, error_params = {}, callback = None):
+        error = self.sampler.experiment
         if callback is None:
             callback = self.sampler.callback
         devices = list(state.keys())
@@ -41,14 +41,14 @@ class PID():
         inputs = list(state[dev].keys())
         assert len(inputs) == 1
         input = inputs[0]
-        input_node = self.sampler.parent.children[dev].children[input]
+        input_node = self.sampler.control.children[dev].children[input]
         input_node.error_history = pd.Series()
-        last_error = error(state, error_params)
+        last_error = error(state, self.sampler.experiment_params)
         last_time = time.time()
         integral = 0
         e = None
         while callback(e):
-            e = error(state, error_params)
+            e = error(state, self.sampler.experiment_params)
             t = time.time()
             print(t)
             self.sampler.history.loc[t,'cost']=e

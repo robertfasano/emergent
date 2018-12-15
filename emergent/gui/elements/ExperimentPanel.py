@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import (QComboBox, QLabel, QTextEdit, QPushButton, QVBoxLay
 from PyQt5.QtCore import *
 from emergent.gui.elements import OptimizeLayout, ServoLayout, RunLayout
 from emergent.archetypes.parallel import ProcessHandler
+from emergent.archetypes import Sampler
 import inspect
 import json
 import logging as log
@@ -156,7 +157,7 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         network_name = __main__.network_path.split('.')[2]
         control = self.parent.treeWidget.currentItem().root
 
-        experiment = getattr(control, panel.cost_box.currentText())
+        experiment = getattr(control, panel.experiment_box.currentText())
         params_filename = './networks/%s/params/'%network_name + '%s.%s.txt'%(control.name, experiment.__name__)
 
         ''' Pull params from gui '''
@@ -191,13 +192,13 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
                 for item in self.list_algorithms(panel):
                     panel.algorithm_box.addItem(item.replace('_',' '))
         if exp_or_error == 'error':
-            panel.cost_box.clear()
+            panel.experiment_box.clear()
             for item in list_errors(control):
-                panel.cost_box.addItem(item)
+                panel.experiment_box.addItem(item)
         elif exp_or_error == 'experiment':
-            panel.cost_box.clear()
+            panel.experiment_box.clear()
             for item in list_experiments(control):
-                panel.cost_box.addItem(item)
+                panel.experiment_box.addItem(item)
 
     def update_control(self):
         control = self.parent.treeWidget.currentItem().root
@@ -214,21 +215,21 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
 
     def update_experiment(self, panel):
         ''' Read default params dict from source code and insert it in self.cost_params_edit. '''
-        if panel.cost_box.currentText() is '':
+        if panel.experiment_box.currentText() is '':
             return
         control = self.parent.treeWidget.currentItem().root
-        experiment = getattr(control, panel.cost_box.currentText())
+        experiment = getattr(control, panel.experiment_box.currentText())
         d = self.file_to_dict(experiment, experiment, 'experiment', panel)
         panel.epl.set_parameters(d)
 
     def update_algorithm_and_experiment(self, panel, default = False, update_algorithm = True, update_experiment = True):
-        if panel.cost_box.currentText() is '':
+        if panel.experiment_box.currentText() is '':
             return
         if panel.algorithm_box.currentText() is '':
             return
         control = self.parent.treeWidget.currentItem().root
         try:
-            experiment = getattr(control, panel.cost_box.currentText())
+            experiment = getattr(control, panel.experiment_box.currentText())
         except AttributeError:
             return
         if update_algorithm:
@@ -241,8 +242,18 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
             exp_params = self.file_to_dict(experiment, experiment, 'experiment', panel, default = default)
             panel.epl.set_parameters(exp_params)
 
-    def start_process(self, *args, process = '', panel = None, settings = {}):
+    def start_process(self, process = '', panel = None, settings = {}):
         ''' Load any non-passed settings from the GUI '''
+        ''' Settings contains the following fields:
+            cost_name: str
+            cost_params: dict
+            algo_params: dict
+            control: node
+            state: dict
+
+            Let's attach these to the Sampler instead!
+
+        '''
         gui_settings = panel.get_settings_from_gui()
         if gui_settings is None:
             return
@@ -253,38 +264,33 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
             else:
                 settings[s] = gui_settings[s]
 
-        control = settings['control']
-        cost = getattr(control, settings['cost_name'])
-        algo_params = settings['algo_params']
-        cost_params = settings['cost_params']
-        settings['cost'] = cost
-        state = settings['state']
-
-        ''' Create optimizer/sampler '''
-        sampler, index = settings['control'].attach_sampler(state, cost)
-        sampler.initialize(state, cost, algo_params, cost_params)
-
+        settings['experiment'] = getattr(settings['control'], settings['experiment_name'])
         if hasattr(panel, 'algorithm_box'):
             algorithm_name = panel.algorithm_box.currentText()
-            algo = self.get_algorithm(algorithm_name, panel)
-            algo.set_params(algo_params)
-            algo.sampler = sampler
-            sampler.algorithm = algo
-            algo.parent = control
-            settings['algorithm'] = algo.run
+            settings['algorithm'] = self.get_algorithm(algorithm_name, panel)
+            settings['algorithm'].set_params(settings['algorithm_params'])
+            name = algorithm_name
         else:
-            algorithm_name = 'Run'
+            settings['algorithm'] = None
+            settings['algorithm_params'] = None
+            name = 'Run'
+        sampler = Sampler(settings['state'],
+                          settings['control'],
+                          settings['experiment'],
+                          settings['experiment_params'],
+                          settings['algorithm'],
+                          settings['algorithm_params'])
 
         ''' Create HistoryPanel task '''
         t = datetime.datetime.strftime(datetime.datetime.now(), '%H:%M')
-        row = self.parent.historyPanel.add_event(t, cost.__name__, algorithm_name, process, sampler)
+        row = self.parent.historyPanel.add_event(t,settings['experiment'].__name__, name, process, sampler)
 
         ''' Run process '''
-        if state == {} and process != 'run':
+        if settings['state'] == {} and process != 'run':
             log.warn('Please select at least one Input node for optimization.')
             return
 
         stoppable = False
         if process == 'run':
             stoppable = True
-        panel._run_thread(panel.run_process, args = (sampler, settings, index, t), stoppable=stoppable)
+        panel._run_thread(panel.run_process, args = (sampler, t), stoppable=stoppable)

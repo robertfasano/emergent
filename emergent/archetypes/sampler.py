@@ -25,21 +25,31 @@ from emergent.utility import methodsWithDecorator, algorithm
 
 class Sampler():
     ''' General methods '''
-    def __init__(self, control_node, cost = None):
+    def __init__(self, state, control, experiment, experiment_params, algorithm = None, algorithm_params = {}):
         ''' Initialize the sampler and link to the parent Control node. '''
-        self.parent = control_node
-        self.actuate = self.parent.actuate
+        self.state = state
+        self.control = control
+        self.index = len(control.samplers)
+        control.samplers[self.index] = self
+        self.experiment = experiment
+        self.experiment_name = experiment.__name__
+        self.experiment_params = experiment_params
+        self.algorithm = algorithm
+        if self.algorithm is not None:
+            self.algorithm.sampler = self
+        self.algorithm_params = algorithm_params
+
+        self.actuate = self.control.actuate
         self.active = True        # a boolean allowing early termination through the callback method
         self.progress = 0
         self.result = None
-        self.cost = cost
-
+        self.prepare(self.state)
     def callback(self, *args):
         return self.active
 
     def log(self, filename):
         ''' Saves the sampled data to file with the given name '''
-        self.history.to_csv(self.parent.data_path+filename+'.csv')
+        self.history.to_csv(self.control.data_path+filename+'.csv')
 
     def terminate(self):
         self.active = False
@@ -87,18 +97,18 @@ class Sampler():
         costs = costs.astype(float)
 
         if include_database:
-            points, costs = self.search_database(points, costs, state, self.cost)
+            points, costs = self.search_database(points, costs, state, self.experiment)
         return t, points, costs, errors
 
     def search_database(self, points, costs, state, cost):
         ''' Prepare a state dict of all variables which are held constant during optimization '''
-        constant_state = self.parent.state.copy()
+        constant_state = self.control.state.copy()
         for dev in state.keys():
             for input in state[dev]:
                 del constant_state[dev][input]
 
         ''' Search the database for entries matching these constant values '''
-        database = self.parent.dataframe['cost'][cost.__name__]
+        database = self.control.dataframe['cost'][cost.__name__]
         subdf = database
         for dev in constant_state.keys():
             for input in constant_state[dev]:
@@ -127,7 +137,7 @@ class Sampler():
             target = self.unnormalize(norm_target)
         else:
             target = norm_target
-        c, error = self.cost(target, self.cost_params)
+        c, error = self.experiment(target, self.experiment_params)
         ''' Update history '''
         t = time.time()
         self.history.loc[t,'cost']=c
@@ -165,17 +175,6 @@ class Sampler():
 
         return state, bounds
 
-    def initialize(self, state, cost, params, cost_params):
-        ''' Creates a history dataframe to log the sampling. Normalizes the
-            state in terms of the min/max of each Input node, then prepares a
-            bounds array. '''
-        self.cost = cost
-        self.state = state
-        self.cost_name = cost.__name__
-        self.params = params
-        self.cost_params = cost_params
-        return self.prepare(state)
-
     def normalize(self, unnorm):
         ''' Normalizes a state or substate based on min/max values of the Inputs,
             saved in the parent Control node. '''
@@ -184,8 +183,8 @@ class Sampler():
         for dev in unnorm:
             norm[dev] = {}
             for i in unnorm[dev]:
-                min = self.parent.settings[dev][i]['min']
-                max = self.parent.settings[dev][i]['max']
+                min = self.control.settings[dev][i]['min']
+                max = self.control.settings[dev][i]['max']
                 norm[dev][i] = (unnorm[dev][i] - min)/(max-min)
 
         return norm
@@ -197,8 +196,8 @@ class Sampler():
         for dev in norm:
             unnorm[dev] = {}
             for i in norm[dev]:
-                min = self.parent.settings[dev][i]['min']
-                max = self.parent.settings[dev][i]['max']
+                min = self.control.settings[dev][i]['min']
+                max = self.control.settings[dev][i]['max']
                 unnorm[dev][i] = min + norm[dev][i] * (max-min)
         return unnorm
 
@@ -207,7 +206,7 @@ class Sampler():
         ''' Plots an optimization time series stored in self.history. '''
         t, points, costs, errors = self.get_history()
         t -= t[0]
-        ax, fig = plot_1D(t, -costs, errors=errors, xlabel='Time (s)', ylabel = self.cost.__name__)
+        ax, fig = plot_1D(t, -costs, errors=errors, xlabel='Time (s)', ylabel = self.experiment.__name__)
 
         return fig
 
@@ -243,7 +242,6 @@ class Sampler():
             space spanned by the passed-in state dict. '''
         if callback is None:
             callback = self.callback
-        # arr, bounds = self.initialize(state, cost, params, cost_params)
         arr, bounds = self.prepare(state)
         N = len(arr)
         grid = []

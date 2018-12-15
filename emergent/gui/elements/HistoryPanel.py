@@ -112,7 +112,7 @@ class Visualizer(QWidget, ProcessHandler):
         costs *= -1
         t = t.copy()-t[0]
         num_inputs = points.shape[1]
-        control = self.sampler.parent
+        control = self.sampler.control
 
         ''' costs vs parameters '''
         fig, ax = plt.subplots(2,num_inputs, figsize=(10, 8))
@@ -120,7 +120,7 @@ class Visualizer(QWidget, ProcessHandler):
             ax0 = ax[0]
         else:
             ax0 = ax
-        ax0[0].set_ylabel(self.sampler.cost.__name__)
+        ax0[0].set_ylabel(self.sampler.experiment.__name__)
         cvp = {}
         for i in range(num_inputs):
             p = points[:,i]
@@ -128,8 +128,8 @@ class Visualizer(QWidget, ProcessHandler):
             dev = full_name.split('.')[0]
             input = full_name.split('.')[1]
             limits = {full_name.replace('.', ': '): control.settings[dev][input]}
-            # plot_1D(p, costs, limits=limits, cost_name = self.sampler.cost.__name__, ax = ax0[i])
-            new_ax, fig = plot_1D(p, costs, limits=limits, cost_name = self.sampler.cost.__name__, errors = errors)
+            # plot_1D(p, costs, limits=limits, cost_name = self.sampler.experiment.__name__, ax = ax0[i])
+            new_ax, fig = plot_1D(p, costs, limits=limits, cost_name = self.sampler.experiment.__name__, errors = errors)
             cvp[full_name] = fig
             ax0[i].set_xlabel(full_name)
 
@@ -150,8 +150,8 @@ class Visualizer(QWidget, ProcessHandler):
                 cax = ax[1]
             else:
                 cax = ax[1][i]
-            # plot_1D(t, p, cost_name = self.sampler.cost.__name__, ax = cax)
-            new_ax, fig = plot_1D(t, p, cost_name = self.sampler.cost.__name__, xlabel = 'Time (s)', ylabel = full_name, errors = errors)
+            # plot_1D(t, p, cost_name = self.sampler.experiment.__name__, ax = cax)
+            new_ax, fig = plot_1D(t, p, cost_name = self.sampler.experiment.__name__, xlabel = 'Time (s)', ylabel = full_name, errors = errors)
             pvt[full_name] = fig
             cax.set_ylabel(full_name)
             cax.set_xlabel('Time (s)')
@@ -179,7 +179,7 @@ class Visualizer(QWidget, ProcessHandler):
     def plot(self):
         hist_fig, cvp, pvt, fig2d = self.generate_figures()
         inputs = list(cvp.keys())
-        self.pw = PlotWidget(self, self.sampler, self.algorithm, inputs, hist_fig, cvp, pvt, fig2d, title='Visualizer: %s'%self.sampler.cost.__name__)
+        self.pw = PlotWidget(self, self.sampler, self.algorithm, inputs, hist_fig, cvp, pvt, fig2d, title='Visualizer: %s'%self.sampler.experiment.__name__)
         self.pw.show()
 
     def check_progress(self):

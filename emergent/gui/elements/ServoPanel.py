@@ -22,10 +22,10 @@ class ServoLayout(QVBoxLayout, ProcessHandler):
         self.addLayout(layout)
 
         ''' Algorithm/experiment select layout '''
-        self.cost_box = QComboBox()
+        self.experiment_box = QComboBox()
         self.algorithm_box = QComboBox()
         layout.addWidget(self.algorithm_box, 0, 0)
-        layout.addWidget(self.cost_box, 0, 1)
+        layout.addWidget(self.experiment_box, 0, 1)
 
         ''' Algorithm parameters '''
         self.apl = ParameterTable()
@@ -35,7 +35,7 @@ class ServoLayout(QVBoxLayout, ProcessHandler):
         self.epl = ParameterTable()
         layout.addWidget(self.epl, 1, 1)
 
-        self.cost_box.currentTextChanged.connect(lambda: self.parent.update_algorithm_and_experiment(self))
+        self.experiment_box.currentTextChanged.connect(lambda: self.parent.update_algorithm_and_experiment(self))
 
         optimizeButtonsLayout = QHBoxLayout()
         self.optimizer_button = QPushButton('Go!')
@@ -47,21 +47,21 @@ class ServoLayout(QVBoxLayout, ProcessHandler):
     def get_settings_from_gui(self):
         settings = {}
         settings['state'] = self.parent.parent.treeWidget.get_selected_state()
-        settings['cost_name'] = self.cost_box.currentText()
+        settings['experiment_name'] = self.experiment_box.currentText()
         try:
             settings['control'] = self.parent.parent.treeWidget.get_selected_control()
         except IndexError:
             log.warn('Select inputs before starting optimization!')
             return
 
-        settings['algo_params'] = self.apl.get_params()
-        settings['cost_params'] = self.epl.get_params()
+        settings['algorithm_params'] = self.apl.get_params()
+        settings['experiment_params'] = self.epl.get_params()
 
         settings['callback'] = None
         return settings
 
-    def run_process(self, sampler, settings, index, t):
-        settings['algorithm'](settings['state'], settings['cost'], settings['algo_params'], settings['cost_params'], callback = settings['callback'])
+    def run_process(self, sampler, t):
+        sampler.algorithm.run(sampler.state)
         log.info('Optimization complete!')
-        sampler.log(t.replace(':','') + ' - ' + settings['cost_name'] + ' - ' + settings['algorithm'].__name__)
+        sampler.log(t.replace(':','') + ' - ' + sampler.experiment.__name__ + ' - ' + sampler.algorithm.name)
         sampler.active = False

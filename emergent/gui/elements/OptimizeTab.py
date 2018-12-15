@@ -28,7 +28,7 @@ class CustomTable(QTableWidget, ProcessHandler):
         row = self.rowAt(pos.y())
         name = self.item(row, 0).text()
         settings = self.parent.get_settings_from_gui()
-        cost = getattr(settings['control'], settings['cost_name'])
+        cost = getattr(settings['control'], settings['experiment_name'])
         sampler, index = settings['control'].attach_sampler(settings['state'], cost)
         algorithm_name = self.parent.algorithm_box.currentText()
         algorithm = self.parent.parent.get_algorithm(algorithm_name, self.parent)
@@ -45,8 +45,8 @@ class CustomTable(QTableWidget, ProcessHandler):
             if stopped():
                 return
             print('Running optimization with %s=%f...'%(name, v))
-            settings['algo_params'][name] = v
-            algorithm.set_params(settings['algo_params'])
+            settings['algorithm_params'][name] = v
+            algorithm.set_params(settings['algorithm_params'])
             settings['control'].actuate(settings['state'])
             run(settings['state'])
             c.append(algorithm.sampler.history['cost'].iloc[-1])
@@ -63,7 +63,7 @@ class CustomTable(QTableWidget, ProcessHandler):
         #                "theta": 0,
         #                "sigma_x": 0.3,
         #                "cycles per sample": 1}
-        # cost = self.sampler.parent.cost_uncoupled
+        # cost = self.sampler.control.cost_uncoupled
         # algorithm = self.adam
         # params={'learning rate':0.1, 'steps': 100, 'dither': 0.01, 'beta_1': 0.9, 'beta_2': 0.999, 'epsilon': 1e-8}
         # pmin = 0.001
@@ -87,10 +87,10 @@ class OptimizeLayout(QVBoxLayout, ProcessHandler):
         layout = QGridLayout()
 
         ''' Algorithm/experiment select layout '''
-        self.cost_box = QComboBox()
+        self.experiment_box = QComboBox()
         self.algorithm_box = QComboBox()
         layout.addWidget(self.algorithm_box, 0, 0)
-        layout.addWidget(self.cost_box, 0, 1)
+        layout.addWidget(self.experiment_box, 0, 1)
         self.addLayout(layout)
 
         ''' Algorithm parameters '''
@@ -104,7 +104,7 @@ class OptimizeLayout(QVBoxLayout, ProcessHandler):
         self.cost_params_edit = QTextEdit('')
 
         self.algorithm_box.currentTextChanged.connect(lambda: self.parent.update_algorithm_and_experiment(self))
-        self.cost_box.currentTextChanged.connect(lambda: self.parent.update_algorithm_and_experiment(self))
+        self.experiment_box.currentTextChanged.connect(lambda: self.parent.update_algorithm_and_experiment(self))
         optimizeButtonsLayout = QHBoxLayout()
         parent.optimizer_button = QPushButton('Go!')
         parent.optimizer_button.clicked.connect(lambda: parent.start_process(process='optimize', panel = self, settings = {}))
@@ -116,30 +116,24 @@ class OptimizeLayout(QVBoxLayout, ProcessHandler):
     def get_settings_from_gui(self):
         settings = {}
         settings['state'] = self.parent.parent.treeWidget.get_selected_state()
-        settings['cost_name'] = self.cost_box.currentText()
+        settings['experiment_name'] = self.experiment_box.currentText()
         try:
             settings['control'] = self.parent.parent.treeWidget.get_selected_control()
         except IndexError:
             log.warn('Select inputs before starting optimization!')
             return
 
-        settings['algo_params'] = self.apl.get_params()
-        settings['cost_params'] = self.epl.get_params()
+        settings['algorithm_params'] = self.apl.get_params()
+        settings['experiment_params'] = self.epl.get_params()
         settings['callback'] = None
-        if 'cycles per sample' not in settings['cost_params']:
-            settings['cost_params']['cycles per sample'] = 1
+        if 'cycles per sample' not in settings['experiment_params']:
+            settings['experiment_params']['cycles per sample'] = 1
         return settings
 
-    def run_process(self, sampler, settings, index, t):
-        algo = settings['algorithm']
-        state = settings['state']
-        cost = settings['cost']
-        params = settings['algo_params']
-        cost_params = settings['cost_params']
-        control = settings['control']
-        algo(state)
+    def run_process(self, sampler, t):
+        sampler.algorithm.run(sampler.state)
         log.info('Optimization complete!')
-        sampler.log(t.replace(':','') + ' - ' + cost.__name__ + ' - ' + algo.__name__)
+        sampler.log(t.replace(':','') + ' - ' + sampler.experiment.__name__ + ' - ' + sampler.algorithm.name)
         sampler.active = False
 
     def openMenu(self, pos):

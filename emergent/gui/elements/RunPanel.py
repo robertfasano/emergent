@@ -18,10 +18,10 @@ class RunLayout(QVBoxLayout, ProcessHandler):
         ProcessHandler.__init__(self)
         self.parent = parent
         self.name = 'Run'
-        self.cost_box = QComboBox()
+        self.experiment_box = QComboBox()
 
-        self.addWidget(self.cost_box)
-        self.cost_box.currentTextChanged.connect(lambda: self.parent.update_experiment(self))
+        self.addWidget(self.experiment_box)
+        self.experiment_box.currentTextChanged.connect(lambda: self.parent.update_experiment(self))
 
         ''' Experiment parameters '''
         self.epl = ParameterTable()
@@ -48,36 +48,39 @@ class RunLayout(QVBoxLayout, ProcessHandler):
 
     def get_settings_from_gui(self):
         settings = {}
-        settings['cost_name'] = self.cost_box.currentText()
+        settings['experiment_name'] = self.experiment_box.currentText()
         try:
             settings['control'] = self.parent.parent.treeWidget.get_selected_control()
         except IndexError:
             log.warn('Select inputs before starting optimization!')
             return
         settings['state'] = settings['control'].state
-        settings['cost_params'] = self.epl.get_params()
-        if 'cycles per sample' not in settings['cost_params']:
-            settings['cost_params']['cycles per sample'] = 1#int(self.cycles_per_sample_edit.text())
-        settings['iterations'] = self.runIterationsEdit.text()
-        if settings['iterations'] != 'Continuous':
-            settings['iterations'] = int(settings['iterations'])
+        settings['experiment_params'] = self.epl.get_params()
+        if 'cycles per sample' not in settings['experiment_params']:
+            settings['experiment_params']['cycles per sample'] = 1#int(self.cycles_per_sample_edit.text())
+        settings['experiment_params']['iterations'] = self.runIterationsEdit.text()
+        if settings['experiment_params']['iterations'] != 'Continuous':
+            settings['experiment_params']['iterations'] = int(settings['experiment_params']['iterations'])
         settings['callback'] = None
-        settings['algo_params'] = {}
+        settings['algorithm_params'] = {}
 
         return settings
 
-    def run_process(self, sampler, settings, index, t, stopped = None):
+    def run_process(self, sampler, t):
+        sampler.algorithm.run(sampler.state)
+        log.info('Optimization complete!')
+        sampler.log(t.replace(':','') + ' - ' + sampler.experiment.__name__ + ' - ' + sampler.algorithm.name)
+        sampler.active = False
+
+    def run_process(self, sampler, t, stopped = None):
         count = 0
-        control = settings['control']
-        cost_params = settings['cost_params']
         while sampler.active:
-            state = control.state
-            result = sampler._cost(state, norm=False)
+            result = sampler._cost(sampler.control.state, norm=False)
             count += 1
-            if type(settings['iterations']) is int:
-                if count >= settings['iterations']:
+            if type(sampler.experiment_params['iterations']) is int:
+                if count >= sampler.experiment_params['iterations']:
                     break
-        sampler.log(t.replace(':','') + ' - ' + sampler.cost.__name__)
+        sampler.log(t.replace(':','') + ' - ' + sampler.experiment.__name__)
         sampler.active = False
 
     def stop_experiment(self):

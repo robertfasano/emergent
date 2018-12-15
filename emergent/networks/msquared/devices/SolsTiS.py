@@ -51,9 +51,9 @@ class SolsTiS(Device):
             servoPanel = self.leaf.treeWidget().parent.optimizer.servoPanel
             settings = {'control': self.parent,
                         'state': {self.name: self.state},
-                        'cost_name': 'error',
-                        'algo_params': algo_params,
-                        'cost_params': cost_params,
+                        'experiment_name': 'error',
+                        'algorithm_params': algo_params,
+                        'experiment_params': cost_params,
                         'callback': self.callback}
             servoPanel.prepare_optimizer(settings=settings)
             error = self.parent.error(error_params)

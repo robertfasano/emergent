@@ -60,12 +60,12 @@ class PlotWidget(QWidget):
         self.layout = QGridLayout()
         self.info_tab.setLayout(self.vert_layout)
         self.vert_layout.addLayout(self.layout)
-        self.layout.addWidget(QLabel(self.sampler.cost_name), 0, 1)
+        self.layout.addWidget(QLabel(self.sampler.experiment_name), 0, 1)
 
         self.layout.addWidget(QLabel('Inputs:'), 0, 0)
 
         tree = QTreeWidget()
-        control = self.sampler.parent
+        control = self.sampler.control
         top = QTreeWidgetItem([control.name])
         tree.insertTopLevelItems(0, [top])
         for dev in self.sampler.inputs:
@@ -77,16 +77,15 @@ class PlotWidget(QWidget):
         tree.expandAll()
         self.layout.addWidget(tree, 1,0)
 
-
-
         cost_params = ParameterTable()
-        cost_params.set_parameters(self.sampler.cost_params)
+        cost_params.set_parameters(self.sampler.experiment_params)
         self.layout.addWidget(cost_params, 1, 1)
 
 
         self.layout.addWidget(QLabel(algorithm), 0, 2)
         params = ParameterTable()
-        params.set_parameters(self.sampler.params)
+        if self.sampler.algorithm_params is not None:
+            params.set_parameters(self.sampler.algorithm_params)
         self.layout.addWidget(params, 1, 2)
 
 

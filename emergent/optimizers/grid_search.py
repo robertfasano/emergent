@@ -17,7 +17,6 @@ class GridSearch():
     def run(self, state):
         ''' An N-dimensional grid search (brute force) optimizer. '''
         # no longer uses params
-        # arr, bounds = self.sampler.initialize(state, cost, params, cost_params)
         ''' Generate search grid '''
         self.points, self.costs = self.sampler.grid_sampling(state, self.params['Steps'].value)
 

@@ -8,7 +8,6 @@ import numpy as np
 class TestControl(Control):
         def __init__(self, name, parent=None, path = '.'):
                 super().__init__(name, parent, path=path)
-                self.sampler, index = self.attach_sampler(self.state, self.cost_uncoupled)
 
         def cost_coupled(self, state, params={}):
             return self.cost_uncoupled(state, theta=30*np.pi/180)

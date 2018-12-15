@@ -209,16 +209,6 @@ class Control(Node):
             self.children[dev].actuate(state[dev])
         self.signal.emit(self.state)
 
-    def attach_sampler(self, state, cost, optimizer = None):
-        if optimizer is None:
-            sampler = Sampler(self, cost=cost)
-        else:
-            sampler = optimizer.sampler
-            sampler.optimizer = optimizer
-        index = len(self.samplers)
-        self.samplers[index] = {'state':state, 'sampler':sampler, 'status':'Ready'}
-        return sampler, index
-
     def load(self, device, name):
         """Loads the last saved state and attempts to reinitialize previous values for the Input node specified by full_name. If the input did not exist in the last state, then it is initialized with default values.
         """
