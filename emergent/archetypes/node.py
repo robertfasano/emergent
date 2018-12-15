@@ -11,6 +11,7 @@ import pandas as pd
 import datetime
 from emergent.signals import RemoveSignal, CreateSignal, ActuateSignal
 import numpy as np
+from emergent.utility import StateBuffer
 
 class Node():
     ''' The Node class is the core building block of the EMERGENT network,
@@ -32,6 +33,7 @@ class Node():
             self.register(parent)
         self.root = self.get_root()
         self.options = {}
+        self.buffer = StateBuffer(self)
 
     def get_root(self):
         ''' Returns the root Control node of any branch. '''
@@ -163,6 +165,11 @@ class Device(Node):
             self.children[input].state = state[input]   # update Input
             self.parent.state[self.name][input] = state[input]   # update Control
 
+            ''' update state buffer '''
+            self.children[input].buffer.add(state)
+        self.buffer.add(self.state)
+
+
 class Control(Node):
     ''' The Control node oversees connected Devices, allowing the Inputs to be
         algorithmically tuned to optimize some target function. '''
@@ -208,6 +215,7 @@ class Control(Node):
         for dev in state:
             self.children[dev].actuate(state[dev])
         self.signal.emit(self.state)
+        self.buffer.add(self.state)
 
     def load(self, device, name):
         """Loads the last saved state and attempts to reinitialize previous values for the Input node specified by full_name. If the input did not exist in the last state, then it is initialized with default values.

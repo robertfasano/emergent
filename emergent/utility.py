@@ -163,3 +163,51 @@ def get_args(cls, func):
     f = getattr(cls, func)
     ''' Read default params dict from source code and insert in self.algorithm_params_edit. '''
     args = inspect.signature(f).parameters
+
+class StateBuffer(list):
+    def __init__(self, parent):
+        super().__init__()
+        self.length = 10
+        self.index = -1
+        self.parent = parent
+
+    def add(self, state):
+        for i in range(self.index+1, 0):
+            del self[i]
+        self.append(state.copy())
+        if len(self) > self.length:
+            del self[0]
+        self.index = -1
+
+    def undo(self):
+        states = [self[i] for i in range(self.index, 0)]
+        if self.index-1 < -len(self):
+            return
+        last_state = self[self.index-1]
+        index = self.index
+        self.index -= 1
+        if self.parent.node_type == 'input':
+            self.parent.parent.actuate({self.name: last_state})
+        elif self.parent.node_type == 'device':
+            self.parent.parent.actuate({self.parent.name: last_state})
+        elif self.parent.node_type == 'control':
+            self.parent.actuate(last_state)
+        del self[-1]        # don't add undo actuate to buffer
+        self.extend(states)
+        self.index = index - 1
+
+    def redo(self):
+        states = [self[i] for i in range(self.index+1, 0)]
+        if self.index >= -1:
+            return
+        last_state = self[self.index+1]
+        index = self.index
+        if self.parent.node_type == 'input':
+            self.parent.parent.actuate({self.name: last_state})
+        elif self.parent.node_type == 'device':
+            self.parent.parent.actuate({self.parent.name: last_state})
+        elif self.parent.node_type == 'control':
+            self.parent.actuate(last_state)
+        del self[-1]        # don't add redo actuate to buffer
+        self.index = index + 1
+        self.extend(states)
