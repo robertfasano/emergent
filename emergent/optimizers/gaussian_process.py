@@ -151,4 +151,5 @@ class GaussianProcessRegression():
             # predict_costs = np.append(predict_costs, -self.gp.predict(np.atleast_2d(point)))
         predict_costs, predict_uncertainties = self.gp.predict(predict_points, return_std = True)
         predict_costs *= -1
-        return visualization.plot_2D(predict_points, predict_costs)
+
+        return visualization.plot_2D(predict_points, predict_costs, limits=self.sampler.get_limits())
