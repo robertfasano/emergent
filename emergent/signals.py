@@ -1,6 +1,6 @@
 from PyQt5.QtCore import pyqtSignal, QObject
 
-class ActuateSignal(QObject):
+class ProcessSignal(QObject):
     signal = pyqtSignal(dict)
 
     def __init__(self):
@@ -12,6 +12,17 @@ class ActuateSignal(QObject):
     def emit(self, state):
         self.signal.emit(state)
 
+class ActuateSignal(QObject):
+    signal = pyqtSignal(dict)
+
+    def __init__(self):
+        super().__init__()
+
+    def connect(self, func):
+        self.signal.connect(func)
+
+    def emit(self, state):
+        self.signal.emit(state)
 
 class CreateSignal(QObject):
     signal = pyqtSignal(dict)

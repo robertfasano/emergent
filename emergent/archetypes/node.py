@@ -9,9 +9,9 @@ from PyQt5.QtWidgets import QWidget
 import logging as log
 import pandas as pd
 import datetime
-from emergent.signals import RemoveSignal, CreateSignal, ActuateSignal
+from emergent.signals import RemoveSignal, CreateSignal, ActuateSignal, ProcessSignal
 import numpy as np
-from emergent.utility import StateBuffer
+from emergent.utility import StateBuffer, MacroBuffer
 
 class Node():
     ''' The Node class is the core building block of the EMERGENT network,
@@ -34,6 +34,7 @@ class Node():
         self.root = self.get_root()
         self.options = {}
         self.buffer = StateBuffer(self)
+        self.macro_buffer = MacroBuffer(self)
 
     def get_root(self):
         ''' Returns the root Control node of any branch. '''
@@ -96,6 +97,7 @@ class Device(Node):
         self.node_type = 'device'
 
         ''' Add signals for input creation and removal '''
+        self.signal = ActuateSignal()
         self.create_signal = CreateSignal()
         self.remove_signal = RemoveSignal()
 
@@ -152,6 +154,7 @@ class Device(Node):
 
         self._actuate(state)
         self.update(state)
+        self.signal.emit(state)
 
     def update(self,state):
         """Synchronously updates the state of the Input, Device, and Control.
@@ -202,20 +205,21 @@ class Control(Node):
 
         self.node_type = 'control'
         self.signal = ActuateSignal()
+        self.process_signal = ProcessSignal()
 
-    def actuate(self, state, save=True):
+    def actuate(self, state):
         """Updates all Inputs in the given state to the given values and optionally logs the state.
 
         Args:
             state (dict): Target state of the form {'deviceA.param1':1, 'deviceA.param1':2,...}
-            save (bool): Whether or not to log.
         """
         ''' Aggregate states by device '''
         dev_states = {}
         for dev in state:
             self.children[dev].actuate(state[dev])
-        self.signal.emit(self.state)
-        self.buffer.add(self.state)
+        self.signal.emit(state)
+
+        self.buffer.add(state)
 
     def load(self, device, name):
         """Loads the last saved state and attempts to reinitialize previous values for the Input node specified by full_name. If the input did not exist in the last state, then it is initialized with default values.

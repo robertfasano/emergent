@@ -45,6 +45,8 @@ class Sampler():
         self.progress = 0
         self.result = None
         self.start_time = t
+        self.control.macro_buffer.add(self.control.state)   # save initial state to buffer
+
         self.prepare(self.state)
 
     def __getstate__(self):
@@ -56,12 +58,15 @@ class Sampler():
             d[x] = self.__dict__[x]
 
         return d
+
     def callback(self, *args):
         return self.active
 
     def log(self, filename):
-        ''' Saves the sampled data to file with the given name '''
+        ''' Saves the sampled data to file and updates the buffer '''
         self.history.to_csv(self.control.data_path+filename+'.csv')
+        self.control.macro_buffer.add(self.control.state)
+        self.control.process_signal.emit(self.control.state)
 
     def terminate(self):
         self.active = False

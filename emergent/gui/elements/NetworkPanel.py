@@ -3,14 +3,79 @@
 import inspect
 import sys
 import types
-from PyQt5.QtWidgets import (QAbstractItemView,QTreeView, QVBoxLayout,
-        QMenu, QAction, QTreeWidget, QTreeWidgetItem, QHeaderView)
+from PyQt5.QtWidgets import (QWidget, QAbstractItemView,QTreeView, QVBoxLayout,
+        QMenu, QAction, QTreeWidget, QTreeWidgetItem, QHeaderView, QPushButton, QHBoxLayout)
+from PyQt5.QtGui import QPixmap, QIcon
 from PyQt5.QtCore import *
 import json
 from emergent.gui.elements import ExperimentLayout
 from emergent.archetypes import Control, Device, Input
 from emergent.signals import ActuateSignal
 import functools
+
+class UndoButton(QWidget):
+    def __init__(self, item, buffer, signal):
+        QWidget.__init__(self)
+        self.buffer = buffer
+        self.item = item
+        self.layout = QVBoxLayout(self)
+        self.button = QPushButton()
+        self.button.clicked.connect(self.undo)
+        self.layout.addWidget(self.button)
+        self.button.setStyleSheet("background-color: rgba(255, 255, 255, 0);")
+
+        icon = QIcon()
+        icon.addPixmap(QPixmap('gui/media/Material/undo.svg'),QIcon.Normal,QIcon.On)
+        icon.addPixmap(QPixmap('gui/media/Material/blank.svg'),QIcon.Normal,QIcon.Off)
+        self.button.setIcon(icon)
+        self.button.setCheckable(True)
+        self.show()
+        signal.connect(self.show)
+    # def enterEvent(self, event, initial = True):
+    #     self.show()
+    #
+    # def leaveEvent(self, event):
+    #     self.button.setChecked(False)
+
+    def show(self):
+        self.button.setChecked(self.buffer.index > -len(self.buffer))
+
+    def undo(self):
+        self.buffer.undo()
+        self.show()
+        self.item.redo_button.show()
+
+class RedoButton(QWidget):
+    def __init__(self, item, buffer, signal):
+        QWidget.__init__(self)
+        self.item = item
+        self.buffer = buffer
+        self.layout = QVBoxLayout(self)
+        self.button = QPushButton()
+        self.button.clicked.connect(self.redo)
+        self.layout.addWidget(self.button)
+        self.button.setStyleSheet("background-color: rgba(255, 255, 255, 0);")
+
+        icon = QIcon()
+        icon.addPixmap(QPixmap('gui/media/Material/redo.svg'),QIcon.Normal,QIcon.On)
+        icon.addPixmap(QPixmap('gui/media/Material/blank.svg'),QIcon.Normal,QIcon.Off)
+        self.button.setIcon(icon)
+        self.button.setCheckable(True)
+        self.show()
+        signal.connect(self.show)
+    # def enterEvent(self, event, initial = True):
+    #     self.show()
+    #
+    # def leaveEvent(self, event):
+    #     self.button.setChecked(False)
+
+    def redo(self):
+        self.buffer.redo()
+        self.show()
+        self.item.undo_button.show()
+
+    def show(self):
+        self.button.setChecked(self.buffer.index != -1)
 
 class NodeTree(QTreeWidget):
     def __init__(self, tree, controls, parent):
@@ -23,14 +88,19 @@ class NodeTree(QTreeWidget):
         self.last_item = None
 
         self.setSelectionMode(QAbstractItemView.MultiSelection)
-        self.setColumnCount(4)
+        self.setColumnCount(6)
         # self.setHeaderLabels(["Node", "Value", "Min", "Max"])
-        header_item = QTreeWidgetItem(['Node', 'Value', 'Min', 'Max'])
+        header_item = QTreeWidgetItem(['Node', 'Value', 'Min', 'Max', '', ''])
         self.setHeaderItem(header_item)
         self.header().setSectionResizeMode(0, QHeaderView.ResizeToContents)
         for i in range(1,4):
             self.header().setSectionResizeMode(i, QHeaderView.Stretch)
+        for i in range(4, 6):
+            self.header().setSectionResizeMode(i, QHeaderView.ResizeToContents)
+        self.header().setStretchLastSection(False)
+
         self.header().setFixedHeight(20)
+        # self.header().setStyleSheet('::section{border: 0px solid; border-right: 0px; border-left: 0px; font-weight: normal}')
 
         self.customContextMenuRequested.connect(self.openMenu)
         self.setContextMenuPolicy(Qt.CustomContextMenu)
@@ -64,6 +134,11 @@ class NodeTree(QTreeWidget):
         self.setColumnWidth(0,200)
         for i in [1,2,3]:
             self.setColumnWidth(i,50)
+
+        ''' Add undo/redo buttons '''
+        for item in self.get_all_items():
+            if item.node.node_type != 'input':
+                item.add_buffer_buttons()
 
     def _generateTree(self, children, parent, level = 1):
         ''' Recursively add nodes to build the full network. '''
@@ -204,7 +279,7 @@ class NodeTree(QTreeWidget):
         self.current_item = self.currentItem()
         self.currentValue = self.current_item.text(1)
         col = self.currentIndex().column()
-        if col > 0:
+        if col in [1,2,3]:
             self.openPersistentEditor(self.currentItem(), col)
             self.editorOpen = 1
 
@@ -239,12 +314,26 @@ class NodeWidget(QTreeWidgetItem):
             self.setText(2, str(self.root.settings[device][name]['min']))
             self.setText(3,str(self.root.settings[device][name]['max']))
 
+    def add_buffer_buttons(self):
+        if self.node.node_type == 'device':
+            signal = self.node.signal
+            buffer = self.node.buffer
+        else:
+            signal = self.node.process_signal
+            buffer = self.node.macro_buffer
+        self.undo_button = UndoButton(self, buffer, signal)
+        self.treeWidget().setItemWidget(self, 4, self.undo_button)
+
+        self.redo_button = RedoButton(self, buffer, signal)
+        self.treeWidget().setItemWidget(self, 5, self.redo_button)
+
     def __repr__(self):
         try:
             full_name = self.node.parent.name + '.' + self.node.name
             return full_name
         except AttributeError:
             return self.node.name
+
 
     def get_root(self):
         root = self.node
