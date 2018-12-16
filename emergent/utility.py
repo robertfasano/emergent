@@ -126,7 +126,7 @@ def algorithm(func, *args, **kwargs):
 @decorator.decorator
 def servo(func, *args, **kwargs):
     func(*args, **kwargs)
-    args[0].parent.save()
+    args[0].sampler.control.save()
 
 def get_classes(directory, decoratorName):
     classes = {}
