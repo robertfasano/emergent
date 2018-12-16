@@ -94,13 +94,13 @@ class OptimizeLayout(QVBoxLayout, ProcessHandler):
         self.addLayout(layout)
 
         ''' Algorithm parameters '''
-        self.apl = ParameterTable()
-        layout.addWidget(self.apl, 2, 0)
+        self.algorithm_table = ParameterTable()
+        layout.addWidget(self.algorithm_table, 2, 0)
         self.algorithm_params_edit = QTextEdit('')
 
         ''' Experiment parameters '''
-        self.epl = ParameterTable()
-        layout.addWidget(self.epl, 2, 1)
+        self.experiment_table = ParameterTable()
+        layout.addWidget(self.experiment_table, 2, 1)
         self.cost_params_edit = QTextEdit('')
 
         self.algorithm_box.currentTextChanged.connect(lambda: self.parent.update_algorithm_and_experiment(self))
@@ -123,8 +123,8 @@ class OptimizeLayout(QVBoxLayout, ProcessHandler):
             log.warn('Select inputs before starting optimization!')
             return
 
-        settings['algorithm_params'] = self.apl.get_params()
-        settings['experiment_params'] = self.epl.get_params()
+        settings['algorithm_params'] = self.algorithm_table.get_params()
+        settings['experiment_params'] = self.experiment_table.get_params()
         settings['callback'] = None
         if 'cycles per sample' not in settings['experiment_params']:
             settings['experiment_params']['cycles per sample'] = 1

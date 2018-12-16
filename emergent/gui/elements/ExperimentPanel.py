@@ -162,9 +162,9 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
 
         ''' Pull params from gui '''
         if param_type == 'algorithm':
-            params = panel.apl.get_params()
+            params = panel.algorithm_table.get_params()
         else:
-            params = panel.epl.get_params()
+            params = panel.experiment_table.get_params()
         print(params)
         ''' Load old params from file '''
         with open(params_filename, 'r') as file:
@@ -220,7 +220,7 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         control = self.parent.treeWidget.currentItem().root
         experiment = getattr(control, panel.experiment_box.currentText())
         d = self.file_to_dict(experiment, experiment, 'experiment', panel)
-        panel.epl.set_parameters(d)
+        panel.experiment_table.set_parameters(d)
 
     def update_algorithm_and_experiment(self, panel, default = False, update_algorithm = True, update_experiment = True):
         if panel.experiment_box.currentText() is '':
@@ -236,11 +236,11 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
             algo_name = panel.algorithm_box.currentText()
             algo = self.get_algorithm(algo_name, panel)
             algo_params = self.file_to_dict(algo, experiment, 'algorithm', panel, default = default)
-            panel.apl.set_parameters(algo_params)
+            panel.algorithm_table.set_parameters(algo_params)
 
         if update_experiment:
             exp_params = self.file_to_dict(experiment, experiment, 'experiment', panel, default = default)
-            panel.epl.set_parameters(exp_params)
+            panel.experiment_table.set_parameters(exp_params)
 
     def start_process(self, process = '', settings = {}):
         ''' Load any non-passed settings from the GUI '''

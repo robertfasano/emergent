@@ -28,12 +28,12 @@ class ServoLayout(QVBoxLayout, ProcessHandler):
         layout.addWidget(self.experiment_box, 0, 1)
 
         ''' Algorithm parameters '''
-        self.apl = ParameterTable()
-        layout.addWidget(self.apl, 1, 0)
+        self.algorithm_table = ParameterTable()
+        layout.addWidget(self.algorithm_table, 1, 0)
 
         ''' Experiment parameters '''
-        self.epl = ParameterTable()
-        layout.addWidget(self.epl, 1, 1)
+        self.experiment_table = ParameterTable()
+        layout.addWidget(self.experiment_table, 1, 1)
 
         self.experiment_box.currentTextChanged.connect(lambda: self.parent.update_algorithm_and_experiment(self))
 
@@ -54,8 +54,8 @@ class ServoLayout(QVBoxLayout, ProcessHandler):
             log.warn('Select inputs before starting optimization!')
             return
 
-        settings['algorithm_params'] = self.apl.get_params()
-        settings['experiment_params'] = self.epl.get_params()
+        settings['algorithm_params'] = self.algorithm_table.get_params()
+        settings['experiment_params'] = self.experiment_table.get_params()
 
         settings['callback'] = None
         return settings

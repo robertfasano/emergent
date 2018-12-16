@@ -24,8 +24,8 @@ class RunLayout(QVBoxLayout, ProcessHandler):
         self.experiment_box.currentTextChanged.connect(lambda: self.parent.update_experiment(self))
 
         ''' Experiment parameters '''
-        self.epl = ParameterTable()
-        self.addWidget(self.epl)
+        self.experiment_table = ParameterTable()
+        self.addWidget(self.experiment_table)
 
         self.runIterationsLayout = QHBoxLayout()
         self.runIterationsLayout.addWidget(QLabel('Iterations'))
@@ -55,7 +55,7 @@ class RunLayout(QVBoxLayout, ProcessHandler):
             log.warn('Select inputs before starting optimization!')
             return
         settings['state'] = settings['control'].state
-        settings['experiment_params'] = self.epl.get_params()
+        settings['experiment_params'] = self.experiment_table.get_params()
         if 'cycles per sample' not in settings['experiment_params']:
             settings['experiment_params']['cycles per sample'] = 1#int(self.cycles_per_sample_edit.text())
         settings['experiment_params']['iterations'] = self.runIterationsEdit.text()
