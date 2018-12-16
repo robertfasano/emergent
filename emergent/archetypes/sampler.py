@@ -174,6 +174,17 @@ class Sampler():
             g = np.append(g, gi)
         return g
 
+    def get_limits(self):
+        limits = {}
+        for col in self.history.columns:
+            if col in ['cost', 'error']:
+                continue
+            dev = col.split('.')[0]
+            input = col.split('.')[1]
+            limits[col.replace('.', ': ')] =  self.control.settings[dev][input]
+
+        return limits
+
     def prepare(self, state):
         num_items = 0
         cols = []
