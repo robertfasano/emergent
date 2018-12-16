@@ -1,9 +1,10 @@
 from copy import deepcopy
+from collections import OrderedDict
 
-class State(dict):
+class State(OrderedDict):
     def __init__(self):
         return
-    
+
     def get(self, keys):
         ''' Returns a substate based on the given keys. For example, let self={'a':{'x':1,'y':2}, 'b':{'z':3}}.
             Calling self.get(['a']) returns {'a':{'x':1, 'y':2}}, while calling self.get('{'a':['x']') returns
@@ -20,7 +21,7 @@ class State(dict):
                     print(input)
                     state[dev][input] = self[dev][input]
         return state
-    
+
     def update(self, state):
         ''' Returns a state dict formed by updating self with the passed state. '''
         new_state = self.copy()
