@@ -16,8 +16,8 @@ class TestControl(Control):
         def cost_uncoupled(self, state, params = {'sigma_x': 0.3, 'sigma_y': 0.8, 'x0': 0.3, 'y0': 0.6, 'theta':0, 'noise':0}):
             theta = params['theta']
             self.actuate(state)
-            x=self.state['deviceA']['X']*np.cos(theta) - self.state['deviceA']['Y']*np.sin(theta)
-            y=self.state['deviceA']['X']*np.sin(theta) + self.state['deviceA']['Y']*np.cos(theta)
+            x=self.state['MEMS']['X']*np.cos(theta) - self.state['MEMS']['Y']*np.sin(theta)
+            y=self.state['MEMS']['X']*np.sin(theta) + self.state['MEMS']['Y']*np.cos(theta)
             x0 = params['x0']
             y0 = params['y0']
             sigma_x = params['sigma_x']
@@ -29,16 +29,16 @@ class TestControl(Control):
         @experiment
         def rosenbrock_banana(self, state, params={'a': 1, 'b': 100}):
             self.actuate(state)
-            x = self.state['deviceA']['X']
-            y = self.state['deviceA']['Y']
+            x = self.state['MEMS']['X']
+            y = self.state['MEMS']['Y']
             return (params['a']-x)**2+params['b']*(y-x**2)**2
 
         @experiment
         def line_distance(self, state, params = {'amplitude': 1, 'y0': 0.5, 'yspan':0.5}):
-            ''' Measures the distance from the point (X,Y) of deviceA and the line x-y = 0, modulated by a Gaussian envelope '''
+            ''' Measures the distance from the point (X,Y) of MEMS and the line x-y = 0, modulated by a Gaussian envelope '''
             self.actuate(state)
-            x = self.state['deviceA']['X']
-            y = self.state['deviceA']['Y']
+            x = self.state['MEMS']['X']
+            y = self.state['MEMS']['Y']
             d = np.abs(x-y)/np.sqrt(2)
 
             return d+params['amplitude']/np.exp(-(y-params['y0'])**2/params['yspan']**2)
@@ -48,7 +48,7 @@ class TestControl(Control):
             ''' Evaluate a cost function similar to an optical scattering force,
                 which is maximized for a ramp x(t)=1/t. '''
             self.sequences = sequence
-            s = sequence['deviceA.X']
+            s = sequence['MEMS.X']
             result = 0
             for i in range(len(s)):
                 x = s[i][1]
@@ -66,8 +66,9 @@ class TestControl(Control):
             setpoint = params['drift rate']*(time.time()-self.start_time)
             e = self.state[dev][input] - setpoint
             e = -e
-            print('Setpoint:',setpoint)
             time.sleep(params['cycle delay'])
+
+            print('Setpoint:',setpoint)
             return(e)
 
 
