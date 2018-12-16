@@ -4,11 +4,11 @@ import numpy as np
 @dev
 class TestDevice(Device):
     ''' Device driver for the virtual network in the 'basic' example. '''
-    def __init__(self, name, parent):
+    def __init__(self, name, parent, inputs):
         ''' Register with the network and create two Input nodes, 'X' and 'Y'. '''
         super().__init__(name, parent)
-        self.add_input('X')
-        self.add_input('Y')
+        for input in inputs:
+            self.add_input(input)
 
     def _actuate(self, state):
         ''' Usually this method would change a physical state, but for our
