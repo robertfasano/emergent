@@ -1,5 +1,6 @@
 from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QHeaderView
 from PyQt5.QtCore import Qt
+from emergent.archetypes import State
 
 class ParameterTable(QTableWidget):
     def __init__(self):
@@ -15,7 +16,7 @@ class ParameterTable(QTableWidget):
         self.verticalHeader().hide()
 
     def get_params(self):
-        params = {}
+        params = State()
         for row in range(self.rowCount()):
             name = self.item(row, 0).text()
             value = self.item(row, 1).text()

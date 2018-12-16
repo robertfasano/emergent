@@ -9,7 +9,7 @@ from PyQt5.QtGui import QPixmap, QIcon
 from PyQt5.QtCore import *
 import json
 from emergent.gui.elements import ExperimentLayout
-from emergent.archetypes import Control, Device, Input
+from emergent.archetypes import Control, Device, Input, State
 from emergent.signals import ActuateSignal
 import functools
 
@@ -224,7 +224,7 @@ class NodeTree(QTreeWidget):
     def get_selected_state(self):
         ''' Build a substate from all currently selected inputs. '''
         items = self.selectedItems()
-        state = {}
+        state = State()
         for i in items:
             input = i.node
             dev = input.parent
