@@ -242,7 +242,7 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
             exp_params = self.file_to_dict(experiment, experiment, 'experiment', panel, default = default)
             panel.epl.set_parameters(exp_params)
 
-    def start_process(self, process = '', panel = None, settings = {}):
+    def start_process(self, process = '', settings = {}):
         ''' Load any non-passed settings from the GUI '''
         ''' Settings contains the following fields:
             cost_name: str
@@ -251,9 +251,9 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
             control: node
             state: dict
 
-            Let's attach these to the Sampler instead!
-
         '''
+        panel = getattr(self, process+'Panel')
+
         gui_settings = panel.get_settings_from_gui()
         if gui_settings is None:
             return
