@@ -31,19 +31,24 @@ class State(dict):
             else:                               # this is a device state
                 new_state[dev] = state[dev]
         return new_state
-        
+
     def copy(self):
         return deepcopy(self)
-    
 
-  
-    
+    def get_fullnames(self):
+        fullnames = []
+        for dev in self:
+            for input in self[dev]:
+                fullnames.append(dev+': '+input)
+        return fullnames
+
+
 if __name__ == '__main__':
     s = State()
     s['a'] = 1
     s['b'] = 2
     s['c'] = 3
-    
+
     t = State()
     t['a'] = {'x':1, 'y':2}
     t['b'] = {'z':3}
