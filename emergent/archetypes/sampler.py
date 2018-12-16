@@ -25,8 +25,9 @@ from emergent.utility import methodsWithDecorator, algorithm
 
 class Sampler():
     ''' General methods '''
-    def __init__(self, state, control, experiment, experiment_params, algorithm = None, algorithm_params = {}):
+    def __init__(self, name, state, control, experiment, experiment_params, algorithm = None, algorithm_params = {}, t = None):
         ''' Initialize the sampler and link to the parent Control node. '''
+        self.name = name
         self.state = state
         self.control = control
         self.index = len(control.samplers)
@@ -43,6 +44,7 @@ class Sampler():
         self.active = True        # a boolean allowing early termination through the callback method
         self.progress = 0
         self.result = None
+        self.start_time = t
         self.prepare(self.state)
 
     def __getstate__(self):

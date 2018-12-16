@@ -65,12 +65,12 @@ class HistoryPanel(QVBoxLayout):
         self.table.horizontalHeader().setStretchLastSection(True)
 
 
-    def add_event(self, timestamp, experiment, event, status, sampler):
+    def add_event(self, sampler, status = ''):
         row = self.table.rowCount()
         self.table.insertRow(row)
-        self.table.setItem(row, 0, QTableWidgetItem(str(timestamp)))
-        self.table.setItem(row, 1, QTableWidgetItem(experiment))
-        self.table.setItem(row, 2, QTableWidgetItem(event))
+        self.table.setItem(row, 0, QTableWidgetItem(sampler.start_time))
+        self.table.setItem(row, 1, QTableWidgetItem(sampler.experiment.__name__))
+        self.table.setItem(row, 2, QTableWidgetItem(sampler.name))
         self.table.setItem(row, 3, QTableWidgetItem(status))
         self.table.setItem(row, 4, OptimizerItem(sampler, status))
 

@@ -274,16 +274,18 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
             settings['algorithm'] = None
             settings['algorithm_params'] = None
             name = 'Run'
-        sampler = Sampler(settings['state'],
+        t = datetime.datetime.strftime(datetime.datetime.now(), '%H:%M')
+        sampler = Sampler(name,
+                          settings['state'],
                           settings['control'],
                           settings['experiment'],
                           settings['experiment_params'],
                           settings['algorithm'],
-                          settings['algorithm_params'])
+                          settings['algorithm_params'],
+                          t=t)
 
         ''' Create HistoryPanel task '''
-        t = datetime.datetime.strftime(datetime.datetime.now(), '%H:%M')
-        row = self.parent.historyPanel.add_event(t,settings['experiment'].__name__, name, process, sampler)
+        row = self.parent.historyPanel.add_event(sampler)
 
         ''' Run process '''
         if settings['state'] == {} and process != 'run':
@@ -293,4 +295,4 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         stoppable = False
         if process == 'run':
             stoppable = True
-        panel._run_thread(panel.run_process, args = (sampler, t), stoppable=stoppable)
+        panel._run_thread(panel.run_process, args = (sampler,), stoppable=stoppable)
