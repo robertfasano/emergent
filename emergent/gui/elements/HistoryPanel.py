@@ -48,7 +48,7 @@ class HistoryPanel(QVBoxLayout):
     def __init__(self, parent):
         super().__init__()
         self.parent = parent
-        self.addWidget(QLabel('Tasks'))
+        # self.addWidget(QLabel('Tasks'))
         self.table = ContextTable()
         self.addWidget(self.table)
         self.table.horizontalHeader().setFixedHeight(30)

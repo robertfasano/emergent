@@ -32,7 +32,7 @@ class MainFrame(QMainWindow):
         height_fraction = width_fraction/1.618
         width = self.app.desktop().screenGeometry().width()*width_fraction
         height = self.app.desktop().screenGeometry().height()*height_fraction
-        width = 1440
+        width = 1080
         height = 720
         self.resize(width, height)
 
@@ -70,9 +70,13 @@ class MainFrame(QMainWindow):
         # self.saveButton.clicked.connect(self.save)
         # self.treeLayout.addWidget(self.saveButton)
 
+        ''' Experiment interface '''
+        self.experiment_layout = QVBoxLayout()
+        layout.addLayout(self.experiment_layout)
+
         ''' Create optimizer layout '''
         self.optimizer = ExperimentLayout(self)
-        layout.addLayout(self.optimizer)
+        self.experiment_layout.addLayout(self.optimizer)
 
         ''' Create sequencer layout '''
         # self.sequencer = SequencerLayout(self)
@@ -80,7 +84,7 @@ class MainFrame(QMainWindow):
 
         ''' Create history panel '''
         self.historyPanel = HistoryPanel(self)
-        layout.addLayout(self.historyPanel)
+        self.experiment_layout.addLayout(self.historyPanel)
 
         ''' Create menu bar '''
         self.menuBar = QMenuBar()
