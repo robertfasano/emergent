@@ -242,7 +242,7 @@ class Sampler():
     def plot_optimization(self, yscale = 'linear'):
         ''' Plots an optimization time series stored in self.history. '''
         t, points, costs, errors = self.get_history()
-        t -= t[0]
+        t = t.copy() - t[0]
         ax, fig = plot_1D(t, -costs, errors=errors, xlabel='Time (s)', ylabel = self.experiment.__name__)
 
         return fig
