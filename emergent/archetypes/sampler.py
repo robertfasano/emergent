@@ -217,9 +217,11 @@ class Sampler():
 
         return norm
 
-    def unnormalize(self, norm):
+    def unnormalize(self, norm, return_array = False):
         ''' Converts normalized (0-1) state to physical state based on specified
             max and min parameter values. '''
+        if type(norm) == np.ndarray:
+            norm = self.array2state(norm)
         unnorm = {}
         for dev in norm:
             unnorm[dev] = {}
@@ -227,7 +229,10 @@ class Sampler():
                 min = self.control.settings[dev][i]['min']
                 max = self.control.settings[dev][i]['max']
                 unnorm[dev][i] = min + norm[dev][i] * (max-min)
-        return unnorm
+        if return_array:
+            return self.state2array(unnorm)
+        else:
+            return unnorm
 
     def save(self, filename):
         with open(self.control.data_path+'%s.sci'%filename, 'wb') as file:
