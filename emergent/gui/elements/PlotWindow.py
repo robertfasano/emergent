@@ -200,9 +200,9 @@ class PlotWidget(QWidget):
         self.hist_fig, self.cvp, self.pvt, self.fig2d = self.container.generate_figures()
         self.choose_input()
         self.draw_hist_fig()
-
-        if not self.sampler.active:
-            try:
-                self.update_timer.stop()
-            except AttributeError:
-                pass
+        if self.sampler.active and self.isVisible():
+            return
+        try:
+            self.update_timer.stop()
+        except AttributeError:
+            pass
