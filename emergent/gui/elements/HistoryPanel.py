@@ -87,11 +87,10 @@ class HistoryPanel(QVBoxLayout):
         self.popup = Visualizer(sampler, algorithm, self, row, process_type)
         # self.popup.show()
 
-class Visualizer(QWidget, ProcessHandler):
+class Visualizer(QWidget):
     def __init__(self, sampler, algorithm, parent, row, process_type):
         super(Visualizer, self).__init__()
         QWidget().__init__()
-        ProcessHandler.__init__(self)
         self.parent = parent
         self.sampler = sampler
         self.algorithm = algorithm
