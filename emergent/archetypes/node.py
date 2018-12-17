@@ -207,6 +207,14 @@ class Control(Node):
         self.signal = ActuateSignal()
         self.process_signal = ProcessSignal()
 
+    def __getstate__(self):
+        d = {}
+        unpickled = [self.signal, self.process_signal, self.samplers, self.children]
+        for item in self.__dict__:
+            if self.__dict__[item] not in unpickled:
+                d[item] = self.__dict__[item]
+        return d
+
     def actuate(self, state):
         """Updates all Inputs in the given state to the given values and optionally logs the state.
 

@@ -70,8 +70,8 @@ class HistoryPanel(QVBoxLayout):
         row = self.table.rowCount()
         self.table.insertRow(row)
         self.table.setItem(row, 0, QTableWidgetItem(sampler.start_time))
-        self.table.setItem(row, 1, QTableWidgetItem(sampler.experiment.__name__))
-        self.table.setItem(row, 2, QTableWidgetItem(sampler.name))
+        self.table.setItem(row, 1, QTableWidgetItem(sampler.experiment_name))
+        self.table.setItem(row, 2, QTableWidgetItem(sampler.algorithm.name))
         self.table.setItem(row, 3, QTableWidgetItem(status))
         self.table.setItem(row, 4, OptimizerItem(sampler, status))
 
@@ -87,6 +87,10 @@ class HistoryPanel(QVBoxLayout):
         algorithm = self.table.item(row, 2).text()
         self.popup = Visualizer(sampler, algorithm, self, row, process_type)
         # self.popup.show()
+
+    def load_task(self):
+        sampler = self.parent.network.load_task()
+        self.add_event(sampler)
 
 class Visualizer(QWidget):
     def __init__(self, sampler, algorithm, parent, row, process_type):

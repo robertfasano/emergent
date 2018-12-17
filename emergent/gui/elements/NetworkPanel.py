@@ -300,14 +300,13 @@ class NodeWidget(QTreeWidgetItem):
     def __init__(self, name, node):
         super().__init__(name)
         self.node = node
-        self.node.leaf = self
         self.root = self.get_root()
 
         if self.node.node_type == 'control':
             self.node.signal.connect(self.onActuateSignal)
-        if self.node.node_type == 'device':
-            self.node.create_signal.connect(self.onCreateSignal)
-            self.node.remove_signal.connect(self.onRemoveSignal)
+        # if self.node.node_type == 'device':
+        #     self.node.create_signal.connect(self.onCreateSignal)
+        #     self.node.remove_signal.connect(self.onRemoveSignal)
         elif self.node.node_type == 'input':
             name = self.node.name
             device = self.node.parent.name
@@ -349,12 +348,12 @@ class NodeWidget(QTreeWidgetItem):
     def updateStateText(self, state):
         self.setText(1, str('%.2f'%state))
 
-    def onCreateSignal(self, d):
-        if self.node == d['device']:
-            child_item = NodeWidget([d['input']], d['device'].children[d['input']])
-            self.addChild(child_item)
-
-    def onRemoveSignal(self, d):
-        if self.node == d['device']:
-            child_item = self.node.children[d['input']].leaf
-            self.removeChild(child_item)
+    # def onCreateSignal(self, d):
+    #     if self.node == d['device']:
+    #         child_item = NodeWidget([d['input']], d['device'].children[d['input']])
+    #         self.addChild(child_item)
+    #
+    # def onRemoveSignal(self, d):
+    #     if self.node == d['device']:
+    #         child_item = self.node.children[d['input']].leaf
+    #         self.removeChild(child_item)

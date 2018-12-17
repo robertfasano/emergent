@@ -8,6 +8,7 @@ from PyQt5.QtCore import QCoreApplication
 from emergent.gui.elements import MainFrame
 from emergent.archetypes import Control
 from emergent.archetypes.server import Server
+from emergent.archetypes.network import Network
 import numpy as np
 sys.path.append('networks/%s'%sys.argv[1])
 import logging as log
@@ -71,6 +72,9 @@ for control in controls:
         for input in device.children.values():
             tree[control.name][device.name].append(input.name)
 
+''' Create network object '''
+network = Network()
+
 controls_dict = {}
 for c in controls:
     controls_dict[c.name] = c
@@ -79,7 +83,7 @@ if __name__ == "__main__":
     if app is None:
         app = QApplication(sys.argv)         # Create an instance of the application
 
-    main = MainFrame(app, tree, controls_dict)
+    main = MainFrame(app, tree, controls_dict, network)
     main.show()
     app.processEvents()
 

@@ -14,12 +14,13 @@ import psutil
 import sys
 
 class MainFrame(QMainWindow):
-    def __init__(self, app, tree, controls):
+    def __init__(self, app, tree, controls, network):
         QMainWindow.__init__(self)
         self.setWindowTitle('EMERGENT: %s'%sys.argv[1])
         QFontDatabase.addApplicationFont('gui/media/Exo2-Light.ttf')
         with open('gui/stylesheet.txt',"r") as file:
             self.setStyleSheet(file.read())
+        self.network = network
         self.controls = controls
         self.app = app
         self.widget = QWidget()
@@ -94,6 +95,8 @@ class MainFrame(QMainWindow):
         self.experiment_menu = self.menuBar.addMenu('Experiment')
 
         self.task_menu = self.menuBar.addMenu('Tasks')
+        self.load_tasks_action = self.task_menu.addAction('Load task')
+        self.load_tasks_action.triggered.connect(self.historyPanel.load_task)
 
         self.save_action = self.network_menu.addAction('Save state')
         self.save_action.triggered.connect(self.save)
