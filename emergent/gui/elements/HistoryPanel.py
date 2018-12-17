@@ -59,6 +59,7 @@ class HistoryPanel(QVBoxLayout):
         self.table.insertColumn(3)
         self.table.insertColumn(4)
         # self.table.setColumnCount(5)
+        self.table.hideColumn(3)
         self.table.hideColumn(4)
         self.table.setHorizontalHeaderLabels(['Time', 'Experiment', 'Event', 'Status', 'Object'])
         self.table.cellDoubleClicked.connect(self.on_double_click)
