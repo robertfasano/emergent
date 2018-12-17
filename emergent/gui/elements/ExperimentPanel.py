@@ -175,6 +175,7 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
             if param_type == 'experiment':
                 old_params[param_type][p] = params[p]
             else:
+                algorithm_name = panel.algorithm_box.currentText()
                 old_params[param_type][algorithm_name][p] = params[p]
         with open(params_filename, 'w') as file:
             json.dump(old_params, file)
