@@ -51,7 +51,7 @@ class Sampler():
 
     def __getstate__(self):
         d = {}
-        d['algorithm'] = self.__dict__['algorithm'].name
+        d['algorithm'] = self.__dict__['algorithm']
         d['experiment'] = self.__dict__['experiment'].__name__
 
         for x in ['algorithm_params', 'experiment_params', 'history', 'state']:
@@ -67,6 +67,7 @@ class Sampler():
         self.history.to_csv(self.control.data_path+filename+'.csv')
         self.control.macro_buffer.add(self.control.state)
         self.control.process_signal.emit(self.control.state)
+        self.save(filename)
 
     def terminate(self):
         self.active = False
