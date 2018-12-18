@@ -1,8 +1,8 @@
-Archetypes
+Modules
 ==========
 
 .. toctree::
    :glob:
    :maxdepth: 4
 
-   archetypes/*
+   modules/*

@@ -4,7 +4,7 @@ Architecture
 
 The architecture underlying EMERGENT's scalability is a network of Node objects
 which abstractly represent the experiment under study. Nodes come in three types:
-Control, Device, and Input nodes.
+Hub, Thing, and Input nodes.
 
 Inputs
 =======
@@ -15,11 +15,11 @@ power supply creating a 60 A current might be represented by an Input node calle
 functionalities for representing this state; more advanced functionalities like
 state actuation and optimization are carried out in higher-level nodes.
 
-Devices
+Things
 ========
-A :doc:`/architecture/device` node represents a physical device which is responsible
+A :doc:`/architecture/thing` node represents a physical thing which is responsible
 for controlling one or more Input nodes. For example, a motorized XY translation
-stage could be represented by a Device node called ``stage`` with inputs ``X`` and
+stage could be represented by a Thing called ``stage`` with inputs ``X`` and
 ``Y``. The inputs can be accessed through the ``children`` attribute, e.g.
 ``stage.children['X']`` returns a handle to the Input node representing the X
 degree of freedom. A dictionary is used to represent the state of multiple Input
@@ -28,22 +28,22 @@ Changes in state are driven by the ``stage.actuate(state)`` function, which take
 a state dictionary with at least one input, drives the physical change, then updates
 the internal state of the network accordingly.
 
-Controls
+Hubs
 =========
-The :doc:`/architecture/control` node is the brain of the experiment. While Input
-and Device nodes are responsible for representing and changing the experimental state,
-Control nodes serve as an interface for many devices and are capable of intelligently
+The :doc:`/architecture/hub` node is the brain of the experiment. While Input
+and Things are responsible for representing and changing the experimental state,
+Hubs serve as an interface for many things and are capable of intelligently
 optimizing the macroscopic state towards a desired outcome. This macroscopic state,
-containing many device substates, is represented through a nested dict which could
-look like ``control.state={'stage':{'X':0,'Y':1}, 'power_supply':{'current':60}}``.
-Like the Device node, the Control node possesses a method called ``actuate`` which
+containing many thing substates, is represented through a nested dict which could
+look like ``hub.state={'stage':{'X':0,'Y':1}, 'power_supply':{'current':60}}``.
+Like the Thing, the Hub possesses a method called ``actuate`` which
 decomposes a macroscopic state into substates and distributes them to the correct
-Device nodes.
+Things.
 
 
 Experiments
 ============
-An experiment is represented through a class method of the Control node. Let's
+An experiment is represented through a class method of the Hub. Let's
 take a look at a very basic experiment from the ``autoAlign`` class:
 
 .. code-block :: python

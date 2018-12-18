@@ -33,9 +33,9 @@ decorator within the currently selected Hub. You can run an experiment
 from the Run tab with a chosen number of iterations and delay between each loop.
 Experiments return data in an array, and the post-processing menu allows different
 quantities to be output; for example, with the same experiment you may wish to view
-the mean, standard thingiation, or slope of all of the data gathered.
+the mean, standard deviation, or slope of all of the data gathered.
 
-The Optimize tab gives experimental hub to EMERGENT with the goal of minimizing
+The Optimize tab gives experimental control to EMERGENT with the goal of minimizing
 the result of the given experiment. With one or more inputs selected in the network
 tree and a target experiment, you can choose an optimization algorithm from the
 lower drop-down menu.

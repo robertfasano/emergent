@@ -1,8 +1,8 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<!--[if IE 8]><html class="no-js lt-ie9" lang="python" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="python" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
   
@@ -24,26 +24,18 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="genindex.html"/>
-        <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="EMERGENT 0.1alpha documentation" href="#"/>
-        <link rel="next" title="Architecture" href="architecture.html"/> 
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Architecture" href="architecture.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
@@ -94,8 +86,7 @@
 <li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="optimization.html">Optimization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="archetypes.html">Archetypes</a></li>
-<li class="toctree-l1"><a class="reference internal" href="devices.html">Devices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">Modules</a></li>
 </ul>
 
             
@@ -107,7 +98,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="#">EMERGENT</a>
@@ -115,9 +106,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -163,111 +155,59 @@
 <h1>EMERGENT<a class="headerlink" href="#emergent" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>What is an experiment? Broadly speaking, an experiment is a process which seeks
+to map out the relationship between a set of inputs and some measurable signal.
+Surprisingly many state-of-the-art experiments in modern science rely on grad students
+turning knobs, often following some informal algorithm gleaned from their own experience.
+I say this is surprising for two reasons. First, it is usually very simple to gain
+computer control of some knob, like a voltage setpoint or laser frequency. Second,
+there exist many powerful, often open-source, algorithms which can find a set of
+independent variables which extremizes an independent variable, and given computer
+control of your experiment, it is not too difficult to hook up the knobs to the
+algorithm to optimize your experiment. However, although it is simple to algorithmically
+optimize a simple problem like pointing a laser beam into a waveguide, it is not
+so simple to control a large experiment for a host of reasons:</p>
+<ul class="simple">
+<li>As the number of input variables increases, more and more sophisticated algorithms are needed to explore the parameter space.</li>
+<li>Controlling many devices from a centralized program quickly leads to tangled, unsalvageable code if scalability is not considered.</li>
+<li>Many experiments have coupled inputs, where the optimum position of one knob depends on another.</li>
+</ul>
+<p>We wrote EMERGENT to attempt to solve these problems.</p>
 <p>EMERGENT (Explorative Machine-learning EnviRonment for Generalized Experiments of Networked Things) is a library featuring device drivers and abstract classes allowing
 universal autonomous control of laboratory experiments. The library was written based on the main belief that science progresses quickest when experimentalists
 are free to spend as much time thinking and as little time turning knobs and
 writing code as possible.</p>
-<p>To allow simple extension to any
-research project, we model a generalized experiment as a network consisting of three types of objects: the Input, a physical degree of freedom like laser frequency or mechanical displacement; the Device, which allows Inputs to be set to desired configurations; and the Control, which oversees many devices to coordinate the experiment. The basic building block of EMERGENT is the Node class, which allows a graph-theoretic framework for experimental control and state traversal, and whose properties are inherited in the three child objects.</p>
-<p>The goals of EMERGENT are outlined in five core tenets, each of which aims to solve an important problem
-in research. We provide an introduction to these problems viewed through the lens
-of a magneto-optical trapping experiment, but the tenets can
-be extended to any field.</p>
-<div class="section" id="tenet-1-standardization">
-<h3>Tenet 1: Standardization<a class="headerlink" href="#tenet-1-standardization" title="Permalink to this headline">¶</a></h3>
-<p>A magneto-optical trap requires simultaneous control of many device states:
-laser intensities and frequencies, current drivers for magnetic quadrupole coils,
-beam alignment (both into optical fibers and into the MOT), etc. Generally these
-devices can be interfaced with through application programming interfaces (API)
-written by the manufacturer, allowing the user to send commands via USB, ethernet,
-or some other protocol to manipulate the device state. In other cases (such as for
-homebuilt devices), we write our own device drivers, typically involving input
-and/or output of analog or digital signals. Due to the diversity of devices with
-generally different communications protocols in a typical experiment, uncareful
-control architecture design can easily lead to a proliferation of code which is
-all performing the same task (device communication) in many different ways. Such
-practices slow down the typically rapid early stage of experimentation, as
-well as resulting in code which is tricky to generalize to other experiments.</p>
-<p>EMERGENT solves this problem through a standardized object-oriented design. Every device
-in the network is controlled by an abstract Device class which implements a universal
-syntax for describing or manipulating the state of a device, as well as providing
-common functionalities such as saving or loading states to/from an archive. Devices
-not yet implemented in EMERGENT can be easily added by inheriting from the Device class,
-then reimplementing the Device._connect() and Device._actuate() functions to correctly
-interface with the device API, typically only requiring several lines of code. As EMERGENT grows, more and more devices will be
-natively supported, allowing control architecture for experiments to be rapidly
-constructed.</p>
 </div>
-<div class="section" id="tenet-2-scalability">
-<h3>Tenet 2: Scalability<a class="headerlink" href="#tenet-2-scalability" title="Permalink to this headline">¶</a></h3>
-<p>With a well-defined standardization method for device integration, it should be
-very easy to add large numbers of devices from a central hub, which we refer to
-as the principle of <em>minimal marginal device cost</em>: the 1001st device should be as simple to add
-to the network as the second. In the previous problem, we discussed how EMERGENT
-streamlines device <em>creation</em>, but this is not enough to ensure scalability: a
-control architecture consisting of many devices must also possess a communication
-infrastructure to distribute experimental parameter changes to the correct devices.
-Additionally, we want a bottom-to-top control flow, where
-once a lower-level component is properly implemented, any conflicts need only
-to be addressed at the interface to the next higher layer, avoiding complicated
-cross-layer debugging.</p>
-<p>Scalability is ensured through the modular framework of experimental control through the Input-&gt;Device-&gt;Control triplet. This framework leads to self-contained ecosystems of devices (lasers, current drivers, mechanical actuators, etc) united for a common purpose (the magneto-optical trap) whose quality is measured through some output (atom number, temperature, etc). Individual triplets can be combined into a larger experiment with a simple graphical representation: horizontally separated modules have no interdependences and can be run and/or optimized in parallel, while vertically separated modules naturally enforce typical experimental sequences (e.g. first-stage cooling, second-stage cooling, etc).</p>
-</div>
-<div class="section" id="tenet-3-automation">
-<h3>Tenet 3: Automation<a class="headerlink" href="#tenet-3-automation" title="Permalink to this headline">¶</a></h3>
-<p>Experimental physics is rife with simple yet tedious tasks which are typically
-carried out daily. Our philosophy is that no frequently occurring problem should '
-be manually solved more than once - once the important inputs and outputs are
-understood, sensors and actuators can be added to the network and used to automate
-the tedious. EMERGENT offers a suite of optimization algorithms, from simple
-grid searches for lower-dimensional problems, to gradient-descent and simplex
-methods for middle-dimensional problems, to neural networks and genetic algorithms for simultaneous optimization of many degrees of freedom.</p>
-<p>An example application is alignment of a laser beam into an
-optical fiber, which must be reoptimized somewhat frequently due to thermally-induced
-beam drift. Complete beam translation and steering requires four degrees of freedom,
-such as tip/tilt control on two independent, high-bandwidth MEMS mirrors. A photodetector
-which samples some light on the other side of the optical fiber provides a signal
-to optimize. Any of the algorithms in the Optimizer module can be used to maximize
-fiber coupling efficiency simply by pointing the algorithm at the MEMS axes and
-defining the optimization signal, both of which are trivial due to the standardized,
-scalable interface described above.</p>
-<p>Another important goal of EMERGENT is the ability to decouple the macroscopic
-experimental state into separate subspaces. For example, a two-wavelength
-magneto-optical trap has many knobs to turn, and two of the most important are
-the frequencies of the two lasers. These are often optimized separately, one
-after the other, but couplings between the two knobs certainly exist, i.e.
-the detuning of the first-stage MOT affects the optimal detuning of the second-stage
-through its affect on atomic temperature. Future algorithms will be designed to
-identify couplings where they exist, and the Optimizer module will improve
-experimental performance through simultaneous optimization of coupled degrees of freedom.</p>
-</div>
-<div class="section" id="tenet-4-reproducibility">
-<h3>Tenet 4: Reproducibility<a class="headerlink" href="#tenet-4-reproducibility" title="Permalink to this headline">¶</a></h3>
-<p>Progress on a new experiment often proceeds very quickly, and it is often time-consuming
-to manually record complete experimental conditions for every single run. Additionally,
-a consequence of handing control over to a computer is that an optimal configuration may
-be ruined, either by user error or by a fault of the algorithm. EMERGENT aims to solve
-both problems by implementing a Database of experimental conditions, storing the last
-<em>N</em> states of all devices and optimization signals such as fiber coupling efficiency or
-atom number. An operator never has to worry about either careful logging or losing
-an important result, since the entire experiment can be rolled back to a previous
-state stored in the Database (to the extent that important degrees of freedom are
-measured and controlled).</p>
-</div>
-<div class="section" id="tenet-5-generalizability">
-<h3>Tenet 5: Generalizability<a class="headerlink" href="#tenet-5-generalizability" title="Permalink to this headline">¶</a></h3>
-<p>Fragmentation of standards, whether for device communications protocols (USB, Ethernet, serial,...),
-code languages (Python, C++, LabView,...) not only makes total experimental control more difficult,
-but also reduces shareability of code among different research groups. The ambitious goals
-set forth by these tenets are revolutionary for any lab, and so the final tenet is that
-EMERGENT <em>must</em> be usable by research groups across the physical sciences rather than
-being restricted to the domain of AMO physics. Towards this end, the control architecture
-is specified and written in a very abstract sense: any number of user-defined inputs
-(device substates) produce a set of outputs (experimental performance metrics),
-and EMERGENT offers the ability to control the inputs to optimize the outputs. This
-tremendous power can be leveraged by researchers in any field simply by adding
-Device objects to the network and defining cost functions for the Optimizer.</p>
-</div>
+<div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>What is an experiment? Broadly speaking, an experiment is a process which seeks
+to map out the relationship between a set of inputs and some measurable signal.
+Sometimes this relationship can be very simple, such as a linear dependence between
+a knob position and a voltage. However, many experimental outcomes depend on the
+simultaneous states of many, possibly coupled and/or nonlinear, degrees of freedom,
+and optimization of the outcome can be incredibly difficult. An example is the
+magneto-optical trap (MOT), a ubiquitous workhorse in atomic physics. The number
+of atoms a MOT can capture depends partly on the magnetic field strength and the
+laser frequency, and any attempt to optimize a MOT will quickly show that these
+two variables are coupled, i.e. any adjustments to one knob will generally change
+the optimal position of the second. In order to optimize the MOT, the experimentalist
+must adjust both knobs iteratively until the atom number converges to an optimum value.</p>
+<p>This simple example is just the tip of the iceberg: atom number generally depends
+on other variables such as the atomic velocity distribution and beam alignment, and
+so any two-dimensional optimization is unlikely to find the &quot;true&quot; maximum. But since
+our time is limited and the complexity of the optimization grows quickly as we
+consider more and more knobs, we typically turn them one or two at a time, content
+with locally-maximal yet globally-subpar results.</p>
+<p>EMERGENT aims to solve this problem by offering a simple framework for automated
+exploration of many-dimensional parameter spaces. Many algorithms specifically
+suited for this task are available in open-source libraries, and EMERGENT provides
+a simple syntactic structure to leverage these algorithms to optimize your own
+experiment. This is accomplished through three class modules: the Input, Thing,
+and Hubs. Input nodes are simple structures which only serve to represent
+the state of some experimental knob. Things are the glue between EMERGENT
+and device APIs that can change physical variables in the lab. Lastly, Hub
+nodes measure experimental outcomes and issue commands to connected Things to
+optimize the result.</p>
 </div>
 <div class="section" id="table-of-contents">
 <h2>Table of Contents<a class="headerlink" href="#table-of-contents" title="Permalink to this headline">¶</a></h2>
@@ -276,32 +216,25 @@ Device objects to the network and defining cost functions for the Optimizer.</p>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">EMERGENT</a></li>
 <li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="architecture.html#inputs">Inputs</a></li>
-<li class="toctree-l2"><a class="reference internal" href="architecture.html#devices">Devices</a></li>
-<li class="toctree-l2"><a class="reference internal" href="architecture.html#controls">Controls</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#things">Things</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#hubs">Hubs</a></li>
 <li class="toctree-l2"><a class="reference internal" href="architecture.html#experiments">Experiments</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="optimization.html">Optimization</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="optimization.html#steady-state-optimization">Steady-state optimization</a></li>
-<li class="toctree-l2"><a class="reference internal" href="optimization.html#subspace-decoupling">Subspace decoupling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimization.html#time-dependent-optimization">Time-dependent optimization</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="examples.html#simple-network">Simple network</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="archetypes.html">Archetypes</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="archetypes/fifo.html">Historian</a></li>
-<li class="toctree-l2"><a class="reference internal" href="archetypes/historian.html">Historian</a></li>
-<li class="toctree-l2"><a class="reference internal" href="archetypes/optimizer.html">Optimizer</a></li>
-<li class="toctree-l2"><a class="reference internal" href="archetypes/parallel.html">Parallel</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="devices.html">Devices</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="devices/current_driver.html">Current driver</a></li>
-<li class="toctree-l2"><a class="reference internal" href="devices/genesys.html">TDK Genesys</a></li>
-<li class="toctree-l2"><a class="reference internal" href="devices/labjackT7.html">Labjack T7</a></li>
-<li class="toctree-l2"><a class="reference internal" href="devices/picoAmp.html">Mirrorcle PicoAmp</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">Modules</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="modules/Optimizer.html">Optimizer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules/Parallel.html">Process manager</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules/fifo.html">Queues</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules/historian.html">Historian</a></li>
 </ul>
 </li>
 </ul>
@@ -311,9 +244,7 @@ Device objects to the network and defining cost functions for the Optimizer.</p>
 
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -351,6 +282,7 @@ Device objects to the network and defining cost functions for the Optimizer.</p>
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
             VERSION:'0.1alpha',
+            LANGUAGE:'python',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
@@ -363,19 +295,13 @@ Device objects to the network and defining cost functions for the Optimizer.</p>
 
   
 
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>

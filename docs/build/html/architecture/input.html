@@ -1,8 +1,8 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<!--[if IE 8]><html class="no-js lt-ie9" lang="python" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="python" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
   
@@ -24,28 +24,17 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="../genindex.html"/>
-        <link rel="search" title="Search" href="../search.html"/>
-    <link rel="top" title="EMERGENT 0.1alpha documentation" href="../index.html"/>
-        <link rel="up" title="Architecture" href="../architecture.html"/>
-        <link rel="next" title="Device" href="device.html"/>
-        <link rel="prev" title="Node" href="node.html"/> 
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
 
   
   <script src="../_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
@@ -91,20 +80,12 @@
               
             
             
-              <ul class="current">
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="../index.html">EMERGENT</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="../architecture.html">Architecture</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="node.html">Node</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Input</a></li>
-<li class="toctree-l2"><a class="reference internal" href="device.html">Device</a></li>
-<li class="toctree-l2"><a class="reference internal" href="control.html">Control</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture.html">Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../optimization.html">Optimization</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../networkflow.html">Network flow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../archetypes.html">Archetypes</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../devices.html">Devices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">Modules</a></li>
 </ul>
 
             
@@ -116,7 +97,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">EMERGENT</a>
@@ -124,9 +105,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -148,8 +130,6 @@
   <ul class="wy-breadcrumbs">
     
       <li><a href="../index.html">Docs</a> &raquo;</li>
-        
-          <li><a href="../architecture.html">Architecture</a> &raquo;</li>
         
       <li>Input</li>
     
@@ -174,13 +154,13 @@
 <span id="input"></span><h1>Input<a class="headerlink" href="#module-node" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="node.Input">
-<em class="property">class </em><code class="descclassname">node.</code><code class="descname">Input</code><span class="sig-paren">(</span><em>name</em>, <em>parent</em>, <em>type='primary'</em>, <em>speed='slow'</em><span class="sig-paren">)</span><a class="headerlink" href="#node.Input" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="node.html#node.Node" title="node.Node"><code class="xref py py-class docutils literal notranslate"><span class="pre">node.Node</span></code></a></p>
+<em class="property">class </em><code class="descclassname">node.</code><code class="descname">Input</code><span class="sig-paren">(</span><em>name</em>, <em>parent</em><span class="sig-paren">)</span><a class="headerlink" href="#node.Input" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="node.html#node.Node" title="node.Node"><code class="xref py py-class docutils literal"><span class="pre">node.Node</span></code></a></p>
 <p>Input nodes represent physical variables which may affect the outcome of
 an experiment, such as laser frequency or beam alignment.</p>
 <dl class="method">
 <dt id="node.Input.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>name</em>, <em>parent</em>, <em>type='primary'</em>, <em>speed='slow'</em><span class="sig-paren">)</span><a class="headerlink" href="#node.Input.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>name</em>, <em>parent</em><span class="sig-paren">)</span><a class="headerlink" href="#node.Input.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="docutils">
 <dt>Initializes an Input node, which is never directly used but instead</dt>
 <dd>offers a useful internal representation of a state.</dd>
@@ -190,10 +170,8 @@ an experiment, such as laser frequency or beam alignment.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>name</strong> (<em>str</em>) -- node name. Nodes which share a Device should have unique names.</li>
-<li><strong>parent</strong> (<em>str</em>) -- name of parent Device node.</li>
-<li><strong>type</strong> (<em>str</em>) -- Specifies whether the Input node is 'primary' (representing a directly controlled quantity) or 'secondary' (representing a derived quantity or superposition of primary quantities).</li>
-<li><strong>speed</strong> (<em>str</em>) -- Specified whether the Input node is 'slow' (using state-actuation for sequencing) or 'fast' (using burst streaming from a LabJack).</li>
+<li><strong>name</strong> (<em>str</em>) -- node name. Nodes which share a Thing should have unique names.</li>
+<li><strong>parent</strong> (<em>str</em>) -- name of parent Thing.</li>
 </ul>
 </td>
 </tr>
@@ -205,28 +183,9 @@ an experiment, such as laser frequency or beam alignment.</p>
 <dt id="node.Input.instances">
 <code class="descname">instances</code><em class="property"> = []</em><a class="headerlink" href="#node.Input.instances" title="Permalink to this definition">¶</a></dt>
 <dd><p>Contains all currently instantiated Nodes. This can
-be accessed for a given type, e.g. Control.instances lists all Control
+be accessed for a given type, e.g. Hub.instances lists all Hub
 nodes.</p>
 </dd></dl>
-
-<dl class="method">
-<dt id="node.Input.set_sequence">
-<code class="descname">set_sequence</code><span class="sig-paren">(</span><em>sequence</em><span class="sig-paren">)</span><a class="headerlink" href="#node.Input.set_sequence" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sets the sequence of an Input and pushes changes upstream.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>sequence</strong> (<em>list</em>) -- a list of lists, each containing a time and a value.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="node.Input.set_settings">
-<code class="descname">set_settings</code><span class="sig-paren">(</span><em>d</em><span class="sig-paren">)</span><a class="headerlink" href="#node.Input.set_settings" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
 
 </dd></dl>
 
@@ -234,20 +193,9 @@ nodes.</p>
 
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="device.html" class="btn btn-neutral float-right" title="Device" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="node.html" class="btn btn-neutral" title="Node" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
-    </div>
   
 
   <hr/>
@@ -276,6 +224,7 @@ nodes.</p>
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
             VERSION:'0.1alpha',
+            LANGUAGE:'python',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
@@ -288,19 +237,13 @@ nodes.</p>
 
   
 
-  
-  
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>

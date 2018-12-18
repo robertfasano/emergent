@@ -37,7 +37,7 @@ State representation
 Each physical degree of freedom is represented by an :doc:`/architecture/input` node; in this case, there are two nodes labeled ``X`` and ``Y`` which
 represent the tip and tilt of the mirror. The ``Input.state`` attribute stores a
 float representing the instantaneous state of the input. Input nodes are attached
-to :doc:`/architecture/thing` nodes which represent the physical actuator, such as the voltage hub
+to :doc:`/architecture/thing` nodes which represent the physical actuator, such as the voltage control
 board for the MEMS. The Thing stores the state of all of its attached inputs
 in a dict of the form ``Thing.state = {'X'-60, 'Y':1}``. Note that the keys of
 the dict correspond to whatever the ``Input.name`` variable is. State changes

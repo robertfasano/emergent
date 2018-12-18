@@ -1,8 +1,8 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<!--[if IE 8]><html class="no-js lt-ie9" lang="python" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="python" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
   
@@ -24,27 +24,19 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="genindex.html"/>
-        <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="EMERGENT 0.1alpha documentation" href="index.html"/>
-        <link rel="next" title="Optimization" href="optimization.html"/>
-        <link rel="prev" title="EMERGENT" href="index.html"/> 
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Optimization" href="optimization.html" />
+    <link rel="prev" title="EMERGENT" href="index.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
@@ -94,15 +86,14 @@
 <li class="toctree-l1"><a class="reference internal" href="index.html">EMERGENT</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Architecture</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#inputs">Inputs</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#devices">Devices</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#controls">Controls</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#things">Things</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#hubs">Hubs</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#experiments">Experiments</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="optimization.html">Optimization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="archetypes.html">Archetypes</a></li>
-<li class="toctree-l1"><a class="reference internal" href="devices.html">Devices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">Modules</a></li>
 </ul>
 
             
@@ -114,7 +105,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">EMERGENT</a>
@@ -122,9 +113,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -170,53 +162,53 @@
 <h1>Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h1>
 <p>The architecture underlying EMERGENT's scalability is a network of Node objects
 which abstractly represent the experiment under study. Nodes come in three types:
-Control, Device, and Input nodes.</p>
+Hub, Thing, and Input nodes.</p>
 <div class="section" id="inputs">
 <h2>Inputs<a class="headerlink" href="#inputs" title="Permalink to this headline">¶</a></h2>
 <p>An <a class="reference internal" href="architecture/input.html"><span class="doc">Input</span></a> node is the lowest-level object in an EMERGENT network. Its sole purpose
 is to represent the state of some physical variable in the lab. For example, a
 power supply creating a 60 A current might be represented by an Input node called
-<code class="docutils literal notranslate"><span class="pre">current</span></code> with <code class="docutils literal notranslate"><span class="pre">current.state=60</span></code>. The Input node class only offers basic
+<code class="docutils literal"><span class="pre">current</span></code> with <code class="docutils literal"><span class="pre">current.state=60</span></code>. The Input node class only offers basic
 functionalities for representing this state; more advanced functionalities like
 state actuation and optimization are carried out in higher-level nodes.</p>
 </div>
-<div class="section" id="devices">
-<h2>Devices<a class="headerlink" href="#devices" title="Permalink to this headline">¶</a></h2>
-<p>A <a class="reference internal" href="architecture/device.html"><span class="doc">Device</span></a> node represents a physical device which is responsible
+<div class="section" id="things">
+<h2>Things<a class="headerlink" href="#things" title="Permalink to this headline">¶</a></h2>
+<p>A <a class="reference internal" href="architecture/thing.html"><span class="doc">Thing</span></a> node represents a physical thing which is responsible
 for controlling one or more Input nodes. For example, a motorized XY translation
-stage could be represented by a Device node called <code class="docutils literal notranslate"><span class="pre">stage</span></code> with inputs <code class="docutils literal notranslate"><span class="pre">X</span></code> and
-<code class="docutils literal notranslate"><span class="pre">Y</span></code>. The inputs can be accessed through the <code class="docutils literal notranslate"><span class="pre">children</span></code> attribute, e.g.
-<code class="docutils literal notranslate"><span class="pre">stage.children['X']</span></code> returns a handle to the Input node representing the X
+stage could be represented by a Thing called <code class="docutils literal"><span class="pre">stage</span></code> with inputs <code class="docutils literal"><span class="pre">X</span></code> and
+<code class="docutils literal"><span class="pre">Y</span></code>. The inputs can be accessed through the <code class="docutils literal"><span class="pre">children</span></code> attribute, e.g.
+<code class="docutils literal"><span class="pre">stage.children['X']</span></code> returns a handle to the Input node representing the X
 degree of freedom. A dictionary is used to represent the state of multiple Input
-nodes in a human-readable way: a typical state might be <code class="docutils literal notranslate"><span class="pre">stage.state={'X':0,</span> <span class="pre">'Y':1}</span></code>.
-Changes in state are driven by the <code class="docutils literal notranslate"><span class="pre">stage.actuate(state)</span></code> function, which takes
+nodes in a human-readable way: a typical state might be <code class="docutils literal"><span class="pre">stage.state={'X':0,</span> <span class="pre">'Y':1}</span></code>.
+Changes in state are driven by the <code class="docutils literal"><span class="pre">stage.actuate(state)</span></code> function, which takes
 a state dictionary with at least one input, drives the physical change, then updates
 the internal state of the network accordingly.</p>
 </div>
-<div class="section" id="controls">
-<h2>Controls<a class="headerlink" href="#controls" title="Permalink to this headline">¶</a></h2>
-<p>The <a class="reference internal" href="architecture/control.html"><span class="doc">Control</span></a> node is the brain of the experiment. While Input
-and Device nodes are responsible for representing and changing the experimental state,
-Control nodes serve as an interface for many devices and are capable of intelligently
+<div class="section" id="hubs">
+<h2>Hubs<a class="headerlink" href="#hubs" title="Permalink to this headline">¶</a></h2>
+<p>The <a class="reference internal" href="architecture/hub.html"><span class="doc">Hub</span></a> node is the brain of the experiment. While Input
+and Things are responsible for representing and changing the experimental state,
+Hubs serve as an interface for many things and are capable of intelligently
 optimizing the macroscopic state towards a desired outcome. This macroscopic state,
-containing many device substates, is represented through a nested dict which could
-look like <code class="docutils literal notranslate"><span class="pre">control.state={'stage':{'X':0,'Y':1},</span> <span class="pre">'power_supply':{'current':60}}</span></code>.
-Like the Device node, the Control node possesses a method called <code class="docutils literal notranslate"><span class="pre">actuate</span></code> which
+containing many thing substates, is represented through a nested dict which could
+look like <code class="docutils literal"><span class="pre">hub.state={'stage':{'X':0,'Y':1},</span> <span class="pre">'power_supply':{'current':60}}</span></code>.
+Like the Thing, the Hub possesses a method called <code class="docutils literal"><span class="pre">actuate</span></code> which
 decomposes a macroscopic state into substates and distributes them to the correct
-Device nodes.</p>
+Things.</p>
 </div>
 <div class="section" id="experiments">
 <h2>Experiments<a class="headerlink" href="#experiments" title="Permalink to this headline">¶</a></h2>
-<p>An experiment is represented through a class method of the Control node. Let's
-take a look at a very basic experiment from the <code class="docutils literal notranslate"><span class="pre">autoAlign</span></code> class:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@experiment</span>
+<p>An experiment is represented through a class method of the Hub. Let's
+take a look at a very basic experiment from the <code class="docutils literal"><span class="pre">autoAlign</span></code> class:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="nd">@experiment</span>
 <span class="k">def</span> <span class="nf">measure_power</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39; Moves to the target alignment and measures the transmitted power. &#39;&#39;&#39;</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">actuate</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
     <span class="k">return</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">readADC</span><span class="p">()</span>
 </pre></div>
 </div>
-<p>This experiment steers a MEMS mirror to the specified state, e.g. <code class="docutils literal notranslate"><span class="pre">state={'X':-60,'Y':0}</span></code>,
+<p>This experiment steers a MEMS mirror to the specified state, e.g. <code class="docutils literal"><span class="pre">state={'X':-60,'Y':0}</span></code>,
 and measures and returns the power transmitted through an optical fiber. The &#64;experiment
 decorator carries out two functions: first, it lets EMERGENT know that this method
 should appear in drop-down menus for experiment selection; second, it automatically
@@ -227,9 +219,7 @@ states can be recalled.</p>
 
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -269,6 +259,7 @@ states can be recalled.</p>
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
             VERSION:'0.1alpha',
+            LANGUAGE:'python',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
@@ -281,19 +272,13 @@ states can be recalled.</p>
 
   
 
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>

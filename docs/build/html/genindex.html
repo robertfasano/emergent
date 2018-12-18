@@ -2,8 +2,8 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<!--[if IE 8]><html class="no-js lt-ie9" lang="python" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="python" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
   
@@ -25,25 +25,17 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="#"/>
-        <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="EMERGENT 0.1alpha documentation" href="index.html"/> 
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="#" />
+    <link rel="search" title="Search" href="search.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
@@ -94,8 +86,7 @@
 <li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="optimization.html">Optimization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="archetypes.html">Archetypes</a></li>
-<li class="toctree-l1"><a class="reference internal" href="devices.html">Devices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">Modules</a></li>
 </ul>
 
             
@@ -107,7 +98,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">EMERGENT</a>
@@ -115,9 +106,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -163,10 +155,7 @@
 <div class="genindex-jumpbox">
  <a href="#_"><strong>_</strong></a>
  | <a href="#A"><strong>A</strong></a>
- | <a href="#B"><strong>B</strong></a>
  | <a href="#C"><strong>C</strong></a>
- | <a href="#D"><strong>D</strong></a>
- | <a href="#E"><strong>E</strong></a>
  | <a href="#F"><strong>F</strong></a>
  | <a href="#G"><strong>G</strong></a>
  | <a href="#H"><strong>H</strong></a>
@@ -176,7 +165,6 @@
  | <a href="#N"><strong>N</strong></a>
  | <a href="#O"><strong>O</strong></a>
  | <a href="#P"><strong>P</strong></a>
- | <a href="#Q"><strong>Q</strong></a>
  | <a href="#R"><strong>R</strong></a>
  | <a href="#S"><strong>S</strong></a>
  | <a href="#T"><strong>T</strong></a>
@@ -187,79 +175,51 @@
 <h2 id="_">_</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="architecture/node.html#node.Node.__getattribute__">__getattribute__() (node.Node method)</a>
+      <li><a href="architecture/hub.html#node.Hub.__getstate__">__getstate__() (node.Hub method)</a>
 </li>
-      <li><a href="devices/current_driver.html#current_driver.CurrentDriver.__init__">__init__() (current_driver.CurrentDriver method)</a>
+      <li><a href="modules/fifo.html#fifo.FIFO.__init__">__init__() (fifo.FIFO method)</a>
 
       <ul>
-        <li><a href="archetypes/fifo.html#fifo.FIFO.__init__">(fifo.FIFO method)</a>
-</li>
-        <li><a href="archetypes/fifo.html#fifo.Message.__init__">(fifo.Message method)</a>
+        <li><a href="modules/fifo.html#fifo.Message.__init__">(fifo.Message method)</a>
 </li>
         <li><a href="devices/genesys.html#genesys.Genesys.__init__">(genesys.Genesys method)</a>
 </li>
-        <li><a href="archetypes/historian.html#historian.Historian.__init__">(historian.Historian method)</a>
-</li>
-        <li><a href="devices/labjackT7.html#labjackT7.LabJack.__init__">(labjackT7.LabJack method)</a>
-</li>
-        <li><a href="architecture/control.html#node.Control.__init__">(node.Control method)</a>
-</li>
-        <li><a href="architecture/device.html#node.Device.__init__">(node.Device method)</a>
+        <li><a href="architecture/hub.html#node.Hub.__init__">(node.Hub method)</a>
 </li>
         <li><a href="architecture/input.html#node.Input.__init__">(node.Input method)</a>
 </li>
         <li><a href="architecture/node.html#node.Node.__init__">(node.Node method)</a>
 </li>
-        <li><a href="archetypes/optimizer.html#optimizer.Optimizer.__init__">(optimizer.Optimizer method)</a>
+        <li><a href="architecture/thing.html#node.Thing.__init__">(node.Thing method)</a>
 </li>
-        <li><a href="archetypes/parallel.html#parallel.Process.__init__">(parallel.Process method)</a>
+        <li><a href="modules/Parallel.html#parallel.Process.__init__">(parallel.Process method)</a>
 </li>
-        <li><a href="archetypes/parallel.html#parallel.ProcessHandler.__init__">(parallel.ProcessHandler method)</a>
+        <li><a href="modules/Parallel.html#parallel.ProcessHandler.__init__">(parallel.ProcessHandler method)</a>
 </li>
-        <li><a href="archetypes/parallel.html#parallel.Thread.__init__">(parallel.Thread method)</a>
-</li>
-        <li><a href="devices/picoAmp.html#picoAmp.PicoAmp.__init__">(picoAmp.PicoAmp method)</a>
+        <li><a href="modules/Parallel.html#parallel.Thread.__init__">(parallel.Thread method)</a>
 </li>
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="devices/current_driver.html#current_driver.CurrentDriver._actuate">_actuate() (current_driver.CurrentDriver method)</a>
+      <li><a href="devices/genesys.html#genesys.Genesys._actuate">_actuate() (genesys.Genesys method)</a>
 
       <ul>
-        <li><a href="devices/genesys.html#genesys.Genesys._actuate">(genesys.Genesys method)</a>
-</li>
-        <li><a href="devices/labjackT7.html#labjackT7.LabJack._actuate">(labjackT7.LabJack method)</a>
-</li>
-        <li><a href="architecture/device.html#node.Device._actuate">(node.Device method)</a>
-</li>
-        <li><a href="devices/picoAmp.html#picoAmp.PicoAmp._actuate">(picoAmp.PicoAmp method)</a>
+        <li><a href="architecture/thing.html#node.Thing._actuate">(node.Thing method)</a>
 </li>
       </ul></li>
-      <li><a href="devices/labjackT7.html#labjackT7.LabJack._command">_command() (labjackT7.LabJack method)</a>
-</li>
-      <li><a href="devices/current_driver.html#current_driver.CurrentDriver._connect">_connect() (current_driver.CurrentDriver method)</a>
+      <li><a href="devices/genesys.html#genesys.Genesys._connect">_connect() (genesys.Genesys method)</a>
 
       <ul>
-        <li><a href="devices/genesys.html#genesys.Genesys._connect">(genesys.Genesys method)</a>
-</li>
-        <li><a href="devices/labjackT7.html#labjackT7.LabJack._connect">(labjackT7.LabJack method)</a>
-</li>
-        <li><a href="devices/picoAmp.html#picoAmp.PicoAmp._connect">(picoAmp.PicoAmp method)</a>
+        <li><a href="architecture/thing.html#node.Thing._connect">(node.Thing method)</a>
 </li>
       </ul></li>
-      <li><a href="devices/current_driver.html#current_driver.CurrentDriver._connect_to_psu">_connect_to_psu() (current_driver.CurrentDriver method)</a>
+      <li><a href="modules/Parallel.html#parallel.ProcessHandler._quit_process">_quit_process() (parallel.ProcessHandler method)</a>
 </li>
-      <li><a href="archetypes/optimizer.html#optimizer.Optimizer._cost">_cost() (optimizer.Optimizer method)</a>
+      <li><a href="modules/Parallel.html#parallel.ProcessHandler._quit_thread">_quit_thread() (parallel.ProcessHandler method)</a>
 </li>
-      <li><a href="devices/picoAmp.html#picoAmp.PicoAmp._initialize">_initialize() (picoAmp.PicoAmp method)</a>
+      <li><a href="modules/Parallel.html#parallel.ProcessHandler._run_process">_run_process() (parallel.ProcessHandler method)</a>
 </li>
-      <li><a href="archetypes/parallel.html#parallel.ProcessHandler._quit_process">_quit_process() (parallel.ProcessHandler method)</a>
-</li>
-      <li><a href="archetypes/parallel.html#parallel.ProcessHandler._quit_thread">_quit_thread() (parallel.ProcessHandler method)</a>
-</li>
-      <li><a href="archetypes/parallel.html#parallel.ProcessHandler._run_process">_run_process() (parallel.ProcessHandler method)</a>
-</li>
-      <li><a href="archetypes/parallel.html#parallel.ProcessHandler._run_thread">_run_thread() (parallel.ProcessHandler method)</a>
+      <li><a href="modules/Parallel.html#parallel.ProcessHandler._run_thread">_run_thread() (parallel.ProcessHandler method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -267,39 +227,17 @@
 <h2 id="A">A</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="architecture/control.html#node.Control.actuate">actuate() (node.Control method)</a>
+      <li><a href="architecture/hub.html#node.Hub.actuate">actuate() (node.Hub method)</a>
 
       <ul>
-        <li><a href="architecture/device.html#node.Device.actuate">(node.Device method)</a>
+        <li><a href="architecture/thing.html#node.Thing.actuate">(node.Thing method)</a>
 </li>
       </ul></li>
-      <li><a href="archetypes/fifo.html#fifo.FIFO.add">add() (fifo.FIFO method)</a>
-</li>
-      <li><a href="architecture/device.html#node.Device.add_input">add_input() (node.Device method)</a>
-</li>
-      <li><a href="devices/labjackT7.html#labjackT7.LabJack.AIn">AIn() (labjackT7.LabJack method)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="archetypes/optimizer.html#optimizer.Optimizer.animate_sequence_history">animate_sequence_history() (optimizer.Optimizer method)</a>
+      <li><a href="modules/fifo.html#fifo.FIFO.add">add() (fifo.FIFO method)</a>
 </li>
-      <li><a href="devices/labjackT7.html#labjackT7.LabJack.AOut">AOut() (labjackT7.LabJack method)</a>
-</li>
-      <li><a href="archetypes/optimizer.html#optimizer.Optimizer.array2dict">array2dict() (optimizer.Optimizer method)</a>
-</li>
-      <li><a href="archetypes/optimizer.html#optimizer.Optimizer.array2sequence">array2sequence() (optimizer.Optimizer method)</a>
-</li>
-      <li><a href="archetypes/optimizer.html#optimizer.Optimizer.array2state">array2state() (optimizer.Optimizer method)</a>
-</li>
-      <li><a href="devices/labjackT7.html#labjackT7.LabJack.averaging_array">averaging_array (labjackT7.LabJack attribute)</a>
-</li>
-  </ul></td>
-</tr></table>
-
-<h2 id="B">B</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="devices/current_driver.html#current_driver.CurrentDriver.B">B() (current_driver.CurrentDriver method)</a>
+      <li><a href="architecture/thing.html#node.Thing.add_input">add_input() (node.Thing method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -307,57 +245,7 @@
 <h2 id="C">C</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="devices/current_driver.html#current_driver.CurrentDriver.calibrate">calibrate() (current_driver.CurrentDriver method)</a>
-</li>
-      <li><a href="archetypes/historian.html#historian.Historian.clear">clear() (historian.Historian method)</a>
-</li>
       <li><a href="devices/genesys.html#genesys.Genesys.command">command() (genesys.Genesys method)</a>
-
-      <ul>
-        <li><a href="devices/picoAmp.html#picoAmp.PicoAmp.command">(picoAmp.PicoAmp method)</a>
-</li>
-      </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="architecture/control.html#node.Control">Control (class in node)</a>
-</li>
-      <li><a href="archetypes/optimizer.html#optimizer.Optimizer.cost_from_array">cost_from_array() (optimizer.Optimizer method)</a>
-</li>
-      <li><a href="devices/current_driver.html#module-current_driver">current_driver (module)</a>
-</li>
-      <li><a href="devices/current_driver.html#current_driver.CurrentDriver">CurrentDriver (class in current_driver)</a>
-</li>
-  </ul></td>
-</tr></table>
-
-<h2 id="D">D</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="archetypes/historian.html#historian.Historian.delete_tag">delete_tag() (historian.Historian method)</a>
-</li>
-      <li><a href="architecture/device.html#node.Device">Device (class in node)</a>
-</li>
-      <li><a href="archetypes/optimizer.html#optimizer.Optimizer.dict2array">dict2array() (optimizer.Optimizer method)</a>
-</li>
-      <li><a href="archetypes/optimizer.html#optimizer.Optimizer.differential_evolution">differential_evolution() (optimizer.Optimizer method)</a>
-</li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="devices/picoAmp.html#picoAmp.PicoAmp.digital">digital() (picoAmp.PicoAmp method)</a>
-</li>
-      <li><a href="archetypes/optimizer.html#optimizer.Optimizer.dijkstra_sampling">dijkstra_sampling() (optimizer.Optimizer method)</a>
-</li>
-      <li><a href="devices/current_driver.html#current_driver.CurrentDriver.disable_setpoint">disable_setpoint() (current_driver.CurrentDriver method)</a>
-</li>
-      <li><a href="devices/labjackT7.html#labjackT7.LabJack.DOut">DOut() (labjackT7.LabJack method)</a>
-</li>
-  </ul></td>
-</tr></table>
-
-<h2 id="E">E</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="devices/current_driver.html#current_driver.CurrentDriver.enable_setpoint">enable_setpoint() (current_driver.CurrentDriver method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -365,11 +253,11 @@
 <h2 id="F">F</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="archetypes/fifo.html#fifo.FIFO">FIFO (class in fifo)</a>
+      <li><a href="modules/fifo.html#fifo.FIFO">FIFO (class in fifo)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="archetypes/fifo.html#module-fifo">fifo (module)</a>
+      <li><a href="modules/fifo.html#module-fifo">fifo (module)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -377,33 +265,13 @@
 <h2 id="G">G</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="archetypes/optimizer.html#optimizer.Optimizer.gaussian_process">gaussian_process() (optimizer.Optimizer method)</a>
-</li>
       <li><a href="devices/genesys.html#genesys.Genesys">Genesys (class in genesys)</a>
-</li>
-      <li><a href="devices/genesys.html#module-genesys">genesys (module)</a>
-</li>
-      <li><a href="architecture/device.html#node.Device.get_missing_keys">get_missing_keys() (node.Device method)</a>
-</li>
-      <li><a href="architecture/node.html#node.Node.get_root">get_root() (node.Node method)</a>
-</li>
-      <li><a href="architecture/control.html#node.Control.get_sequence">get_sequence() (node.Control method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="architecture/control.html#node.Control.get_subsequence">get_subsequence() (node.Control method)</a>
+      <li><a href="devices/genesys.html#module-genesys">genesys (module)</a>
 </li>
-      <li><a href="architecture/control.html#node.Control.get_substate">get_substate() (node.Control method)</a>
-</li>
-      <li><a href="architecture/device.html#node.Device.get_type">get_type() (node.Device method)</a>
-</li>
-      <li><a href="archetypes/optimizer.html#optimizer.Optimizer.gp_effective_cost">gp_effective_cost() (optimizer.Optimizer method)</a>
-</li>
-      <li><a href="archetypes/optimizer.html#optimizer.Optimizer.gp_next_sample">gp_next_sample() (optimizer.Optimizer method)</a>
-</li>
-      <li><a href="archetypes/optimizer.html#optimizer.Optimizer.grid_sampling">grid_sampling() (optimizer.Optimizer method)</a>
-</li>
-      <li><a href="archetypes/optimizer.html#optimizer.Optimizer.grid_search">grid_search() (optimizer.Optimizer method)</a>
+      <li><a href="architecture/node.html#node.Node.get_root">get_root() (node.Node method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -411,11 +279,7 @@
 <h2 id="H">H</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="archetypes/historian.html#historian.Historian">Historian (class in historian)</a>
-</li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="archetypes/historian.html#module-historian">historian (module)</a>
+      <li><a href="architecture/hub.html#node.Hub">Hub (class in node)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -423,57 +287,33 @@
 <h2 id="I">I</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="archetypes/optimizer.html#optimizer.Optimizer.initialize_optimizer">initialize_optimizer() (optimizer.Optimizer method)</a>
-</li>
       <li><a href="architecture/input.html#node.Input">Input (class in node)</a>
 </li>
-      <li><a href="architecture/control.html#node.Control.instances">instances (node.Control attribute)</a>
+      <li><a href="architecture/hub.html#node.Hub.instances">instances (node.Hub attribute)</a>
 
       <ul>
-        <li><a href="architecture/device.html#node.Device.instances">(node.Device attribute)</a>
-</li>
         <li><a href="architecture/input.html#node.Input.instances">(node.Input attribute)</a>
 </li>
         <li><a href="architecture/node.html#node.Node.instances">(node.Node attribute)</a>
 </li>
-      </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="architecture/device.html#node.Device.is_type">is_type() (node.Device method)</a>
+        <li><a href="architecture/thing.html#node.Thing.instances">(node.Thing attribute)</a>
 </li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
 <h2 id="L">L</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="devices/labjackT7.html#labjackT7.LabJack">LabJack (class in labjackT7)</a>
+      <li><a href="architecture/hub.html#node.Hub.load">load() (node.Hub method)</a>
 </li>
-      <li><a href="devices/labjackT7.html#module-labjackT7">labjackT7 (module)</a>
-</li>
-      <li><a href="archetypes/optimizer.html#optimizer.Optimizer.list_algorithms">list_algorithms() (optimizer.Optimizer method)</a>
-</li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="architecture/control.html#node.Control.list_costs">list_costs() (node.Control method)</a>
-</li>
-      <li><a href="archetypes/historian.html#historian.Historian.load">load() (historian.Historian method)</a>
-
-      <ul>
-        <li><a href="architecture/control.html#node.Control.load">(node.Control method)</a>
-</li>
-      </ul></li>
   </ul></td>
 </tr></table>
 
 <h2 id="M">M</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="devices/current_driver.html#current_driver.CurrentDriver.measure_current">measure_current() (current_driver.CurrentDriver method)</a>
-</li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="archetypes/fifo.html#fifo.Message">Message (class in fifo)</a>
+      <li><a href="modules/fifo.html#fifo.Message">Message (class in fifo)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -481,15 +321,15 @@
 <h2 id="N">N</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="archetypes/fifo.html#fifo.FIFO.next">next() (fifo.FIFO method)</a>
+      <li><a href="modules/fifo.html#fifo.FIFO.next">next() (fifo.FIFO method)</a>
 </li>
       <li><a href="architecture/node.html#node.Node">Node (class in node)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="architecture/control.html#module-node">node (module)</a>, <a href="architecture/device.html#module-node">[1]</a>, <a href="architecture/input.html#module-node">[2]</a>, <a href="architecture/node.html#module-node">[3]</a>
+      <li><a href="architecture/hub.html#module-node">node (module)</a>, <a href="architecture/input.html#module-node">[1]</a>, <a href="architecture/node.html#module-node">[2]</a>, <a href="architecture/thing.html#module-node">[3]</a>
 </li>
-      <li><a href="archetypes/optimizer.html#optimizer.Optimizer.normalize">normalize() (optimizer.Optimizer method)</a>
+      <li><a href="architecture/thing.html#node.Thing.node_type">node_type (node.Thing attribute)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -497,13 +337,7 @@
 <h2 id="O">O</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="architecture/control.html#node.Control.onLoad">onLoad() (node.Control method)</a>
-</li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="archetypes/optimizer.html#optimizer.Optimizer">Optimizer (class in optimizer)</a>
-</li>
-      <li><a href="archetypes/optimizer.html#module-optimizer">optimizer (module)</a>
+      <li><a href="architecture/hub.html#node.Hub.onLoad">onLoad() (node.Hub method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -511,41 +345,13 @@
 <h2 id="P">P</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="archetypes/parallel.html#module-parallel">parallel (module)</a>
-</li>
-      <li><a href="devices/picoAmp.html#picoAmp.PicoAmp">PicoAmp (class in picoAmp)</a>
-</li>
-      <li><a href="devices/picoAmp.html#module-picoAmp">picoAmp (module)</a>
-</li>
-      <li><a href="archetypes/optimizer.html#optimizer.Optimizer.plot_2D">plot_2D() (optimizer.Optimizer method)</a>
-</li>
-      <li><a href="archetypes/optimizer.html#optimizer.Optimizer.plot_history_slice">plot_history_slice() (optimizer.Optimizer method)</a>
-</li>
-      <li><a href="archetypes/optimizer.html#optimizer.Optimizer.plot_optimization">plot_optimization() (optimizer.Optimizer method)</a>
+      <li><a href="modules/Parallel.html#module-parallel">parallel (module)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="devices/labjackT7.html#labjackT7.LabJack.prepare_streamburst">prepare_streamburst() (labjackT7.LabJack method)</a>
+      <li><a href="modules/Parallel.html#parallel.Process">Process (class in parallel)</a>
 </li>
-      <li><a href="devices/current_driver.html#current_driver.CurrentDriver.primary_to_secondary">primary_to_secondary() (current_driver.CurrentDriver method)</a>
-</li>
-      <li><a href="archetypes/parallel.html#parallel.Process">Process (class in parallel)</a>
-</li>
-      <li><a href="archetypes/parallel.html#parallel.ProcessHandler">ProcessHandler (class in parallel)</a>
-</li>
-      <li><a href="devices/current_driver.html#current_driver.CurrentDriver.pulse">pulse() (current_driver.CurrentDriver method)</a>
-</li>
-      <li><a href="devices/labjackT7.html#labjackT7.LabJack.PWM">PWM() (labjackT7.LabJack method)</a>
-</li>
-      <li><a href="devices/labjackT7.html#labjackT7.LabJack.PWM_stop">PWM_stop() (labjackT7.LabJack method)</a>
-</li>
-  </ul></td>
-</tr></table>
-
-<h2 id="Q">Q</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="devices/labjackT7.html#labjackT7.queue">queue() (in module labjackT7)</a>
+      <li><a href="modules/Parallel.html#parallel.ProcessHandler">ProcessHandler (class in parallel)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -553,15 +359,13 @@
 <h2 id="R">R</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="archetypes/optimizer.html#optimizer.Optimizer.random_sampling">random_sampling() (optimizer.Optimizer method)</a>
-</li>
       <li><a href="architecture/node.html#node.Node.register">register() (node.Node method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="devices/labjackT7.html#labjackT7.LabJack.resample">resample() (labjackT7.LabJack method)</a>
+      <li><a href="architecture/thing.html#node.Thing.remove_input">remove_input() (node.Thing method)</a>
 </li>
-      <li><a href="archetypes/fifo.html#fifo.FIFO.run">run() (fifo.FIFO method)</a>
+      <li><a href="modules/fifo.html#fifo.FIFO.run">run() (fifo.FIFO method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -569,61 +373,21 @@
 <h2 id="S">S</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="archetypes/optimizer.html#optimizer.Optimizer.sample">sample() (optimizer.Optimizer method)</a>
+      <li><a href="architecture/hub.html#node.Hub.save">save() (node.Hub method)</a>
 </li>
-      <li><a href="architecture/control.html#node.Control.save">save() (node.Control method)</a>
-</li>
-      <li><a href="architecture/control.html#node.Control.save_dataframe">save_dataframe() (node.Control method)</a>
-</li>
-      <li><a href="archetypes/optimizer.html#optimizer.Optimizer.scipy_minimize">scipy_minimize() (optimizer.Optimizer method)</a>
-</li>
-      <li><a href="devices/current_driver.html#current_driver.CurrentDriver.secondary_to_primary">secondary_to_primary() (current_driver.CurrentDriver method)</a>
-</li>
-      <li><a href="archetypes/optimizer.html#optimizer.Optimizer.sequence2array">sequence2array() (optimizer.Optimizer method)</a>
-</li>
-      <li><a href="devices/labjackT7.html#labjackT7.LabJack.sequence2stream">sequence2stream() (labjackT7.LabJack method)</a>
-</li>
-      <li><a href="archetypes/optimizer.html#optimizer.Optimizer.sequence_or_state">sequence_or_state() (optimizer.Optimizer method)</a>
-</li>
-      <li><a href="devices/current_driver.html#current_driver.CurrentDriver.set_current">set_current() (current_driver.CurrentDriver method)</a>
-
-      <ul>
-        <li><a href="devices/genesys.html#genesys.Genesys.set_current">(genesys.Genesys method)</a>
-</li>
-      </ul></li>
-      <li><a href="devices/current_driver.html#current_driver.CurrentDriver.set_field">set_field() (current_driver.CurrentDriver method)</a>
-</li>
-      <li><a href="architecture/input.html#node.Input.set_sequence">set_sequence() (node.Input method)</a>
-</li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="architecture/input.html#node.Input.set_settings">set_settings() (node.Input method)</a>
+      <li><a href="devices/genesys.html#genesys.Genesys.set_current">set_current() (genesys.Genesys method)</a>
 </li>
       <li><a href="devices/genesys.html#genesys.Genesys.set_voltage">set_voltage() (genesys.Genesys method)</a>
 </li>
-      <li><a href="devices/picoAmp.html#picoAmp.PicoAmp.setDifferential">setDifferential() (picoAmp.PicoAmp method)</a>
-</li>
-      <li><a href="archetypes/optimizer.html#optimizer.Optimizer.simplex">simplex() (optimizer.Optimizer method)</a>
-</li>
-      <li><a href="devices/labjackT7.html#labjackT7.LabJack.spi_initialize">spi_initialize() (labjackT7.LabJack method)</a>
-</li>
-      <li><a href="devices/labjackT7.html#labjackT7.LabJack.spi_write">spi_write() (labjackT7.LabJack method)</a>
-</li>
-      <li><a href="archetypes/optimizer.html#optimizer.Optimizer.state2array">state2array() (optimizer.Optimizer method)</a>
-</li>
-      <li><a href="archetypes/parallel.html#parallel.Process.stop">stop() (parallel.Process method)</a>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="modules/Parallel.html#parallel.Process.stop">stop() (parallel.Process method)</a>
 
       <ul>
-        <li><a href="archetypes/parallel.html#parallel.Thread.stop">(parallel.Thread method)</a>
+        <li><a href="modules/Parallel.html#parallel.Thread.stop">(parallel.Thread method)</a>
 </li>
       </ul></li>
-      <li><a href="archetypes/parallel.html#parallel.Thread.stopped">stopped() (parallel.Thread method)</a>
-</li>
-      <li><a href="devices/labjackT7.html#labjackT7.LabJack.stream_out">stream_out() (labjackT7.LabJack method)</a>
-</li>
-      <li><a href="devices/labjackT7.html#labjackT7.LabJack.stream_stop">stream_stop() (labjackT7.LabJack method)</a>
-</li>
-      <li><a href="devices/labjackT7.html#labjackT7.LabJack.streamburst">streamburst() (labjackT7.LabJack method)</a>
+      <li><a href="modules/Parallel.html#parallel.Thread.stopped">stopped() (parallel.Thread method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -631,7 +395,11 @@
 <h2 id="T">T</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="archetypes/parallel.html#parallel.Thread">Thread (class in parallel)</a>
+      <li><a href="architecture/thing.html#node.Thing">Thing (class in node)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="modules/Parallel.html#parallel.Thread">Thread (class in parallel)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -639,17 +407,7 @@
 <h2 id="U">U</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="archetypes/optimizer.html#optimizer.Optimizer.unnormalize">unnormalize() (optimizer.Optimizer method)</a>
-</li>
-      <li><a href="architecture/device.html#node.Device.update">update() (node.Device method)</a>
-</li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="architecture/control.html#node.Control.update_cost">update_cost() (node.Control method)</a>
-</li>
-      <li><a href="architecture/control.html#node.Control.update_dataframe">update_dataframe() (node.Control method)</a>
-</li>
-      <li><a href="architecture/device.html#node.Device.use_inputs">use_inputs() (node.Device method)</a>
+      <li><a href="architecture/thing.html#node.Thing.update">update() (node.Thing method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -657,17 +415,7 @@
 <h2 id="W">W</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="archetypes/optimizer.html#optimizer.warn">warn() (in module optimizer)</a>
-</li>
-      <li><a href="devices/current_driver.html#current_driver.CurrentDriver.wave">wave() (current_driver.CurrentDriver method)</a>
-
-      <ul>
-        <li><a href="devices/genesys.html#genesys.Genesys.wave">(genesys.Genesys method)</a>
-</li>
-      </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="devices/current_driver.html#current_driver.CurrentDriver.wave_ttl">wave_ttl() (current_driver.CurrentDriver method)</a>
+      <li><a href="devices/genesys.html#genesys.Genesys.wave">wave() (genesys.Genesys method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -675,9 +423,7 @@
 
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -708,6 +454,7 @@
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
             VERSION:'0.1alpha',
+            LANGUAGE:'python',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
@@ -720,19 +467,13 @@
 
   
 
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>

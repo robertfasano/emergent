@@ -22,7 +22,9 @@ control of your experiment, it is not too difficult to hook up the knobs to the
 algorithm to optimize your experiment. However, although it is simple to algorithmically
 optimize a simple problem like pointing a laser beam into a waveguide, it is not
 so simple to control a large experiment for a host of reasons:
+
 * As the number of input variables increases, more and more sophisticated algorithms are needed to explore the parameter space.
+* Controlling many devices from a centralized program quickly leads to tangled, unsalvageable code if scalability is not considered.
 * Many experiments have coupled inputs, where the optimum position of one knob depends on another.
 
 We wrote EMERGENT to attempt to solve these problems.

@@ -1,8 +1,8 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<!--[if IE 8]><html class="no-js lt-ie9" lang="python" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="python" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
   
@@ -24,27 +24,19 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="genindex.html"/>
-        <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="EMERGENT 0.1alpha documentation" href="index.html"/>
-        <link rel="next" title="Archetypes" href="archetypes.html"/>
-        <link rel="prev" title="Network flow" href="networkflow.html"/> 
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Modules" href="modules.html" />
+    <link rel="prev" title="Optimization" href="optimization.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
@@ -94,7 +86,6 @@
 <li class="toctree-l1"><a class="reference internal" href="index.html">EMERGENT</a></li>
 <li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="optimization.html">Optimization</a></li>
-<li class="toctree-l1"><a class="reference internal" href="networkflow.html">Network flow</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Examples</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#simple-network">Simple network</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#state-access-and-actuation">State access and actuation</a></li>
@@ -102,8 +93,7 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="archetypes.html">Archetypes</a></li>
-<li class="toctree-l1"><a class="reference internal" href="devices.html">Devices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">Modules</a></li>
 </ul>
 
             
@@ -115,7 +105,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">EMERGENT</a>
@@ -123,9 +113,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -172,27 +163,27 @@
 <div class="section" id="simple-network">
 <h2>Simple network<a class="headerlink" href="#simple-network" title="Permalink to this headline">¶</a></h2>
 <p>A full example for a simple network can be found in emergent/networks/example.py.
-In this example, a single Control node oversees two Device nodes, one with inputs
+In this example, a single Hub oversees two Things, one with inputs
 'X' and 'Y' and another with inputs 'X' and 'Y'. Take a moment to look through the code
-required to initialize the network: in <code class="docutils literal notranslate"><span class="pre">network.py</span></code>, we have simply imported
-and instantiated the objects defined in the <code class="docutils literal notranslate"><span class="pre">devices</span></code> and <code class="docutils literal notranslate"><span class="pre">controls</span></code> folder.
+required to initialize the network: in <code class="docutils literal"><span class="pre">network.py</span></code>, we have simply imported
+and instantiated the objects defined in the <code class="docutils literal"><span class="pre">things</span></code> and <code class="docutils literal"><span class="pre">hubs</span></code> folder.
 EMERGENT hooks up the network under the hood - all you have to do is define the
 node parent/child relationships.</p>
-<p>EMERGENT uses a single script, <code class="docutils literal notranslate"><span class="pre">main.py</span></code>, to launch any connected network, which
-is defined through its <code class="docutils literal notranslate"><span class="pre">network.py</span></code> file which is here in the <code class="docutils literal notranslate"><span class="pre">basic</span></code> folder.
-You can start EMERGENT with this network from the root directory (<code class="docutils literal notranslate"><span class="pre">emergent</span></code>)
+<p>EMERGENT uses a single script, <code class="docutils literal"><span class="pre">main.py</span></code>, to launch any connected network, which
+is defined through its <code class="docutils literal"><span class="pre">network.py</span></code> file which is here in the <code class="docutils literal"><span class="pre">basic</span></code> folder.
+You can start EMERGENT with this network from the root directory (<code class="docutils literal"><span class="pre">emergent</span></code>)
 by running</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">ipython</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">ipython</span>
 <span class="o">%</span><span class="n">run</span> <span class="n">main</span> <span class="n">example</span>
 </pre></div>
 </div>
 <p>Once EMERGENT launches, a GUI will open. The left pane displays the network tree,
-with top-level Control nodes overseeing one or more Device nodes, each of which
-having one or more Input node. The state of a Device can be changed by double-clicking
+with top-level Hubs overseeing one or more Things, each of which
+having one or more Input node. The state of a Thing can be changed by double-clicking
 on one of its Input nodes, entering a new value, and pressing the Enter key.</p>
 <p>The right pane lets you run and/or optimize experiments. The drop-down menu at
 the top is automatically populated with all functions tagged with the &#64;experiment
-decorator within the currently selected Control node. You can run an experiment
+decorator within the currently selected Hub. You can run an experiment
 from the Run tab with a chosen number of iterations and delay between each loop.
 Experiments return data in an array, and the post-processing menu allows different
 quantities to be output; for example, with the same experiment you may wish to view
@@ -201,15 +192,15 @@ the mean, standard deviation, or slope of all of the data gathered.</p>
 the result of the given experiment. With one or more inputs selected in the network
 tree and a target experiment, you can choose an optimization algorithm from the
 lower drop-down menu.</p>
-<p>Let's try tuning the <code class="docutils literal notranslate"><span class="pre">deviceA</span></code> inputs to optimize the <code class="docutils literal notranslate"><span class="pre">cost_coupled</span></code> function
-using the <code class="docutils literal notranslate"><span class="pre">grid_search</span></code> algorithm and 30 steps per axis. Make sure to click the
+<p>Let's try tuning the <code class="docutils literal"><span class="pre">thingA</span></code> inputs to optimize the <code class="docutils literal"><span class="pre">cost_coupled</span></code> function
+using the <code class="docutils literal"><span class="pre">grid_search</span></code> algorithm and 30 steps per axis. Make sure to click the
 plot checkbox to display the output.</p>
 <img alt="_images/examples_grid_search.png" src="_images/examples_grid_search.png" />
 <p>When you click the Go! button, the parameter space will be sampled uniformly and
 the inputs will be set to the best discovered point:</p>
 <img alt="_images/examples_grid_search_result.png" src="_images/examples_grid_search_result.png" />
 <p>The grid search scales poorly with number of inputs, so often we will want to use
-a cleverer algorithm. The <code class="docutils literal notranslate"><span class="pre">differential_evolution</span></code> algorithm is one example that
+a cleverer algorithm. The <code class="docutils literal"><span class="pre">differential_evolution</span></code> algorithm is one example that
 we can try:</p>
 <img alt="_images/examples_differential_evolution_result.png" src="_images/examples_differential_evolution_result.png" />
 <p>In the following examples, we'll go beyond the GUI and get a feel for EMERGENT
@@ -218,48 +209,46 @@ from the command line.</p>
 <h3>State access and actuation<a class="headerlink" href="#state-access-and-actuation" title="Permalink to this headline">¶</a></h3>
 <p>In this example, we will assume that the inputs are initialized to 0.
 There are two ways that the state of one or more inputs can be changed.
-First, we could act on a Device node with the <code class="docutils literal notranslate"><span class="pre">Device.actuate()</span></code> method:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">deviceA</span><span class="o">.</span><span class="n">actuate</span><span class="p">({</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">:</span><span class="mi">1</span><span class="p">})</span>
-<span class="k">print</span><span class="p">(</span><span class="n">deviceA</span><span class="o">.</span><span class="n">state</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="n">control</span><span class="o">.</span><span class="n">state</span><span class="p">)</span>
+First, we could act on a Thing with the <code class="docutils literal"><span class="pre">Thing.actuate()</span></code> method:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">thingA</span><span class="o">.</span><span class="n">actuate</span><span class="p">({</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">:</span><span class="mi">1</span><span class="p">})</span>
+<span class="k">print</span><span class="p">(</span><span class="n">thingA</span><span class="o">.</span><span class="n">state</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">hub</span><span class="o">.</span><span class="n">state</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">:</span><span class="mi">1</span><span class="p">}</span>
-<span class="p">{</span><span class="s1">&#39;deviceA&#39;</span><span class="p">:{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span><span class="s1">&#39;.Y&#39;</span><span class="p">:</span><span class="mi">1</span><span class="p">},</span> <span class="s1">&#39;deviceB&#39;</span><span class="p">:{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">}}</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">:</span><span class="mi">1</span><span class="p">}</span>
+<span class="p">{</span><span class="s1">&#39;thingA&#39;</span><span class="p">:{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span><span class="s1">&#39;.Y&#39;</span><span class="p">:</span><span class="mi">1</span><span class="p">},</span> <span class="s1">&#39;thingB&#39;</span><span class="p">:{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">}}</span>
 </pre></div>
 </div>
-<p>We can also act on any number of inputs across any number of devices through the <code class="docutils literal notranslate"><span class="pre">Control.actuate()</span></code> method:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">control</span><span class="o">.</span><span class="n">actuate</span><span class="p">({</span><span class="s1">&#39;deviceA&#39;</span><span class="p">:{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="mi">7</span><span class="p">,</span><span class="s1">&#39;.Y&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">},</span> <span class="s1">&#39;deviceB&#39;</span><span class="p">:{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="mi">13</span><span class="p">}})</span>
-<span class="k">print</span><span class="p">(</span><span class="n">deviceA</span><span class="o">.</span><span class="n">state</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="n">deviceB</span><span class="o">.</span><span class="n">state</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="n">control</span><span class="o">.</span><span class="n">state</span><span class="p">)</span>
+<p>We can also act on any number of inputs across any number of things through the <code class="docutils literal"><span class="pre">Hub.actuate()</span></code> method:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">hub</span><span class="o">.</span><span class="n">actuate</span><span class="p">({</span><span class="s1">&#39;thingA&#39;</span><span class="p">:{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="mi">7</span><span class="p">,</span><span class="s1">&#39;.Y&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">},</span> <span class="s1">&#39;thingB&#39;</span><span class="p">:{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="mi">13</span><span class="p">}})</span>
+<span class="k">print</span><span class="p">(</span><span class="n">thingA</span><span class="o">.</span><span class="n">state</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">thingB</span><span class="o">.</span><span class="n">state</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">hub</span><span class="o">.</span><span class="n">state</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="mi">7</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">}</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="mi">7</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">}</span>
 <span class="p">{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="mi">13</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">}</span>
-<span class="p">{</span><span class="s1">&#39;deviceA&#39;</span><span class="p">:{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="mi">7</span><span class="p">,</span><span class="s1">&#39;.Y&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">},</span> <span class="s1">&#39;deviceB&#39;</span><span class="p">:{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="mi">13</span><span class="p">}}</span>
+<span class="p">{</span><span class="s1">&#39;thingA&#39;</span><span class="p">:{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="mi">7</span><span class="p">,</span><span class="s1">&#39;.Y&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">},</span> <span class="s1">&#39;thingB&#39;</span><span class="p">:{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="mi">13</span><span class="p">}}</span>
 </pre></div>
 </div>
 <p>No matter which method we use, the result is the same: the value of each targeted
-Input node is changed, and both <code class="docutils literal notranslate"><span class="pre">device.state</span></code> and <code class="docutils literal notranslate"><span class="pre">control.state</span></code> are updated.</p>
+Input node is changed, and both <code class="docutils literal"><span class="pre">thing.state</span></code> and <code class="docutils literal"><span class="pre">hub.state</span></code> are updated.</p>
 </div>
 </div>
 </div>
 
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="archetypes.html" class="btn btn-neutral float-right" title="Archetypes" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="modules.html" class="btn btn-neutral float-right" title="Modules" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="networkflow.html" class="btn btn-neutral" title="Network flow" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="optimization.html" class="btn btn-neutral" title="Optimization" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -290,6 +279,7 @@ Input node is changed, and both <code class="docutils literal notranslate"><span
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
             VERSION:'0.1alpha',
+            LANGUAGE:'python',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
@@ -302,19 +292,13 @@ Input node is changed, and both <code class="docutils literal notranslate"><span
 
   
 
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>

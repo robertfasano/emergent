@@ -1,8 +1,8 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<!--[if IE 8]><html class="no-js lt-ie9" lang="python" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="python" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
   
@@ -24,27 +24,19 @@
 
   
 
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="genindex.html"/>
-        <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="EMERGENT 0.1alpha documentation" href="index.html"/>
-        <link rel="next" title="Network flow" href="networkflow.html"/>
-        <link rel="prev" title="Control" href="architecture/control.html"/> 
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Examples" href="examples.html" />
+    <link rel="prev" title="Architecture" href="architecture.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
@@ -100,13 +92,11 @@
 <li class="toctree-l3"><a class="reference internal" href="#example-fiber-alignment">Example: fiber alignment</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#subspace-decoupling">Subspace decoupling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#time-dependent-optimization">Time-dependent optimization</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="networkflow.html">Network flow</a></li>
 <li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="archetypes.html">Archetypes</a></li>
-<li class="toctree-l1"><a class="reference internal" href="devices.html">Devices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">Modules</a></li>
 </ul>
 
             
@@ -118,7 +108,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">EMERGENT</a>
@@ -126,9 +116,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -181,48 +172,48 @@ an experiment can be described as:</p>
 </ol>
 <p>In atomic physics, theorists love to track the state of an atomic system while
 applying a series of unitaries; on the experimental side, it is useful instead
-to track the state of the devices performing these actions. We suggest that any
+to track the state of the things performing these actions. We suggest that any
 experiment can be formally modeled through a functional</p>
 <div class="math">
-<p><img src="_images/math/65bdba47a29c61f04ffcccea9e632f1d717f733d.png" alt="\mathcal M(T) = \mathcal F[X(t&lt;T)]"/></p>
-</div><p>In words: the measurement result at time <img class="math" src="_images/math/f2d283a2071f9d043c9e0b0f794a8880fa0d3ce9.png" alt="T"/> is a function of the state vector <img class="math" src="_images/math/7a7bb470119808e2db2879fc2b2526f467b7a40b.png" alt="X"/> at
+<p><span class="math">\mathcal M(T) = \mathcal F[X(t&lt;T)]</span></p>
+</div><p>In words: the measurement result at time <span class="math">T</span> is a function of the state vector <span class="math">X</span> at
 all times leading up to the measurement. The state vector is a representation
-of the individual states of all devices involved in the experiment. We are often
-concerned with determining the state vector <img class="math" src="_images/math/57aa9e92b258f913c7bf39562ad555d3b3bd3d8b.png" alt="X(t)"/> which minimizes or maximizes
-<img class="math" src="_images/math/c4cda3cad25d322644f7e600ee34dcb3488078b0.png" alt="\mathcal M(T)"/>.</p>
+of the individual states of all things involved in the experiment. We are often
+concerned with determining the state vector <span class="math">X(t)</span> which minimizes or maximizes
+<span class="math">\mathcal M(T)</span>.</p>
 <div class="section" id="steady-state-optimization">
 <h2>Steady-state optimization<a class="headerlink" href="#steady-state-optimization" title="Permalink to this headline">¶</a></h2>
 <p>To make this formalism more intuitive, let's first study an experiment with a
-memoryless functional <img class="math" src="_images/math/e603aea869366087b105593c483b7adbbe738133.png" alt="\mathcal F[X(T)]]`"/>, where the measurement depends on the input
-state at time <img class="math" src="_images/math/f2d283a2071f9d043c9e0b0f794a8880fa0d3ce9.png" alt="T"/> but not the history. Let's see how EMERGENT describes this process.</p>
+memoryless functional <span class="math">\mathcal F[X(T)]</span>, where the measurement depends on the input
+state at time <span class="math">T</span> but not the history. Let's see how EMERGENT describes this process.</p>
 <div class="section" id="state-representation">
 <h3>State representation<a class="headerlink" href="#state-representation" title="Permalink to this headline">¶</a></h3>
-<p>Each physical degree of freedom is represented by an <a class="reference internal" href="architecture/input.html"><span class="doc">Input</span></a> node; in this case, there are two nodes labeled <code class="docutils literal notranslate"><span class="pre">X</span></code> and <code class="docutils literal notranslate"><span class="pre">Y</span></code> which
-represent the tip and tilt of the mirror. The <code class="docutils literal notranslate"><span class="pre">Input.state</span></code> attribute stores a
+<p>Each physical degree of freedom is represented by an <a class="reference internal" href="architecture/input.html"><span class="doc">Input</span></a> node; in this case, there are two nodes labeled <code class="docutils literal"><span class="pre">X</span></code> and <code class="docutils literal"><span class="pre">Y</span></code> which
+represent the tip and tilt of the mirror. The <code class="docutils literal"><span class="pre">Input.state</span></code> attribute stores a
 float representing the instantaneous state of the input. Input nodes are attached
-to <a class="reference internal" href="architecture/device.html"><span class="doc">Device</span></a> nodes which represent the physical actuator, such as the voltage control
-board for the MEMS. The Device node stores the state of all of its attached inputs
-in a dict of the form <code class="docutils literal notranslate"><span class="pre">Device.state</span> <span class="pre">=</span> <span class="pre">{'X'-60,</span> <span class="pre">'Y':1}</span></code>. Note that the keys of
-the dict correspond to whatever the <code class="docutils literal notranslate"><span class="pre">Input.name</span></code> variable is. State changes
-are initiated by <a class="reference internal" href="architecture/control.html"><span class="doc">Control</span></a> nodes, which interface with one or many devices to
-control the macroscopic state of the experiment. The Control node stores the
-state similarly to the Device node, but with an additional tag in each dict key
-corresponding to each device's <code class="docutils literal notranslate"><span class="pre">name</span></code> parameter; for example, <code class="docutils literal notranslate"><span class="pre">Control.state</span> <span class="pre">=</span>&#160; <span class="pre">{'MEMS.X'-60,</span> <span class="pre">'MEMS.Y':1}</span></code>.
-To change the state, call <code class="docutils literal notranslate"><span class="pre">Control.actuate(state)</span></code>, where the argument is a
-dictionary containing one or more inputs to update. The <code class="docutils literal notranslate"><span class="pre">actuate</span></code> method will
-separate the state of the Control node into separate substates for each linked
-Device node, then call each <code class="docutils literal notranslate"><span class="pre">Device.actuate(substate)</span></code> method to produce the
+to <a class="reference internal" href="architecture/thing.html"><span class="doc">Thing</span></a> nodes which represent the physical actuator, such as the voltage control
+board for the MEMS. The Thing stores the state of all of its attached inputs
+in a dict of the form <code class="docutils literal"><span class="pre">Thing.state</span> <span class="pre">=</span> <span class="pre">{'X'-60,</span> <span class="pre">'Y':1}</span></code>. Note that the keys of
+the dict correspond to whatever the <code class="docutils literal"><span class="pre">Input.name</span></code> variable is. State changes
+are initiated by <a class="reference internal" href="architecture/hub.html"><span class="doc">Hub</span></a> nodes, which interface with one or many things to
+control the macroscopic state of the experiment. The Hub stores the
+state similarly to the Thing, but with an additional tag in each dict key
+corresponding to each thing's <code class="docutils literal"><span class="pre">name</span></code> parameter; for example, <code class="docutils literal"><span class="pre">Hub.state</span> <span class="pre">=</span>&#160; <span class="pre">{'MEMS.X'-60,</span> <span class="pre">'MEMS.Y':1}</span></code>.
+To change the state, call <code class="docutils literal"><span class="pre">Hub.actuate(state)</span></code>, where the argument is a
+dictionary containing one or more inputs to update. The <code class="docutils literal"><span class="pre">actuate</span></code> method will
+separate the state of the Hub into separate substates for each linked
+Thing, then call each <code class="docutils literal"><span class="pre">Thing.actuate(substate)</span></code> method to produce the
 physical change. More explicitly, the physical change is carried out by
-<code class="docutils literal notranslate"><span class="pre">Device._actuate(substate)</span></code>, which is a special method called by <code class="docutils literal notranslate"><span class="pre">Device.actuate(substate)</span></code>
-which should be separately implemented for each device driver according to the
-manufacturer's control scheme. Afterwards, the <code class="docutils literal notranslate"><span class="pre">Device.update(state)</span></code> simultaneously updates
-the internal state representations of the Input, Device, and Control nodes to
+<code class="docutils literal"><span class="pre">Thing._actuate(substate)</span></code>, which is a special method called by <code class="docutils literal"><span class="pre">Thing.actuate(substate)</span></code>
+which should be separately implemented for each thing driver according to the
+manufacturer's control scheme. Afterwards, the <code class="docutils literal"><span class="pre">Thing.update(state)</span></code> simultaneously updates
+the internal state representations of the Input, Thing, and Hubs to
 keep the network synchronized.</p>
-<p>As well as distributing user-initiated commands, the <a class="reference internal" href="architecture/control.html"><span class="doc">Control</span></a>
+<p>As well as distributing user-initiated commands, the <a class="reference internal" href="architecture/hub.html"><span class="doc">Hub</span></a>
 node oversees the entire experiment by issuing commands to the inputs
 during optimization algorithms. It contains methods, tagged with the &#64;experiment decorator,
 which prepare and evaluate a target state, and closed-loop operation between the
-Control node and an attached Optimizer module can quickly determine the correct
+Hub and an attached Optimizer module can quickly determine the correct
 input states to minimize a given experimental result.</p>
 </div>
 <div class="section" id="id1">
@@ -230,23 +221,23 @@ input states to minimize a given experimental result.</p>
 <p>To make the connection clear between the code and the formalism, here is the
 typical optimization sequence:</p>
 <ol class="arabic">
-<li><p class="first">The initial state <img class="math" src="_images/math/7a7bb470119808e2db2879fc2b2526f467b7a40b.png" alt="X"/> is represented through a dict <code class="docutils literal notranslate"><span class="pre">state</span></code>, and is passed into the <a class="reference internal" href="archetypes/optimizer.html"><span class="doc">Optimizer</span></a> module along with a function <code class="docutils literal notranslate"><span class="pre">experiment</span></code>.</p>
+<li><p class="first">The initial state <span class="math">X</span> is represented through a dict <code class="docutils literal"><span class="pre">state</span></code>, and is passed into the <span class="xref std std-doc">/modules/optimizer</span> module along with a function <code class="docutils literal"><span class="pre">experiment</span></code>.</p>
 </li>
-<li><p class="first">The function <img class="math" src="_images/math/3c69b8a5662675d2c528a60615836e57f7a63876.png" alt="\mathcal F[X]"/> is evaluated by calling <code class="docutils literal notranslate"><span class="pre">experiment(state)</span></code>.</p>
+<li><p class="first">The function <span class="math">\mathcal F[X]</span> is evaluated by calling <code class="docutils literal"><span class="pre">experiment(state)</span></code>.</p>
 <blockquote>
 <div><ol class="loweralpha simple">
-<li><code class="docutils literal notranslate"><span class="pre">Control.actuate(state)</span></code> distributes commands to linked Device nodes.</li>
-<li>The Device node runs <code class="docutils literal notranslate"><span class="pre">Device._actuate(state)</span></code> to update the physical state.</li>
-<li>The Device node updates the internal state representation of the Input, Device, and Control nodes.</li>
-<li>A physical measurement of <img class="math" src="_images/math/3c69b8a5662675d2c528a60615836e57f7a63876.png" alt="\mathcal F[X]"/> is made.</li>
+<li><code class="docutils literal"><span class="pre">Hub.actuate(state)</span></code> distributes commands to linked Things.</li>
+<li>The Thing runs <code class="docutils literal"><span class="pre">Thing._actuate(state)</span></code> to update the physical state.</li>
+<li>The Thing updates the internal state representation of the Input, Thing, and Hubs.</li>
+<li>A physical measurement of <span class="math">\mathcal F[X]</span> is made.</li>
 </ol>
 </div></blockquote>
 </li>
-<li><p class="first">The learner updates its knowledge of the experimental landscape <img class="math" src="_images/math/3c69b8a5662675d2c528a60615836e57f7a63876.png" alt="\mathcal F[X]"/>, suggests a new state <img class="math" src="_images/math/7a7bb470119808e2db2879fc2b2526f467b7a40b.png" alt="X"/>, and returns to step 2.</p>
+<li><p class="first">The learner updates its knowledge of the experimental landscape <span class="math">\mathcal F[X]</span>, suggests a new state <span class="math">X</span>, and returns to step 2.</p>
 </li>
 </ol>
-<p>Note that in the code we often use <code class="docutils literal notranslate"><span class="pre">state</span></code> to refer to a dictionary (or a single
-value in the case of an Input node), whereas the variable <code class="docutils literal notranslate"><span class="pre">X</span></code> refers to an
+<p>Note that in the code we often use <code class="docutils literal"><span class="pre">state</span></code> to refer to a dictionary (or a single
+value in the case of an Input node), whereas the variable <code class="docutils literal"><span class="pre">X</span></code> refers to an
 array representation of the dictionary.</p>
 </div>
 <div class="section" id="example-fiber-alignment">
@@ -258,8 +249,8 @@ is typically done by controlling the tip and tilt of two mirrors, where the more
 distant mirror is used to translate the beam relative to the fiber tip while the
 closer is used to adjust the angle. If only one mirror is adjusted, the measurement
 will look like the Gaussian overlap of the beam and the fiber mode, and simple
-hill-climbing algorithms can be employed to find the tip/tilt pair <img class="math" src="_images/math/497184a5e83d0159a4bf15b0bb89dc5aa40cce7d.png" alt="(x,y)"/> which
-maximizes the measurement <img class="math" src="_images/math/450a8e2c2320d77181e0d4fc68c947e9a5de8ecb.png" alt="M"/>. This is an example of a convex optimization problem,
+hill-climbing algorithms can be employed to find the tip/tilt pair <span class="math">(x,y)</span> which
+maximizes the measurement <span class="math">M</span>. This is an example of a convex optimization problem,
 where the local minimum is also the global minimum.</p>
 <p>And the results: the graphs below show a real fiber alignment routine run by EMERGENT. The left
 graph plots the simplex trajectory over the independently measured experimental landscape,
@@ -269,47 +260,35 @@ convergence in several seconds.</p>
 <a class="reference internal image-reference" href="_images/simplex_time_series.png"><img alt="_images/simplex_time_series.png" src="_images/simplex_time_series.png" style="width: 49%;" /></a>
 </div>
 </div>
-<div class="section" id="subspace-decoupling">
-<h2>Subspace decoupling<a class="headerlink" href="#subspace-decoupling" title="Permalink to this headline">¶</a></h2>
-<p>The sophisticated algorithms contained in the EMERGENT library can optimize
-functions of many degrees of freedom, but most powerful of all is the ability to
-avoid this through subspace identification and dimensional reduction. By using
-principal component analysis, EMERGENT will be able to project the landscape
-onto a set of orthogonal virtual inputs, hence decomposing a high-dimensional
-coupled optimization problem into many lower-dimensional problems. To see the
-power of this, consider a grid search algorithm which searches for an optimum
-point with <img class="math" src="_images/math/f4170ed8938b79490d8923857962695514a8e4cb.png" alt="N"/> uniformly sampled points for each of <img class="math" src="_images/math/b9d10b54744d07746b97f53c55eb98046fd76c8c.png" alt="d"/> devices. The
-number of iterations required, <img class="math" src="_images/math/a2b16d132a79449cbbf75dc204c51dc2ed24568d.png" alt="N^d"/>, is entirely infeasible for even modest
-numbers of devices - for example, just a coarse 10-step sampling with 10 connected
-inputs would take 317 years with an experimental cycle of 1 Hz! However, by
-diagonalizing the covariance matrix, the problem can be reduced into 10 1D
-optimizations which can be performed independently, requiring only <img class="math" src="_images/math/d2d1abf0516f12738084e775cdc7ef96ff030d0b.png" alt="Nd"/> steps!
-In doing so, we replace the physical inputs with virtual inputs, which are linear
-combinations of the original ones.</p>
-<p>For example, consider an experimental landscape consisting of a stretched two-variable
-Gaussian which is rotated by 30 degrees about the <img class="math" src="_images/math/683f2dd9129a91d21aaf1c04afa6f78b39d4cb0a.png" alt="z"/> axis. The effects of
-the coupling are evident: performing a line search in <img class="math" src="_images/math/a59f68a4202623bb859a7093f0316bf466e6f75d.png" alt="x"/> or <img class="math" src="_images/math/276f7e256cbddeb81eee42e1efc348f3cb4ab5f8.png" alt="y"/>
-alone will not in general find the maximum, since by changing one variable we
-change the optimal position of the other. However, we can efficiently solve the
-problem by rotating our inputs into a frame where they are decoupled. Then, we
-can solve two separate 1D optimization problems in terms of the rotated inputs.</p>
+<div class="section" id="time-dependent-optimization">
+<h2>Time-dependent optimization<a class="headerlink" href="#time-dependent-optimization" title="Permalink to this headline">¶</a></h2>
+<p>Turning now to a more complicated time-dependent function, we consider
+the problem of magneto-optical trapping, in which atoms are trapped at the zero
+of a quadrupole magnetic field in a red-detuned laser beam. The problem can be
+formulated as a memoryless cost function depending on parameters such as the
+formulated as a memoryless function depending on parameters such as the
+field strength and laser detuning, but the trapping can be improved by adding a
+time-dependent ramp such that the Doppler and Zeeman shifts keep the beam resonant
+while the atoms cool. In this case we are tasked with determining not the
+number of trapped atoms. Algorithmic optimization of atom cooling has been
+achieved with the help of virtual Things called Ramps, which can output
+a parameterized ramp of a given shape (linear, exponential, etc) in terms of
+several optimizable network inputs (initial/final points, decay time, etc).</p>
 </div>
 </div>
 
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="networkflow.html" class="btn btn-neutral float-right" title="Network flow" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="examples.html" class="btn btn-neutral float-right" title="Examples" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="architecture/control.html" class="btn btn-neutral" title="Control" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="architecture.html" class="btn btn-neutral" title="Architecture" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -340,6 +319,7 @@ can solve two separate 1D optimization problems in terms of the rotated inputs.<
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
             VERSION:'0.1alpha',
+            LANGUAGE:'python',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
@@ -352,19 +332,13 @@ can solve two separate 1D optimization problems in terms of the rotated inputs.<
 
   
 
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>
