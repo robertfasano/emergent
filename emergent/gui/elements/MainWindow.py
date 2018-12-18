@@ -35,7 +35,7 @@ class MainFrame(QMainWindow):
         width = 1080
         height = 720
         self.resize(width, height)
-        
+
         ''' Create status bar '''
         self.statusBar = QStatusBar()
         self.setStatusBar(self.statusBar)
@@ -70,27 +70,18 @@ class MainFrame(QMainWindow):
         self.network_menu = self.menuBar.addMenu('Network')
         self.algorithm_menu = self.menuBar.addMenu('Algorithm')
         self.experiment_menu = self.menuBar.addMenu('Experiment')
-
         self.task_menu = self.menuBar.addMenu('Tasks')
-        self.load_tasks_action = self.task_menu.addAction('Load task')
-        self.load_tasks_action.triggered.connect(self.historyPanel.load_task)
 
-        self.save_action = self.network_menu.addAction('Save state')
-        self.save_action.triggered.connect(self.network.save)
+        self.create_menu_action(self.task_menu, 'Load task', self.historyPanel.load_task)
+        self.create_menu_action(self.network_menu, 'Save state', self.network.save)
+        self.create_menu_action(self.algorithm_menu, 'Save parameters', lambda: self.optimizer.save_params(self.optimizer.panel, 'algorithm'))
+        self.create_menu_action(self.algorithm_menu, 'Reset parameters', lambda: self.optimizer.update_algorithm_and_experiment(self.optimizer.panel, default=True, update_experiment=False))
+        self.create_menu_action(self.experiment_menu, 'Save parameters', lambda: self.optimizer.save_params(self.optimizer.panel, 'experiment'))
+        self.create_menu_action(self.experiment_menu, 'Reset parameters', lambda: self.optimizer.update_algorithm_and_experiment(self.optimizer.panel, default=True, update_algorithm=False))
 
-        self.save_algorithm_action = self.algorithm_menu.addAction('Save parameters')
-
-        self.reset_algorithm_action = self.algorithm_menu.addAction('Reset parameters')
-
-
-        self.save_experiment_action = self.experiment_menu.addAction('Save parameters')
-        self.reset_experiment_action = self.experiment_menu.addAction('Reset parameters')
-
-        self.save_experiment_action.triggered.connect(lambda: self.optimizer.save_params(self.optimizer.panel, 'experiment'))
-        self.save_algorithm_action.triggered.connect(lambda: self.optimizer.save_params(self.optimizer.panel, 'algorithm'))
-
-        self.reset_experiment_action.triggered.connect(lambda: self.optimizer.update_algorithm_and_experiment(self.optimizer.panel, default=True, update_algorithm=False))
-        self.reset_algorithm_action.triggered.connect(lambda: self.optimizer.update_algorithm_and_experiment(self.optimizer.panel, default=True, update_experiment=False))
+    def create_menu_action(self, menu, name, function):
+        action = menu.addAction(name)
+        action.triggered.connect(function)
 
     def get_system_stats(self):
         mem = 'Memory usage: %.2f GB'%(psutil.Process(os.getpid()).memory_info()[0]/2.**30)
