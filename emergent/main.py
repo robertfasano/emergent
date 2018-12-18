@@ -13,58 +13,39 @@ import numpy as np
 sys.path.append('networks/%s'%sys.argv[1])
 import logging as log
 import argparse
-import importlib
 import time
+import importlib
 
-
-
+''' Register app with OS '''
 try:
     import ctypes
     ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID('EMERGENT')
 except:
     pass
+
+''' Parse arguments and set verbosity for logging '''
 parser = argparse.ArgumentParser()
 parser.add_argument("path")
 parser.add_argument("-v", "--verbose", help="Increase output verbosity", action="store_true")
-parser.add_argument("-s", "--simulation", help="Start the network in simulation mode", action = "store_true")
 args = parser.parse_args()
 if args.verbose:
     log.basicConfig(level=log.DEBUG)
 else:
     log.basicConfig(level=log.INFO)
 
-if args.simulation:
-    log.warn('Starting %s network in simulation mode.'%args.path)
-else:
-    log.info('Starting %s network.'%args.path)
-global simulation
-simulation = args.simulation
+''' Initialize network  '''
+network = Network(name=sys.argv[1])
+network.initialize()        # instantiate nodes
+network.load()              # load previous state from file
+network.post_load()         # run post-load routine to prepare physical state
 
-''' Create network object '''
-network = Network()
-
-''' Initialize network nodes '''
-network_path = 'emergent.networks.%s'%sys.argv[1]
-network_module = importlib.import_module('emergent.networks.%s'%sys.argv[1]+'.network')
-if "__all__" in network_module.__dict__:
-    names = network_module.__dict__["__all__"]
-else:
-    names = [x for x in network_module.__dict__ if not x.startswith("_")]
-network_module.initialize(network)
-network.load()
-
-''' Run post-load routine '''
-for c in Hub.instances:
-    c.onLoad()
-
-''' Do stuff '''
-process = importlib.import_module('emergent.networks.%s'%sys.argv[1]+'.process')
+''' Do stuff defined in the network's process.py file '''
+process = importlib.import_module('emergent.networks.'+network.name+'.process')
 if "__all__" in process.__dict__:
     names = process.__dict__["__all__"]
 else:
     names = [x for x in process.__dict__ if not x.startswith("_")]
 globals().update({k: getattr(process, k) for k in names})
-
 
 if __name__ == "__main__":
     app = QCoreApplication.instance()

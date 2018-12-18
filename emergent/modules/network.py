@@ -3,12 +3,13 @@ import os
 import pickle
 import pathlib
 from utility import Timer
+import importlib
 
 class Network():
-    def __init__(self):
+    def __init__(self, name):
         self.timer = Timer()
-        self.name = sys.argv[1]
-        self.path='networks/%s'%sys.argv[1]
+        self.name = name
+        self.path='networks/%s'%name
         self.data_path = self.path+'/data/'
         self.state_path = self.path+'/state/'
 
@@ -21,6 +22,14 @@ class Network():
         self.hubs[hub.name] = hub
         hub.network = self
 
+    def initialize(self):
+        network_module = importlib.import_module('emergent.networks.'+self.name+'.network')
+        network_module.initialize(self)
+
     def load(self):
         for hub in self.hubs.values():
-            hub.load_all()
+            hub.load()
+
+    def post_load(self):
+        for hub in self.hubs.values():
+            hub.onLoad()
