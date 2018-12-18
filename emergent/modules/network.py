@@ -33,3 +33,7 @@ class Network():
     def post_load(self):
         for hub in self.hubs.values():
             hub.onLoad()
+
+    def save(self):
+        for hub in self.hubs.values():
+            hub.save()

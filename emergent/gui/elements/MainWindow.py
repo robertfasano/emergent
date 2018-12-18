@@ -21,7 +21,6 @@ class MainFrame(QMainWindow):
         with open('gui/stylesheet.txt',"r") as file:
             self.setStyleSheet(file.read())
         self.network = network
-        self.hubs = self.network.hubs
         self.app = app
         self.widget = QWidget()
         self.setWindowIcon(QIcon('gui/media/icon.png'))
@@ -99,7 +98,7 @@ class MainFrame(QMainWindow):
         self.load_tasks_action.triggered.connect(self.historyPanel.load_task)
 
         self.save_action = self.network_menu.addAction('Save state')
-        self.save_action.triggered.connect(self.save)
+        self.save_action.triggered.connect(self.network.save)
 
         self.save_algorithm_action = self.algorithm_menu.addAction('Save parameters')
 
@@ -120,10 +119,6 @@ class MainFrame(QMainWindow):
         cpu = 'CPU usage: %.2f%%'%psutil.cpu_percent()
 
         self.systemStats.setText(mem + '  |  ' + cpu)
-
-    def save(self):
-        for c in self.hubs.values():
-            c.save()
 
     def servo(self):
         if self.show_servo.isChecked():
