@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import (QHBoxLayout, QLabel, QTreeView, QPushButton, QVBoxL
         QWidget, QMenu, QAction, QTreeWidget, QTreeWidgetItem, QMainWindow, QStatusBar, QMenuBar)
 from PyQt5.QtCore import *
 import json
-from emergent.gui.elements import ExperimentLayout, HistoryPanel, ServoLayout, NodeTree
+from emergent.gui.elements import ExperimentLayout, TaskPanel, ServoLayout, NodeTree
 import os
 import psutil
 import sys
@@ -54,9 +54,9 @@ class MainFrame(QMainWindow):
         self.experimentPanel = ExperimentLayout(self)
         self.experiment_layout.addLayout(self.experimentPanel)
 
-        ''' Create history panel '''
-        self.historyPanel = HistoryPanel(self)
-        self.experiment_layout.addLayout(self.historyPanel)
+        ''' Create task panel '''
+        self.taskPanel = TaskPanel(self)
+        self.experiment_layout.addLayout(self.taskPanel)
 
         ''' Create menu bar '''
         self.menuBar = QMenuBar()
@@ -66,7 +66,7 @@ class MainFrame(QMainWindow):
         self.experiment_menu = self.menuBar.addMenu('Experiment')
         self.task_menu = self.menuBar.addMenu('Tasks')
 
-        self.create_menu_action(self.task_menu, 'Load task', self.historyPanel.load_task)
+        self.create_menu_action(self.task_menu, 'Load task', self.taskPanel.load_task)
         self.create_menu_action(self.network_menu, 'Save state', self.network.save)
         self.create_menu_action(self.algorithm_menu, 'Save parameters', lambda: self.experimentPanel.save_params(self.experimentPanel.panel, 'algorithm'))
         self.create_menu_action(self.algorithm_menu, 'Reset parameters', lambda: self.experimentPanel.update_algorithm_and_experiment(self.experimentPanel.panel, default=True, update_experiment=False))

@@ -51,7 +51,7 @@ class SamplerItem(QTableWidgetItem):
         self.process_type = process_type
 
 
-class HistoryPanel(QVBoxLayout):
+class TaskPanel(QVBoxLayout):
     def __init__(self, parent):
         super().__init__()
         self.parent = parent
