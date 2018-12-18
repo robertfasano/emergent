@@ -90,13 +90,10 @@ class HistoryPanel(QVBoxLayout):
         # self.popup.show()
 
     def load_task(self):
-        # sampler = self.parent.network.load_task()
-        # self.add_event(sampler)
         self.fileWidget = QWidget()
         filename = QFileDialog.getOpenFileName(self.fileWidget, 'Open experiment', self.parent.network.data_path, 'Samplers (*.sci)')[0]
         with open(filename, 'rb') as f:
             sampler = pickle.load(f)
-        sampler.start_time = None
         self.add_event(sampler)
 
 class Visualizer(QWidget):

@@ -56,6 +56,7 @@ class Sampler():
         d['experiment'] = self.experiment
         d['control'] = self.control
         d['inputs'] = self.inputs
+        d['start_time'] = self.start_time
         for x in ['algorithm_params', 'experiment_params', 'history', 'state']:
             d[x] = self.__dict__[x]
 

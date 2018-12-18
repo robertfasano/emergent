@@ -275,7 +275,7 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
             settings['algorithm'] = None
             settings['algorithm_params'] = None
             name = 'Run'
-        t = datetime.datetime.strftime(datetime.datetime.now(), '%H:%M')
+        t = datetime.datetime.now().strftime('%Y%m%dT%H%M')
         sampler = Sampler(name,
                           settings['state'],
                           settings['control'],
