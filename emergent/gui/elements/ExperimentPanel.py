@@ -154,7 +154,7 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
 
     def save_params(self, panel, param_type):
         ''' param_type: 'experiment' or 'algorithm' '''
-        network_name = __main__.network_path.split('.')[2]
+        network_name = self.parent.network.name
         hub = self.parent.treeWidget.currentItem().root
 
         experiment = getattr(hub, panel.experiment_box.currentText())
