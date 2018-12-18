@@ -107,7 +107,6 @@ class Thing(Node):
             'X' and 'Y' which are referenced in PicoAmp._actuate().'''
         input = Input(name, parent=self)
         self.children[name] = input
-        # self.parent.load(self.name, name)
         self.state[name] = self.children[name].state
 
         self.create_signal.emit(self.parent, self, name)
@@ -222,26 +221,42 @@ class Hub(Node):
 
         self.buffer.add(state)
 
-    def load(self, thing, name):
-        """Loads the last saved state and attempts to reinitialize previous values for the Input node specified by full_name. If the input did not exist in the last state, then it is initialized with default values.
-        """
-        if thing not in self.state:
-            self.state[thing] = {}
-        try:
-            with open(self.network.state_path+self.name+'.json', 'r') as file:
-                state = json.load(file)
+    # def load(self, thing, name):
+    #     """Loads the last saved state and attempts to reinitialize previous values for the Input node specified by full_name. If the input did not exist in the last state, then it is initialized with default values.
+    #     """
+    #     if thing not in self.state:
+    #         self.state[thing] = {}
+    #     try:
+    #         with open(self.network.state_path+self.name+'.json', 'r') as file:
+    #             state = json.load(file)
+    #
+    #         self.state[thing][name] = state[thing][name]['state']
+    #         self.settings[thing][name] = {}
+    #         for setting in ['min', 'max']:
+    #             self.settings[thing][name][setting] = state[thing][name][setting]
+    #     except Exception as e:
+    #         print('Exception:', e)
+    #         self.state[thing][name] = 0
+    #         self.settings[thing][name] = {}
+    #         for setting in ['min', 'max']:
+    #             self.settings[thing][name][setting] = 0
+    #         log.warn('Could not find csv for input %s; creating new settings.'%name)
 
-            self.state[thing][name] = state[thing][name]['state']
-            self.settings[thing][name] = {}
-            for setting in ['min', 'max']:
-                self.settings[thing][name][setting] = state[thing][name][setting]
-        except Exception as e:
-            print('Exception:', e)
-            self.state[thing][name] = 0
-            self.settings[thing][name] = {}
-            for setting in ['min', 'max']:
-                self.settings[thing][name][setting] = 0
-            log.warn('Could not find csv for input %s; creating new settings.'%name)
+    def load(self):
+        with open(self.network.state_path+self.name+'.json', 'r') as file:
+            state = json.load(file)
+        for thing in self.children.values():
+            for input in thing.children.values():
+                try:
+                    self.state[thing.name][input.name] = state[thing.name][input.name]['state']
+                    self.settings[thing.name][input.name] = {}
+                    for setting in ['min', 'max']:
+                        self.settings[thing.name][input.name][setting] = state[thing.name][input.name][setting]
+                except Exception as e:
+                    print('Exception:', e)
+                    self.state[thing.name][input.name] = 0
+                    self.settings[thing.name][input.name] = {'min': 0, 'max': 1}
+                    log.warn('Could not find csv for input %s; creating new settings.'%input.name)
 
     def save(self):
         state = {}

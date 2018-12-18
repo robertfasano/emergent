@@ -2,9 +2,11 @@ import sys
 import os
 import pickle
 import pathlib
+from utility import Timer
 
 class Network():
     def __init__(self):
+        self.timer = Timer()
         self.name = sys.argv[1]
         self.path='networks/%s'%sys.argv[1]
         self.data_path = self.path+'/data/'
@@ -21,6 +23,4 @@ class Network():
 
     def load(self):
         for hub in self.hubs.values():
-            for thing in hub.children.values():
-                for input in thing.children.values():
-                    hub.load(thing.name, input.name)
+            hub.load_all()
