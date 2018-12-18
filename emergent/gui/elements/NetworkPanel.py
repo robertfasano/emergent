@@ -84,11 +84,9 @@ class RedoButton(QWidget):
         return QSize(50, 28)
 
 class NodeTree(QTreeWidget):
-    def __init__(self, parent):
+    def __init__(self, network):
         super().__init__()
-        self.parent = parent
-        self.network = self.parent.network
-
+        self.network = network
         self.editorOpen = 0
         self.current_item = None
         self.last_item = None
@@ -139,7 +137,7 @@ class NodeTree(QTreeWidget):
                 item.add_buffer_buttons()
 
     def _generateTree(self):
-        for hub in self.parent.network.hubs.values():
+        for hub in self.network.hubs.values():
             root = NodeWidget(hub)
             self.insertTopLevelItems(0, [root])
             for thing in hub.children.values():

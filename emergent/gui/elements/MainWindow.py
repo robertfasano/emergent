@@ -44,7 +44,7 @@ class MainFrame(QMainWindow):
 
         ''' Create QTreeWidget '''
         self.treeLayout = QVBoxLayout()
-        self.treeWidget = NodeTree(self)
+        self.treeWidget = NodeTree(self.network)
         self.treeLayout.addWidget(self.treeWidget)
         layout.addLayout(self.treeLayout)
 
