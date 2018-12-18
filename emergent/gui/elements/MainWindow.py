@@ -57,8 +57,8 @@ class MainFrame(QMainWindow):
         layout.addLayout(self.experiment_layout)
 
         ''' Create optimizer layout '''
-        self.optimizer = ExperimentLayout(self)
-        self.experiment_layout.addLayout(self.optimizer)
+        self.experimentPanel = ExperimentLayout(self)
+        self.experiment_layout.addLayout(self.experimentPanel)
 
         ''' Create history panel '''
         self.historyPanel = HistoryPanel(self)
@@ -74,10 +74,10 @@ class MainFrame(QMainWindow):
 
         self.create_menu_action(self.task_menu, 'Load task', self.historyPanel.load_task)
         self.create_menu_action(self.network_menu, 'Save state', self.network.save)
-        self.create_menu_action(self.algorithm_menu, 'Save parameters', lambda: self.optimizer.save_params(self.optimizer.panel, 'algorithm'))
-        self.create_menu_action(self.algorithm_menu, 'Reset parameters', lambda: self.optimizer.update_algorithm_and_experiment(self.optimizer.panel, default=True, update_experiment=False))
-        self.create_menu_action(self.experiment_menu, 'Save parameters', lambda: self.optimizer.save_params(self.optimizer.panel, 'experiment'))
-        self.create_menu_action(self.experiment_menu, 'Reset parameters', lambda: self.optimizer.update_algorithm_and_experiment(self.optimizer.panel, default=True, update_algorithm=False))
+        self.create_menu_action(self.algorithm_menu, 'Save parameters', lambda: self.experimentPanel.save_params(self.experimentPanel.panel, 'algorithm'))
+        self.create_menu_action(self.algorithm_menu, 'Reset parameters', lambda: self.experimentPanel.update_algorithm_and_experiment(self.experimentPanel.panel, default=True, update_experiment=False))
+        self.create_menu_action(self.experiment_menu, 'Save parameters', lambda: self.experimentPanel.save_params(self.experimentPanel.panel, 'experiment'))
+        self.create_menu_action(self.experiment_menu, 'Reset parameters', lambda: self.experimentPanel.update_algorithm_and_experiment(self.experimentPanel.panel, default=True, update_algorithm=False))
 
     def create_menu_action(self, menu, name, function):
         action = menu.addAction(name)
