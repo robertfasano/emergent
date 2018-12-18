@@ -92,7 +92,7 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
             params, based on the choice of param_type. '''
 
         ''' Look for relevant parameters in the json file in the network's params directory '''
-        network_name = __main__.network_path.split('.')[2]
+        network_name = self.parent.network.name
         hub = self.parent.treeWidget.currentItem().root
 
         if not os.path.exists('./networks/%s/params/'%network_name):
