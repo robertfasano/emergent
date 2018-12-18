@@ -3,7 +3,7 @@ from emergent.networks.example.things.testThing import TestThing
 import sys
 
 def initialize(network):
-    autoAlign = TestHub('autoAlign', path='networks/%s'%sys.argv[1])
+    autoAlign = TestHub('autoAlign')
     MEMS = TestThing('MEMS', parent=autoAlign, inputs = ['X', 'Y'])
 
     network.addHub(autoAlign)

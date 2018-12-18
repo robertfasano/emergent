@@ -51,6 +51,7 @@ if "__all__" in network_module.__dict__:
 else:
     names = [x for x in network_module.__dict__ if not x.startswith("_")]
 network_module.initialize(network)
+network.load()
 
 ''' Run post-load routine '''
 for c in Hub.instances:

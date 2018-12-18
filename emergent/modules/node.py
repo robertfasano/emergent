@@ -1,7 +1,6 @@
 import json
 import os
 import weakref
-import pathlib
 import time
 import inspect
 from emergent.modules import Sampler, State
@@ -108,7 +107,7 @@ class Thing(Node):
             'X' and 'Y' which are referenced in PicoAmp._actuate().'''
         input = Input(name, parent=self)
         self.children[name] = input
-        self.parent.load(self.name, name)
+        # self.parent.load(self.name, name)
         self.state[name] = self.children[name].state
 
         self.create_signal.emit(self.parent, self, name)
@@ -195,12 +194,6 @@ class Hub(Node):
         super().__init__(name, parent)
         self.state = State()
         self.settings = {}
-        self.state_path = path+'/state/'
-        self.data_path = path+'/data/'
-
-        for p in [self.state_path, self.data_path]:
-            pathlib.Path(p).mkdir(parents=True, exist_ok=True)
-
         self.samplers = {}
 
         self.node_type = 'hub'
@@ -235,7 +228,7 @@ class Hub(Node):
         if thing not in self.state:
             self.state[thing] = {}
         try:
-            with open(self.state_path+self.name+'.json', 'r') as file:
+            with open(self.network.state_path+self.name+'.json', 'r') as file:
                 state = json.load(file)
 
             self.state[thing][name] = state[thing][name]['state']
@@ -260,7 +253,7 @@ class Hub(Node):
                 state[thing][input]['min'] = self.settings[thing][input]['min']
                 state[thing][input]['max'] = self.settings[thing][input]['max']
 
-        with open(self.state_path+self.name+'.json', 'w') as file:
+        with open(self.network.state_path+self.name+'.json', 'w') as file:
             json.dump(state, file)
 
     def onLoad(self):

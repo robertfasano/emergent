@@ -67,7 +67,7 @@ class Sampler():
 
     def log(self, filename):
         ''' Saves the sampled data to file and updates the buffer '''
-        self.history.to_csv(self.hub.data_path+filename+'.csv')
+        self.history.to_csv(self.hub.network.data_path+filename+'.csv')
         self.hub.macro_buffer.add(self.hub.state)
         self.hub.process_signal.emit(self.hub.state)
         self.save(filename)
@@ -239,7 +239,7 @@ class Sampler():
             return unnorm
 
     def save(self, filename):
-        with open(self.hub.data_path+'%s.sci'%filename, 'wb') as file:
+        with open(self.hub.network.data_path+'%s.sci'%filename, 'wb') as file:
             pickle.dump(self, file)
 
     ''' Visualization methods '''
