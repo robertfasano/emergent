@@ -5,7 +5,7 @@ char = {'nt': '\\', 'posix': '/'}[os.name]
 sys.path.append(char.join(os.getcwd().split(char)[0:-3]))
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import QCoreApplication
-from emergent.remote.viewer import Viewer
+from emergent.gui.elements import RemoteViewer
 from emergent.modules import Hub
 import numpy as np
 import logging as log
@@ -23,6 +23,6 @@ if __name__ == "__main__":
     if app is None:
         app = QApplication(sys.argv)         # Create an instance of the application
 
-    main = Viewer(app)
+    main = RemoteViewer(app)
     main.show()
     app.processEvents()

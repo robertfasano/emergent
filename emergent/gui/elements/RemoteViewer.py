@@ -16,11 +16,11 @@ import psutil
 import sys
 import logging as log
 
-class Viewer(QMainWindow):
+class RemoteViewer(QMainWindow):
     def __init__(self, app):
         QMainWindow.__init__(self)
         self.setWindowTitle('EMERGENT: Remote viewer')
-        with open('../gui/stylesheet.txt',"r") as file:
+        with open('gui/stylesheet.txt',"r") as file:
             self.setStyleSheet(file.read())
         self.app = app
         self.widget = QWidget()
@@ -56,8 +56,5 @@ class Viewer(QMainWindow):
         except ConnectionRefusedError:
             log.warn('Server closed connection.')
             self.update_timer.stop()
-        self.treeLayout.removeWidget(self.treeWidget)
-        self.treeWidget.deleteLater()
-
-        self.treeWidget = NodeTree(self.network)
-        self.treeLayout.addWidget(self.treeWidget)
+        for hub in self.network.hubs.values():
+            self.treeWidget.actuate(hub.name, hub.state)
