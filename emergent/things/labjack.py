@@ -28,13 +28,13 @@ def queue(func, *args, **kwargs):
 class LabJack(ProcessHandler, Thing):
     ''' Python interface for the LabJack T7. '''
 
-    def __init__(self, thing = "ANY", connection = "ANY", thingid = "ANY", arange = 10, name = 'LabJack', parent = None):
+    def __init__(self, thing = "ANY", connection = "ANY", devid = "ANY", arange = 10, name = 'LabJack', parent = None):
         ''' Attempt to connect to a LabJack.
 
             Args:
                 thing (str): Thing type ("ANY", "T7" are currently supported).
                 connection (str): Desired connection type ("ANY", "USB", "TCP", "ETHERNET", or "WIFI").
-                thingid (str): Serial number, which can be found on the underside of the LabJack.
+                devid (str): Serial number, which can be found on the underside of the LabJack.
                 arange (float): analog input range.'''
         ProcessHandler.__init__(self)
         self.parent = parent
@@ -42,7 +42,7 @@ class LabJack(ProcessHandler, Thing):
             Thing.__init__(self, name, parent)
         self.thing = thing
         self.connection = connection
-        self.thingid = thingid
+        self.devid = devid
         self.arange = arange
         self.name = name
         self._connected = 0
@@ -58,7 +58,7 @@ class LabJack(ProcessHandler, Thing):
         if self._connected:
             return
         try:
-            self.handle = ljm.openS(self.thing, self.connection, self.thingid)
+            self.handle = ljm.openS(self.thing, self.connection, self.devid)
             info = ljm.getHandleInfo(self.handle)
 
             self.thingType = info[0]
@@ -88,7 +88,7 @@ class LabJack(ProcessHandler, Thing):
             return 1
 
         except Exception as e:
-            log.error('Failed to connect to LabJack (%s): %s.'%(self.thingid, e))
+            log.error('Failed to connect to LabJack (%s): %s.'%(self.devid, e))
 
     def _actuate(self, state):
         for key in state:
@@ -542,7 +542,7 @@ class LabJack(ProcessHandler, Thing):
         return self.sequence2stream(seq, period, max_samples, wave.shape[1])
 
 if __name__ == '__main__':
-    lj = LabJack(thingid='470016973')
+    lj = LabJack(devid='470016973')
     sequence = [(0,0), (0.05,1)]
     period = .1
     stream, speed = lj.sequence2stream(sequence, period)

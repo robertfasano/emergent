@@ -4,7 +4,7 @@ from emergent.modules import Thing
 class PZT(Thing):
     def __init__(self, params, name = 'PZT', parent = None):
         super().__init__(name=name, parent = parent)
-        self.labjack = LabJack(thingid=params['thingid'])
+        self.labjack = LabJack(devid=params['devid'])
         self.add_input('voltage')
         self.options['Toggle lock'] = self.toggle_lock
         self.lock(0)
@@ -29,4 +29,4 @@ class PZT(Thing):
         return self.labjack.AIn(1)
 
 if __name__ == '__main__':
-    params = {'thingid':'440010635'}
+    params = {'devid':'440010635'}

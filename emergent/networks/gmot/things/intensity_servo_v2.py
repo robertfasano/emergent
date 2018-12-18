@@ -14,9 +14,9 @@ class IntensityServo(Thing):
         FIO4-7: LJTick-DAC for channel 0-3 setpoints
         AIN0-3: channel 0-3 monitors
     '''
-    def __init__(self, name, thingid,  parent = None):
+    def __init__(self, name, devid,  parent = None):
         super().__init__(name, parent = parent)
-        self.labjack = LabJack(thingid=thingid)
+        self.labjack = LabJack(devid=devid)
 
         self.add_input('probe')
         # self.add_input('V1')

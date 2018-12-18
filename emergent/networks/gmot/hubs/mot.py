@@ -13,12 +13,12 @@ class MOT(Hub):
     def __init__(self, name, parent = None, path='.'):
         super().__init__(name, parent = parent, path=path)
         self.process_manager = ProcessHandler()
-        self.labjack = LabJack(thingid='470017907', name='labjack')
+        self.labjack = LabJack(devid='470017907', name='labjack')
         self.labjack.prepare_streamburst(channel=0)
         self.labjack.AOut(3,-5,HV=True)
         self.labjack.AOut(2,5, HV=True)
-        self.TTL = LabJack(thingid='470016970', name = 'TTL')
-        self.trigger_labjack = LabJack(thingid='440010734', name='trigger')
+        self.TTL = LabJack(devid='470016970', name = 'TTL')
+        self.trigger_labjack = LabJack(devid='440010734', name='trigger')
         self.timer = Timer()
 
         self.PROBE_LIGHT = 1 #done
