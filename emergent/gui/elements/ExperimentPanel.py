@@ -14,7 +14,7 @@ import datetime
 import __main__
 import os
 import importlib
-from utility import list_errors, list_experiments
+from emergent.utility import list_errors, list_experiments
 
 
 class ExperimentLayout(QVBoxLayout, ProcessHandler):
@@ -285,8 +285,8 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
                           settings['algorithm_params'],
                           t=t)
 
-        ''' Create HistoryPanel task '''
-        row = self.parent.historyPanel.add_event(sampler)
+        ''' Create taskPanel task '''
+        row = self.parent.taskPanel.add_event(sampler)
 
         ''' Run process '''
         if settings['state'] == {} and process != 'run':
