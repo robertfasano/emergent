@@ -16,22 +16,18 @@ import sys
 class MainFrame(QMainWindow):
     def __init__(self, app, network):
         QMainWindow.__init__(self)
+        self.network = network
+        self.app = app
+
+        ''' Set window style '''
         self.setWindowTitle('EMERGENT: %s'%sys.argv[1])
         QFontDatabase.addApplicationFont('gui/media/Exo2-Light.ttf')
         with open('gui/stylesheet.txt',"r") as file:
             self.setStyleSheet(file.read())
-        self.network = network
-        self.app = app
-        self.widget = QWidget()
+        self.central_widget = QWidget()
         self.setWindowIcon(QIcon('gui/media/icon.png'))
-        self.setCentralWidget(self.widget)
-        master_layout = QVBoxLayout(self.widget)
-        layout= QHBoxLayout()
-        master_layout.addLayout(layout)
-        width_fraction = 0.72
-        height_fraction = width_fraction/1.618
-        width = self.app.desktop().screenGeometry().width()*width_fraction
-        height = self.app.desktop().screenGeometry().height()*height_fraction
+        self.setCentralWidget(self.central_widget)
+        layout= QHBoxLayout(self.central_widget)
         width = 1080
         height = 720
         self.resize(width, height)
@@ -55,8 +51,6 @@ class MainFrame(QMainWindow):
         ''' Experiment interface '''
         self.experiment_layout = QVBoxLayout()
         layout.addLayout(self.experiment_layout)
-
-        ''' Create optimizer layout '''
         self.experimentPanel = ExperimentLayout(self)
         self.experiment_layout.addLayout(self.experimentPanel)
 
@@ -88,18 +82,6 @@ class MainFrame(QMainWindow):
         cpu = 'CPU usage: %.2f%%'%psutil.cpu_percent()
 
         self.systemStats.setText(mem + '  |  ' + cpu)
-
-    def servo(self):
-        if self.show_servo.isChecked():
-            self.setLayoutVisible(self.servoPanel, True)
-        else:
-            self.setLayoutVisible(self.servoPanel, False)
-
-    def tasks(self):
-        if self.show_tasks.isChecked():
-            self.setLayoutVisible(self.historyPanel, True)
-        else:
-            self.setLayoutVisible(self.historyPanel, False)
 
     def setLayoutVisible(self, layout, visible):
         for i in range(layout.count()):
