@@ -84,11 +84,11 @@ class RedoButton(QWidget):
         return QSize(50, 28)
 
 class NodeTree(QTreeWidget):
-    def __init__(self, tree, hubs, parent):
+    def __init__(self, parent):
         super().__init__()
-        self.tree = tree
-        self.hubs = hubs
         self.parent = parent
+        self.network = self.parent.network
+
         self.editorOpen = 0
         self.current_item = None
         self.last_item = None
@@ -115,15 +115,7 @@ class NodeTree(QTreeWidget):
         self.itemSelectionChanged.connect(self.deselect_nonsiblings)
 
         ''' Populate tree '''
-        root_labels = list(self.tree.keys())
-        roots = []
-        for r in root_labels:
-            roots.append(NodeWidget([r, ''], self.hubs[r]))
-        self.insertTopLevelItems(0, roots)
-
-        for i in range(len(root_labels)):
-            self._generateTree(self.tree[root_labels[i]], roots[i])
-
+        self._generateTree()
         self.expand('hub')
         self.expand('thing')
 
@@ -133,7 +125,7 @@ class NodeTree(QTreeWidget):
                 item.setFlags(Qt.ItemIsEnabled)
 
         ''' Prepare initial GUI state '''
-        for c in hubs:
+        for c in self.network.hubs:
             node = self.get_hub(c).node
             self.actuate(c, node.state)
 
@@ -146,22 +138,22 @@ class NodeTree(QTreeWidget):
             if item.node.node_type != 'input':
                 item.add_buffer_buttons()
 
-    def _generateTree(self, children, parent, level = 1):
-        ''' Recursively add nodes to build the full network. '''
-        for child in sorted(children):
-            object = parent.node.children[child]
-            child_item = NodeWidget([child.replace('_',' ')], object)
-            parent.addChild(child_item)
-
-            if isinstance(children, dict):
-                self._generateTree(children[child], child_item, level = level+1)
+    def _generateTree(self):
+        for hub in self.parent.network.hubs.values():
+            root = NodeWidget(hub)
+            self.insertTopLevelItems(0, [root])
+            for thing in hub.children.values():
+                branch = NodeWidget(thing)
+                root.addChild(branch)
+                for input in thing.children.values():
+                    leaf = NodeWidget(input)
+                    branch.addChild(leaf)
 
     def actuate(self, hub, state):
         hub_item = self.get_hub(hub)
         for thing in state:
             for input in state[thing]:
                 self.get_input(hub, thing, input).updateStateText(state[thing][input])
-
 
     def close_editor(self):
         ''' Disable editing after the user clicks another node. '''
@@ -198,10 +190,6 @@ class NodeTree(QTreeWidget):
             all_items.extend(self.get_subtree_nodes(top_item))
         return all_items
 
-    def get_input(self, thing, name):
-        ''' Returns an input QTreeWidgetItem with the given thing and name '''
-        return
-
     def get_hub(self, hub):
         ''' Return a QTreeWidgetItem with the given hub name '''
         for i in range(self.topLevelItemCount()):
@@ -225,7 +213,7 @@ class NodeTree(QTreeWidget):
         ''' Returns a hub node corresponding to the selected input node. '''
         item = self.selectedItems()[0]
         hub_name = item.parent().parent().text(0)
-        return self.hubs[hub_name]
+        return self.network.hubs[hub_name]
 
     def get_selected_state(self):
         ''' Build a substate from all currently selected inputs. '''
@@ -262,7 +250,7 @@ class NodeTree(QTreeWidget):
             value = self.current_item.text(col)
 
             hub_name = self.current_item.parent().parent().text(0)
-            hub = self.hubs[hub_name]
+            hub = self.network.hubs[hub_name]
             input = self.current_item.node.name
             thing = self.current_item.node.parent.name
             if col == 1:
@@ -303,8 +291,8 @@ class NodeTree(QTreeWidget):
         selectedItem = menu.exec_(globalPos)
 
 class NodeWidget(QTreeWidgetItem):
-    def __init__(self, name, node):
-        super().__init__(name)
+    def __init__(self, node):
+        super().__init__([node.name])
         self.node = node
         self.root = self.get_root()
 

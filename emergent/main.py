@@ -40,15 +40,17 @@ else:
 global simulation
 simulation = args.simulation
 
-''' Import network '''
-# from network import *
+''' Create network object '''
+network = Network()
+
+''' Initialize network nodes '''
 network_path = 'emergent.networks.%s'%sys.argv[1]
-network = importlib.import_module('emergent.networks.%s'%sys.argv[1]+'.network')
-if "__all__" in network.__dict__:
-    names = network.__dict__["__all__"]
+network_module = importlib.import_module('emergent.networks.%s'%sys.argv[1]+'.network')
+if "__all__" in network_module.__dict__:
+    names = network_module.__dict__["__all__"]
 else:
-    names = [x for x in network.__dict__ if not x.startswith("_")]
-globals().update({k: getattr(network, k) for k in names})
+    names = [x for x in network_module.__dict__ if not x.startswith("_")]
+network_module.initialize(network)
 
 ''' Run post-load routine '''
 for c in Hub.instances:
@@ -62,28 +64,13 @@ else:
     names = [x for x in process.__dict__ if not x.startswith("_")]
 globals().update({k: getattr(process, k) for k in names})
 
-''' Gather nodes '''
-tree = {}
-hubs = Hub.instances
-for hub in hubs:
-    tree[hub.name] = {}
-    for thing in hub.children.values():
-        tree[hub.name][thing.name] = []
-        for input in thing.children.values():
-            tree[hub.name][thing.name].append(input.name)
 
-''' Create network object '''
-network = Network()
-
-hubs_dict = {}
-for c in hubs:
-    hubs_dict[c.name] = c
 if __name__ == "__main__":
     app = QCoreApplication.instance()
     if app is None:
         app = QApplication(sys.argv)         # Create an instance of the application
 
-    main = MainFrame(app, tree, hubs_dict, network)
+    main = MainFrame(app, network)
     main.show()
     app.processEvents()
 

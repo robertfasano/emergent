@@ -14,14 +14,14 @@ import psutil
 import sys
 
 class MainFrame(QMainWindow):
-    def __init__(self, app, tree, hubs, network):
+    def __init__(self, app, network):
         QMainWindow.__init__(self)
         self.setWindowTitle('EMERGENT: %s'%sys.argv[1])
         QFontDatabase.addApplicationFont('gui/media/Exo2-Light.ttf')
         with open('gui/stylesheet.txt',"r") as file:
             self.setStyleSheet(file.read())
         self.network = network
-        self.hubs = hubs
+        self.hubs = self.network.hubs
         self.app = app
         self.widget = QWidget()
         self.setWindowIcon(QIcon('gui/media/icon.png'))
@@ -63,7 +63,7 @@ class MainFrame(QMainWindow):
 
         ''' Create QTreeWidget '''
         self.treeLayout = QVBoxLayout()
-        self.treeWidget = NodeTree(tree, hubs, self)
+        self.treeWidget = NodeTree(self)
         self.treeLayout.addWidget(self.treeWidget)
         layout.addLayout(self.treeLayout)
 

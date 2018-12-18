@@ -7,15 +7,7 @@ class Network():
         self.name = sys.argv[1]
         self.path='networks/%s'%sys.argv[1]
         self.data_path = self.path+'/data/'
-
-    def load_task(self):
-        files = os.listdir(self.data_path)
-        files = [x for x in files if '.sci' in x]
-        print(files)
-
-        file = files[0]
-        with open(self.data_path+file, 'rb') as f:
-            sampler = pickle.load(f)
-        sampler.start_time = None
-
-        return sampler
+        self.hubs = {}
+        
+    def addHub(self, hub):
+        self.hubs[hub.name] = hub
