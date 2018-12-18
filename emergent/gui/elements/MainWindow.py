@@ -14,14 +14,14 @@ import psutil
 import sys
 
 class MainFrame(QMainWindow):
-    def __init__(self, app, tree, controls, network):
+    def __init__(self, app, tree, hubs, network):
         QMainWindow.__init__(self)
         self.setWindowTitle('EMERGENT: %s'%sys.argv[1])
         QFontDatabase.addApplicationFont('gui/media/Exo2-Light.ttf')
         with open('gui/stylesheet.txt',"r") as file:
             self.setStyleSheet(file.read())
         self.network = network
-        self.controls = controls
+        self.hubs = hubs
         self.app = app
         self.widget = QWidget()
         self.setWindowIcon(QIcon('gui/media/icon.png'))
@@ -63,7 +63,7 @@ class MainFrame(QMainWindow):
 
         ''' Create QTreeWidget '''
         self.treeLayout = QVBoxLayout()
-        self.treeWidget = NodeTree(tree, controls, self)
+        self.treeWidget = NodeTree(tree, hubs, self)
         self.treeLayout.addWidget(self.treeWidget)
         layout.addLayout(self.treeLayout)
 
@@ -122,7 +122,7 @@ class MainFrame(QMainWindow):
         self.systemStats.setText(mem + '  |  ' + cpu)
 
     def save(self):
-        for c in self.controls.values():
+        for c in self.hubs.values():
             c.save()
 
     def servo(self):

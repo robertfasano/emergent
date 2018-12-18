@@ -1,8 +1,8 @@
-Control
+Hub
 ================
 
 .. automodule:: node
-.. autoclass:: Control
+.. autoclass:: Hub
     :members:
     :undoc-members:
     :special-members:

@@ -19,8 +19,8 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../../emergent/archetypes'))
-sys.path.insert(0, os.path.abspath('../../emergent/devices'))
+sys.path.insert(0, os.path.abspath('../../emergent/modules'))
+sys.path.insert(0, os.path.abspath('../../emergent/things'))
 sys.path.insert(0, os.path.abspath('../../emergent/'))
 
 # -- General configuration ------------------------------------------------

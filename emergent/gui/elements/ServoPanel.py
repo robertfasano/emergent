@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import (QComboBox, QLabel, QTextEdit, QPushButton, QVBoxLayout,
         QTableWidget, QGridLayout, QTableWidgetItem, QHBoxLayout)
 from PyQt5.QtCore import *
-from emergent.archetypes import Sampler, ProcessHandler
+from emergent.modules import Sampler, ProcessHandler
 import inspect
 import json
 import logging as log
@@ -49,7 +49,7 @@ class ServoLayout(QVBoxLayout, ProcessHandler):
         settings['state'] = self.parent.parent.treeWidget.get_selected_state()
         settings['experiment_name'] = self.experiment_box.currentText()
         try:
-            settings['control'] = self.parent.parent.treeWidget.get_selected_control()
+            settings['hub'] = self.parent.parent.treeWidget.get_selected_hub()
         except IndexError:
             log.warn('Select inputs before starting optimization!')
             return

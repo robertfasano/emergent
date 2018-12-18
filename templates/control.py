@@ -1,6 +1,6 @@
-from emergent.archetypes import Control
+from emergent.modules import Hub
 
-class TemplateControl(Control):
+class TemplateHub(Hub):
     def __init__(self, name, parent = None, path='.'):
         super().__init__(name, parent = parent, path=path)
 

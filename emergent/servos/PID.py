@@ -34,14 +34,14 @@ class PID():
         error = self.sampler.experiment
         if callback is None:
             callback = self.sampler.callback
-        devices = list(state.keys())
-        assert len(devices) == 1
-        dev = devices[0]
+        things = list(state.keys())
+        assert len(things) == 1
+        thing = things[0]
 
-        inputs = list(state[dev].keys())
+        inputs = list(state[thing].keys())
         assert len(inputs) == 1
         input = inputs[0]
-        input_node = self.sampler.control.children[dev].children[input]
+        input_node = self.sampler.hub.children[thing].children[input]
         input_node.error_history = pd.Series()
         last_error = error(state, self.sampler.experiment_params)
         last_time = time.time()
@@ -52,9 +52,9 @@ class PID():
             t = time.time()
             print(t)
             self.sampler.history.loc[t,'cost']=e
-            for dev in state:
-                for input in state[dev]:
-                    self.sampler.history.loc[t,dev+'.'+input] = state[dev][input]
+            for thing in state:
+                for input in state[thing]:
+                    self.sampler.history.loc[t,thing+'.'+input] = state[thing][input]
             print('State:', state, 'Error:', e)
             delta_t = t - last_time
             delta_e = e - last_error
@@ -67,7 +67,7 @@ class PID():
             last_error = e
 
             target = proportional + integral + derivative
-            state[dev][input] -= params['Sign']*target  # gets passed into error in the next loop
+            state[thing][input] -= params['Sign']*target  # gets passed into error in the next loop
 
     def set_params(self, params):
         for p in params:

@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import (QApplication, QAbstractItemView,QCheckBox, QComboBo
 from PyQt5.QtCore import *
 import json
 from emergent.remote.NetworkPanel import NodeTree
-from emergent.archetypes.client import Client
+from emergent.modules.client import Client
 import os
 import psutil
 import sys

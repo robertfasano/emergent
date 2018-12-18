@@ -210,7 +210,7 @@
          id="tspan4487-0"
          x="113.06851"
          y="218.58604"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Agency FB';-inkscape-font-specification:'Agency FB';stroke-width:0.26458332">Device</tspan></text>
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Agency FB';-inkscape-font-specification:'Agency FB';stroke-width:0.26458332">Thing</tspan></text>
     <circle
        style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="path3680-8"
@@ -227,7 +227,7 @@
          id="tspan4487-4"
          x="111.99945"
          y="158.48082"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Agency FB';-inkscape-font-specification:'Agency FB';stroke-width:0.26458332">Control</tspan></text>
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Agency FB';-inkscape-font-specification:'Agency FB';stroke-width:0.26458332">Hub</tspan></text>
     <path
        style="fill:none;stroke:#000000;stroke-width:0.53505313;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-start:url(#Arrow1Mstart)"
        d="m 125.29742,176.85754 v 15.74278"
@@ -249,7 +249,7 @@
          x="45.116562"
          y="204.78662"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.05555534px;font-family:'Agency FB';-inkscape-font-specification:'Agency FB';stroke-width:0.26458332"
-         dy="5">Control specifies</tspan><tspan
+         dy="5">Hub specifies</tspan><tspan
          sodipodi:role="line"
          x="45.116562"
          y="218.01579"
@@ -276,7 +276,7 @@
          x="164.7699"
          y="252.96878"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.05555534px;font-family:'Agency FB';-inkscape-font-specification:'Agency FB';stroke-width:0.26458332"
-         id="tspan6955">actuation from Device</tspan></text>
+         id="tspan6955">actuation from Thing</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.58333302px;line-height:1.25;font-family:'Agency FB';-inkscape-font-specification:'Agency FB';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
@@ -299,12 +299,12 @@
          x="133.58276"
          y="178.59421"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.05555534px;line-height:1;font-family:'Agency FB';-inkscape-font-specification:'Agency FB';stroke-width:0.26458332"
-         dy="5">Device confirms</tspan><tspan
+         dy="5">Thing confirms</tspan><tspan
          sodipodi:role="line"
          x="133.58276"
          y="191.82338"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.05555534px;line-height:1;font-family:'Agency FB';-inkscape-font-specification:'Agency FB';stroke-width:0.26458332"
-         id="tspan6965">new state with Control</tspan></text>
+         id="tspan6965">new state with Hub</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.58333302px;line-height:1.25;font-family:Mexcellent;-inkscape-font-specification:Mexcellent;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
@@ -316,7 +316,7 @@
          x="108.19217"
          y="237.39351"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.05555534px;font-family:'Agency FB';-inkscape-font-specification:'Agency FB';stroke-width:0.26458332"
-         dy="5">Device actuates</tspan><tspan
+         dy="5">Thing actuates</tspan><tspan
          sodipodi:role="line"
          x="108.19217"
          y="250.62268"

@@ -9,7 +9,7 @@ from PyQt5.QtGui import QPixmap, QIcon
 from PyQt5.QtCore import *
 import json
 from emergent.gui.elements import ExperimentLayout
-from emergent.archetypes import Control, Device, Input, State
+from emergent.modules import Hub, Thing, Input, State
 from emergent.signals import ActuateSignal
 import functools
 
@@ -84,10 +84,10 @@ class RedoButton(QWidget):
         return QSize(15, 28)
 
 class NodeTree(QTreeWidget):
-    def __init__(self, tree, controls, parent):
+    def __init__(self, tree, hubs, parent):
         super().__init__()
         self.tree = tree
-        self.controls = controls
+        self.hubs = hubs
         self.parent = parent
         self.editorOpen = 0
         self.current_item = None
@@ -118,14 +118,14 @@ class NodeTree(QTreeWidget):
         root_labels = list(self.tree.keys())
         roots = []
         for r in root_labels:
-            roots.append(NodeWidget([r, ''], self.controls[r]))
+            roots.append(NodeWidget([r, ''], self.hubs[r]))
         self.insertTopLevelItems(0, roots)
 
         for i in range(len(root_labels)):
             self._generateTree(self.tree[root_labels[i]], roots[i])
 
-        self.expand('control')
-        self.expand('device')
+        self.expand('hub')
+        self.expand('thing')
 
         ''' Ensure that only Inputs are selectable '''
         for item in self.get_all_items():
@@ -133,8 +133,8 @@ class NodeTree(QTreeWidget):
                 item.setFlags(Qt.ItemIsEnabled)
 
         ''' Prepare initial GUI state '''
-        for c in controls:
-            node = self.get_control(c).node
+        for c in hubs:
+            node = self.get_hub(c).node
             self.actuate(c, node.state)
 
         self.setColumnWidth(0,200)
@@ -156,11 +156,11 @@ class NodeTree(QTreeWidget):
             if isinstance(children, dict):
                 self._generateTree(children[child], child_item, level = level+1)
 
-    def actuate(self, control, state):
-        control_item = self.get_control(control)
-        for dev in state:
-            for input in state[dev]:
-                self.get_input(control, dev, input).updateStateText(state[dev][input])
+    def actuate(self, hub, state):
+        hub_item = self.get_hub(hub)
+        for thing in state:
+            for input in state[thing]:
+                self.get_input(hub, thing, input).updateStateText(state[thing][input])
 
 
     def close_editor(self):
@@ -198,34 +198,34 @@ class NodeTree(QTreeWidget):
             all_items.extend(self.get_subtree_nodes(top_item))
         return all_items
 
-    def get_input(self, device, name):
-        ''' Returns an input QTreeWidgetItem with the given device and name '''
+    def get_input(self, thing, name):
+        ''' Returns an input QTreeWidgetItem with the given thing and name '''
         return
 
-    def get_control(self, control):
-        ''' Return a QTreeWidgetItem with the given control name '''
+    def get_hub(self, hub):
+        ''' Return a QTreeWidgetItem with the given hub name '''
         for i in range(self.topLevelItemCount()):
-            if self.topLevelItem(i).text(0) == control:
+            if self.topLevelItem(i).text(0) == hub:
                 return self.topLevelItem(i)
 
-    def get_device(self, control, device):
-        control_item = self.get_control(control)
-        for i in range(control_item.childCount()):
-            if control_item.child(i).text(0) == device:
-                return control_item.child(i)
+    def get_thing(self, hub, thing):
+        hub_item = self.get_hub(hub)
+        for i in range(hub_item.childCount()):
+            if hub_item.child(i).text(0) == thing:
+                return hub_item.child(i)
 
-    def get_input(self, control, device, input):
-        control_item = self.get_control(control)
-        device_item = self.get_device(control, device)
-        for i in range(device_item.childCount()):
-            if device_item.child(i).text(0) == input:
-                return device_item.child(i)
+    def get_input(self, hub, thing, input):
+        hub_item = self.get_hub(hub)
+        thing_item = self.get_thing(hub, thing)
+        for i in range(thing_item.childCount()):
+            if thing_item.child(i).text(0) == input:
+                return thing_item.child(i)
 
-    def get_selected_control(self):
-        ''' Returns a control node corresponding to the selected input node. '''
+    def get_selected_hub(self):
+        ''' Returns a hub node corresponding to the selected input node. '''
         item = self.selectedItems()[0]
-        control_name = item.parent().parent().text(0)
-        return self.controls[control_name]
+        hub_name = item.parent().parent().text(0)
+        return self.hubs[hub_name]
 
     def get_selected_state(self):
         ''' Build a substate from all currently selected inputs. '''
@@ -233,10 +233,10 @@ class NodeTree(QTreeWidget):
         state = State()
         for i in items:
             input = i.node
-            dev = input.parent
-            if dev.name not in state:
-                state[dev.name] = {}
-            state[dev.name][input.name] = input.state
+            thing = input.parent
+            if thing.name not in state:
+                state[thing.name] = {}
+            state[thing.name][input.name] = input.state
 
         return state
 
@@ -257,21 +257,21 @@ class NodeTree(QTreeWidget):
             self.closePersistentEditor(self.last_item, col)
             self.editorOpen = 0
             input = self.last_item.text(0)
-            device = self.last_item.parent().text(0)
-            key = device + '.' + input
+            thing = self.last_item.parent().text(0)
+            key = thing + '.' + input
             value = self.current_item.text(col)
 
-            control_name = self.current_item.parent().parent().text(0)
-            control = self.controls[control_name]
+            hub_name = self.current_item.parent().parent().text(0)
+            hub = self.hubs[hub_name]
             input = self.current_item.node.name
-            device = self.current_item.node.parent.name
+            thing = self.current_item.node.parent.name
             if col == 1:
-                state = {device:{input: float(value)}}
-                control.actuate(state)
+                state = {thing:{input: float(value)}}
+                hub.actuate(state)
             elif col == 2:
-                control.settings[device][input]['min'] = float(value)
+                hub.settings[thing][input]['min'] = float(value)
             elif col == 3:
-                control.settings[device][input]['max'] = float(value)
+                hub.settings[thing][input]['max'] = float(value)
 
         except AttributeError:
             pass
@@ -308,19 +308,19 @@ class NodeWidget(QTreeWidgetItem):
         self.node = node
         self.root = self.get_root()
 
-        if self.node.node_type == 'control':
+        if self.node.node_type == 'hub':
             self.node.signal.connect(self.onActuateSignal)
-        # if self.node.node_type == 'device':
+        # if self.node.node_type == 'thing':
         #     self.node.create_signal.connect(self.onCreateSignal)
         #     self.node.remove_signal.connect(self.onRemoveSignal)
         elif self.node.node_type == 'input':
             name = self.node.name
-            device = self.node.parent.name
-            self.setText(2, str(self.root.settings[device][name]['min']))
-            self.setText(3,str(self.root.settings[device][name]['max']))
+            thing = self.node.parent.name
+            self.setText(2, str(self.root.settings[thing][name]['min']))
+            self.setText(3,str(self.root.settings[thing][name]['max']))
 
     def add_buffer_buttons(self):
-        if self.node.node_type == 'device':
+        if self.node.node_type == 'thing':
             signal = self.node.signal
             buffer = self.node.buffer
         else:
@@ -355,11 +355,11 @@ class NodeWidget(QTreeWidgetItem):
         self.setText(1, str('%.2f'%state))
 
     # def onCreateSignal(self, d):
-    #     if self.node == d['device']:
-    #         child_item = NodeWidget([d['input']], d['device'].children[d['input']])
+    #     if self.node == d['thing']:
+    #         child_item = NodeWidget([d['input']], d['thing'].children[d['input']])
     #         self.addChild(child_item)
     #
     # def onRemoveSignal(self, d):
-    #     if self.node == d['device']:
+    #     if self.node == d['thing']:
     #         child_item = self.node.children[d['input']].leaf
     #         self.removeChild(child_item)

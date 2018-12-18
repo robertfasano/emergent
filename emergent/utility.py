@@ -47,17 +47,17 @@ def getChar():
 
     return getChar._func()
 
-def list_triggers(control):
+def list_triggers(hub):
     ''' Returns a list of all methods tagged with the '@trigger' decorator '''
-    return methodsWithDecorator(control.__class__, 'trigger')
+    return methodsWithDecorator(hub.__class__, 'trigger')
 
-def list_experiments(control):
+def list_experiments(hub):
     ''' Returns a list of all methods tagged with the '@experiment' decorator '''
-    return methodsWithDecorator(control.__class__, 'experiment')
+    return methodsWithDecorator(hub.__class__, 'experiment')
 
-def list_errors(control):
+def list_errors(hub):
     ''' Returns a list of all methods tagged with the '@error' decorator '''
-    return methodsWithDecorator(control.__class__, 'error')
+    return methodsWithDecorator(hub.__class__, 'error')
 
 def methodsWithDecorator(cls, decoratorName):
     methods = []
@@ -81,7 +81,7 @@ class Timer():
             log.info('%s:%f'%(name, self.times[-1]-self.times[-2]))
 
 
-def dev(func):
+def thing(func):
     return func
 
 class Parameter():
@@ -121,12 +121,12 @@ def trigger(func, *args, **kwargs):
 @decorator.decorator
 def algorithm(func, *args, **kwargs):
     func(*args, **kwargs)
-    args[0].sampler.control.save()
+    args[0].sampler.hub.save()
 
 @decorator.decorator
 def servo(func, *args, **kwargs):
     func(*args, **kwargs)
-    args[0].sampler.control.save()
+    args[0].sampler.hub.save()
 
 def get_classes(directory, decoratorName):
     classes = {}
@@ -146,13 +146,13 @@ def get_classes(directory, decoratorName):
 
     return classes
 
-def import_device(name):
-    handle = get_classes('devices', 'dev')[name]
+def import_thing(name):
+    handle = get_classes('things', 'thing')[name]
     return handle
 
-def create_device(name):
-    dev = import_device(name)
-    args = get_args(dev, '__init__')
+def create_thing(name):
+    thing = import_thing(name)
+    args = get_args(thing, '__init__')
 
 def extract_pulses(data, threshold):
     ''' Splits a numpy array into segments which are above a threshold. '''
@@ -188,9 +188,9 @@ class MacroBuffer(list):
         last_state = self[self.index-1]
         if self.parent.node_type == 'input':
             self.parent.parent.actuate({self.parent.name: last_state})
-        elif self.parent.node_type == 'device':
+        elif self.parent.node_type == 'thing':
             self.parent.parent.actuate({self.parent.name: last_state})
-        elif self.parent.node_type == 'control':
+        elif self.parent.node_type == 'hub':
             self.parent.actuate(last_state)
         self.index -= 1
         self.prune()
@@ -201,9 +201,9 @@ class MacroBuffer(list):
         last_state = self[self.index+1]
         if self.parent.node_type == 'input':
             self.parent.parent.actuate({self.parent.name: last_state})
-        elif self.parent.node_type == 'device':
+        elif self.parent.node_type == 'thing':
             self.parent.parent.actuate({self.parent.name: last_state})
-        elif self.parent.node_type == 'control':
+        elif self.parent.node_type == 'hub':
             self.parent.actuate(last_state)
         self.index += 1
         self.prune()
@@ -238,9 +238,9 @@ class StateBuffer(list):
         self.index -= 1
         if self.parent.node_type == 'input':
             self.parent.parent.actuate({self.parent.name: last_state})
-        elif self.parent.node_type == 'device':
+        elif self.parent.node_type == 'thing':
             self.parent.parent.actuate({self.parent.name: last_state})
-        elif self.parent.node_type == 'control':
+        elif self.parent.node_type == 'hub':
             self.parent.actuate(last_state)
         del self[-1]        # don't add undo actuate to buffer
         self.extend(states)
@@ -255,9 +255,9 @@ class StateBuffer(list):
         index = self.index
         if self.parent.node_type == 'input':
             self.parent.parent.actuate({self.parent.name: last_state})
-        elif self.parent.node_type == 'device':
+        elif self.parent.node_type == 'thing':
             self.parent.parent.actuate({self.parent.name: last_state})
-        elif self.parent.node_type == 'control':
+        elif self.parent.node_type == 'hub':
             self.parent.actuate(last_state)
         del self[-1]        # don't add redo actuate to buffer
         self.index = index + 1

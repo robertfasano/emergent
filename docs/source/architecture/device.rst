@@ -1,8 +1,8 @@
-Device
+Thing
 ================
 
 .. automodule:: node
-.. autoclass:: Device 
+.. autoclass:: Thing 
     :members:
     :undoc-members:
     :special-members:

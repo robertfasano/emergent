@@ -30,10 +30,10 @@ Now navigate to the ``emergent`` folder wherever you downloaded it and install u
 Optimization
 --------------
 A full example for a simple network can be found in emergent/networks/example.py.
-In this example, a single Control node oversees two Device nodes, one with inputs
+In this example, a single Hub oversees two Things, one with inputs
 'X' and 'Y' and another with inputs 'X' and 'Y'. Take a moment to look through the code
 required to initialize the network: in ``network.py``, we have simply imported
-and instantiated the objects defined in the ``devices`` and ``controls`` folder.
+and instantiated the objects defined in the ``things`` and ``hubs`` folder.
 EMERGENT hooks up the network under the hood - all you have to do is define the
 node parent/child relationships.
 
@@ -48,13 +48,13 @@ by running
    %run main example
 
 Once EMERGENT launches, a GUI will open. The left pane displays the network tree,
-with top-level Control nodes overseeing one or more Device nodes, each of which
-having one or more Input node. The state of a Device can be changed by double-clicking
+with top-level Hubs overseeing one or more Things, each of which
+having one or more Input node. The state of a Thing can be changed by double-clicking
 on one of its Input nodes, entering a new value, and pressing the Enter key.
 
 The middle panel offers three different modes: Optimize, Run, and Servo. Let's look
 at the Optimize tab first. If you select an input node, the right drop-down box
-will load all functions tagged with the @experiment decorator within the control node.
+will load all functions tagged with the @experiment decorator within the hub node.
 User-defined parameter options will be loaded in the table below. On the left side
 of the Optimize tab, you can choose an optimization algorithm from the drop-down
 menu, then customize the hyperparameters for your given application. The Save button
@@ -85,33 +85,33 @@ State access and actuation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 In this example, we will assume that the inputs are initialized to 0.
 There are two ways that the state of one or more inputs can be changed.
-First, we could act on a Device node with the ``Device.actuate()`` method:
+First, we could act on a Thing with the ``Thing.actuate()`` method:
 
 .. code-block :: python
 
-   deviceA.actuate({'X':2, 'Y':1})
-   print(deviceA.state)
-   print(control.state)
+   thingA.actuate({'X':2, 'Y':1})
+   print(thingA.state)
+   print(hub.state)
 
 .. code-block :: python
 
    {'X':2, 'Y':1}
-   {'deviceA':{'X':2,'.Y':1}, 'deviceB':{'X':0, 'Y':0}}
+   {'thingA':{'X':2,'.Y':1}, 'thingB':{'X':0, 'Y':0}}
 
-We can also act on any number of inputs across any number of devices through the ``Control.actuate()`` method:
+We can also act on any number of inputs across any number of things through the ``Hub.actuate()`` method:
 
 .. code-block :: python
 
-   control.actuate({'deviceA':{'X':7,'.Y':2}, 'deviceB':{'X':13}})
-   print(deviceA.state)
-   print(deviceB.state)
-   print(control.state)
+   hub.actuate({'thingA':{'X':7,'.Y':2}, 'thingB':{'X':13}})
+   print(thingA.state)
+   print(thingB.state)
+   print(hub.state)
 
 .. code-block :: python
 
    {'X':7, 'Y':2}
    {'X':13, 'Y':0}
-   {'deviceA':{'X':7,'.Y':2}, 'deviceB':{'X':13}}
+   {'thingA':{'X':7,'.Y':2}, 'thingB':{'X':13}}
 
 No matter which method we use, the result is the same: the value of each targeted
-Input node is changed, and both ``device.state`` and ``control.state`` are updated.
+Input node is changed, and both ``thing.state`` and ``hub.state`` are updated.

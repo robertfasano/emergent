@@ -5,4 +5,4 @@ Archetypes
    :glob:
    :maxdepth: 4
 
-   archetypes/*
+   modules/*

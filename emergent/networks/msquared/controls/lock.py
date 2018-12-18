@@ -1,11 +1,11 @@
 import numpy as np
-from emergent.archetypes import Control
+from emergent.modules import Hub
 from utility import experiment, error
 import datetime
 import time
 import numpy as np
-from emergent.archetypes.parallel import ProcessHandler
-class Lock(Control):
+from emergent.modules.parallel import ProcessHandler
+class Lock(Hub):
         def __init__(self, name, parent=None, path = '.'):
                 super().__init__(name, parent, path=path)
 

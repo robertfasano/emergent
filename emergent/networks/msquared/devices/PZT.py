@@ -1,10 +1,10 @@
-from emergent.devices.labjack import LabJack
-from emergent.archetypes import Device
+from emergent.things.labjack import LabJack
+from emergent.modules import Thing
 
-class PZT(Device):
+class PZT(Thing):
     def __init__(self, params, name = 'PZT', parent = None):
         super().__init__(name=name, parent = parent)
-        self.labjack = LabJack(devid=params['devid'])
+        self.labjack = LabJack(thingid=params['thingid'])
         self.add_input('voltage')
         self.options['Toggle lock'] = self.toggle_lock
         self.lock(0)
@@ -29,4 +29,4 @@ class PZT(Device):
         return self.labjack.AIn(1)
 
 if __name__ == '__main__':
-    params = {'devid':'440010635'}
+    params = {'thingid':'440010635'}

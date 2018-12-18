@@ -2,7 +2,7 @@ from PyQt5.QtWidgets import (QComboBox, QLabel, QTextEdit, QPushButton, QVBoxLay
         QTableWidgetItem, QTableWidget, QHBoxLayout, QGridLayout, QMenu, QAction)
 from PyQt5.QtCore import *
 from PyQt5.QtGui import QCursor
-from emergent.archetypes.parallel import ProcessHandler
+from emergent.modules.parallel import ProcessHandler
 import inspect
 import datetime
 import json
@@ -28,12 +28,12 @@ class CustomTable(QTableWidget, ProcessHandler):
         row = self.rowAt(pos.y())
         name = self.item(row, 0).text()
         settings = self.parent.get_settings_from_gui()
-        cost = getattr(settings['control'], settings['experiment_name'])
-        sampler, index = settings['control'].attach_sampler(settings['state'], cost)
+        cost = getattr(settings['hub'], settings['experiment_name'])
+        sampler, index = settings['hub'].attach_sampler(settings['state'], cost)
         algorithm_name = self.parent.algorithm_box.currentText()
         algorithm = self.parent.parent.get_algorithm(algorithm_name, self.parent)
         algorithm.sampler = sampler
-        algorithm.parent = settings['control']
+        algorithm.parent = settings['hub']
         run = algorithm.run
         default_params = algorithm.params
         min = default_params[name].min
@@ -47,7 +47,7 @@ class CustomTable(QTableWidget, ProcessHandler):
             print('Running optimization with %s=%f...'%(name, v))
             settings['algorithm_params'][name] = v
             algorithm.set_params(settings['algorithm_params'])
-            settings['control'].actuate(settings['state'])
+            settings['hub'].actuate(settings['state'])
             run(settings['state'])
             c.append(algorithm.sampler.history['cost'].iloc[-1])
             print('...result:', c[-1])
@@ -55,7 +55,7 @@ class CustomTable(QTableWidget, ProcessHandler):
         print(c)
 
 
-        # state = {'deviceA': {'X': 0, 'Y': 0}}
+        # state = {'thingA': {'X': 0, 'Y': 0}}
         # cost_params = {"x0": 0.3,
         #                "noise": 0.01,
         #                "y0": 0.6,
@@ -63,7 +63,7 @@ class CustomTable(QTableWidget, ProcessHandler):
         #                "theta": 0,
         #                "sigma_x": 0.3,
         #                "cycles per sample": 1}
-        # cost = self.sampler.control.cost_uncoupled
+        # cost = self.sampler.hub.cost_uncoupled
         # algorithm = self.adam
         # params={'learning rate':0.1, 'steps': 100, 'dither': 0.01, 'beta_1': 0.9, 'beta_2': 0.999, 'epsilon': 1e-8}
         # pmin = 0.001
@@ -118,7 +118,7 @@ class OptimizeLayout(QVBoxLayout, ProcessHandler):
         settings['state'] = self.parent.parent.treeWidget.get_selected_state()
         settings['experiment_name'] = self.experiment_box.currentText()
         try:
-            settings['control'] = self.parent.parent.treeWidget.get_selected_control()
+            settings['hub'] = self.parent.parent.treeWidget.get_selected_hub()
         except IndexError:
             log.warn('Select inputs before starting optimization!')
             return

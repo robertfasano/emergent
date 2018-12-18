@@ -1,7 +1,7 @@
-from emergent.archetypes import Device
+from emergent.modules import Thing
 import bristol671
 
-class Wavemeter(Device):
+class Wavemeter(Thing):
     def __init__(self, addr, name = 'Wavemeter', parent = None):
 
 

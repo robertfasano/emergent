@@ -47,5 +47,5 @@ class Dweet():
 
     
 if __name__ == '__main__':
-    dev = Dweet('YbRemoteMonitor')
-    r = dev.receive()
+    thing = Dweet('YbRemoteMonitor')
+    r = thing.receive()

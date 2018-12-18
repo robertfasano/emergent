@@ -10,10 +10,10 @@ from PyQt5.QtWidgets import (QApplication, QAbstractItemView,QCheckBox, QComboBo
 from PyQt5.QtCore import *
 import json
 from emergent.gui.elements import ExperimentLayout, PlotWidget
-from emergent.archetypes import Control, Device, Input
+from emergent.modules import Hub, Thing, Input
 import functools
-from emergent.archetypes.visualization import plot_2D, plot_1D
-from emergent.archetypes import ProcessHandler
+from emergent.modules.visualization import plot_2D, plot_1D
+from emergent.modules import ProcessHandler
 import matplotlib.pyplot as plt
 import json
 import itertools
@@ -120,7 +120,7 @@ class Visualizer(QWidget):
         costs *= -1
         t = t.copy()-t[0]
         num_inputs = points.shape[1]
-        control = self.sampler.control
+        hub = self.sampler.hub
 
         ''' costs vs parameters '''
         fig, ax = plt.subplots(2,num_inputs, figsize=(10, 8))
@@ -133,9 +133,9 @@ class Visualizer(QWidget):
         for i in range(num_inputs):
             p = points[:,i]
             full_name =  self.sampler.history.columns[i]
-            dev = full_name.split('.')[0]
+            thing = full_name.split('.')[0]
             input = full_name.split('.')[1]
-            limits = {full_name.replace('.', ': '): control.settings[dev][input]}
+            limits = {full_name.replace('.', ': '): hub.settings[thing][input]}
             # plot_1D(p, costs, limits=limits, cost_name = self.sampler.experiment.__name__, ax = ax0[i])
             new_ax, fig = plot_1D(p, costs, limits=limits, cost_name = self.sampler.experiment.__name__, errors = errors)
             cvp[full_name] = fig
@@ -147,10 +147,10 @@ class Visualizer(QWidget):
         for i in range(num_inputs):
             p = points[:,i]
             full_name =  self.sampler.history.columns[i]
-            dev = full_name.split('.')[0]
+            thing = full_name.split('.')[0]
             input = full_name.split('.')[1]
             inputs.append(full_name)
-            limits = {full_name.replace('.', ': '): control.settings[dev][input]}
+            limits = {full_name.replace('.', ': '): hub.settings[thing][input]}
             name = list(limits.keys())[0]
             p = limits[name]['min'] + p*(limits[name]['max']-limits[name]['min'])
 
@@ -175,9 +175,9 @@ class Visualizer(QWidget):
                 for ax in a:
                     full_name =  self.sampler.history.columns[ax]
                     full_names.append(full_name)
-                    dev = full_name.split('.')[0]
+                    thing = full_name.split('.')[0]
                     input = full_name.split('.')[1]
-                    limits[full_name.replace('.', ': ')] =  control.settings[dev][input]
+                    limits[full_name.replace('.', ': ')] =  hub.settings[thing][input]
                 axis_combo_name = full_names[0] + '/' + full_names[1]
                 p = points[:,a]
                 fig2d[axis_combo_name] = plot_2D(p, costs, limits = limits)

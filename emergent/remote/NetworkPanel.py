@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import (QApplication, QAbstractItemView,QCheckBox, QComboBo
 from PyQt5.QtCore import *
 import json
 from emergent.gui.elements import ExperimentLayout
-from emergent.archetypes import Control, Device, Input
+from emergent.modules import Hub, Thing, Input
 from emergent.signals import ActuateSignal, SettingsSignal
 import functools
 
@@ -18,7 +18,7 @@ class NodeTree(QTreeWidget):
     def __init__(self, parent):
         super().__init__()
         self.tree = parent.client.get_state()
-        self.controls = list(self.tree.keys())
+        self.hubs = list(self.tree.keys())
         self.parent = parent
         self.editorOpen = 0
         self.current_item = None
@@ -56,7 +56,7 @@ class NodeTree(QTreeWidget):
 
         ''' Prepare initial GUI state '''
         for item in self.get_all_items():
-            if item.node.node_type == 'device':
+            if item.node.node_type == 'thing':
                 self.sync_inputs(item)
 
         self.setColumnWidth(0,200)
@@ -109,11 +109,11 @@ class NodeTree(QTreeWidget):
             all_items.extend(self.get_subtree_nodes(top_item))
         return all_items
 
-    def get_selected_control(self):
-        ''' Returns a control node corresponding to the selected input node. '''
+    def get_selected_hub(self):
+        ''' Returns a hub node corresponding to the selected input node. '''
         item = self.selectedItems()[0]
-        control_name = item.parent().parent().text(0)
-        return self.controls[control_name]
+        hub_name = item.parent().parent().text(0)
+        return self.hubs[hub_name]
 
     def get_selected_state(self):
         ''' Build a substate from all currently selected inputs. '''
@@ -121,10 +121,10 @@ class NodeTree(QTreeWidget):
         state = {}
         for i in items:
             input = i.node
-            dev = input.parent
-            if dev.name not in state:
-                state[dev.name] = {}
-            state[dev.name][input.name] = input.state
+            thing = input.parent
+            if thing.name not in state:
+                state[thing.name] = {}
+            state[thing.name][input.name] = input.state
 
         return state
 
@@ -145,21 +145,21 @@ class NodeTree(QTreeWidget):
             self.closePersistentEditor(self.last_item, col)
             self.editorOpen = 0
             input = self.last_item.text(0)
-            device = self.last_item.parent().text(0)
-            key = device + '.' + input
+            thing = self.last_item.parent().text(0)
+            key = thing + '.' + input
             value = self.current_item.text(col)
 
-            control_name = self.current_item.parent().parent().text(0)
-            control = self.controls[control_name]
+            hub_name = self.current_item.parent().parent().text(0)
+            hub = self.hubs[hub_name]
             input = self.current_item.node.name
-            device = self.current_item.node.parent.name
+            thing = self.current_item.node.parent.name
             if col == 1:
-                state = {device:{input: float(value)}}
-                control.actuate(state)
+                state = {thing:{input: float(value)}}
+                hub.actuate(state)
             elif col == 2:
-                control.settings[device][input]['min'] = float(value)
+                hub.settings[thing][input]['min'] = float(value)
             elif col == 3:
-                control.settings[device][input]['max'] = float(value)
+                hub.settings[thing][input]['max'] = float(value)
 
         except AttributeError:
             pass
@@ -190,10 +190,10 @@ class NodeTree(QTreeWidget):
 
         selectedItem = menu.exec_(globalPos)
 
-    def sync_inputs(self, dev):
-        ''' Switches from primary to secondary inputs for the passed in device item.
+    def sync_inputs(self, thing):
+        ''' Switches from primary to secondary inputs for the passed in thing.
         '''
-        for input in dev.node.children.values():
+        for input in thing.node.children.values():
             input.leaf.setHidden(0)
             input.leaf.setText(1,str(input.state))
 
@@ -203,7 +203,7 @@ class NodeWidget(QTreeWidgetItem):
         self.level = level
         self.root = self.get_root()
 
-        if self.node.node_type == 'device':
+        if self.node.node_type == 'thing':
             self.node.create_signal.connect(self.onCreateSignal)
             self.node.remove_signal.connect(self.onRemoveSignal)
 
@@ -212,9 +212,9 @@ class NodeWidget(QTreeWidgetItem):
             self.node.settings_signal.connect(self.updateSettingsText)
 
             name = self.node.name
-            device = self.node.parent.name
-            self.setText(2, str(self.root.settings[device][name]['min']))
-            self.setText(3,str(self.root.settings[device][name]['max']))
+            thing = self.node.parent.name
+            self.setText(2, str(self.root.settings[thing][name]['min']))
+            self.setText(3,str(self.root.settings[thing][name]['max']))
 
     def __repr__(self):
         try:
@@ -235,12 +235,12 @@ class NodeWidget(QTreeWidgetItem):
         self.setText(1, str('%.2f'%state))
 
     def onCreateSignal(self, d):
-        if self.node == d['device']:
-            child_item = NodeWidget([d['input']], d['device'].children[d['input']], self.level+1)
+        if self.node == d['thing']:
+            child_item = NodeWidget([d['input']], d['thing'].children[d['input']], self.level+1)
             self.addChild(child_item)
 
     def onRemoveSignal(self, d):
-        if self.node == d['device']:
+        if self.node == d['thing']:
             child_item = self.node.children[d['input']].leaf
             self.removeChild(child_item)
 

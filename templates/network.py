@@ -1,7 +1,7 @@
-from emergent.templates.control import TemplateControl
-from emergent.templates.device import TemplateDevice
+from emergent.templates.hub import TemplateHub
+from emergent.templates.thing import TemplateThing
 from __main__ import *
 
 ''' Define autoAlign '''
-control = TemplateControl('control', path='networks/%s'%sys.argv[1])
-device = TemplateDevice('device', parent=control)
+hub = TemplateHub('hub', path='networks/%s'%sys.argv[1])
+thing = TemplateThing('thing', parent=hub)

@@ -1,11 +1,11 @@
-from emergent.archetypes import Device
+from emergent.modules import Thing
 import logging as log
 import socket
 import time
 import json
 import numpy as np
 
-class SolsTiS(Device):
+class SolsTiS(Thing):
     def __init__(self, params, name = 'SolsTiS', parent = None):
         ''' Args:
                 params (dict): dictionary containing the following fields:
@@ -49,7 +49,7 @@ class SolsTiS(Device):
                       'derivative_gain':0,
                       'sign':1}
             servoPanel = self.leaf.treeWidget().parent.optimizer.servoPanel
-            settings = {'control': self.parent,
+            settings = {'hub': self.parent,
                         'state': {self.name: self.state},
                         'experiment_name': 'error',
                         'algorithm_params': algo_params,

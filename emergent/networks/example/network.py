@@ -1,6 +1,6 @@
-from emergent.networks.example.controls.testControl import TestControl
-from emergent.networks.example.devices.testDevice import TestDevice
+from emergent.networks.example.hubs.testHub import TestHub
+from emergent.networks.example.things.testThing import TestThing
 import sys
 
-autoAlign = TestControl('autoAlign', path='networks/%s'%sys.argv[1])
-MEMS = TestDevice('MEMS', parent=autoAlign, inputs = ['X', 'Y'])
+autoAlign = TestHub('autoAlign', path='networks/%s'%sys.argv[1])
+MEMS = TestThing('MEMS', parent=autoAlign, inputs = ['X', 'Y'])

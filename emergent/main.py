@@ -6,9 +6,9 @@ sys.path.append(char.join(os.getcwd().split(char)[0:-3]))
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import QCoreApplication
 from emergent.gui.elements import MainFrame
-from emergent.archetypes import Control
-from emergent.archetypes.server import Server
-from emergent.archetypes.network import Network
+from emergent.modules import Hub
+from emergent.modules.server import Server
+from emergent.modules.network import Network
 import numpy as np
 sys.path.append('networks/%s'%sys.argv[1])
 import logging as log
@@ -51,7 +51,7 @@ else:
 globals().update({k: getattr(network, k) for k in names})
 
 ''' Run post-load routine '''
-for c in Control.instances:
+for c in Hub.instances:
     c.onLoad()
 
 ''' Do stuff '''
@@ -64,26 +64,26 @@ globals().update({k: getattr(process, k) for k in names})
 
 ''' Gather nodes '''
 tree = {}
-controls = Control.instances
-for control in controls:
-    tree[control.name] = {}
-    for device in control.children.values():
-        tree[control.name][device.name] = []
-        for input in device.children.values():
-            tree[control.name][device.name].append(input.name)
+hubs = Hub.instances
+for hub in hubs:
+    tree[hub.name] = {}
+    for thing in hub.children.values():
+        tree[hub.name][thing.name] = []
+        for input in thing.children.values():
+            tree[hub.name][thing.name].append(input.name)
 
 ''' Create network object '''
 network = Network()
 
-controls_dict = {}
-for c in controls:
-    controls_dict[c.name] = c
+hubs_dict = {}
+for c in hubs:
+    hubs_dict[c.name] = c
 if __name__ == "__main__":
     app = QCoreApplication.instance()
     if app is None:
         app = QApplication(sys.argv)         # Create an instance of the application
 
-    main = MainFrame(app, tree, controls_dict, network)
+    main = MainFrame(app, tree, hubs_dict, network)
     main.show()
     app.processEvents()
 

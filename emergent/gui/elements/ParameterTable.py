@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QHeaderView
 from PyQt5.QtCore import Qt
-from emergent.archetypes import State
+from emergent.modules import State
 
 class ParameterTable(QTableWidget):
     def __init__(self):

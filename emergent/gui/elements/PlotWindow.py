@@ -65,14 +65,14 @@ class PlotWidget(QWidget):
         self.layout.addWidget(QLabel('Inputs:'), 0, 0)
 
         tree = QTreeWidget()
-        control = self.sampler.control
-        top = QTreeWidgetItem([control.name])
+        hub = self.sampler.hub
+        top = QTreeWidgetItem([hub.name])
         tree.insertTopLevelItems(0, [top])
-        for dev in self.sampler.inputs:
-            dev_item = QTreeWidgetItem([dev])
-            top.addChild(dev_item)
-            for input in self.sampler.inputs[dev]:
-                dev_item.addChild(QTreeWidgetItem([input]))
+        for thing in self.sampler.inputs:
+            thing_item = QTreeWidgetItem([thing])
+            top.addChild(thing_item)
+            for input in self.sampler.inputs[thing]:
+                thing_item.addChild(QTreeWidgetItem([input]))
         tree.header().hide()
         tree.expandAll()
         self.layout.addWidget(tree, 1,0)

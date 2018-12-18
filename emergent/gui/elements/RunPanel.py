@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import (QComboBox, QLabel, QLineEdit, QPushButton, QVBoxLayout,
         QTableWidget, QTableWidgetItem, QHBoxLayout, QSlider)
 from PyQt5.QtCore import *
-from emergent.archetypes import ProcessHandler, Sampler
+from emergent.modules import ProcessHandler, Sampler
 import inspect
 import json
 import logging as log
@@ -50,11 +50,11 @@ class RunLayout(QVBoxLayout, ProcessHandler):
         settings = {}
         settings['experiment_name'] = self.experiment_box.currentText()
         try:
-            settings['control'] = self.parent.parent.treeWidget.get_selected_control()
+            settings['hub'] = self.parent.parent.treeWidget.get_selected_hub()
         except IndexError:
             log.warn('Select inputs before starting optimization!')
             return
-        settings['state'] = settings['control'].state
+        settings['state'] = settings['hub'].state
         settings['experiment_params'] = self.experiment_table.get_params()
         if 'cycles per sample' not in settings['experiment_params']:
             settings['experiment_params']['cycles per sample'] = 1#int(self.cycles_per_sample_edit.text())
@@ -75,7 +75,7 @@ class RunLayout(QVBoxLayout, ProcessHandler):
     def run_process(self, sampler, t, stopped = None):
         count = 0
         while sampler.active:
-            result = sampler._cost(sampler.control.state, norm=False)
+            result = sampler._cost(sampler.hub.state, norm=False)
             count += 1
             if type(sampler.experiment_params['iterations']) is int:
                 if count >= sampler.experiment_params['iterations']:

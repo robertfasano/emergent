@@ -58,11 +58,11 @@ EMERGENT aims to solve this problem by offering a simple framework for automated
 exploration of many-dimensional parameter spaces. Many algorithms specifically
 suited for this task are available in open-source libraries, and EMERGENT provides
 a simple syntactic structure to leverage these algorithms to optimize your own
-experiment. This is accomplished through three class archetypes: the Input, Device,
-and Control nodes. Input nodes are simple structures which only serve to represent
-the state of some experimental knob. Device nodes are the glue between EMERGENT
-and device APIs that can change physical variables in the lab. Lastly, Control
-nodes measure experimental outcomes and issue commands to connected Devices to
+experiment. This is accomplished through three class modules: the Input, Thing,
+and Hubs. Input nodes are simple structures which only serve to represent
+the state of some experimental knob. Things are the glue between EMERGENT
+and device APIs that can change physical variables in the lab. Lastly, Hub
+nodes measure experimental outcomes and issue commands to connected Things to
 optimize the result.
 
 
@@ -77,5 +77,5 @@ Table of Contents
    architecture
    optimization
    examples
-   archetypes
-   devices
+   modules
+   things

@@ -33,8 +33,8 @@ class CreateSignal(QObject):
     def connect(self, func):
         self.signal.connect(func)
 
-    def emit(self, control, device, input):
-        self.signal.emit({'control':control, 'device':device, 'input':input})
+    def emit(self, hub, thing, input):
+        self.signal.emit({'hub':hub, 'thing':thing, 'input':input})
 
 class RemoveSignal(QObject):
     signal = pyqtSignal(dict)
@@ -45,5 +45,5 @@ class RemoveSignal(QObject):
     def connect(self, func):
         self.signal.connect(func)
 
-    def emit(self, control, device, input):
-        self.signal.emit({'control':control, 'device':device, 'input':input})
+    def emit(self, hub, thing, input):
+        self.signal.emit({'hub':hub, 'thing':thing, 'input':input})

@@ -1,8 +1,8 @@
-Devices
+Things
 =======
 
 .. toctree::
    :glob:
    :maxdepth: 4
 
-   ./devices/*
+   ./things/*

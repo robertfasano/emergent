@@ -3,7 +3,7 @@ import numpy as np
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C, WhiteKernel
 from scipy.optimize import minimize
-from emergent.archetypes import visualization
+from emergent.modules import visualization
 
 class GaussianProcessRegression():
     def __init__(self):

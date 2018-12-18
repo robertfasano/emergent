@@ -1,6 +1,6 @@
 from utility import Parameter, algorithm
 import numpy as np
-from emergent.archetypes import visualization
+from emergent.modules import visualization
 
 class GridSearch():
     def __init__(self):
