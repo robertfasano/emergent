@@ -45,6 +45,9 @@ class UndoButton(QWidget):
         self.show()
         self.item.redo_button.show()
 
+    def sizeHint(self):
+        return QSize(50, 10)
+
 class RedoButton(QWidget):
     def __init__(self, item, buffer, signal):
         QWidget.__init__(self)
@@ -76,6 +79,9 @@ class RedoButton(QWidget):
 
     def show(self):
         self.button.setChecked(self.buffer.index != -1)
+
+    def sizeHint(self):
+        return QSize(50, 10)
 
 class NodeTree(QTreeWidget):
     def __init__(self, tree, controls, parent):
