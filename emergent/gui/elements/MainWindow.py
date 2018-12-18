@@ -35,21 +35,7 @@ class MainFrame(QMainWindow):
         width = 1080
         height = 720
         self.resize(width, height)
-
-
-        # self.viewMenu = self.menuBar.addMenu('View')
-        # # optimizer = self.viewMenu.addAction("Optimizer")
-        # self.show_servo = self.viewMenu.addAction("Servo")
-        # self.show_servo.setCheckable(True)
-        # self.show_servo.triggered.connect(self.servo)
-        # self.show_servo.setChecked(True)
-        #
-        # self.show_tasks = self.viewMenu.addAction("Tasks")
-        # self.show_tasks.setCheckable(True)
-        # self.show_tasks.triggered.connect(self.tasks)
-        # self.show_tasks.setChecked(True)
-
-
+        
         ''' Create status bar '''
         self.statusBar = QStatusBar()
         self.setStatusBar(self.statusBar)
@@ -66,10 +52,6 @@ class MainFrame(QMainWindow):
         self.treeLayout.addWidget(self.treeWidget)
         layout.addLayout(self.treeLayout)
 
-        # self.saveButton = QPushButton('Save')
-        # self.saveButton.clicked.connect(self.save)
-        # self.treeLayout.addWidget(self.saveButton)
-
         ''' Experiment interface '''
         self.experiment_layout = QVBoxLayout()
         layout.addLayout(self.experiment_layout)
@@ -77,10 +59,6 @@ class MainFrame(QMainWindow):
         ''' Create optimizer layout '''
         self.optimizer = ExperimentLayout(self)
         self.experiment_layout.addLayout(self.optimizer)
-
-        ''' Create sequencer layout '''
-        # self.sequencer = SequencerLayout(self)
-        # layout.addLayout(self.sequencer)
 
         ''' Create history panel '''
         self.historyPanel = HistoryPanel(self)
