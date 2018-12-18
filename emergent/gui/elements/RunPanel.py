@@ -66,13 +66,7 @@ class RunLayout(QVBoxLayout, ProcessHandler):
 
         return settings
 
-    def run_process(self, sampler):
-        sampler.algorithm.run(sampler.state)
-        log.info('Optimization complete!')
-        sampler.log(sampler.start_time.replace(':','') + ' - ' + sampler.experiment.__name__ + ' - ' + sampler.algorithm.name)
-        sampler.active = False
-
-    def run_process(self, sampler, t, stopped = None):
+    def run_process(self, sampler, stopped = None):
         count = 0
         while sampler.active:
             result = sampler._cost(sampler.hub.state, norm=False)
@@ -80,7 +74,7 @@ class RunLayout(QVBoxLayout, ProcessHandler):
             if type(sampler.experiment_params['iterations']) is int:
                 if count >= sampler.experiment_params['iterations']:
                     break
-        sampler.log(t.replace(':','') + ' - ' + sampler.experiment.__name__)
+        sampler.log(sampler.start_time.replace(':','') + ' - ' + sampler.experiment.__name__)
         sampler.active = False
 
     def stop_experiment(self):
