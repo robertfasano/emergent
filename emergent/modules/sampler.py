@@ -51,13 +51,8 @@ class Sampler():
 
     def __getstate__(self):
         d = {}
-        d['algorithm'] = self.algorithm
         d['experiment_name'] = self.experiment.__name__
-        d['experiment'] = self.experiment
-        d['hub'] = self.hub
-        d['inputs'] = self.inputs
-        d['start_time'] = self.start_time
-        for x in ['algorithm_params', 'experiment_params', 'history', 'state']:
+        for x in ['algorithm_params', 'experiment_params', 'history', 'state', 'name', 'inputs', 'start_time', 'hub', 'experiment', 'algorithm']:
             d[x] = self.__dict__[x]
 
         return d
