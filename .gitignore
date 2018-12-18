@@ -8,3 +8,4 @@ dist/*
 *.csv
 *.txt
 *.json
+*.sci
