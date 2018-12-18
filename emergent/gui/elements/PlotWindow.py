@@ -139,7 +139,8 @@ class PlotWidget(QWidget):
         #     self.tab2d_layout.addLayout(self.tab2d_inputs_layout)
         #     self.choose_input_pair()
 
-        if len(inputs) == 2:
+
+        if len(inputs) == 2 and self.sampler.algorithm is not None:
             self.tab_algo = QWidget()
             self.tabs.addTab(self.tab_algo, 'Algorithm')
             fig = self.sampler.algorithm.plot()
