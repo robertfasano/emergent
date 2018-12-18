@@ -2,7 +2,7 @@ import sys
 import os
 import pickle
 import pathlib
-from utility import Timer
+from emergent.utility import Timer
 import importlib
 
 class Network():
@@ -37,3 +37,10 @@ class Network():
     def save(self):
         for hub in self.hubs.values():
             hub.save()
+
+    def state(self):
+        state = {}
+        for hub in self.hubs.values():
+            state[hub.name] = hub.state
+
+        return state

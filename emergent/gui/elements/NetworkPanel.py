@@ -294,7 +294,7 @@ class NodeWidget(QTreeWidgetItem):
         self.node = node
         self.root = self.get_root()
 
-        if self.node.node_type == 'hub':
+        if self.node.node_type == 'hub' and hasattr(self.node, 'signal'):
             self.node.signal.connect(self.onActuateSignal)
         # if self.node.node_type == 'thing':
         #     self.node.create_signal.connect(self.onCreateSignal)
@@ -306,6 +306,8 @@ class NodeWidget(QTreeWidgetItem):
             self.setText(3,str(self.root.settings[thing][name]['max']))
 
     def add_buffer_buttons(self):
+        if not (hasattr(self.node, 'signal') or hasattr(self.node, 'process_signal')):
+            return
         if self.node.node_type == 'thing':
             signal = self.node.signal
             buffer = self.node.buffer

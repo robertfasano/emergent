@@ -56,4 +56,4 @@ if __name__ == "__main__":
     main.show()
     app.processEvents()
 
-    server = Server()
+    server = Server(network)

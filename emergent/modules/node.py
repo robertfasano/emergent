@@ -100,6 +100,14 @@ class Thing(Node):
         self.create_signal = CreateSignal()
         self.remove_signal = RemoveSignal()
 
+    def __getstate__(self):
+        d = {}
+        unpickled = [self.signal, self.create_signal, self.remove_signal]
+        for item in self.__dict__:
+            if self.__dict__[item] not in unpickled:
+                d[item] = self.__dict__[item]
+        return d
+
     def add_input(self, name):
         ''' Attaches an Input node with the specified name. This should correspond
             to a specific name in the _actuate() function of a non-abstract Thing
@@ -201,7 +209,7 @@ class Hub(Node):
 
     def __getstate__(self):
         d = {}
-        unpickled = [self.signal, self.process_signal, self.samplers, self.children]
+        unpickled = [self.signal, self.process_signal, self.samplers]
         for item in self.__dict__:
             if self.__dict__[item] not in unpickled:
                 d[item] = self.__dict__[item]
