@@ -24,6 +24,13 @@ class ContextTable(QTableWidget):
     def __init__(self):
         QTableWidget.__init__(self)
 
+        self.horizontalHeader().setFixedHeight(30)
+        self.setColumnCount(5)
+        for col in [3, 4]:
+            self.hideColumn(col)
+        self.setHorizontalHeaderLabels(['Time', 'Experiment', 'Event', 'Status', 'Object'])
+        self.horizontalHeader().setStretchLastSection(True)
+
     def contextMenuEvent(self, event):
         self.menu = QMenu(self)
         self.action = QAction('Terminate')
@@ -37,7 +44,7 @@ class ContextTable(QTableWidget):
         self.action.triggered.connect(sampler.terminate)
 
 
-class OptimizerItem(QTableWidgetItem):
+class SamplerItem(QTableWidgetItem):
     def __init__(self, sampler, process_type):
         super().__init__()
         self.sampler = sampler
@@ -51,21 +58,8 @@ class HistoryPanel(QVBoxLayout):
         self.parent = parent
         # self.addWidget(QLabel('Tasks'))
         self.table = ContextTable()
-        self.addWidget(self.table)
-        self.table.horizontalHeader().setFixedHeight(30)
-
-        self.table.insertColumn(0)
-        self.table.insertColumn(1)
-        self.table.insertColumn(2)
-        self.table.insertColumn(3)
-        self.table.insertColumn(4)
-        # self.table.setColumnCount(5)
-        self.table.hideColumn(3)
-        self.table.hideColumn(4)
-        self.table.setHorizontalHeaderLabels(['Time', 'Experiment', 'Event', 'Status', 'Object'])
         self.table.cellDoubleClicked.connect(self.on_double_click)
-        self.table.horizontalHeader().setStretchLastSection(True)
-
+        self.addWidget(self.table)
 
     def add_event(self, sampler, status = ''):
         row = self.table.rowCount()
@@ -78,7 +72,7 @@ class HistoryPanel(QVBoxLayout):
             algorithm_name = 'Run'
         self.table.setItem(row, 2, QTableWidgetItem(algorithm_name))
         self.table.setItem(row, 3, QTableWidgetItem(status))
-        self.table.setItem(row, 4, OptimizerItem(sampler, status))
+        self.table.setItem(row, 4, SamplerItem(sampler, status))
 
         return row
 
