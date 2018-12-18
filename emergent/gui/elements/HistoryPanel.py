@@ -72,7 +72,11 @@ class HistoryPanel(QVBoxLayout):
         self.table.insertRow(row)
         self.table.setItem(row, 0, QTableWidgetItem(sampler.start_time))
         self.table.setItem(row, 1, QTableWidgetItem(sampler.experiment_name))
-        self.table.setItem(row, 2, QTableWidgetItem(sampler.algorithm.name))
+        if sampler.algorithm is not None:
+            algorithm_name = sampler.algorithm.name
+        else:
+            algorithm_name = 'Run'
+        self.table.setItem(row, 2, QTableWidgetItem(algorithm_name))
         self.table.setItem(row, 3, QTableWidgetItem(status))
         self.table.setItem(row, 4, OptimizerItem(sampler, status))
 
