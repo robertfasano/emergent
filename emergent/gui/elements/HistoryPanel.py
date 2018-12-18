@@ -51,12 +51,10 @@ class SamplerItem(QTableWidgetItem):
         self.process_type = process_type
 
 
-
 class HistoryPanel(QVBoxLayout):
     def __init__(self, parent):
         super().__init__()
         self.parent = parent
-        # self.addWidget(QLabel('Tasks'))
         self.table = ContextTable()
         self.table.cellDoubleClicked.connect(self.on_double_click)
         self.addWidget(self.table)
@@ -84,8 +82,7 @@ class HistoryPanel(QVBoxLayout):
         sampler = self.table.item(row, 4).sampler
         process_type = self.table.item(row, 4).process_type
         algorithm = self.table.item(row, 2).text()
-        self.popup = Visualizer(sampler, algorithm, self, row, process_type)
-        # self.popup.show()
+        self.popup = Visualizer(sampler, self, row, process_type)
 
     def load_task(self):
         self.fileWidget = QWidget()
@@ -95,22 +92,20 @@ class HistoryPanel(QVBoxLayout):
         self.add_event(sampler)
 
 class Visualizer(QWidget):
-    def __init__(self, sampler, algorithm, parent, row, process_type):
+    def __init__(self, sampler, parent, row, process_type):
         super(Visualizer, self).__init__()
         QWidget().__init__()
         self.parent = parent
         self.sampler = sampler
-        self.algorithm = algorithm
         self.process_type = process_type
         self.row = row
-        with open('gui/stylesheet.txt',"r") as file:
-            self.setStyleSheet(file.read())
-        self.setWindowTitle('Experiment')
         self.sampler = sampler
         self.layout= QGridLayout()
         self.setLayout(self.layout)
 
-        self.plot()
+        cost_vs_param, param_vs_time = self.generate_figures()
+        self.pw = PlotWidget(self, self.sampler, cost_vs_param, param_vs_time, title='Visualizer: %s'%self.sampler.experiment.__name__)
+        self.pw.show()
 
     def generate_figures(self):
         ''' Show cost vs time, parameters vs time, and parameters vs cost '''
@@ -127,66 +122,52 @@ class Visualizer(QWidget):
         else:
             ax0 = ax
         ax0[0].set_ylabel(self.sampler.experiment.__name__)
-        cvp = {}
+        cost_vs_param = {}
         for i in range(num_inputs):
             p = points[:,i]
-            full_name =  self.sampler.history.columns[i]
-            thing = full_name.split('.')[0]
-            input = full_name.split('.')[1]
-            limits = {full_name.replace('.', ': '): hub.settings[thing][input]}
-            # plot_1D(p, costs, limits=limits, cost_name = self.sampler.experiment.__name__, ax = ax0[i])
+            name =  self.sampler.history.columns[i].replace('.', ': ')
+            limits = {name: self.sampler.get_limits()[name]}
             new_ax, fig = plot_1D(p, costs, limits=limits, cost_name = self.sampler.experiment.__name__, errors = errors)
-            cvp[full_name] = fig
+            cost_vs_param[full_name] = fig
             ax0[i].set_xlabel(full_name)
 
         ''' parameters vs time '''
-        inputs = []
-        pvt = {}
+        param_vs_time = {}
         for i in range(num_inputs):
             p = points[:,i]
-            full_name =  self.sampler.history.columns[i]
-            thing = full_name.split('.')[0]
-            input = full_name.split('.')[1]
-            inputs.append(full_name)
-            limits = {full_name.replace('.', ': '): hub.settings[thing][input]}
-            name = list(limits.keys())[0]
+            name =  self.sampler.history.columns[i].replace('.', ': ')
+            limits = self.sampler.get_limits()
             p = limits[name]['min'] + p*(limits[name]['max']-limits[name]['min'])
 
             if num_inputs == 1:
                 cax = ax[1]
             else:
                 cax = ax[1][i]
-            # plot_1D(t, p, cost_name = self.sampler.experiment.__name__, ax = cax)
             new_ax, fig = plot_1D(t, p, cost_name = self.sampler.experiment.__name__, xlabel = 'Time (s)', ylabel = full_name, errors = errors)
-            pvt[full_name] = fig
+            param_vs_time[full_name] = fig
             cax.set_ylabel(full_name)
             cax.set_xlabel('Time (s)')
 
         ''' 2d plots '''
 
-        axis_combos = list(itertools.combinations(range(num_inputs),2))
-        fig2d = {}
-        if self.process_type == 'optimize':
-            for a in axis_combos:
-                limits = {}
-                full_names = []
-                for ax in a:
-                    full_name =  self.sampler.history.columns[ax]
-                    full_names.append(full_name)
-                    thing = full_name.split('.')[0]
-                    input = full_name.split('.')[1]
-                    limits[full_name.replace('.', ': ')] =  hub.settings[thing][input]
-                axis_combo_name = full_names[0] + '/' + full_names[1]
-                p = points[:,a]
-                fig2d[axis_combo_name] = plot_2D(p, costs, limits = limits)
-        hist_fig = self.sampler.plot_optimization()
-        return hist_fig, cvp, pvt, fig2d
+        # axis_combos = list(itertools.combinations(range(num_inputs),2))
+        # fig2d = {}
+        # if self.process_type == 'optimize':
+        #     for a in axis_combos:
+        #         limits = {}
+        #         full_names = []
+        #         for ax in a:
+        #             full_name =  self.sampler.history.columns[ax]
+        #             full_names.append(full_name)
+        #             thing = full_name.split('.')[0]
+        #             input = full_name.split('.')[1]
+        #             limits[full_name.replace('.', ': ')] =  hub.settings[thing][input]
+        #         axis_combo_name = full_names[0] + '/' + full_names[1]
+        #         p = points[:,a]
+        #         fig2d[axis_combo_name] = plot_2D(p, costs, limits = limits)
 
-    def plot(self):
-        hist_fig, cvp, pvt, fig2d = self.generate_figures()
-        inputs = list(cvp.keys())
-        self.pw = PlotWidget(self, self.sampler, self.algorithm, inputs, hist_fig, cvp, pvt, fig2d, title='Visualizer: %s'%self.sampler.experiment.__name__)
-        self.pw.show()
+
+        return cost_vs_param, param_vs_time
 
     def check_progress(self):
         if not self.sampler.active:

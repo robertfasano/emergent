@@ -32,25 +32,22 @@ class Canvas(FigureCanvas):
         self.app.clipboard().setPixmap(pixmap)
 
 class PlotWidget(QWidget):
-    def __init__(self, container, sampler, algorithm, inputs, hist_fig, cvp, pvt, fig2d, parent = None, title=''):
+    def __init__(self, container, sampler, cvp, pvt, parent = None, title=''):
         super(PlotWidget, self).__init__(parent)
         with open('gui/stylesheet.txt',"r") as file:
             self.setStyleSheet(file.read())
         self.container = container
         self.sampler = sampler
-        self.algorithm = algorithm
         self.canvas = []
         self.layout = QVBoxLayout(self)
         self.setWindowTitle(title)
         self.tabs = QTabWidget()
-        self.inputs = inputs
         self.layout.addWidget(self.tabs)
         self.tabs.currentChanged.connect(self.draw)
 
         self.cvp = cvp
         self.pvt = pvt
-        self.fig2d = fig2d
-        self.hist_fig = hist_fig
+        self.hist_fig = self.sampler.plot_optimization()
 
         ''' info tab '''
         self.info_tab = QWidget()
@@ -81,8 +78,7 @@ class PlotWidget(QWidget):
         cost_params.set_parameters(self.sampler.experiment_params)
         self.layout.addWidget(cost_params, 1, 1)
 
-
-        self.layout.addWidget(QLabel(algorithm), 0, 2)
+        self.layout.addWidget(QLabel(self.sampler.name), 0, 2)
         params = ParameterTable()
         if self.sampler.algorithm_params is not None:
             params.set_parameters(self.sampler.algorithm_params)
@@ -106,7 +102,9 @@ class PlotWidget(QWidget):
         self.tab1_input_layout = QHBoxLayout()
         self.input_box = QComboBox()
         self.tab1_input_layout.addWidget(self.input_box)
-        for input in self.inputs:
+        inputs = []
+        for input in list(cvp.keys()):
+            inputs.append(input)
             self.input_box.addItem(input)
         self.input_box.currentTextChanged.connect(self.choose_input)
         self.tab1_layout.addLayout(self.tab1_input_layout)
@@ -121,24 +119,6 @@ class PlotWidget(QWidget):
         self.canvas = [self.canvas1]
 
         self.choose_input()
-
-        ''' 2d tab '''
-        # if len(inputs) > 1 and self.container.process_type == 'optimize':
-        #     self.axis_combos = list(self.fig2d.keys())
-        #     self.tab2d = QWidget()
-        #     self.tabs.addTab(self.tab2d,"2D")
-        #     self.tab2d_layout = QVBoxLayout()
-        #     self.tab2d.setLayout(self.tab2d_layout)
-        #
-        #     self.tab2d_inputs_layout = QHBoxLayout()
-        #     self.axis_combo_box = QComboBox()
-        #     self.tab2d_inputs_layout.addWidget(self.axis_combo_box)
-        #     for pair in self.axis_combos:
-        #         self.axis_combo_box.addItem(pair)
-        #     self.axis_combo_box.currentTextChanged.connect(self.choose_input_pair)
-        #     self.tab2d_layout.addLayout(self.tab2d_inputs_layout)
-        #     self.choose_input_pair()
-
 
         if len(inputs) == 2 and self.sampler.algorithm is not None:
             self.tab_algo = QWidget()
@@ -173,16 +153,16 @@ class PlotWidget(QWidget):
         self.canvas2.draw()
 
 
-    def choose_input_pair(self):
-        if self.canvas2d is not None:
-            self.tab2d_layout.removeWidget(self.canvas2d)
-            self.canvas2d.deleteLater()
-
-        pair = self.axis_combo_box.currentText()
-        self.canvas2d = Canvas(self.fig2d[pair], self)
-
-        self.tab2d_layout.addWidget(self.canvas2d)
-        self.canvas2d.draw()
+    # def choose_input_pair(self):
+    #     if self.canvas2d is not None:
+    #         self.tab2d_layout.removeWidget(self.canvas2d)
+    #         self.canvas2d.deleteLater()
+    #
+    #     pair = self.axis_combo_box.currentText()
+    #     self.canvas2d = Canvas(self.fig2d[pair], self)
+    #
+    #     self.tab2d_layout.addWidget(self.canvas2d)
+    #     self.canvas2d.draw()
 
     def draw(self):
         for c in self.canvas:
@@ -198,7 +178,7 @@ class PlotWidget(QWidget):
         self.canvas_hist.draw()
 
     def update_figs(self):
-        self.hist_fig, self.cvp, self.pvt, self.fig2d = self.container.generate_figures()
+        self.hist_fig, self.cvp, self.pvt = self.container.generate_figures()
         self.choose_input()
         self.draw_hist_fig()
         if self.sampler.active and self.isVisible():
