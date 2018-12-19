@@ -7,6 +7,7 @@ import importlib
 from emergent.modules.client import Client
 import time
 from PyQt5.QtCore import QTimer
+import logging as log
 
 class Network():
     def __init__(self, name, addr = None, port = None):
@@ -47,10 +48,10 @@ class Network():
     def addHub(self, hub):
         ''' If the address and port match self.addr and self.port, add a local hub. Otherwise,
             check if they match any in self.clients and assign to that one; otherwise, create a new client. '''
-        if hub.address is not None:
-            if not hub.address == self.addr:
-                if hub.address not in self.clients:
-                    self.clients[hub.address] = Client(hub.address)
+        if hub.addr is not None:
+            if not hub.addr == self.addr:
+                if hub.addr not in self.clients:
+                    self.clients[hub.addr] = Client(hub.addr)
                 return
 
         self.hubs[hub.name] = hub

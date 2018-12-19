@@ -203,7 +203,9 @@ class Hub(Node):
         """
         self.network = network
         self.name = name
-        self.address = addr
+        self.addr = addr
+        if self.addr is None:
+            self.addr = get_address()
         if network.addr != addr and addr is not None:
             self.local = False
             return

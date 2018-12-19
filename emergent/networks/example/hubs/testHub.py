@@ -8,7 +8,6 @@ import socket
 class TestHub(Hub):
         def __init__(self, name, addr=None, network=None):
                 super().__init__(name, addr, network = network)
-                self.addr = addr
 
         def cost_coupled(self, state, params={}):
             return self.cost_uncoupled(state, theta=30*np.pi/180)
