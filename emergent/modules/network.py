@@ -2,8 +2,9 @@ import sys
 import os
 import pickle
 import pathlib
-from emergent.utility import Timer
+from emergent.utility import Timer, get_address
 import importlib
+from emergent.modules.client import Client
 
 class Network():
     def __init__(self, name):
@@ -15,7 +16,7 @@ class Network():
 
         for p in [self.state_path, self.data_path]:
             pathlib.Path(p).mkdir(parents=True, exist_ok=True)
-
+        self.clients = {}
         self.hubs = {}
 
     def actuate(self, state):
@@ -24,10 +25,15 @@ class Network():
 
     def addHub(self, hub):
         if not hub._connected:
+            ''' Attempt to connect over TCP/IP '''
+            if hub.address is not None:
+                if hub.address != get_address():
+                    self.clients[hub.name] = Client(hub.address)
             return
 
         self.hubs[hub.name] = hub
         hub.network = self
+
 
     def initialize(self):
         network_module = importlib.import_module('emergent.networks.'+self.name+'.network')
