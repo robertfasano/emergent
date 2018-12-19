@@ -6,8 +6,9 @@ class TestThing(Thing):
     def __init__(self, name, parent, inputs):
         ''' Register with the network and create two Input nodes, 'X' and 'Y'. '''
         super().__init__(name, parent)
-        if not self._instantiated:
+        if not self.local:
             return
+            
         for input in inputs:
             self.add_input(input)
 

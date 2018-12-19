@@ -86,9 +86,9 @@ class Thing(Node):
             name (str): node name. Things which share a Hub should have unique names.
             parent (str): name of parent Hub.
         """
-        self._instantiated = True
-        if not parent._connected:
-            self._instantiated = False
+        self.local = True
+        if not parent.local:
+            self.local = False
             return
         super().__init__(name, parent=parent)
         self.state = {}
@@ -201,11 +201,12 @@ class Hub(Node):
             path (str): network path relative to the emergent/ folder. For example, if the network.py file is located in emergent/networks/example, then path should be 'networks/example.'
 
         """
+        self.address = addr
         if get_address() != addr and addr is not None:
-            self._connected = False
+            self.local = False
             return
         else:
-            self._connected = True
+            self.local = True
         super().__init__(name, parent)
         self.state = State()
         self.settings = {}

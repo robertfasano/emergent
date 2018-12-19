@@ -24,7 +24,7 @@ class Network():
             self.hubs[hub].actuate(state[hub])
 
     def addHub(self, hub):
-        if not hub._connected:
+        if not hub.local:
             ''' Attempt to connect over TCP/IP '''
             if hub.address is not None:
                 if hub.address != get_address():
