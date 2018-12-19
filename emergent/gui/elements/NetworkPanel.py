@@ -178,7 +178,7 @@ class NodeTree(QTreeWidget):
                 self.actuate(hub.name, hub.state)
                 continue
             root = NodeWidget(hub)
-            self.insertTopLevelItems(0, [root])
+            self.insertTopLevelItems(self.topLevelItemCount(), [root])
             for thing in hub.children.values():
                 branch = NodeWidget(thing)
                 root.addChild(branch)
@@ -240,7 +240,7 @@ class NodeTree(QTreeWidget):
         item = self.selectedItems()[0]
         hub_name = item.parent().parent().text(0)
         hub = self.network.hubs[hub_name]
-        
+
         return hub
 
     def get_selected_state(self):
