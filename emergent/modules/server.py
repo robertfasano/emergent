@@ -27,6 +27,9 @@ class Server():
         self.network.actuate(state)
         await self.send({'op': 'update', 'params': 'ok'}, reader, writer)
 
+    async def echo(self, message, reader, writer):
+        await self.send(message, reader, writer)
+
     def start(self):
         self.loop.run_forever()
 
@@ -35,6 +38,7 @@ class Server():
         writer.write(resp)
         await writer.drain()
         writer.close()
+        await writer.wait_closed()
 
     async def handle_command(self, reader, writer):
         data = await reader.read(100)
@@ -49,7 +53,8 @@ class Server():
             await self.add_listener(reader, writer)
         elif op == 'actuate':
             await self.actuate(message['params'], reader, writer)
-
+        elif op == 'echo':
+            await self.echo(message['params'], reader, writer)
 
 
     async def add_listener(self, reader, writer):
