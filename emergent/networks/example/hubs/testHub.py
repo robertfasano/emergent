@@ -4,10 +4,14 @@ from emergent.utility import experiment, error
 import datetime
 import time
 import numpy as np
-
+import socket
 class TestHub(Hub):
-        def __init__(self, name, parent=None, path = '.'):
+        def __init__(self, name, addr, parent=None, path = '.'):
+                pc_addr = socket.gethostbyname(socket.gethostname())
+                if pc_addr != addr:
+                    return
                 super().__init__(name, parent, path=path)
+                self.addr = addr
 
         def cost_coupled(self, state, params={}):
             return self.cost_uncoupled(state, theta=30*np.pi/180)
