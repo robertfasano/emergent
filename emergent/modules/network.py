@@ -100,7 +100,7 @@ class Network():
                 if not client._connected:
                     try:
                         client.connect()
-                    except ConnectionRefusedError:
+                    except ConnectionRefusedError: #note: using localhost instead of 127.0.0.1 will throw multiple exceptions here
                         continue
                 else:
                     disconnected_clients -= 1
