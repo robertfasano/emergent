@@ -114,7 +114,7 @@ class NodeTree(QTreeWidget):
         self.itemSelectionChanged.connect(self.deselect_nonsiblings)
 
         ''' Populate tree '''
-        self._generateTree()
+        self._generateTree(self.network)
         self.expand('hub')
         self.expand('thing')
 
@@ -137,8 +137,8 @@ class NodeTree(QTreeWidget):
             if item.node.node_type != 'input':
                 item.add_buffer_buttons()
 
-    def _generateTree(self):
-        for hub in self.network.hubs.values():
+    def _generateTree(self, network):
+        for hub in network.hubs.values():
             root = NodeWidget(hub)
             self.insertTopLevelItems(0, [root])
             for thing in hub.children.values():
