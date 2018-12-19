@@ -17,6 +17,10 @@ def unit_test(self, func, *args, **kwargs):
         times.append(end-start)
     print(np.mean(times), '+/-', np.std(times))
 
+def get_address():
+    import socket
+    return socket.gethostbyname(socket.gethostname())
+
 def getChar():
     ''' Returns a user-input keyboard character. Cross-platform implementation
         credited to Matthew Strax-Haber (StackExchange) '''

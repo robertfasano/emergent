@@ -11,5 +11,4 @@ def initialize(network):
     otherThing = TestThing('otherThing', parent=otherHub, inputs = ['X', 'Y'])
 
     for hub in [autoAlign, otherHub]:
-        if hub._connected:
-            network.addHub(hub)
+        network.addHub(hub)

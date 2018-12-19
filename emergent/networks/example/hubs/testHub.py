@@ -6,14 +6,8 @@ import time
 import numpy as np
 import socket
 class TestHub(Hub):
-        def __init__(self, name, addr, parent=None, path = '.'):
-                pc_addr = socket.gethostbyname(socket.gethostname())
-                if pc_addr != addr:
-                    self._connected = False
-                    return
-                else:
-                    self._connected = True
-                super().__init__(name, parent, path=path)
+        def __init__(self, name, addr=None, parent=None):
+                super().__init__(name, addr, parent)
                 self.addr = addr
 
         def cost_coupled(self, state, params={}):

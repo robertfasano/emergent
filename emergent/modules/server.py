@@ -4,6 +4,7 @@ from emergent.modules import Hub
 from threading import Thread
 import logging as log
 import pickle
+from emergent.utility import get_address
 
 class Server():
     ''' Allows decentralized data viewing via asynchronous communications between the EMERGENT
@@ -14,7 +15,7 @@ class Server():
         self.network = network
         self.params = {'tick': 500}
         self.loop = asyncio.get_event_loop()
-        self.addr = self.network.get_address()
+        self.addr = get_address()
         self.port = 8888
         coro = asyncio.start_server(self.handle_command, self.addr, self.port, loop=self.loop)
         self.server = self.loop.run_until_complete(coro)

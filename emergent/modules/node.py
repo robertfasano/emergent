@@ -10,7 +10,7 @@ import pandas as pd
 import datetime
 from emergent.signals import RemoveSignal, CreateSignal, ActuateSignal, ProcessSignal
 import numpy as np
-from emergent.utility import StateBuffer, MacroBuffer
+from emergent.utility import StateBuffer, MacroBuffer, get_address
 
 class Node():
     ''' The Node class is the core building block of the EMERGENT network,
@@ -86,6 +86,10 @@ class Thing(Node):
             name (str): node name. Things which share a Hub should have unique names.
             parent (str): name of parent Hub.
         """
+        self._instantiated = True
+        if not parent._connected:
+            self._instantiated = False
+            return
         super().__init__(name, parent=parent)
         self.state = {}
         self.params = params
@@ -188,7 +192,7 @@ class Hub(Node):
         be accessed for a given type, e.g. Hub.instances lists all Hub
         nodes. '''
 
-    def __init__(self, name, parent = None, path = '.'):
+    def __init__(self, name, addr = None, parent = None, path = '.'):
         """Initializes a Hub.
 
         Args:
@@ -197,7 +201,11 @@ class Hub(Node):
             path (str): network path relative to the emergent/ folder. For example, if the network.py file is located in emergent/networks/example, then path should be 'networks/example.'
 
         """
-
+        if get_address() != addr and addr is not None:
+            self._connected = False
+            return
+        else:
+            self._connected = True
         super().__init__(name, parent)
         self.state = State()
         self.settings = {}
