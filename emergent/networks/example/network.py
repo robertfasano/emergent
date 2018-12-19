@@ -10,4 +10,6 @@ def initialize(network):
     otherHub = TestHub('otherHub', addr = '192.168.0.108')
     otherThing = TestThing('otherThing', parent=otherHub, inputs = ['X', 'Y'])
 
-    network.addHub(autoAlign)
+    for hub in [autoAlign, otherHub]:
+        if hub._connected:
+            network.addHub(hub)
