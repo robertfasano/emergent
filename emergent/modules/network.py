@@ -8,6 +8,7 @@ from emergent.modules.client import Client
 import time
 from PyQt5.QtCore import QTimer
 import logging as log
+from emergent.modules import ProcessHandler
 
 class Network():
     def __init__(self, name, addr = None, port = None):
@@ -24,10 +25,12 @@ class Network():
         self.state_path = self.path+'/state/'
         self.tree = None
         self.sync_delay = 0.1
+        self.reconnect_delay = 1
         for p in [self.state_path, self.data_path]:
             pathlib.Path(p).mkdir(parents=True, exist_ok=True)
         self.clients = {}
         self.hubs = {}
+        self.manager = ProcessHandler()
 
     def __getstate__(self):
         d = {}
@@ -90,14 +93,24 @@ class Network():
         self.update_timer.timeout.connect(self.sync)
         self.update_timer.start(self.sync_delay*1000)
 
+    def try_connect(self):
+        while True:
+            disconnected_clients = len(self.clients)
+            for client in self.clients.values():
+                if not client._connected:
+                    try:
+                        client.connect()
+                    except ConnectionRefusedError:
+                        continue
+                else:
+                    disconnected_clients -= 1
+            if disconnected_clients == 0:
+                return
+            time.sleep(self.reconnect_delay)
+
     def sync(self):
         ''' Updates the local session with remote networks '''
         for client in self.clients.values():
-            if not client._connected:
-                try:
-                    client.connect()
-                except ConnectionRefusedError:
-                    continue
             if not client._connected:
                 continue
             try:

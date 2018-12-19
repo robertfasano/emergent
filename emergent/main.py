@@ -62,6 +62,7 @@ if __name__ == "__main__":
         app = QApplication(sys.argv)         # Create an instance of the application
 
     main = MainFrame(app, network)
+    network.manager._run_thread(network.try_connect, stoppable = False)
     network.keep_sync()     # sync network with all other EMERGENT sessions
 
     main.show()
