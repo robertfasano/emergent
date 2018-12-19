@@ -114,8 +114,8 @@ class Network():
             if not client._connected:
                 continue
             try:
-                nw = client.get_network()
+                client.network = client.get_network()
             except ConnectionRefusedError:
                 self.update_timer.stop()
                 log.warn('Connection refused by server at %s:%i.'%(client.addr, client.port))
-            self.tree.generate(nw)
+            self.tree.generate(client.network)

@@ -106,7 +106,11 @@ class Thing(Node):
 
     def __getstate__(self):
         d = {}
-        unpickled = [self.signal, self.create_signal, self.remove_signal]
+        ignore = ['signal', 'create_signal', 'remove_signal']
+        unpickled = []
+        for item in ignore:
+            if hasattr(self, item):
+                unpickled.append(getattr(self,item))
         for item in self.__dict__:
             if self.__dict__[item] not in unpickled:
                 d[item] = self.__dict__[item]
@@ -222,7 +226,11 @@ class Hub(Node):
 
     def __getstate__(self):
         d = {}
-        unpickled = [self.signal, self.process_signal, self.samplers]
+        ignore = ['signal', 'process_signal', 'samplers', 'network']
+        unpickled = []
+        for item in ignore:
+            if hasattr(self, item):
+                unpickled.append(getattr(self,item))
         for item in self.__dict__:
             if self.__dict__[item] not in unpickled:
                 d[item] = self.__dict__[item]

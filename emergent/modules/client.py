@@ -12,6 +12,18 @@ class Client(ProcessHandler):
         self._connected = False
         self.reconnect_delay = 1
 
+    def __getstate__(self):
+        d = {}
+        ignore = ['network']
+        unpickled = []
+        for item in ignore:
+            if hasattr(self, item):
+                unpickled.append(getattr(self,item))
+        for item in self.__dict__:
+            if self.__dict__[item] not in unpickled:
+                d[item] = self.__dict__[item]
+        return d
+
     def actuate(self, state):
         return asyncio.run(self.send({'op': 'actuate', 'params': state}))[0]
 
