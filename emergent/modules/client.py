@@ -13,6 +13,11 @@ class Client():
     def actuate(self, state):
         return self.send({'op': 'actuate', 'params': state})
 
+    def echo(self, message):
+        message = {'op': 'echo', 'params': message}
+        resp = self.send(message)
+        return resp
+
     def send(self, message):
         loop = asyncio.get_event_loop()
         response = loop.run_until_complete(self.tcp_echo_client(message, loop))
