@@ -9,7 +9,10 @@ class TestHub(Hub):
         def __init__(self, name, addr, parent=None, path = '.'):
                 pc_addr = socket.gethostbyname(socket.gethostname())
                 if pc_addr != addr:
+                    self._connected = False
                     return
+                else:
+                    self._connected = True
                 super().__init__(name, parent, path=path)
                 self.addr = addr
 

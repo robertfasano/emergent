@@ -8,5 +8,6 @@ def initialize(network):
     autoAlign = TestHub('autoAlign', addr = '192.168.0.107')
     MEMS = TestThing('MEMS', parent=autoAlign, inputs = ['X', 'Y'])
     otherHub = TestHub('otherHub', addr = '192.168.0.108')
+    otherThing = TestThing('otherThing', parent=otherHub, inputs = ['X', 'Y'])
 
     network.addHub(autoAlign)

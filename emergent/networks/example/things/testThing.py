@@ -5,6 +5,8 @@ class TestThing(Thing):
     ''' Thing driver for the virtual network in the 'basic' example. '''
     def __init__(self, name, parent, inputs):
         ''' Register with the network and create two Input nodes, 'X' and 'Y'. '''
+        if not parent._connected:
+            return
         super().__init__(name, parent)
         for input in inputs:
             self.add_input(input)
