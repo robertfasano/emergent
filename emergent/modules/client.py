@@ -27,9 +27,10 @@ class Client():
         reader, writer = await asyncio.open_connection(self.addr, 8888,
                                                        loop=loop)
         writer.write(json.dumps(message).encode())
-        data = await reader.read(4096)
-
+        await writer.drain()
+        data = await reader.read()
         writer.close()
+        await writer.wait_closed()
         return pickle.loads(data)
         # return json.loads(data.decode())
 
