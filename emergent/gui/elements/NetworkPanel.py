@@ -87,6 +87,7 @@ class NodeTree(QTreeWidget):
     def __init__(self, network, parent):
         super().__init__()
         self.network = network
+        self.network.tree = self
         self.parent = parent
         self.editorOpen = 0
         self.current_item = None

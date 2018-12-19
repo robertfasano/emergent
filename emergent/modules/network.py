@@ -13,6 +13,7 @@ class Network():
         self.path='networks/%s'%name
         self.data_path = self.path+'/data/'
         self.state_path = self.path+'/state/'
+        self.tree = None
 
         for p in [self.state_path, self.data_path]:
             pathlib.Path(p).mkdir(parents=True, exist_ok=True)
