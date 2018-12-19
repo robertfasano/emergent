@@ -25,7 +25,7 @@ class Server():
 
     async def actuate(self, state, reader, writer):
         self.network.actuate(state)
-        await self.send({'op': 'update', 'params': 'ok'}, reader, writer)
+        await self.send({'op': 'update', 'params': 1}, reader, writer)
 
     async def echo(self, message, reader, writer):
         await self.send(message, reader, writer)
@@ -59,4 +59,4 @@ class Server():
 
     async def add_listener(self, reader, writer):
         log.info('New listener at %s on port %i.'%(self.addr, self.port))
-        await self.send({'op': 'ok'}, reader, writer)
+        await self.send({'op': 'update', 'params': 1}, reader, writer)

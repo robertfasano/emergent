@@ -34,7 +34,13 @@ class Network():
         self.hubs[hub.name] = hub
         hub.network = self
 
-
+    def connect_remotes(self):
+        self.remotes = {}
+        for c in self.clients:
+            client = self.clients[c]
+            client.connect()
+            self.remotes[c] = client.get_network()
+            
     def initialize(self):
         network_module = importlib.import_module('emergent.networks.'+self.name+'.network')
         network_module.initialize(self)
