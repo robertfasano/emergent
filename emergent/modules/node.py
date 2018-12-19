@@ -251,8 +251,11 @@ class Hub(Node):
     #         log.warn('Could not find csv for input %s; creating new settings.'%name)
 
     def load(self):
-        with open(self.network.state_path+self.name+'.json', 'r') as file:
-            state = json.load(file)
+        try:
+            with open(self.network.state_path+self.name+'.json', 'r') as file:
+                state = json.load(file)
+        except FileNotFoundError:
+            state = {}
         for thing in self.children.values():
             for input in thing.children.values():
                 try:
