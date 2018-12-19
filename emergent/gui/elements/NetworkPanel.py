@@ -114,7 +114,7 @@ class NodeTree(QTreeWidget):
         self.itemSelectionChanged.connect(self.deselect_nonsiblings)
 
         ''' Populate tree '''
-        self._generateTree(self.network)
+        self.generate(self.network)
         self.expand('hub')
         self.expand('thing')
 
@@ -136,17 +136,6 @@ class NodeTree(QTreeWidget):
         for item in self.get_all_items():
             if item.node.node_type != 'input':
                 item.add_buffer_buttons()
-
-    def _generateTree(self, network):
-        for hub in network.hubs.values():
-            root = NodeWidget(hub)
-            self.insertTopLevelItems(0, [root])
-            for thing in hub.children.values():
-                branch = NodeWidget(thing)
-                root.addChild(branch)
-                for input in thing.children.values():
-                    leaf = NodeWidget(input)
-                    branch.addChild(leaf)
 
     def actuate(self, hub, state):
         hub_item = self.get_hub(hub)
@@ -180,6 +169,22 @@ class NodeTree(QTreeWidget):
         items = [x for x in items if x.node.node_type==node_type]
         for item in items:
             item.setExpanded(True)
+
+    def generate(self, network):
+        ''' Adds the passed network to the tree. If any hubs are already registered with the tree,
+            instead updates their state based on the past network. '''
+        for hub in network.hubs.values():
+            if self.get_hub(hub.name) is not None:
+                self.actuate(hub.name, hub.state)
+                continue
+            root = NodeWidget(hub)
+            self.insertTopLevelItems(0, [root])
+            for thing in hub.children.values():
+                branch = NodeWidget(thing)
+                root.addChild(branch)
+                for input in thing.children.values():
+                    leaf = NodeWidget(input)
+                    branch.addChild(leaf)
 
     def get_all_items(self):
         """Returns all connected NodeWidgets."""
