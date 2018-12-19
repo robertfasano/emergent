@@ -18,6 +18,10 @@ class Network():
 
         self.hubs = {}
 
+    def actuate(self, state):
+        for hub in state:
+            self.hubs[hub].actuate(state[hub])
+            
     def addHub(self, hub):
         self.hubs[hub.name] = hub
         hub.network = self

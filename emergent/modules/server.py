@@ -22,6 +22,10 @@ class Server():
         thread = Thread(target=self.start)
         thread.start()
 
+    async def actuate(self, state, reader, writer):
+        self.network.actuate(state)
+        await self.send({'op': 'update', 'params': 'ok'}, reader, writer)
+
     def start(self):
         self.loop.run_forever()
 
@@ -34,15 +38,18 @@ class Server():
     async def handle_command(self, reader, writer):
         data = await reader.read(100)
         addr = writer.get_extra_info('peername')
-
         message = json.loads(data.decode())
         op = message['op']
-        if op == 'get_network':
-            await self.send(self.network, reader, writer)
-        if op == 'get_params':
-            await self.send(self.params, reader, writer)
-        if op == 'connect':
+
+        if 'get' in op:
+            var = getattr(self, op.split('_')[1])
+            await self.send(var, reader, writer)
+        elif op == 'connect':
             await self.add_listener(reader, writer)
+        elif op == 'actuate':
+            await self.actuate(message['params'], reader, writer)
+
+
 
     async def add_listener(self, reader, writer):
         log.info('New listener at %s on port %i.'%(self.addr, self.port))

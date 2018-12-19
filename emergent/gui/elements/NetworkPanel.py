@@ -84,9 +84,10 @@ class RedoButton(QWidget):
         return QSize(50, 28)
 
 class NodeTree(QTreeWidget):
-    def __init__(self, network):
+    def __init__(self, network, parent):
         super().__init__()
         self.network = network
+        self.parent = parent
         self.editorOpen = 0
         self.current_item = None
         self.last_item = None
@@ -253,14 +254,17 @@ class NodeTree(QTreeWidget):
             thing = self.current_item.node.parent.name
             if col == 1:
                 state = {thing:{input: float(value)}}
-                hub.actuate(state)
+                if hasattr(hub, 'signal'):
+                    hub.actuate(state)
+                elif hasattr(self.parent, 'client'):
+                    self.parent.client.actuate({hub.name: state})
             elif col == 2:
                 hub.settings[thing][input]['min'] = float(value)
             elif col == 3:
                 hub.settings[thing][input]['max'] = float(value)
 
-        except AttributeError:
-            pass
+        except AttributeError as e:
+            print(e)
 
     def keyPressEvent(self, event):
         if event.key() == 16777220:
