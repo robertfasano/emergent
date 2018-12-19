@@ -13,6 +13,11 @@ class Client():
     def actuate(self, state):
         return self.send({'op': 'actuate', 'params': state})
 
+    def echo(self, message):
+        message = {'op': 'echo', 'params': message}
+        resp = self.send(message)
+        return resp
+
     def send(self, message):
         loop = asyncio.get_event_loop()
         response = loop.run_until_complete(self.tcp_echo_client(message, loop))
@@ -22,9 +27,10 @@ class Client():
         reader, writer = await asyncio.open_connection(self.addr, 8888,
                                                        loop=loop)
         writer.write(json.dumps(message).encode())
-        data = await reader.read(4096)
-
+        await writer.drain()
+        data = await reader.read()
         writer.close()
+        await writer.wait_closed()
         return pickle.loads(data)
         # return json.loads(data.decode())
 

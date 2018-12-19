@@ -17,8 +17,9 @@ import sys
 import logging as log
 
 class RemoteViewer(QMainWindow):
-    def __init__(self, app):
+    def __init__(self, app, addr):
         QMainWindow.__init__(self)
+        self.addr = addr
         self.setWindowTitle('EMERGENT: Remote viewer')
         with open('gui/stylesheet.txt',"r") as file:
             self.setStyleSheet(file.read())
@@ -28,7 +29,7 @@ class RemoteViewer(QMainWindow):
         self.setCentralWidget(self.widget)
         layout= QHBoxLayout(self.widget)
 
-        self.client = Client()
+        self.client = Client(addr=self.addr)
 
         self.resize(540, 720)
 
