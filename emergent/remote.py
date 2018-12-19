@@ -22,7 +22,7 @@ if __name__ == "__main__":
     app = QCoreApplication.instance()
     if app is None:
         app = QApplication(sys.argv)         # Create an instance of the application
-
-    main = RemoteViewer(app)
+    addr = sys.argv[1]
+    main = RemoteViewer(app, addr)
     main.show()
     app.processEvents()
