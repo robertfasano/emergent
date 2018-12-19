@@ -4,6 +4,7 @@ import pickle
 import pathlib
 from emergent.utility import Timer
 import importlib
+import socket
 
 class Network():
     def __init__(self, name):
@@ -21,10 +22,13 @@ class Network():
     def actuate(self, state):
         for hub in state:
             self.hubs[hub].actuate(state[hub])
-            
+
     def addHub(self, hub):
         self.hubs[hub.name] = hub
         hub.network = self
+
+    def get_address(self):
+        return socket.gethostbyname(socket.gethostname())
 
     def initialize(self):
         network_module = importlib.import_module('emergent.networks.'+self.name+'.network')

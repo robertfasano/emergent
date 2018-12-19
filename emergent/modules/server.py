@@ -14,7 +14,7 @@ class Server():
         self.network = network
         self.params = {'tick': 500}
         self.loop = asyncio.get_event_loop()
-        self.addr = '127.0.0.1'
+        self.addr = self.network.get_address()
         self.port = 8888
         coro = asyncio.start_server(self.handle_command, self.addr, self.port, loop=self.loop)
         self.server = self.loop.run_until_complete(coro)

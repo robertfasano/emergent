@@ -3,7 +3,8 @@ import json
 import pickle
 
 class Client():
-    def __init__(self):
+    def __init__(self, addr):
+        self.addr = addr
         self.params = self.get_params()
         loop = asyncio.get_event_loop()
         message = {'op': 'connect'}
@@ -18,7 +19,7 @@ class Client():
         return response
 
     async def tcp_echo_client(self, message, loop):
-        reader, writer = await asyncio.open_connection('127.0.0.1', 8888,
+        reader, writer = await asyncio.open_connection(self.addr, 8888,
                                                        loop=loop)
         writer.write(json.dumps(message).encode())
         data = await reader.read(4096)
