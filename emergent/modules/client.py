@@ -5,16 +5,13 @@ import pickle
 class Client():
     def __init__(self, addr):
         self.addr = addr
-        self.params = self.get_params()
-        loop = asyncio.get_event_loop()
-        message = {'op': 'connect'}
-        state = loop.run_until_complete(self.tcp_echo_client(message, loop))
 
     def actuate(self, state):
         return asyncio.run(self.send({'op': 'actuate', 'params': state}))[0]
 
     def connect(self):
-        return asyncio.run(self.send({'op': 'connect'}))
+        self._connected = asyncio.run(self.send({'op': 'connect'}))
+        self.params = self.get_params()
 
     def echo(self, message):
         message = {'op': 'echo', 'params': message}
