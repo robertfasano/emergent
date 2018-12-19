@@ -12,6 +12,7 @@ from emergent.gui.elements import ExperimentLayout
 from emergent.modules import Hub, Thing, Input, State
 from emergent.signals import ActuateSignal
 import functools
+import logging as log
 
 class UndoButton(QWidget):
     def __init__(self, item, buffer, signal):
@@ -116,8 +117,6 @@ class NodeTree(QTreeWidget):
 
         ''' Populate tree '''
         self.generate(self.network)
-        self.expand('hub')
-        self.expand('thing')
 
         ''' Ensure that only Inputs are selectable '''
         for item in self.get_all_items():
@@ -186,6 +185,28 @@ class NodeTree(QTreeWidget):
                 for input in thing.children.values():
                     leaf = NodeWidget(input)
                     branch.addChild(leaf)
+            self.actuate(hub.name, hub.state)       # update tree to current hub state
+            self.expand('hub')
+            self.expand('thing')
+
+    # def generate(self, network):
+    #     ''' Adds the passed network to the tree. If any hubs are already registered with the tree,
+    #         instead updates their state based on the past network. '''
+    #     for hub in network:
+    #         if self.get_hub(hub) is not None:
+    #             self.actuate(hub, network[hub])
+    #             continue
+    #         root = NodeWidget(hub)
+    #         self.insertTopLevelItems(0, [root])
+    #         for thing in network[hub]:
+    #             branch = NodeWidget(thing)
+    #             root.addChild(branch)
+    #             for input in network[hub][thing]:
+    #                 leaf = NodeWidget(input)
+    #                 branch.addChild(leaf)
+    #         self.actuate(hub, network[hub])       # update tree to current hub state
+    #         self.expand('hub')
+    #         self.expand('thing')
 
     def get_all_items(self):
         """Returns all connected NodeWidgets."""
@@ -218,7 +239,9 @@ class NodeTree(QTreeWidget):
         ''' Returns a hub node corresponding to the selected input node. '''
         item = self.selectedItems()[0]
         hub_name = item.parent().parent().text(0)
-        return self.network.hubs[hub_name]
+        hub = self.network.hubs[hub_name]
+        
+        return hub
 
     def get_selected_state(self):
         ''' Build a substate from all currently selected inputs. '''
@@ -255,15 +278,16 @@ class NodeTree(QTreeWidget):
             value = self.current_item.text(col)
 
             hub_name = self.current_item.parent().parent().text(0)
-            hub = self.network.hubs[hub_name]
+            hub = self.current_item.node.parent.parent
+            # hub = self.network.hubs[hub_name]
             input = self.current_item.node.name
             thing = self.current_item.node.parent.name
             if col == 1:
                 state = {thing:{input: float(value)}}
-                if hasattr(hub, 'signal'):
+                if hub.addr == self.network.addr:
                     hub.actuate(state)
-                elif hasattr(self.parent, 'client'):
-                    self.parent.client.actuate({hub.name: state})
+                else:
+                    self.network.clients[hub.addr].actuate({hub.name: state})
             elif col == 2:
                 hub.settings[thing][input]['min'] = float(value)
             elif col == 3:

@@ -50,8 +50,11 @@ class ServoLayout(QVBoxLayout, ProcessHandler):
         settings['experiment_name'] = self.experiment_box.currentText()
         try:
             settings['hub'] = self.parent.parent.treeWidget.get_selected_hub()
-        except IndexError:
-            log.warn('Select inputs before starting optimization!')
+        except Exception as e:
+            if e == IndexError:
+                log.warn('Select inputs before starting optimization!')
+            elif e == KeyError:
+                log.warn('Decentralized processes not yet supported.')
             return
 
         settings['algorithm_params'] = self.algorithm_table.get_params()

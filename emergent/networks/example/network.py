@@ -4,10 +4,9 @@ import sys
 import socket
 #
 def initialize(network):
-    addr = socket.gethostbyname(socket.gethostname())
-    autoAlign = TestHub('autoAlign', addr = '192.168.0.107')
+    autoAlign = TestHub('autoAlign', network = network)
     MEMS = TestThing('MEMS', parent=autoAlign, inputs = ['X', 'Y'])
-    otherHub = TestHub('otherHub', addr = '192.168.0.108')
+    otherHub = TestHub('otherHub', addr = '127.0.0.1', network = network)
     otherThing = TestThing('otherThing', parent=otherHub, inputs = ['X', 'Y'])
 
     for hub in [autoAlign, otherHub]:

@@ -1,17 +1,24 @@
 import asyncio
 import json
 import pickle
+from emergent.modules import ProcessHandler
+import time
 
-class Client():
-    def __init__(self, addr):
+class Client(ProcessHandler):
+    def __init__(self, addr, port = 8888):
+        ProcessHandler.__init__(self)
         self.addr = addr
+        self.port = port
+        self._connected = False
+        self.reconnect_delay = 1
 
     def actuate(self, state):
         return asyncio.run(self.send({'op': 'actuate', 'params': state}))[0]
 
     def connect(self):
-        self._connected = asyncio.run(self.send({'op': 'connect'}))
-        self.params = self.get_params()
+        # while not self._connected and not stopped():
+        self._connected = asyncio.run(self.send({'op': 'connect'}))[0]['params']
+        # time.sleep(self.reconnect_delay)
 
     def echo(self, message):
         message = {'op': 'echo', 'params': message}
@@ -25,7 +32,7 @@ class Client():
         return response
 
     async def tcp_echo_client(self, message, loop):
-        reader, writer = await asyncio.open_connection(self.addr, 8888,
+        reader, writer = await asyncio.open_connection(self.addr, self.port,
                                                        loop=loop)
         writer.write(json.dumps(message).encode())
         await writer.drain()

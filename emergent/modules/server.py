@@ -14,8 +14,15 @@ class Server():
         ''' Sets up a new thread for serving. '''
         self.network = network
         self.params = {'tick': 500}
-        self.loop = asyncio.get_event_loop()
-        self.addr = get_address()
+        try:
+            self.loop = asyncio.get_event_loop()
+        except RuntimeError:
+            self.loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(self.loop)
+        if self.network.addr is None:
+            self.addr = get_address()
+        else:
+            self.addr = self.network.addr
         self.port = 8888
         coro = asyncio.start_server(self.handle_command, self.addr, self.port, loop=self.loop)
         self.server = self.loop.run_until_complete(coro)

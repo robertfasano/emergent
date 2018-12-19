@@ -25,7 +25,9 @@ except:
 
 ''' Parse arguments and set verbosity for logging '''
 parser = argparse.ArgumentParser()
-parser.add_argument("path")
+parser.add_argument("name", help="Network name")
+parser.add_argument("--addr", help='EMERGENT session IP address')
+parser.add_argument("--port", help='EMERGENT session networking port')
 parser.add_argument("-v", "--verbose", help="Increase output verbosity", action="store_true")
 args = parser.parse_args()
 if args.verbose:
@@ -34,7 +36,13 @@ else:
     log.basicConfig(level=log.INFO)
 
 ''' Initialize network  '''
-network = Network(name=sys.argv[1])
+addr = None
+if args.addr:
+    addr = args.addr
+port = None
+if args.port:
+    port = args.port
+network = Network(name=args.name, addr = addr, port = port)
 network.initialize()        # instantiate nodes
 network.load()              # load previous state from file
 network.post_load()         # run post-load routine to prepare physical state
@@ -48,11 +56,14 @@ else:
 globals().update({k: getattr(process, k) for k in names})
 
 if __name__ == "__main__":
-    app = QCoreApplication.instance()
+    # app = QCoreApplication.instance()
+    app = None
     if app is None:
         app = QApplication(sys.argv)         # Create an instance of the application
 
     main = MainFrame(app, network)
+    network.keep_sync()     # sync network with all other EMERGENT sessions
+
     main.show()
     app.processEvents()
 

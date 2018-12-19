@@ -192,7 +192,7 @@ class Hub(Node):
         be accessed for a given type, e.g. Hub.instances lists all Hub
         nodes. '''
 
-    def __init__(self, name, addr = None, parent = None, path = '.'):
+    def __init__(self, name, addr = None, network = None, parent = None):
         """Initializes a Hub.
 
         Args:
@@ -201,9 +201,10 @@ class Hub(Node):
             path (str): network path relative to the emergent/ folder. For example, if the network.py file is located in emergent/networks/example, then path should be 'networks/example.'
 
         """
+        self.network = network
         self.name = name
         self.address = addr
-        if get_address() != addr and addr is not None:
+        if network.addr != addr and addr is not None:
             self.local = False
             return
         else:

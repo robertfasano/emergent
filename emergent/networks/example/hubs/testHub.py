@@ -6,8 +6,8 @@ import time
 import numpy as np
 import socket
 class TestHub(Hub):
-        def __init__(self, name, addr=None, parent=None):
-                super().__init__(name, addr, parent)
+        def __init__(self, name, addr=None, network=None):
+                super().__init__(name, addr, network = network)
                 self.addr = addr
 
         def cost_coupled(self, state, params={}):
