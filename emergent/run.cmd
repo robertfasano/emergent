@@ -1,3 +1,3 @@
 @ECHO OFF
-python launcher.py
-@ECHO
+call C:/ProgramData/Anaconda3/Scripts/activate.bat
+call python launcher.py
