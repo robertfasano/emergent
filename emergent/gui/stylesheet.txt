@@ -3,7 +3,8 @@ QPushButton {color:"#000000"; font-family: "Exo 2"; font-size: 14px; font-weight
 QTextEdit {color:#000000; font-family: "Exo 2"; font-size: 14px; font-weight: light}
 QMenu {color:"#000000"; font-weight: light; font-family: "Exo 2"; font-size: 14px}
 QMenuBar {color:"#000000"; font-weight: light; font-family: "Exo 2"; font-size: 14px; background-color: rgba( 255, 255, 255, 85% )}
-QLabel {color:"#000000"; font-weight: light; font-family: "Exo 2"; font-size: 14px}
+QLabel {color:"#000000"; font-weight: light; font-family: "Exo 2"; font-size: 14px;  background-color: transparent; border-color: transparent; border: 0px}
+QSlider {background-color: transparent}
 QTableWidget {color:"#000000"; font-weight: light; font-family: "Exo 2"; font-size: 14px; background-color: rgba(255, 255, 255, 80%);}
 QTableWidgetItem {color:"#000000"; font-weight: light; font-family: "Exo 2"; font-size: 14px}
 QWindow {color:"#000000"; font-weight: light; font-family: "Exo 2"; font-size: 14px}
