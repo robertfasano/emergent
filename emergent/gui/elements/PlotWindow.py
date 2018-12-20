@@ -34,8 +34,9 @@ class Canvas(FigureCanvas):
 class PlotWidget(QWidget):
     def __init__(self, container, sampler, cvp, pvt, parent = None, title=''):
         super(PlotWidget, self).__init__(parent)
-        with open('gui/stylesheet.txt',"r") as file:
-            self.setStyleSheet(file.read())
+        # with open('gui/stylesheet.txt',"r") as file:
+        #     self.setStyleSheet(file.read())
+        self.setStyleSheet('color:"#000000"; font-weight: light; font-family: "Exo 2"; font-size: 14px; background-color: white')
         self.container = container
         self.sampler = sampler
         self.canvas = []
