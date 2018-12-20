@@ -23,7 +23,7 @@ class UndoButton(QWidget):
         self.button = QPushButton()
         self.button.clicked.connect(self.undo)
         self.layout.addWidget(self.button)
-        self.button.setStyleSheet("background-color: rgba(255, 255, 255, 0);")
+        self.button.setStyleSheet('color:"#000000"; border: 0px; border-color: transparent; font-family: "Exo 2"; font-size: 14px; font-weight: light;')
 
         icon = QIcon()
         icon.addPixmap(QPixmap('gui/media/Material/undo.svg'),QIcon.Normal,QIcon.On)
@@ -58,7 +58,7 @@ class RedoButton(QWidget):
         self.button = QPushButton()
         self.button.clicked.connect(self.redo)
         self.layout.addWidget(self.button)
-        self.button.setStyleSheet("background-color: rgba(255, 255, 255, 0);")
+        self.button.setStyleSheet('color:"#000000"; border: 0px; border-color: transparent; font-family: "Exo 2"; font-size: 14px; font-weight: light;')
 
         icon = QIcon()
         icon.addPixmap(QPixmap('gui/media/Material/redo.svg'),QIcon.Normal,QIcon.On)
