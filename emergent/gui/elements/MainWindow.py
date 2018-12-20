@@ -20,7 +20,7 @@ class MainFrame(QMainWindow):
         self.app = app
 
         ''' Set window style '''
-        self.setWindowTitle('EMERGENT: %s @ %s:%i'%(network.name, network.addr, network.port))
+        self.setWindowTitle('EMERGENT: %s @ %s:%s'%(network.name, network.addr, network.port))
         QFontDatabase.addApplicationFont('gui/media/Exo2-Light.ttf')
         with open('gui/stylesheet.txt',"r") as file:
             self.setStyleSheet(file.read())

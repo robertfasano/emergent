@@ -27,7 +27,7 @@ except:
 parser = argparse.ArgumentParser()
 parser.add_argument("name", help="Network name")
 parser.add_argument("--addr", help='EMERGENT session IP address')
-parser.add_argument("--port", help='EMERGENT session networking port')
+parser.add_argument("--port", help='EMERGENT session networking port', type = int)
 parser.add_argument("-v", "--verbose", help="Increase output verbosity", action="store_true")
 args = parser.parse_args()
 if args.verbose:

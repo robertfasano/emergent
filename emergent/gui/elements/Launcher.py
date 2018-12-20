@@ -4,12 +4,12 @@ import inspect
 import sys
 import types
 from PyQt5.QtGui import QFontDatabase, QIcon
-from PyQt5.QtWidgets import (QWidget, QComboBox, QLabel, QHBoxLayout, QVBoxLayout, QPushButton, QCheckBox)
+from PyQt5.QtWidgets import (QWidget, QComboBox, QLabel, QHBoxLayout, QVBoxLayout, QPushButton, QCheckBox, QLineEdit)
 from PyQt5.QtCore import *
 import json
 import os
 import sys
-from emergent.utility import get_address
+from emergent.utility import get_address, get_open_port
 
 class Launcher(QWidget):
     def __init__(self, app):
@@ -42,6 +42,12 @@ class Launcher(QWidget):
             self.addr_box.addItem(item)
         addr_layout.addWidget(self.addr_box)
 
+        port_layout = QHBoxLayout()
+        self.layout.addLayout(port_layout)
+        port_layout.addWidget(QLabel('Port'))
+        self.port_box = QLineEdit(str(get_open_port()))
+        port_layout.addWidget(self.port_box)
+
         self.launch_button = QPushButton('Launch')
         self.launch_button.clicked.connect(self.launch)
         self.layout.addWidget(self.launch_button)
@@ -51,5 +57,6 @@ class Launcher(QWidget):
     def launch(self):
         network = self.network_box.currentText()
         address = self.addr_box.currentText()
+        port = int(self.port_box.text())
         self.close()
-        os.system('ipython -i main.py -- %s --addr %s'%(network, address))
+        os.system('ipython -i main.py -- %s --addr %s --port %i'%(network, address, port))

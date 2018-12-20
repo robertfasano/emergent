@@ -11,13 +11,11 @@ import logging as log
 from emergent.modules import ProcessHandler
 
 class Network():
-    def __init__(self, name, addr = None, port = None):
+    def __init__(self, name, addr = None, port = 9001):
         self.addr = addr
         if self.addr is None:
             self.addr = get_address()
         self.port = port
-        if self.port is None:
-            self.port = 8888
         self.timer = Timer()
         self.name = name
         self.path='networks/%s'%name
@@ -54,7 +52,7 @@ class Network():
         if hub.addr is not None:
             if not hub.addr == self.addr:
                 if hub.addr not in self.clients:
-                    self.clients[hub.addr] = Client(hub.addr)
+                    self.clients[hub.addr] = Client(hub.addr, self.port)
                 return
 
         self.hubs[hub.name] = hub

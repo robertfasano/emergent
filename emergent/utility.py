@@ -17,6 +17,12 @@ def unit_test(self, func, *args, **kwargs):
         times.append(end-start)
     print(np.mean(times), '+/-', np.std(times))
 
+def get_open_port():
+    import socket
+    s = socket.socket()
+    s.bind(('', 0))            # Bind to a free port provided by the host.
+    return s.getsockname()[1]  # Return the port number assigned.
+
 def get_address():
     import socket
     return socket.gethostbyname(socket.gethostname())
