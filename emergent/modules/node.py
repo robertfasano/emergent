@@ -213,7 +213,7 @@ class Hub(Node):
         self.state = State()
         self.settings = {}
         self.samplers = {}
-
+        self.watchdogs = {}
         self.node_type = 'hub'
         self.signal = ActuateSignal()
         self.process_signal = ProcessSignal()

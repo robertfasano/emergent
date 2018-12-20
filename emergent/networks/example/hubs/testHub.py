@@ -1,15 +1,17 @@
 import numpy as np
-from emergent.modules import Hub
+from emergent.modules import Hub, Watchdog
 from emergent.utility import experiment, error
 import datetime
 import time
 import numpy as np
 import socket
+
 class TestHub(Hub):
         def __init__(self, name, addr=None, network=None):
                 super().__init__(name, addr, network = network)
                 self.addr = addr
-
+                self.watchdogs['watchdog'] = Watchdog()
+                
         def cost_coupled(self, state, params={}):
             return self.cost_uncoupled(state, theta=30*np.pi/180)
 

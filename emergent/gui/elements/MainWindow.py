@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import (QHBoxLayout, QLabel, QTreeView, QPushButton, QVBoxL
         QWidget, QMenu, QAction, QTreeWidget, QTreeWidgetItem, QMainWindow, QStatusBar, QMenuBar)
 from PyQt5.QtCore import *
 import json
-from emergent.gui.elements import ExperimentLayout, TaskPanel, ServoLayout, NodeTree
+from emergent.gui.elements import ExperimentLayout, TaskPanel, ServoLayout, NodeTree, MonitorPanel
 import os
 import psutil
 import sys
@@ -57,6 +57,11 @@ class MainFrame(QMainWindow):
         ''' Create task panel '''
         self.taskPanel = TaskPanel(self)
         self.experiment_layout.addLayout(self.taskPanel)
+
+        ''' Create monitor panel '''
+        self.monitorPanel = MonitorPanel(self)
+        layout.addLayout(self.monitorPanel)
+
 
         ''' Create menu bar '''
         self.menuBar = QMenuBar()
