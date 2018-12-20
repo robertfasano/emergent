@@ -56,8 +56,8 @@ else:
 globals().update({k: getattr(process, k) for k in names})
 
 if __name__ == "__main__":
-    # app = QCoreApplication.instance()
-    app = None
+    app = QApplication.instance()
+    # app = None
     if app is None:
         app = QApplication(sys.argv)         # Create an instance of the application
 
