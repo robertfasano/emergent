@@ -23,7 +23,7 @@ class UndoButton(QWidget):
         self.button = QPushButton()
         self.button.clicked.connect(self.undo)
         self.layout.addWidget(self.button)
-        self.button.setStyleSheet("background-color: rgba(255, 255, 255, 0);")
+        self.button.setStyleSheet('color:"#000000"; border: 0px; border-color: transparent; font-family: "Exo 2"; font-size: 14px; font-weight: light;')
 
         icon = QIcon()
         icon.addPixmap(QPixmap('gui/media/Material/undo.svg'),QIcon.Normal,QIcon.On)
@@ -58,7 +58,7 @@ class RedoButton(QWidget):
         self.button = QPushButton()
         self.button.clicked.connect(self.redo)
         self.layout.addWidget(self.button)
-        self.button.setStyleSheet("background-color: rgba(255, 255, 255, 0);")
+        self.button.setStyleSheet('color:"#000000"; border: 0px; border-color: transparent; font-family: "Exo 2"; font-size: 14px; font-weight: light;')
 
         icon = QIcon()
         icon.addPixmap(QPixmap('gui/media/Material/redo.svg'),QIcon.Normal,QIcon.On)
@@ -106,7 +106,7 @@ class NodeTree(QTreeWidget):
             self.header().setSectionResizeMode(i, QHeaderView.ResizeToContents)
         self.header().setStretchLastSection(False)
 
-        self.header().setFixedHeight(20)
+        self.header().setFixedHeight(25)
         # self.header().setStyleSheet('::section{border: 0px solid; border-right: 0px; border-left: 0px; font-weight: normal}')
 
         self.customContextMenuRequested.connect(self.openMenu)
@@ -178,7 +178,7 @@ class NodeTree(QTreeWidget):
                 self.actuate(hub.name, hub.state)
                 continue
             root = NodeWidget(hub)
-            self.insertTopLevelItems(0, [root])
+            self.insertTopLevelItems(self.topLevelItemCount(), [root])
             for thing in hub.children.values():
                 branch = NodeWidget(thing)
                 root.addChild(branch)
@@ -240,7 +240,7 @@ class NodeTree(QTreeWidget):
         item = self.selectedItems()[0]
         hub_name = item.parent().parent().text(0)
         hub = self.network.hubs[hub_name]
-        
+
         return hub
 
     def get_selected_state(self):

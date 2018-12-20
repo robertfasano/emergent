@@ -7,15 +7,15 @@ import importlib
 from emergent.modules.client import Client
 import time
 from PyQt5.QtCore import QTimer
+import logging as log
+from emergent.modules import ProcessHandler
 
 class Network():
-    def __init__(self, name, addr = None, port = None):
+    def __init__(self, name, addr = None, port = 9001):
         self.addr = addr
         if self.addr is None:
             self.addr = get_address()
         self.port = port
-        if self.port is None:
-            self.port = 8888
         self.timer = Timer()
         self.name = name
         self.path='networks/%s'%name
@@ -23,10 +23,12 @@ class Network():
         self.state_path = self.path+'/state/'
         self.tree = None
         self.sync_delay = 0.1
+        self.reconnect_delay = 1
         for p in [self.state_path, self.data_path]:
             pathlib.Path(p).mkdir(parents=True, exist_ok=True)
         self.clients = {}
         self.hubs = {}
+        self.manager = ProcessHandler()
 
     def __getstate__(self):
         d = {}
@@ -47,10 +49,10 @@ class Network():
     def addHub(self, hub):
         ''' If the address and port match self.addr and self.port, add a local hub. Otherwise,
             check if they match any in self.clients and assign to that one; otherwise, create a new client. '''
-        if hub.address is not None:
-            if not hub.address == self.addr:
-                if hub.address not in self.clients:
-                    self.clients[hub.address] = Client(hub.address)
+        if hub.addr is not None:
+            if not hub.addr == self.addr:
+                if hub.addr not in self.clients:
+                    self.clients[hub.addr] = Client(hub.addr, self.port)
                 return
 
         self.hubs[hub.name] = hub
@@ -89,19 +91,29 @@ class Network():
         self.update_timer.timeout.connect(self.sync)
         self.update_timer.start(self.sync_delay*1000)
 
+    def try_connect(self):
+        while True:
+            disconnected_clients = len(self.clients)
+            for client in self.clients.values():
+                if not client._connected:
+                    try:
+                        client.connect()
+                    except ConnectionRefusedError: #note: using localhost instead of 127.0.0.1 will throw multiple exceptions here
+                        continue
+                else:
+                    disconnected_clients -= 1
+            if disconnected_clients == 0:
+                return
+            time.sleep(self.reconnect_delay)
+
     def sync(self):
         ''' Updates the local session with remote networks '''
         for client in self.clients.values():
             if not client._connected:
-                try:
-                    client.connect()
-                except ConnectionRefusedError:
-                    continue
-            if not client._connected:
                 continue
             try:
-                nw = client.get_network()
+                client.network = client.get_network()
             except ConnectionRefusedError:
                 self.update_timer.stop()
                 log.warn('Connection refused by server at %s:%i.'%(client.addr, client.port))
-            self.tree.generate(nw)
+            self.tree.generate(client.network)

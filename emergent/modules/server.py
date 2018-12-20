@@ -23,10 +23,11 @@ class Server():
             self.addr = get_address()
         else:
             self.addr = self.network.addr
-        self.port = 8888
+        self.port = self.network.port
+
         coro = asyncio.start_server(self.handle_command, self.addr, self.port, loop=self.loop)
         self.server = self.loop.run_until_complete(coro)
-        log.info('Serving on {}'.format(self.server.sockets[0].getsockname()))
+
         thread = Thread(target=self.start)
         thread.start()
 

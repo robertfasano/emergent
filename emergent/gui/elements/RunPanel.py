@@ -28,13 +28,20 @@ class RunLayout(QVBoxLayout, ProcessHandler):
         self.addWidget(self.experiment_table)
 
         self.runIterationsLayout = QHBoxLayout()
-        self.runIterationsLayout.addWidget(QLabel('Iterations'))
+        label = QLabel('Iterations')
+        self.runIterationsLayout.addWidget(label)
+        label.setStyleSheet('color:"#000000"; font-weight: light; font-family: "Exo 2"; font-size: 14px; background-color: transparent')
+
         self.runIterationsSlider = QSlider(Qt.Horizontal)
+        self.runIterationsSlider.setStyleSheet('background-color: transparent')
+
         self.runIterationsSlider.valueChanged.connect(self.updateIterations)
         self.runIterationsSlider.setRange(1,8)
         self.runIterationsSlider.setSingleStep(1)
         self.runIterationsLayout.addWidget(self.runIterationsSlider)
         self.runIterationsEdit = QLineEdit('')
+        self.runIterationsEdit.setStyleSheet('color:"#000000"; font-weight: light; font-family: "Exo 2"; font-size: 14px; background-color: rgba(255, 255, 255, 80%)')
+
         self.runIterationsLayout.addWidget(self.runIterationsEdit)
         self.runIterationsSlider.setValue(8)
         self.addLayout(self.runIterationsLayout)

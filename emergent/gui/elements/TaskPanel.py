@@ -30,7 +30,7 @@ class ContextTable(QTableWidget):
             self.hideColumn(col)
         self.setHorizontalHeaderLabels(['Time', 'Experiment', 'Event', 'Status', 'Object'])
         self.horizontalHeader().setStretchLastSection(True)
-
+        self.setStyleSheet('color:"#000000"; font-weight: light; font-family: "Exo 2"; font-size: 14px; background-color: rgba(255, 255, 255, 80%);')
     def contextMenuEvent(self, event):
         self.menu = QMenu(self)
         self.action = QAction('Terminate')
@@ -128,8 +128,8 @@ class Visualizer(QWidget):
             name =  self.sampler.history.columns[i].replace('.', ': ')
             limits = {name: self.sampler.get_limits()[name]}
             new_ax, fig = plot_1D(p, costs, limits=limits, cost_name = self.sampler.experiment.__name__, errors = errors)
-            cost_vs_param[full_name] = fig
-            ax0[i].set_xlabel(full_name)
+            cost_vs_param[self.sampler.history.columns[i]] = fig
+            ax0[i].set_xlabel(self.sampler.history.columns[i])
 
         ''' parameters vs time '''
         param_vs_time = {}
@@ -143,9 +143,9 @@ class Visualizer(QWidget):
                 cax = ax[1]
             else:
                 cax = ax[1][i]
-            new_ax, fig = plot_1D(t, p, cost_name = self.sampler.experiment.__name__, xlabel = 'Time (s)', ylabel = full_name, errors = errors)
-            param_vs_time[full_name] = fig
-            cax.set_ylabel(full_name)
+            new_ax, fig = plot_1D(t, p, cost_name = self.sampler.experiment.__name__, xlabel = 'Time (s)', ylabel = self.sampler.history.columns[i], errors = errors)
+            param_vs_time[self.sampler.history.columns[i]] = fig
+            cax.set_ylabel(self.sampler.history.columns[i])
             cax.set_xlabel('Time (s)')
 
         ''' 2d plots '''

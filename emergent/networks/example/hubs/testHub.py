@@ -11,7 +11,7 @@ class TestHub(Hub):
                 super().__init__(name, addr, network = network)
                 self.addr = addr
                 self.watchdogs['watchdog'] = Watchdog()
-                
+
         def cost_coupled(self, state, params={}):
             return self.cost_uncoupled(state, theta=30*np.pi/180)
 

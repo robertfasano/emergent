@@ -31,18 +31,21 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         optimizeTab = QWidget()
         self.optimizePanel = OptimizeLayout(self)
         optimizeTab.setLayout(self.optimizePanel)
+        optimizeTab.setStyleSheet('background-color: rgba(255, 255, 255, 50%)')
         self.tabWidget.addTab(optimizeTab, 'Optimize')
 
         ''' Create Servo tab '''
         servoTab = QWidget()
         self.servoPanel = ServoLayout(self)
         servoTab.setLayout(self.servoPanel)
+        servoTab.setStyleSheet('background-color: rgba(255, 255, 255, 50%)')
         self.tabWidget.addTab(servoTab, 'Servo')
 
         ''' Create Run tab '''
         runTab = QWidget()
         self.runPanel = RunLayout(self)
         runTab.setLayout(self.runPanel)
+        runTab.setStyleSheet('background-color: rgba(255, 255, 255, 50%)')
         self.tabWidget.addTab(runTab, 'Run')
 
         self.update_panel()
