@@ -22,7 +22,7 @@ import os
 ws = win32com.client.Dispatch("wscript.shell")
 shortcut = ws.CreateShortcut('emergent/EMERGENT.lnk')
 shortcut.TargetPath = 'C:/Windows/System32/cmd.exe'
-shortcut.Arguments = '/k %s/emergent/run.cmd'%os.getcwd()
+shortcut.Arguments = '/k "%s/emergent/run.cmd"'%os.getcwd()
 shortcut.IconLocation = '%s/emergent/gui/media/icon.ico'%os.getcwd()
 
 shortcut.Save()
