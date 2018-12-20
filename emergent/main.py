@@ -9,6 +9,7 @@ from emergent.gui.elements import MainFrame
 from emergent.modules import Hub
 from emergent.modules.server import Server
 from emergent.modules.network import Network
+from emergent.utility import get_address
 import numpy as np
 sys.path.append('networks/%s'%sys.argv[1])
 import logging as log
@@ -36,10 +37,11 @@ else:
     log.basicConfig(level=log.INFO)
 
 ''' Initialize network  '''
-addr = None
 if args.addr:
     addr = args.addr
-port = None
+else:
+    addr = get_address()
+port = 8000
 if args.port:
     port = args.port
 network = Network(name=args.name, addr = addr, port = port)
