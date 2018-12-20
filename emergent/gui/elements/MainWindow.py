@@ -5,7 +5,7 @@ import sys
 import types
 from PyQt5.QtGui import QIcon, QStandardItem, QStandardItemModel, QFont, QFontDatabase
 from PyQt5.QtWidgets import (QHBoxLayout, QLabel, QTreeView, QPushButton, QVBoxLayout,
-        QWidget, QMenu, QAction, QTreeWidget, QTreeWidgetItem, QMainWindow, QStatusBar, QMenuBar)
+        QWidget, QMenu, QAction, QTreeWidget, QTreeWidgetItem, QMainWindow, QStatusBar, QMenuBar, QStyleFactory)
 from PyQt5.QtCore import *
 import json
 from emergent.gui.elements import ExperimentLayout, TaskPanel, ServoLayout, NodeTree
@@ -18,7 +18,6 @@ class MainFrame(QMainWindow):
         QMainWindow.__init__(self)
         self.network = network
         self.app = app
-
         ''' Set window style '''
         self.setWindowTitle('EMERGENT: %s @ %s:%s'%(network.name, network.addr, network.port))
         QFontDatabase.addApplicationFont('gui/media/Exo2-Light.ttf')

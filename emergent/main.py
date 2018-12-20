@@ -3,7 +3,7 @@ import sys
 import os
 char = {'nt': '\\', 'posix': '/'}[os.name]
 sys.path.append(char.join(os.getcwd().split(char)[0:-3]))
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWidgets import QApplication, QStyleFactory
 from PyQt5.QtCore import QCoreApplication
 from emergent.gui.elements import MainFrame
 from emergent.modules import Hub
@@ -56,10 +56,12 @@ else:
 globals().update({k: getattr(process, k) for k in names})
 
 if __name__ == "__main__":
+    QApplication.setStyle(QStyleFactory.create("Fusion"))
     app = QApplication.instance()
     # app = None
     if app is None:
         app = QApplication(sys.argv)         # Create an instance of the application
+    app.setStyle(QStyleFactory.create("Fusion"))
 
     main = MainFrame(app, network)
     network.manager._run_thread(network.try_connect, stoppable = False)

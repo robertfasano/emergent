@@ -12,8 +12,12 @@ class ParameterTable(QTableWidget):
         self.horizontalHeader().setMinimumSectionSize(100)
         self.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
         self.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
-        self.horizontalHeader().setFixedHeight(20)
+        self.horizontalHeader().setFixedHeight(25)
         self.verticalHeader().hide()
+
+        # self.verticalScrollBar().setStyleSheet( " background-color: rgba(255, 255, 255, 0%) ")
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff);
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff);
 
     def get_params(self):
         params = State()

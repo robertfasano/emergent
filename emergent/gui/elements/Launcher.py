@@ -18,10 +18,12 @@ class Launcher(QWidget):
         self.setWindowIcon(QIcon('gui/media/icon.png'))
 
         QFontDatabase.addApplicationFont('gui/media/Exo2-Light.ttf')
+
         with open('gui/stylesheet.txt',"r") as file:
             self.setStyleSheet(file.read())
+
         self.setWindowTitle('EMERGENT')
-        self.resize(250, 125)
+        self.resize(325, 125)
 
         self.layout = QVBoxLayout(self)
         choice_layout = QHBoxLayout()

@@ -106,7 +106,7 @@ class NodeTree(QTreeWidget):
             self.header().setSectionResizeMode(i, QHeaderView.ResizeToContents)
         self.header().setStretchLastSection(False)
 
-        self.header().setFixedHeight(20)
+        self.header().setFixedHeight(25)
         # self.header().setStyleSheet('::section{border: 0px solid; border-right: 0px; border-left: 0px; font-weight: normal}')
 
         self.customContextMenuRequested.connect(self.openMenu)
