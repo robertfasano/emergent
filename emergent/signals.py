@@ -49,7 +49,7 @@ class RemoveSignal(QObject):
         self.signal.emit({'hub':hub, 'thing':thing, 'input':input})
 
 class WatchdogSignal(QObject):
-    signal = pyqtSignal(int)
+    signal = pyqtSignal(dict)
 
     def __init__(self):
         super().__init__()

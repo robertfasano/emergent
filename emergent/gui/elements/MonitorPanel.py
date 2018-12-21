@@ -13,10 +13,10 @@ class MonitorLayout(QVBoxLayout, ProcessHandler):
 
         ''' Create table '''
         self.table = QTableWidget()
-        for i in range(2):
+        for i in range(4):
             self.table.insertColumn(i)
-        self.table.setHorizontalHeaderLabels(['Watchpoint', 'State'])
-        self.table.horizontalHeader().setMinimumSectionSize(125)
+        self.table.setHorizontalHeaderLabels(['Watchpoint', 'State', 'Threshold', 'Value'])
+        self.table.horizontalHeader().setMinimumSectionSize(75)
 
         self.table.horizontalHeader().setStretchLastSection(True)
         self.table.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
@@ -27,12 +27,6 @@ class MonitorLayout(QVBoxLayout, ProcessHandler):
         self.addWidget(self.table)
 
         self.update_table()
-
-        # self.update_delay = 1 # refresh rate in seconds
-        #
-        # self.update_timer = QTimer(self)
-        # self.update_timer.timeout.connect(self.monitor)
-        # self.update_timer.start(1000*self.update_delay)
 
     def update_table(self):
         self.watchdogs = self.get_watchdogs()
@@ -67,12 +61,15 @@ class WatchdogItem():
         self.table.insertRow(row)
         self.items = {}
         i = 0
-        for col in ['name', 'state']:
+
+        for col in ['name', 'state', 'threshold', 'value']:
             item = QTableWidgetItem(str(getattr(self.watchdog, col)))
             item.setFlags(item.flags() ^ Qt.ItemIsEditable)
             self.table.setItem(row, i, item)
             self.items[col] = item
             i += 1
 
-    def update(self, state):
-        self.items['state'].setText(str(state))
+    def update(self, params):
+        self.items['state'].setText(str(int(params['state'])))
+        self.items['value'].setText('%.2f'%params['value'])
+        self.items['threshold'].setText('%.2f'%params['threshold'])

@@ -13,7 +13,7 @@ class Watchdog(ProcessHandler):
         if self.input_state is None:
             self.input_state = parent.state
         self.name = name
-
+        self.value = 0
         self.threshold_type = 'lower'
         self.value = 0
         self.state = 0
@@ -37,7 +37,7 @@ class Watchdog(ProcessHandler):
             self.state = value < self.threshold
         elif self.threshold_type == 'lower':
             self.state = value > self.threshold
-        self.signal.emit(self.state)
+        self.signal.emit({'state': self.state, 'threshold': self.threshold, 'value': value})
         if not self.state:
             log.info('Watchdog %s is reacting to an unlock!'%self.name)
             self._run_thread(self.react, stoppable=False)
