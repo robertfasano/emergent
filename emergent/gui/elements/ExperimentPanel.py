@@ -170,6 +170,7 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
                     settings[s] = gui_settings[s]
             else:
                 settings[s] = gui_settings[s]
+        return settings
 
     def start_process(self, process = '', settings = {}, threaded = True, load_from_gui = False):
         ''' Load any non-passed settings from the GUI '''
@@ -185,10 +186,9 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
 
         ''' Pull settings from the gui and fill in any missing options '''
         if load_from_gui:
-            settings = fill_settings_from_gui(panel, settings)
+            settings = self.fill_settings_from_gui(panel, settings)
             # if settings is None:
             #     return
-
         settings['experiment'] = getattr(settings['hub'], settings['experiment_name'])
         if hasattr(panel, 'algorithm_box'):
             algorithm_name = panel.algorithm_box.currentText()
