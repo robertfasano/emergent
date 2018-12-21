@@ -1,10 +1,11 @@
 import numpy as np
 from emergent.signals import WatchdogSignal
 import logging as log
-from emergent.modules import Sampler, recommender
+from emergent.modules import Sampler, recommender, ProcessHandler
 
-class Watchdog():
+class Watchdog(ProcessHandler):
     def __init__(self, parent, name = 'watchdog'):
+        super().__init__()
         self.parent = parent
         self.name = name
         self.threshold_type = 'lower'
@@ -13,6 +14,7 @@ class Watchdog():
         self.state = 0
         self.signal = WatchdogSignal()
         self.enabled = True
+        self.reacting = False
 
     def check(self):
         ''' Private method which calls self.measure then updates the state '''
@@ -21,14 +23,10 @@ class Watchdog():
             self.state = value < self.threshold
         elif self.threshold_type == 'lower':
             self.state = value > self.threshold
+        self.signal.emit(self.state)
         if not self.state:
             log.info('Watchdog %s is reacting to an unlock!'%self.name)
-            self.parent.manager._run_thread(self.react, stoppable=False)
-        else:
-            log.info('Watchdog %s is happy!'%self.name)
-
-        self.signal.emit(self.state)
-
+            self._run_thread(self.react, stoppable=False)
         return self.state
 
     def measure(self):
@@ -39,9 +37,10 @@ class Watchdog():
 
     def reoptimize(self, state, experiment_name):
         self.enabled = False
-        self.parent.optimize(state, experiment_name, threaded = False)
+        self.reacting = True
+        self.parent.optimize(state, experiment_name, threaded = False, priority = True)
         self.enabled = True
-        self.check()
+        self.reacting = False
 
 
 if __name__ == '__main__':

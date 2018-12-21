@@ -274,9 +274,16 @@ class Hub(Node):
 
     def check_lock(self):
         ''' Check if any of the monitored signals are outside a threshold. Return True if not. '''
-        for w in self.watchdogs.values():
-            if w.enabled:
-                w.check()
+        locked = False
+        ''' Block until all watchdogs are enabled and locked '''
+        while not locked:
+            locked = True
+            for w in self.watchdogs.values():
+                locked = locked and not w.reacting              # if a watchdog is reacting, we are unlocked
+                if w.enabled:
+                    locked = locked and w.check()           # check the watchdog state
+            if not locked:
+                time.sleep(0.1)
         return
 
     def enable_watchdogs(self, enabled):
@@ -302,13 +309,13 @@ class Hub(Node):
                     self.settings[thing.name][input.name] = {'min': 0, 'max': 1}
                     log.warn('Could not find csv for input %s; creating new settings.'%input.name)
 
-    def optimize(self, state, experiment_name, threaded = True):
+    def optimize(self, state, experiment_name, threaded = True, priority = False):
         if threaded:
-            self.manager._run_thread(self.optimize_thread, args = (state, experiment_name), stoppable = False)
+            self.manager._run_thread(self.optimize_thread, args = (state, experiment_name, priority), stoppable = False)
         else:
-            self.optimize_thread(state, experiment_name)
+            self.optimize_thread(state, experiment_name, priority)
 
-    def optimize_thread(self, state, experiment_name):
+    def optimize_thread(self, state, experiment_name, priority = False):
         ''' Optimizes an experiment with the default settings from file '''
         experiment_params = recommender.load_experiment_parameters(self, experiment_name)
         algorithm = recommender.get_default_algorithm(self, experiment_name)
@@ -324,7 +331,11 @@ class Hub(Node):
                           algorithm,
                           algorithm_params,
                           t=start_time)
+        sampler.priority = priority
+        self.enable_watchdogs(False)
         sampler.algorithm.run(sampler.state)
+
+        self.enable_watchdogs(True)
         sampler.active = False
 
     def save(self):

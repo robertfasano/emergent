@@ -104,17 +104,17 @@ class Parameter():
 
 
 @decorator.decorator
-def experiment(func, *args, **kwargs):
+def experiment(func, hub, sampler, state):
     results = []
-    hub = args[0]
-
+    params = sampler.experiment_params
     ''' Check that all Watchdogs report lock state. If any fail, they will attempt
         to reacquire lock with the Watchdog.react() method '''
-    hub.check_lock()
-    params = args[2]
+    if not sampler.priority:
+        hub.check_lock()
     for i in range(int(params['cycles per sample'])):
-        c = func(*args, **kwargs)
+        c = func(hub, state, params)
         results.append(c)
+
     c = np.mean(results)
     error = None
     if len(results) > 1:

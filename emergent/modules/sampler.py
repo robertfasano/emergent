@@ -46,7 +46,7 @@ class Sampler():
         self.result = None
         self.start_time = t
         self.hub.macro_buffer.add(self.hub.state)   # save initial state to buffer
-
+        self.priority = False           # if True, experiments will disregard watchdog state
         self.prepare(self.state)
 
     def __getstate__(self):
@@ -153,7 +153,8 @@ class Sampler():
             target = self.unnormalize(norm_target)
         else:
             target = norm_target
-        c, error = self.experiment(target, self.experiment_params)
+        c, error = self.experiment(self, target)
+
         ''' Update history '''
         t = time.time()
         self.history.loc[t,'cost']=c
@@ -293,6 +294,7 @@ class Sampler():
             if not callback():
                 return points[0:len(costs)], costs
             c = self._cost(point)
+
             costs = np.append(costs, c)
             self.progress = len(costs) / len(points)
 
