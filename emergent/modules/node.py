@@ -305,7 +305,6 @@ class Hub(Node):
                     for setting in ['min', 'max']:
                         self.settings[thing.name][input.name][setting] = state[thing.name][input.name][setting]
                 except Exception as e:
-                    print('Exception:', e)
                     self.state[thing.name][input.name] = 0
                     self.settings[thing.name][input.name] = {'min': 0, 'max': 1}
                     log.warn('Could not find csv for input %s; creating new settings.'%input.name)
