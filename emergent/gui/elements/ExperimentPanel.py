@@ -29,18 +29,18 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         self.parent.treeWidget.itemSelectionChanged.connect(self.update_hub)
 
         ''' Create Optimizer tab '''
-        optimizeTab = QWidget()
+        self.optimizeTab = QWidget()
         self.optimizePanel = OptimizeLayout(self)
-        optimizeTab.setLayout(self.optimizePanel)
-        optimizeTab.setStyleSheet('background-color: rgba(255, 255, 255, 50%)')
-        self.tabWidget.addTab(optimizeTab, 'Optimize')
+        self.optimizeTab.setLayout(self.optimizePanel)
+        self.optimizeTab.setStyleSheet('background-color: rgba(255, 255, 255, 50%)')
+        # self.tabWidget.addTab(self.optimizeTab, 'Optimize')
 
         ''' Create Servo tab '''
-        servoTab = QWidget()
+        self.servoTab = QWidget()
         self.servoPanel = ServoLayout(self)
-        servoTab.setLayout(self.servoPanel)
-        servoTab.setStyleSheet('background-color: rgba(255, 255, 255, 50%)')
-        self.tabWidget.addTab(servoTab, 'Servo')
+        self.servoTab.setLayout(self.servoPanel)
+        self.servoTab.setStyleSheet('background-color: rgba(255, 255, 255, 50%)')
+        # self.tabWidget.addTab(self.servoTab, 'Servo')
 
         ''' Create Run tab '''
         runTab = QWidget()
@@ -126,6 +126,26 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
             panel.experiment_box.clear()
             for item in list_experiments(hub):
                 panel.experiment_box.addItem(item)
+
+        ''' Show/hide servo tab based on whether the hub has any error methods'''
+        index = self.tabWidget.indexOf(self.servoTab)
+        if list_errors(hub) == []:
+            self.tabWidget.removeTab(self.tabWidget.indexOf(self.servoTab))
+        else:
+            if index == -1:
+                self.tabWidget.addTab(self.servoTab, 'Servo')
+
+        ''' Show/hide optimize tab if we do/don't have inputs selected '''
+        index = self.tabWidget.indexOf(self.optimizeTab)
+        state = self.parent.treeWidget.get_selected_state()
+        if len(state) == 0:
+            self.tabWidget.removeTab(self.tabWidget.indexOf(self.optimizeTab))
+        else:
+            if index == -1:
+                self.tabWidget.addTab(self.optimizeTab, 'Optimize')
+
+
+
 
     def update_hub(self):
         hub = self.parent.treeWidget.currentItem().root
