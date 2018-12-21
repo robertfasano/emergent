@@ -6,7 +6,7 @@ import socket
 #
 def initialize(network):
     autoAlign = TestHub('autoAlign', network = network)
-    autoAlign.watchdogs['watchdog'] = TestWatchdog(autoAlign, 'fiber power')
+    autoAlign.watchdogs['watchdog'] = TestWatchdog(autoAlign, experiment = autoAlign.transmitted_power, name = 'fiber power')
 
     MEMS = TestThing('MEMS', parent=autoAlign, inputs = ['X', 'Y'])
     otherHub = TestHub('otherHub', addr = '127.0.0.1', network = network)

@@ -109,7 +109,7 @@ def experiment(func, hub, sampler, state):
     params = sampler.experiment_params
     ''' Check that all Watchdogs report lock state. If any fail, they will attempt
         to reacquire lock with the Watchdog.react() method '''
-    if not sampler.priority:
+    if not sampler.skip_lock_check:
         hub.check_lock()
     for i in range(int(params['cycles per sample'])):
         c = func(hub, state, params)

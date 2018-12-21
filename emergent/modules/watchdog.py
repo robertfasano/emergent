@@ -4,10 +4,15 @@ import logging as log
 from emergent.modules import Sampler, recommender, ProcessHandler
 
 class Watchdog(ProcessHandler):
-    def __init__(self, parent, name = 'watchdog'):
+    def __init__(self, parent, experiment, input_state = None, name = 'watchdog'):
         super().__init__()
         self.parent = parent
+        self.experiment = experiment        # experiment to run to check lock state
+        self.input_state = input_state
+        if self.input_state is None:
+            self.input_state = parent.state
         self.name = name
+
         self.threshold_type = 'lower'
         self.threshold = 1
         self.value = 0
@@ -15,6 +20,15 @@ class Watchdog(ProcessHandler):
         self.signal = WatchdogSignal()
         self.enabled = True
         self.reacting = False
+
+        ''' Set up sampler object '''
+        experiment_params = recommender.load_experiment_parameters(self.parent, experiment.__name__)
+        self.sampler = Sampler('Watchdog',
+                          self.input_state,
+                          self.parent,
+                          self.experiment,
+                          experiment_params)
+        self.sampler.skip_lock_check = True
 
     def check(self):
         ''' Private method which calls self.measure then updates the state '''
@@ -30,7 +44,7 @@ class Watchdog(ProcessHandler):
         return self.state
 
     def measure(self):
-        return
+        return -self.sampler._cost(self.parent.state)
 
     def react(self):
         self.confirm_lock()
@@ -41,7 +55,7 @@ class Watchdog(ProcessHandler):
     def reoptimize(self, state, experiment_name):
         self.enabled = False
         self.reacting = True
-        self.parent.optimize(state, experiment_name, threaded = False, priority = True)
+        self.parent.optimize(state, experiment_name, threaded = False, skip_lock_check = True)
         self.enabled = True
         self.reacting = False
 

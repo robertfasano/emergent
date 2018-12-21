@@ -46,7 +46,7 @@ class Sampler():
         self.result = None
         self.start_time = t
         self.hub.macro_buffer.add(self.hub.state)   # save initial state to buffer
-        self.priority = False           # if True, experiments will disregard watchdog state
+        self.skip_lock_check = False           # if True, experiments will disregard watchdog state
         self.prepare(self.state)
 
     def __getstate__(self):
