@@ -8,6 +8,19 @@ class Lattice(Hub):
         super().__init__(name, parent = parent, path=path)
         self.signal_threshold_in_mV = 100
         self.max_samples = 1000
+        self.trigger_channel = 0
+
+    @trigger
+    def trigger(self):
+        ''' Wait until TTL low, then return as soon as TTL high is detected '''
+        while self.lj.AIn(self.trigger_channel) > 1.5:
+            continue
+        return self.ljIN.AIn(self.trigger_channel) > 1.5
+
+    @experiment
+    def monitor(self):
+        ''' A dummy experiment for standalone monitoring. '''
+        return 0
 
     @experiment
     def load_lattice(self, state):
