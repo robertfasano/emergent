@@ -12,16 +12,6 @@ class TestWatchdog(Watchdog):
         super().__init__(parent, name)
         self.threshold = 0.5
 
-    def validate_settings(self, settings):
-        required_fields = ['state', 'experiment_name', 'hub', 'algorithm_params', 'experiment_params', 'algorithm']
-        for field in required_fields:
-            assert field in settings
-        settings['callback'] = None
-        if 'cycles per sample' not in settings['experiment_params']:
-            settings['experiment_params']['cycles per sample'] = 1
-
-        return settings
-
     def measure(self):
         ''' Measures power at the current state. This is an example of a signal that a Watchdog can monitor - if the Watchdog
             called the original @experiment, we would have recursion issues! '''
@@ -37,21 +27,8 @@ class TestWatchdog(Watchdog):
         return power
 
     def react(self):
-        ''' Required fields for settings dict: state, experiment_name, algorithm_params, experiment_params, callback, cycles_per_sample '''
-        experiment = getattr(self.parent, 'transmitted_power')
-        experiment_params = {'sigma_x': 0.3, 'sigma_y': 0.8, 'x0': 0.3, 'y0': 0.6, 'noise':0, 'cycles per sample': 1}
-        module = importlib.__import__('optimizers')
-        algorithm = getattr(module, 'GridSearch')()
-        sampler = Sampler(algorithm.name,
-                          self.parent.state,
-                          self.parent,
-                          experiment,
-                          experiment_params,
-                          algorithm,
-                          {'steps': 20},
-                          t=0)
-        sampler.algorithm.run(sampler.state)
-        sampler.active = False
+        self.reoptimize(self.parent.state, 'transmitted_power')
+
 
 class TestHub(Hub):
         def __init__(self, name, addr=None, network=None):

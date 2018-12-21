@@ -3,7 +3,7 @@ import os
 import weakref
 import time
 import inspect
-from emergent.modules import Sampler, State
+from emergent.modules import Sampler, State, recommender, ProcessHandler
 from PyQt5.QtWidgets import QWidget
 import logging as log
 import pandas as pd
@@ -208,8 +208,8 @@ class Hub(Node):
         self.watchdogs = {}
         self.network = network
         self.name = name
-        self.locked = True            # whether or not everything is running smoothly
         self.addr = addr
+        self.manager = ProcessHandler()
         if self.addr is None:
             self.addr = get_address()
         if network.addr != addr and addr is not None:
@@ -275,8 +275,13 @@ class Hub(Node):
     def check_lock(self):
         ''' Check if any of the monitored signals are outside a threshold. Return True if not. '''
         for w in self.watchdogs.values():
-            w.check()
+            if w.enabled:
+                w.check()
         return
+
+    def enable_watchdogs(self, enabled):
+        for w in self.watchdogs.values():
+            w.enabled = enabled
 
     def load(self):
         try:
