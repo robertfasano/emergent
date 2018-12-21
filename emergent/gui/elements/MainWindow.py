@@ -76,6 +76,7 @@ class MainFrame(QMainWindow):
         self.create_menu_action(self.algorithm_menu, 'Reset parameters', lambda: self.experimentPanel.update_algorithm_and_experiment(self.experimentPanel.panel, default=True, update_experiment=False))
         self.create_menu_action(self.experiment_menu, 'Save parameters', lambda: self.experimentPanel.save_params(self.experimentPanel.panel, 'experiment'))
         self.create_menu_action(self.experiment_menu, 'Reset parameters', lambda: self.experimentPanel.update_algorithm_and_experiment(self.experimentPanel.panel, default=True, update_algorithm=False))
+        self.create_menu_action(self.algorithm_menu, 'Save default algorithm', self.experimentPanel.save_default_algorithm)
 
     def create_menu_action(self, menu, name, function):
         action = menu.addAction(name)

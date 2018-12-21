@@ -2,6 +2,15 @@ import importlib
 import json
 import inspect
 
+def save_default_algorithm(hub, experiment_name, algorithm_name):
+    params_filename = hub.network.params_path + '%s.%s.txt'%(hub.name, experiment_name)
+    with open(params_filename, 'r') as file:
+        params = json.load(file)
+    params['algorithm']['default'] = algorithm_name
+    with open(params_filename, 'w') as file:
+        json.dump(params, file)
+
+
 def get_default_algorithm(hub, experiment_name):
     params_filename = hub.network.params_path + '%s.%s.txt'%(hub.name, experiment_name)
     with open(params_filename, 'r') as file:

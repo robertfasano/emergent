@@ -72,6 +72,14 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         return {'Optimize': recommender.list_algorithms,
                 'Servo': recommender.list_servos}[panel.name]()
 
+    def save_default_algorithm(self):
+        if self.panel.name == 'Run':
+            return
+        hub = self.parent.treeWidget.currentItem().root
+        experiment_name = self.panel.experiment_box.currentText()
+        algorithm_name = self.panel.algorithm_box.currentText()
+        recommender.save_default_algorithm(hub, experiment_name, algorithm_name)
+
     def save_params(self, panel, param_type):
         ''' param_type: 'experiment' or 'algorithm' '''
         network_name = self.parent.network.name
@@ -107,7 +115,6 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
             if exp_or_error == 'experiment':
                 for item in self.list_algorithms(panel):
                     panel.algorithm_box.addItem(item.replace('_',' '))
-                    panel.algorithm_box.setCurrentText('GridSearch')
             elif exp_or_error == 'error':
                 for item in self.list_algorithms(panel):
                     panel.algorithm_box.addItem(item.replace('_',' '))
@@ -159,6 +166,9 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
             exp_params = recommender.load_experiment_parameters(hub, experiment_name)
 
             panel.experiment_table.set_parameters(exp_params)
+            if panel.name == 'Optimize':
+                default_name = recommender.get_default_algorithm(hub, experiment_name).name
+                panel.algorithm_box.setCurrentText(default_name)
 
     def fill_settings_from_gui(self, panel, settings):
         gui_settings = panel.get_settings_from_gui()

@@ -103,7 +103,7 @@ class OptimizeLayout(QVBoxLayout, ProcessHandler):
         layout.addWidget(self.experiment_table, 2, 1)
         self.cost_params_edit = QTextEdit('')
 
-        self.algorithm_box.currentTextChanged.connect(lambda: self.parent.update_algorithm_and_experiment(self))
+        self.algorithm_box.currentTextChanged.connect(lambda: self.parent.update_algorithm_and_experiment(self, update_experiment=False))
         self.experiment_box.currentTextChanged.connect(lambda: self.parent.update_algorithm_and_experiment(self))
         optimizeButtonsLayout = QHBoxLayout()
         parent.optimizer_button = QPushButton('Go!')
