@@ -1,26 +1,31 @@
 from emergent.modules import Hub
-from utility import experiment, extract_pulses
+from utility import experiment, extract_pulses, trigger
 import numpy as np
 import time
 
 class Lattice(Hub):
-    def __init__(self, name, parent = None, path='.'):
-        super().__init__(name, parent = parent, path=path)
+    def __init__(self, name, addr = None, network = None):
+        super().__init__(name, addr, network)
         self.signal_threshold_in_mV = 100
         self.max_samples = 1000
-        self.trigger_channel = 0
+        self.trigger_channel = 4
 
+        self.ignored = ['labjack']          # add the names of any unpicklable attributes here
     @trigger
     def trigger(self):
         ''' Wait until TTL low, then return as soon as TTL high is detected '''
-        while self.lj.AIn(self.trigger_channel) > 1.5:
+        while self.labjack.DIn(self.trigger_channel):
             continue
-        return self.ljIN.AIn(self.trigger_channel) > 1.5
+        while not self.labjack.DIn(self.trigger_channel):
+            continue
+        return True
 
     @experiment
-    def monitor(self):
+    def monitor(self, state, params = {}):
         ''' A dummy experiment for standalone monitoring. '''
-        return 0
+        print('sync')
+
+        return self.labjack.DIn(self.trigger_channel)
 
     @experiment
     def load_lattice(self, state):
