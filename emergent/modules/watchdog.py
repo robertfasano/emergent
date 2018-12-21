@@ -33,6 +33,9 @@ class Watchdog(ProcessHandler):
         return
 
     def react(self):
+        self.confirm_lock()
+
+    def confirm_lock(self):
         return
 
     def reoptimize(self, state, experiment_name):
