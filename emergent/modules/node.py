@@ -205,8 +205,10 @@ class Hub(Node):
             path (str): network path relative to the emergent/ folder. For example, if the network.py file is located in emergent/networks/example, then path should be 'networks/example.'
 
         """
+        self.watchdogs = {}
         self.network = network
         self.name = name
+        self.locked = True            # whether or not everything is running smoothly
         self.addr = addr
         if self.addr is None:
             self.addr = get_address()
@@ -219,14 +221,13 @@ class Hub(Node):
         self.state = State()
         self.settings = {}
         self.samplers = {}
-        self.watchdogs = {}
         self.node_type = 'hub'
         self.signal = ActuateSignal()
         self.process_signal = ProcessSignal()
 
     def __getstate__(self):
         d = {}
-        ignore = ['signal', 'process_signal', 'samplers', 'network']
+        ignore = ['watchdogs', 'signal', 'process_signal', 'samplers', 'network']
         unpickled = []
         for item in ignore:
             if hasattr(self, item):
@@ -270,6 +271,12 @@ class Hub(Node):
     #         for setting in ['min', 'max']:
     #             self.settings[thing][name][setting] = 0
     #         log.warn('Could not find csv for input %s; creating new settings.'%name)
+
+    def check_lock(self):
+        ''' Check if any of the monitored signals are outside a threshold. Return True if not. '''
+        for w in self.watchdogs.values():
+            w.check()
+        return
 
     def load(self):
         try:

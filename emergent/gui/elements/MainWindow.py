@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import (QHBoxLayout, QLabel, QTreeView, QPushButton, QVBoxL
         QWidget, QMenu, QAction, QTreeWidget, QTreeWidgetItem, QMainWindow, QStatusBar, QMenuBar, QStyleFactory)
 from PyQt5.QtCore import *
 import json
-from emergent.gui.elements import ExperimentLayout, TaskPanel, ServoLayout, NodeTree, MonitorPanel
+from emergent.gui.elements import ExperimentLayout, TaskPanel, ServoLayout, NodeTree, MonitorLayout
 import os
 import psutil
 import sys
@@ -27,7 +27,7 @@ class MainFrame(QMainWindow):
         self.setWindowIcon(QIcon('gui/media/icon.png'))
         self.setCentralWidget(self.central_widget)
         layout= QHBoxLayout(self.central_widget)
-        width = 1080
+        width = 1280
         height = 720
         self.resize(width, height)
 
@@ -58,7 +58,7 @@ class MainFrame(QMainWindow):
         self.experiment_layout.addLayout(self.taskPanel)
 
         ''' Create monitor panel '''
-        self.monitorPanel = MonitorPanel(self)
+        self.monitorPanel = MonitorLayout(self.network, self)
         layout.addLayout(self.monitorPanel)
 
 

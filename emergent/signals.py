@@ -47,3 +47,15 @@ class RemoveSignal(QObject):
 
     def emit(self, hub, thing, input):
         self.signal.emit({'hub':hub, 'thing':thing, 'input':input})
+
+class WatchdogSignal(QObject):
+    signal = pyqtSignal(int)
+
+    def __init__(self):
+        super().__init__()
+
+    def connect(self, func):
+        self.signal.connect(func)
+
+    def emit(self, state):
+        self.signal.emit(state)
