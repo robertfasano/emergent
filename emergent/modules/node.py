@@ -224,10 +224,11 @@ class Hub(Node):
         self.node_type = 'hub'
         self.signal = ActuateSignal()
         self.process_signal = ProcessSignal()
-
+        self.ignored = []
     def __getstate__(self):
         d = {}
-        ignore = ['watchdogs', 'signal', 'process_signal', 'samplers', 'network']
+        ignore = ['manager', 'watchdogs', 'signal', 'process_signal', 'samplers', 'network']
+        ignore.extend(self.ignored)
         unpickled = []
         for item in ignore:
             if hasattr(self, item):
