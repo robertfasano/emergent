@@ -109,7 +109,10 @@ class Sampler():
                 if thing not in state.keys():
                     state[thing] = {}
                 state[thing][input] = 0
-        points = np.vstack(arrays).T.astype(float)
+        if len(arrays) > 0:
+            points = np.vstack(arrays).T.astype(float)
+        else:
+            points = None
         costs = costs.astype(float)
 
         if include_database:

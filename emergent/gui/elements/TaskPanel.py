@@ -112,41 +112,46 @@ class Visualizer(QWidget):
         t, points, costs, errors = self.sampler.get_history(include_database = False)
         costs *= -1
         t = t.copy()-t[0]
-        num_inputs = points.shape[1]
-        hub = self.sampler.hub
-
-        ''' costs vs parameters '''
-        fig, ax = plt.subplots(2,num_inputs, figsize=(10, 8))
-        if num_inputs > 1:
-            ax0 = ax[0]
+        if points is None:
+            num_inputs = 0
         else:
-            ax0 = ax
-        ax0[0].set_ylabel(self.sampler.experiment.__name__)
-        cost_vs_param = {}
-        for i in range(num_inputs):
-            p = points[:,i]
-            name =  self.sampler.history.columns[i].replace('.', ': ')
-            limits = {name: self.sampler.get_limits()[name]}
-            new_ax, fig = plot_1D(p, costs, limits=limits, cost_name = self.sampler.experiment.__name__, errors = errors)
-            cost_vs_param[self.sampler.history.columns[i]] = fig
-            ax0[i].set_xlabel(self.sampler.history.columns[i])
-
-        ''' parameters vs time '''
-        param_vs_time = {}
-        for i in range(num_inputs):
-            p = points[:,i]
-            name =  self.sampler.history.columns[i].replace('.', ': ')
-            limits = self.sampler.get_limits()
-            p = limits[name]['min'] + p*(limits[name]['max']-limits[name]['min'])
-
-            if num_inputs == 1:
-                cax = ax[1]
+            num_inputs = points.shape[1]
+        hub = self.sampler.hub
+        cost_vs_param = None
+        param_vs_time = None
+        if num_inputs > 0:
+            ''' costs vs parameters '''
+            fig, ax = plt.subplots(2,num_inputs, figsize=(10, 8))
+            if num_inputs > 1:
+                ax0 = ax[0]
             else:
-                cax = ax[1][i]
-            new_ax, fig = plot_1D(t, p, cost_name = self.sampler.experiment.__name__, xlabel = 'Time (s)', ylabel = self.sampler.history.columns[i], errors = errors)
-            param_vs_time[self.sampler.history.columns[i]] = fig
-            cax.set_ylabel(self.sampler.history.columns[i])
-            cax.set_xlabel('Time (s)')
+                ax0 = ax
+            ax0[0].set_ylabel(self.sampler.experiment.__name__)
+            cost_vs_param = {}
+            for i in range(num_inputs):
+                p = points[:,i]
+                name =  self.sampler.history.columns[i].replace('.', ': ')
+                limits = {name: self.sampler.get_limits()[name]}
+                new_ax, fig = plot_1D(p, costs, limits=limits, cost_name = self.sampler.experiment.__name__, errors = errors)
+                cost_vs_param[self.sampler.history.columns[i]] = fig
+                ax0[i].set_xlabel(self.sampler.history.columns[i])
+
+            ''' parameters vs time '''
+            param_vs_time = {}
+            for i in range(num_inputs):
+                p = points[:,i]
+                name =  self.sampler.history.columns[i].replace('.', ': ')
+                limits = self.sampler.get_limits()
+                p = limits[name]['min'] + p*(limits[name]['max']-limits[name]['min'])
+
+                if num_inputs == 1:
+                    cax = ax[1]
+                else:
+                    cax = ax[1][i]
+                new_ax, fig = plot_1D(t, p, cost_name = self.sampler.experiment.__name__, xlabel = 'Time (s)', ylabel = self.sampler.history.columns[i], errors = errors)
+                param_vs_time[self.sampler.history.columns[i]] = fig
+                cax.set_ylabel(self.sampler.history.columns[i])
+                cax.set_xlabel('Time (s)')
 
         ''' 2d plots '''
 

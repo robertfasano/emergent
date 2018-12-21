@@ -62,7 +62,7 @@ class RunLayout(QVBoxLayout, ProcessHandler):
         settings = {}
         settings['experiment_name'] = self.experiment_box.currentText()
         try:
-            settings['hub'] = self.parent.parent.treeWidget.get_selected_hub()
+            settings['hub'] = self.parent.parent.treeWidget.currentItem().root
         except Exception as e:
             if e == IndexError:
                 log.warn('Select inputs before starting optimization!')

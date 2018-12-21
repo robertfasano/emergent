@@ -92,34 +92,32 @@ class PlotWidget(QWidget):
         self.canvas_hist = None
 
         self.draw_hist_fig()
-
-
-        ''' 1D tab '''
-        self.tab1 = QWidget()
-        self.tab2 = QWidget()
-        self.tabs.addTab(self.tab1,"1D")
-        self.tab1_layout = QVBoxLayout()
-
-        self.tab1_input_layout = QHBoxLayout()
-        self.input_box = QComboBox()
-        self.tab1_input_layout.addWidget(self.input_box)
         inputs = []
-        for input in list(cvp.keys()):
-            inputs.append(input)
-            self.input_box.addItem(input)
-        self.input_box.currentTextChanged.connect(self.choose_input)
-        self.tab1_layout.addLayout(self.tab1_input_layout)
+        if not (self.cvp is None and self.pvt is None):
+            ''' 1D tab '''
+            self.tab1 = QWidget()
+            self.tabs.addTab(self.tab1,"1D")
+            self.tab1_layout = QVBoxLayout()
 
-        self.tab1_plot_layout = QHBoxLayout()
-        self.tab1_layout.addLayout(self.tab1_plot_layout)
-        self.tab1.setLayout(self.tab1_layout)
+            self.tab1_input_layout = QHBoxLayout()
+            self.input_box = QComboBox()
+            self.tab1_input_layout.addWidget(self.input_box)
+            for input in list(cvp.keys()):
+                inputs.append(input)
+                self.input_box.addItem(input)
+            self.input_box.currentTextChanged.connect(self.choose_input)
+            self.tab1_layout.addLayout(self.tab1_input_layout)
 
-        self.canvas1 = None
-        self.canvas2 = None
-        self.canvas2d = None
-        self.canvas = [self.canvas1]
+            self.tab1_plot_layout = QHBoxLayout()
+            self.tab1_layout.addLayout(self.tab1_plot_layout)
+            self.tab1.setLayout(self.tab1_layout)
 
-        self.choose_input()
+            self.canvas1 = None
+            self.canvas2 = None
+            self.canvas2d = None
+            self.canvas = [self.canvas1]
+
+            self.choose_input()
 
         if len(inputs) == 2 and self.sampler.algorithm is not None:
             self.tab_algo = QWidget()
