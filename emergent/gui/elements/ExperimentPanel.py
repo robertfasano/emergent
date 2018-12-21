@@ -165,7 +165,10 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
             return
         if update_algorithm:
             algo_name = panel.algorithm_box.currentText()
-            algo_params = recommender.load_algorithm_parameters(hub, experiment_name, algo_name, default = default)
+            if panel.name == 'Optimize':
+                algo_params = recommender.load_algorithm_parameters(hub, experiment_name, algo_name, default = default)
+            elif panel.name == 'Servo':
+                algo_params = recommender.load_servo_parameters(hub, experiment_name, algo_name, default = default)
             panel.algorithm_table.set_parameters(algo_params)
         if update_experiment:
             exp_params = recommender.load_experiment_parameters(hub, experiment_name)
@@ -232,7 +235,7 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
             sampler.trigger = None
             if panel.trigger_box.currentText() != '':
                 sampler.trigger = getattr(sampler.hub, panel.trigger_box.currentText())
-                
+
         ''' Run process '''
         if settings['state'] == {} and process != 'run':
             log.warn('Please select at least one Input node for optimization.')

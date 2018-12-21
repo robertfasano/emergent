@@ -61,6 +61,47 @@ def list_servos():
             names.append(inst().name)
     return names
 
+def load_servo_parameters(hub, experiment_name, algorithm_name, default = False):
+    ''' Looks for algorithm parameters in the parameterfile for the experiment. If none exist,
+        get them from the default algorithm parameters.
+
+        Args:
+            hub (Hub): a node whose experiment we're about to run
+            experiment_name (str)
+            algorithm_name (str)
+            default (bool)
+    '''
+
+    ''' Look for relevant parameters in the json file in the network's params directory '''
+    params_filename = hub.network.params_path + '%s.%s.txt'%(hub.name, experiment_name)
+    if not default:
+        try:
+            ''' Load params from file '''
+            with open(params_filename, 'r') as file:
+                params = json.load(file)
+
+            ''' See if the algorithm we're interested in has saved parameters'''
+            if algorithm_name in params['algorithm']:
+                return params['algorithm'][algorithm_name]
+            else:
+                ''' Load the default parameters and add them to file '''
+                d = get_default_servo_params(algorithm_name)
+                with open(params_filename, 'r') as file:
+                    params = json.load(file)
+                params['algorithm'][algorithm_name] = d
+                with open(params_filename, 'w') as file:
+                    json.dump(params, file)
+                return d
+        except OSError:
+            pass
+    ''' If file does not exist, then load from introspection '''
+    params = {'experiment': {}, 'algorithm': {'default': 'GridSearch'}}
+    params['algorithm'][algorithm_name] = get_default_servo_params(algorithm_name)
+
+    with open(params_filename, 'w') as file:
+        json.dump(params, file)
+
+    return params['algorithm'][algorithm_name]
 def load_algorithm_parameters(hub, experiment_name, algorithm_name, default = False):
     ''' Looks for algorithm parameters in the parameterfile for the experiment. If none exist,
         get them from the default algorithm parameters.
@@ -122,7 +163,8 @@ def load_experiment_parameters(hub, experiment_name, default = False):
             ''' Load params from file '''
             with open(params_filename, 'r') as file:
                 params = json.load(file)
-
+            if params['experiment'] == {}:
+                raise OSError
             if 'cycles per sample' not in params['experiment']:
                 params['experiment']['cycles per sample'] = 1
             return params['experiment']
