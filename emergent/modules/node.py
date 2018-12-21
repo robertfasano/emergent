@@ -297,6 +297,31 @@ class Hub(Node):
                     self.settings[thing.name][input.name] = {'min': 0, 'max': 1}
                     log.warn('Could not find csv for input %s; creating new settings.'%input.name)
 
+    def optimize(self, state, experiment_name, threaded = True):
+        if threaded:
+            self.manager._run_thread(self.optimize_thread, args = (state, experiment_name), stoppable = False)
+        else:
+            self.optimize_thread(state, experiment_name)
+
+    def optimize_thread(self, state, experiment_name):
+        ''' Optimizes an experiment with the default settings from file '''
+        experiment_params = recommender.load_experiment_parameters(self, experiment_name)
+        algorithm = recommender.get_default_algorithm(self, experiment_name)
+        algorithm_params = recommender.load_algorithm_parameters(self, experiment_name, algorithm.name)
+        start_time = datetime.datetime.now().strftime('%Y%m%dT%H%M')
+        experiment = getattr(self, experiment_name)
+
+        sampler = Sampler(algorithm.name,
+                          state,
+                          self,
+                          experiment,
+                          experiment_params,
+                          algorithm,
+                          algorithm_params,
+                          t=start_time)
+        sampler.algorithm.run(sampler.state)
+        sampler.active = False
+
     def save(self):
         state = {}
         for thing in self.state:
