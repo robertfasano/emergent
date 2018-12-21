@@ -82,6 +82,7 @@
             
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="index.html">EMERGENT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gettingstarted.html">Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="optimization.html">Optimization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
@@ -154,66 +155,66 @@
 <h1>Network flow<a class="headerlink" href="#network-flow" title="Permalink to this headline">¶</a></h1>
 <p>In this page we describe the overall control flow of EMERGENT, including network
 construction and initialization, state and sequence actuation, and optimization.
-We will follow the example network in <code class="docutils literal"><span class="pre">emergent/networks/example</span></code>.</p>
+We will follow the example network in <code class="docutils literal notranslate"><span class="pre">emergent/networks/example</span></code>.</p>
 <div class="section" id="network-construction">
 <h2>Network construction<a class="headerlink" href="#network-construction" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="the-hub">
 <h3>The Hub<a class="headerlink" href="#the-hub" title="Permalink to this headline">¶</a></h3>
 <p>To define a network, we first define a Hub:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sys</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">from</span> <span class="nn">examples.basic.hubs.testHub</span> <span class="kn">import</span> <span class="n">TestHub</span>
 <span class="n">hub</span> <span class="o">=</span> <span class="n">TestHub</span><span class="p">(</span><span class="s1">&#39;hub&#39;</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="s1">&#39;examples/</span><span class="si">%s</span><span class="s1">&#39;</span><span class="o">%</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
 </pre></div>
 </div>
-<p>The first argument to the node initializer is the <code class="docutils literal"><span class="pre">name</span></code> 'hub', which will
+<p>The first argument to the node initializer is the <code class="docutils literal notranslate"><span class="pre">name</span></code> 'hub', which will
 label the node within the network tree. It doesn't have to be the same as the
 variable name, but it may be helpful. The second argument is the path of our
-network directory - to start emergent, we will run <code class="docutils literal"><span class="pre">main.py</span></code> in the root
-directory with the argument <code class="docutils literal"><span class="pre">example</span></code> to specify this network.</p>
+network directory - to start emergent, we will run <code class="docutils literal notranslate"><span class="pre">main.py</span></code> in the root
+directory with the argument <code class="docutils literal notranslate"><span class="pre">example</span></code> to specify this network.</p>
 <p>When a Hub is initialized, it first calls its parent initializer,
-<code class="docutils literal"><span class="pre">Node.__init__(name,</span> <span class="pre">parent)</span></code>, which does five things:</p>
+<code class="docutils literal notranslate"><span class="pre">Node.__init__(name,</span> <span class="pre">parent)</span></code>, which does five things:</p>
 <ol class="arabic simple">
-<li>Save the passed name as an attribute <code class="docutils literal"><span class="pre">self.name=name</span></code>.</li>
-<li>Append <code class="docutils literal"><span class="pre">self</span></code> to the <code class="docutils literal"><span class="pre">instances</span></code> variable, which will allow nodes of a single type to be collected.</li>
-<li>Define the empty <code class="docutils literal"><span class="pre">self.children</span></code> dict.</li>
-<li>Register self with parent (in this case <code class="docutils literal"><span class="pre">parent==None</span></code>, so no action is taken)</li>
+<li>Save the passed name as an attribute <code class="docutils literal notranslate"><span class="pre">self.name=name</span></code>.</li>
+<li>Append <code class="docutils literal notranslate"><span class="pre">self</span></code> to the <code class="docutils literal notranslate"><span class="pre">instances</span></code> variable, which will allow nodes of a single type to be collected.</li>
+<li>Define the empty <code class="docutils literal notranslate"><span class="pre">self.children</span></code> dict.</li>
+<li>Register self with parent (in this case <code class="docutils literal notranslate"><span class="pre">parent==None</span></code>, so no action is taken)</li>
 <li>Find the root node (which for a hub node is itself)</li>
 </ol>
-<p>After initializing the <code class="docutils literal"><span class="pre">Node</span></code>, the Hub class does a few more things:</p>
+<p>After initializing the <code class="docutils literal notranslate"><span class="pre">Node</span></code>, the Hub class does a few more things:</p>
 <ol class="arabic simple">
-<li>Initialize empty dicts for <code class="docutils literal"><span class="pre">inputs</span></code>, <code class="docutils literal"><span class="pre">state</span></code>, <code class="docutils literal"><span class="pre">settings</span></code>, and <code class="docutils literal"><span class="pre">sequences</span></code>.</li>
-<li>Set <code class="docutils literal"><span class="pre">self.actuating=0</span></code> to indicate that no motion is currently occurring.</li>
-<li>Prepare paths to the settings, state, sequence, and data directories based on our network specified in <code class="docutils literal"><span class="pre">sys.argv[1]</span></code>.</li>
+<li>Initialize empty dicts for <code class="docutils literal notranslate"><span class="pre">inputs</span></code>, <code class="docutils literal notranslate"><span class="pre">state</span></code>, <code class="docutils literal notranslate"><span class="pre">settings</span></code>, and <code class="docutils literal notranslate"><span class="pre">sequences</span></code>.</li>
+<li>Set <code class="docutils literal notranslate"><span class="pre">self.actuating=0</span></code> to indicate that no motion is currently occurring.</li>
+<li>Prepare paths to the settings, state, sequence, and data directories based on our network specified in <code class="docutils literal notranslate"><span class="pre">sys.argv[1]</span></code>.</li>
 <li>Initialize the Clock, Historian, and Optimizer modules.</li>
 </ol>
 </div>
 <div class="section" id="adding-things">
 <h3>Adding things<a class="headerlink" href="#adding-things" title="Permalink to this headline">¶</a></h3>
 <p>With the Hub defined, we can now add child Things:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">thingA</span> <span class="o">=</span> <span class="n">TestThing</span><span class="p">(</span><span class="s1">&#39;thingA&#39;</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">hub</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">thingA</span> <span class="o">=</span> <span class="n">TestThing</span><span class="p">(</span><span class="s1">&#39;thingA&#39;</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">hub</span><span class="p">)</span>
 <span class="n">thingB</span> <span class="o">=</span> <span class="n">TestThing</span><span class="p">(</span><span class="s1">&#39;thingB&#39;</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="n">hub</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Again we have specified a name, and this time we have specified that each thing
 is a child of the parent Hub. The Node initialization will proceed
-similarly, but this time the <code class="docutils literal"><span class="pre">Node.register(parent)</span></code> function will occur.
+similarly, but this time the <code class="docutils literal notranslate"><span class="pre">Node.register(parent)</span></code> function will occur.
 This function links the nodes so that the Thing can access the Hub
-through the <code class="docutils literal"><span class="pre">Thing.parent</span></code> variable, while the Hub can access the
-Thing through an entry in the <code class="docutils literal"><span class="pre">Hub.children</span></code> dict. The Node initializer
+through the <code class="docutils literal notranslate"><span class="pre">Thing.parent</span></code> variable, while the Hub can access the
+Thing through an entry in the <code class="docutils literal notranslate"><span class="pre">Hub.children</span></code> dict. The Node initializer
 also finds the root again, which is the Hub.</p>
-<p>Next, in the Thing initializer, the <code class="docutils literal"><span class="pre">Thing.state</span></code> variable is initialized to
-an empty dict. In the definition of the inheriting class <code class="docutils literal"><span class="pre">TestThing</span></code>, we define
-two variables <code class="docutils literal"><span class="pre">X</span></code> and <code class="docutils literal"><span class="pre">Y</span></code> by calling the <code class="docutils literal"><span class="pre">Thing.add_input</span></code> function twice.
+<p>Next, in the Thing initializer, the <code class="docutils literal notranslate"><span class="pre">Thing.state</span></code> variable is initialized to
+an empty dict. In the definition of the inheriting class <code class="docutils literal notranslate"><span class="pre">TestThing</span></code>, we define
+two variables <code class="docutils literal notranslate"><span class="pre">X</span></code> and <code class="docutils literal notranslate"><span class="pre">Y</span></code> by calling the <code class="docutils literal notranslate"><span class="pre">Thing.add_input</span></code> function twice.
 This function generates an Input node, which once again repeats the Node initializer
 and then defines placeholders for variables which will be set later.</p>
-<p>After creating the Input node, <code class="docutils literal"><span class="pre">Thing.add_input(name)</span></code> does four things:</p>
+<p>After creating the Input node, <code class="docutils literal notranslate"><span class="pre">Thing.add_input(name)</span></code> does four things:</p>
 <ol class="arabic simple">
-<li>Add the input node by <code class="docutils literal"><span class="pre">name</span></code> to the <code class="docutils literal"><span class="pre">Thing.children</span></code> dict.</li>
-<li>Add the input node by <code class="docutils literal"><span class="pre">full_name</span></code> to the <code class="docutils literal"><span class="pre">Hub.inputs</span></code> dict.</li>
+<li>Add the input node by <code class="docutils literal notranslate"><span class="pre">name</span></code> to the <code class="docutils literal notranslate"><span class="pre">Thing.children</span></code> dict.</li>
+<li>Add the input node by <code class="docutils literal notranslate"><span class="pre">full_name</span></code> to the <code class="docutils literal notranslate"><span class="pre">Hub.inputs</span></code> dict.</li>
 <li>Call the Hub.load(input.full_name) method to attempt to recall a previous state.</li>
-<li>Set the <code class="docutils literal"><span class="pre">name</span></code> component of <code class="docutils literal"><span class="pre">Thing.state</span></code> equal to the state of the input, which is loaded in the previous step.</li>
+<li>Set the <code class="docutils literal notranslate"><span class="pre">name</span></code> component of <code class="docutils literal notranslate"><span class="pre">Thing.state</span></code> equal to the state of the input, which is loaded in the previous step.</li>
 </ol>
-<p>The <code class="docutils literal"><span class="pre">Hub.load()</span></code> method takes a <code class="docutils literal"><span class="pre">full_name</span></code> as an argument and searches for
+<p>The <code class="docutils literal notranslate"><span class="pre">Hub.load()</span></code> method takes a <code class="docutils literal notranslate"><span class="pre">full_name</span></code> as an argument and searches for
 this component within the last entry of its settings, sequence, and state files.</p>
 </div>
 </div>
@@ -221,14 +222,14 @@ this component within the last entry of its settings, sequence, and state files.
 <h2>State actuation<a class="headerlink" href="#state-actuation" title="Permalink to this headline">¶</a></h2>
 <p>The specific hub flow for actuation is designed to make sure that the state
 of an Input node never loses sync with its representation in the Thing and Hub
-nodes. Actuation begins with a call to <code class="docutils literal"><span class="pre">Hub.actuate()</span></code> with a state dict as
-an argument. This indices of this state dict are <code class="docutils literal"><span class="pre">full_name</span></code> variables for each
-input such as <code class="docutils literal"><span class="pre">'thingA.X'</span></code> which label both the thing and the state.</p>
+nodes. Actuation begins with a call to <code class="docutils literal notranslate"><span class="pre">Hub.actuate()</span></code> with a state dict as
+an argument. This indices of this state dict are <code class="docutils literal notranslate"><span class="pre">full_name</span></code> variables for each
+input such as <code class="docutils literal notranslate"><span class="pre">'thingA.X'</span></code> which label both the thing and the state.</p>
 <ol class="arabic simple">
-<li>For each item in the state, call the <code class="docutils literal"><span class="pre">Input.set()</span></code> method of the corresponding Input node.</li>
-<li>The Input node requests a new state from the parent Thing by passing itself and the target value into a call to <code class="docutils literal"><span class="pre">Thing.actuate()</span></code>.</li>
-<li><code class="docutils literal"><span class="pre">Thing.actuate()</span></code> first calls <code class="docutils literal"><span class="pre">Thing._actuate()</span></code>, which is a private  function implemented for each separate thing; this function changes the physical  state (e.g. by setting a voltage to a certain value) but does not change the virtual state.</li>
-<li>Next, <code class="docutils literal"><span class="pre">Thing.actuate()</span></code> calls <code class="docutils literal"><span class="pre">Thing.update()</span></code>, which simultaneously updates the state of the Input, Thing, and Hubs.</li>
+<li>For each item in the state, call the <code class="docutils literal notranslate"><span class="pre">Input.set()</span></code> method of the corresponding Input node.</li>
+<li>The Input node requests a new state from the parent Thing by passing itself and the target value into a call to <code class="docutils literal notranslate"><span class="pre">Thing.actuate()</span></code>.</li>
+<li><code class="docutils literal notranslate"><span class="pre">Thing.actuate()</span></code> first calls <code class="docutils literal notranslate"><span class="pre">Thing._actuate()</span></code>, which is a private  function implemented for each separate thing; this function changes the physical  state (e.g. by setting a voltage to a certain value) but does not change the virtual state.</li>
+<li>Next, <code class="docutils literal notranslate"><span class="pre">Thing.actuate()</span></code> calls <code class="docutils literal notranslate"><span class="pre">Thing.update()</span></code>, which simultaneously updates the state of the Input, Thing, and Hubs.</li>
 </ol>
 <div class="section" id="primary-and-secondary-inputs">
 <h3>Primary and secondary inputs<a class="headerlink" href="#primary-and-secondary-inputs" title="Permalink to this headline">¶</a></h3>
@@ -237,13 +238,13 @@ sets of inputs. Perhaps you have an apparatus which converts a voltage setpoint 
 a current; in this case, it is convenient to be able to choose either the voltage
 or the current and have the other quantity update automatically. We refer to the
 voltage as a primary input and the current as a secondary input; secondary
-input nodes can be created by passing the keyword argument <code class="docutils literal"><span class="pre">type='virtual'</span></code>
+input nodes can be created by passing the keyword argument <code class="docutils literal notranslate"><span class="pre">type='virtual'</span></code>
 into the constructor.</p>
 <p>Currently only one set of secondary inputs can be constructed. The secondary inputs
-are related to the primary inputs by a pair of methods <code class="docutils literal"><span class="pre">primary_to_secondary</span></code> and
-<code class="docutils literal"><span class="pre">secondary</span></code> which must be implemented in the Thing driver class. Only
+are related to the primary inputs by a pair of methods <code class="docutils literal notranslate"><span class="pre">primary_to_secondary</span></code> and
+<code class="docutils literal notranslate"><span class="pre">secondary</span></code> which must be implemented in the Thing driver class. Only
 one set of inputs can be active at once, and can be chosen by calling
-<code class="docutils literal"><span class="pre">Thing.use_inputs(type)</span></code>, where type can be <code class="docutils literal"><span class="pre">`primary`</span></code> or <code class="docutils literal"><span class="pre">`secondary`</span></code>.
+<code class="docutils literal notranslate"><span class="pre">Thing.use_inputs(type)</span></code>, where type can be <code class="docutils literal notranslate"><span class="pre">`primary`</span></code> or <code class="docutils literal notranslate"><span class="pre">`secondary`</span></code>.
 When this method is called, the current representation will be converted into the
 other representation and the state dicts of the Thing and Hubs will be
 updated accordingly. Note that no actuation is done, since the two states are
@@ -261,7 +262,7 @@ calibration data and an analytical model for the magnetic field as a function of
 current.</p>
 <p>EMERGENT allows actuation in terms of either the virtual or real inputs (as long
 as the two aren't mixed within one call to actuate()). In the case of the
-CurrentDriver class, pointing <code class="docutils literal"><span class="pre">actuate()</span></code> at the virtual inputs will first
+CurrentDriver class, pointing <code class="docutils literal notranslate"><span class="pre">actuate()</span></code> at the virtual inputs will first
 convert them to real inputs before setting the physical variables.</p>
 </div>
 </div>
@@ -284,7 +285,7 @@ convert them to real inputs before setting the physical variables.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, Robert Fasano.
+        &copy; Copyright 2018, Robert Fasano
 
     </p>
   </div> 
@@ -302,20 +303,13 @@ convert them to real inputs before setting the physical variables.</p>
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'0.1alpha',
-            LANGUAGE:'python',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+    
 
   
 

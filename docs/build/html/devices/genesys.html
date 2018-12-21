@@ -82,6 +82,7 @@
             
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="../index.html">EMERGENT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gettingstarted.html">Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture.html">Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../optimization.html">Optimization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
@@ -155,17 +156,49 @@
 <dl class="class">
 <dt id="genesys.Genesys">
 <em class="property">class </em><code class="descclassname">genesys.</code><code class="descname">Genesys</code><span class="sig-paren">(</span><em>name</em>, <em>port</em>, <em>parent=None</em><span class="sig-paren">)</span><a class="headerlink" href="#genesys.Genesys" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">emergent.modules.node.Thing</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">emergent.modules.node.Thing</span></code></p>
 <p>Thing driver for the TDK Genesys programmable power supply.</p>
 <dl class="method">
 <dt id="genesys.Genesys.__init__">
 <code class="descname">__init__</code><span class="sig-paren">(</span><em>name</em>, <em>port</em>, <em>parent=None</em><span class="sig-paren">)</span><a class="headerlink" href="#genesys.Genesys.__init__" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Initializes a Thing.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> (<em>str</em>) -- node name. Things which share a Hub should have unique names.</li>
+<li><strong>parent</strong> (<em>str</em>) -- name of parent Hub.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="genesys.Genesys._actuate">
 <code class="descname">_actuate</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#genesys.Genesys._actuate" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Private placeholder for the thing-specific driver.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">State actuation is done by first calling the Thing.actuate() method,
+which calls Thing._actuate(state) to change something in the lab, then
+calls Thing.update(state) to register this new state with EMERGENT.
+When you write a driver inheriting from Thing, you should reimplement
+this method to update your thing to the specified state only - do not
+update any stored states such as Thing.state, Input.state, or Hub.state
+from this method.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>state</strong> (<em>dict</em>) -- Target state of the form {'param1':value1, 'param2':value2,...}.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="genesys.Genesys._connect">
@@ -208,7 +241,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, Robert Fasano.
+        &copy; Copyright 2018, Robert Fasano
 
     </p>
   </div> 
@@ -226,20 +259,13 @@
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'../',
-            VERSION:'0.1alpha',
-            LANGUAGE:'python',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="../_static/jquery.js"></script>
-      <script type="text/javascript" src="../_static/underscore.js"></script>
-      <script type="text/javascript" src="../_static/doctools.js"></script>
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+    
 
   
 

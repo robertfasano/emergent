@@ -29,7 +29,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Optimization" href="optimization.html" />
-    <link rel="prev" title="EMERGENT" href="index.html" /> 
+    <link rel="prev" title="Getting started" href="gettingstarted.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -84,6 +84,7 @@
             
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="index.html">EMERGENT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gettingstarted.html">Getting started</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Architecture</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#inputs">Inputs</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#things">Things</a></li>
@@ -168,7 +169,7 @@ Hub, Thing, and Input nodes.</p>
 <p>An <a class="reference internal" href="architecture/input.html"><span class="doc">Input</span></a> node is the lowest-level object in an EMERGENT network. Its sole purpose
 is to represent the state of some physical variable in the lab. For example, a
 power supply creating a 60 A current might be represented by an Input node called
-<code class="docutils literal"><span class="pre">current</span></code> with <code class="docutils literal"><span class="pre">current.state=60</span></code>. The Input node class only offers basic
+<code class="docutils literal notranslate"><span class="pre">current</span></code> with <code class="docutils literal notranslate"><span class="pre">current.state=60</span></code>. The Input node class only offers basic
 functionalities for representing this state; more advanced functionalities like
 state actuation and optimization are carried out in higher-level nodes.</p>
 </div>
@@ -176,12 +177,12 @@ state actuation and optimization are carried out in higher-level nodes.</p>
 <h2>Things<a class="headerlink" href="#things" title="Permalink to this headline">¶</a></h2>
 <p>A <a class="reference internal" href="architecture/thing.html"><span class="doc">Thing</span></a> node represents a physical thing which is responsible
 for controlling one or more Input nodes. For example, a motorized XY translation
-stage could be represented by a Thing called <code class="docutils literal"><span class="pre">stage</span></code> with inputs <code class="docutils literal"><span class="pre">X</span></code> and
-<code class="docutils literal"><span class="pre">Y</span></code>. The inputs can be accessed through the <code class="docutils literal"><span class="pre">children</span></code> attribute, e.g.
-<code class="docutils literal"><span class="pre">stage.children['X']</span></code> returns a handle to the Input node representing the X
+stage could be represented by a Thing called <code class="docutils literal notranslate"><span class="pre">stage</span></code> with inputs <code class="docutils literal notranslate"><span class="pre">X</span></code> and
+<code class="docutils literal notranslate"><span class="pre">Y</span></code>. The inputs can be accessed through the <code class="docutils literal notranslate"><span class="pre">children</span></code> attribute, e.g.
+<code class="docutils literal notranslate"><span class="pre">stage.children['X']</span></code> returns a handle to the Input node representing the X
 degree of freedom. A dictionary is used to represent the state of multiple Input
-nodes in a human-readable way: a typical state might be <code class="docutils literal"><span class="pre">stage.state={'X':0,</span> <span class="pre">'Y':1}</span></code>.
-Changes in state are driven by the <code class="docutils literal"><span class="pre">stage.actuate(state)</span></code> function, which takes
+nodes in a human-readable way: a typical state might be <code class="docutils literal notranslate"><span class="pre">stage.state={'X':0,</span> <span class="pre">'Y':1}</span></code>.
+Changes in state are driven by the <code class="docutils literal notranslate"><span class="pre">stage.actuate(state)</span></code> function, which takes
 a state dictionary with at least one input, drives the physical change, then updates
 the internal state of the network accordingly.</p>
 </div>
@@ -192,23 +193,23 @@ and Things are responsible for representing and changing the experimental state,
 Hubs serve as an interface for many things and are capable of intelligently
 optimizing the macroscopic state towards a desired outcome. This macroscopic state,
 containing many thing substates, is represented through a nested dict which could
-look like <code class="docutils literal"><span class="pre">hub.state={'stage':{'X':0,'Y':1},</span> <span class="pre">'power_supply':{'current':60}}</span></code>.
-Like the Thing, the Hub possesses a method called <code class="docutils literal"><span class="pre">actuate</span></code> which
+look like <code class="docutils literal notranslate"><span class="pre">hub.state={'stage':{'X':0,'Y':1},</span> <span class="pre">'power_supply':{'current':60}}</span></code>.
+Like the Thing, the Hub possesses a method called <code class="docutils literal notranslate"><span class="pre">actuate</span></code> which
 decomposes a macroscopic state into substates and distributes them to the correct
 Things.</p>
 </div>
 <div class="section" id="experiments">
 <h2>Experiments<a class="headerlink" href="#experiments" title="Permalink to this headline">¶</a></h2>
 <p>An experiment is represented through a class method of the Hub. Let's
-take a look at a very basic experiment from the <code class="docutils literal"><span class="pre">autoAlign</span></code> class:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="nd">@experiment</span>
+take a look at a very basic experiment from the <code class="docutils literal notranslate"><span class="pre">autoAlign</span></code> class:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@experiment</span>
 <span class="k">def</span> <span class="nf">measure_power</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39; Moves to the target alignment and measures the transmitted power. &#39;&#39;&#39;</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">actuate</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
     <span class="k">return</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">readADC</span><span class="p">()</span>
 </pre></div>
 </div>
-<p>This experiment steers a MEMS mirror to the specified state, e.g. <code class="docutils literal"><span class="pre">state={'X':-60,'Y':0}</span></code>,
+<p>This experiment steers a MEMS mirror to the specified state, e.g. <code class="docutils literal notranslate"><span class="pre">state={'X':-60,'Y':0}</span></code>,
 and measures and returns the power transmitted through an optical fiber. The &#64;experiment
 decorator carries out two functions: first, it lets EMERGENT know that this method
 should appear in drop-down menus for experiment selection; second, it automatically
@@ -228,7 +229,7 @@ states can be recalled.</p>
         <a href="optimization.html" class="btn btn-neutral float-right" title="Optimization" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="index.html" class="btn btn-neutral" title="EMERGENT" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="gettingstarted.html" class="btn btn-neutral" title="Getting started" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -237,7 +238,7 @@ states can be recalled.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, Robert Fasano.
+        &copy; Copyright 2018, Robert Fasano
 
     </p>
   </div> 
@@ -255,20 +256,13 @@ states can be recalled.</p>
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'0.1alpha',
-            LANGUAGE:'python',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+    
 
   
 

@@ -84,6 +84,7 @@
             
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="index.html">EMERGENT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gettingstarted.html">Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="optimization.html">Optimization</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Examples</a><ul>
@@ -165,15 +166,15 @@
 <p>A full example for a simple network can be found in emergent/networks/example.py.
 In this example, a single Hub oversees two Things, one with inputs
 'X' and 'Y' and another with inputs 'X' and 'Y'. Take a moment to look through the code
-required to initialize the network: in <code class="docutils literal"><span class="pre">network.py</span></code>, we have simply imported
-and instantiated the objects defined in the <code class="docutils literal"><span class="pre">things</span></code> and <code class="docutils literal"><span class="pre">hubs</span></code> folder.
+required to initialize the network: in <code class="docutils literal notranslate"><span class="pre">network.py</span></code>, we have simply imported
+and instantiated the objects defined in the <code class="docutils literal notranslate"><span class="pre">things</span></code> and <code class="docutils literal notranslate"><span class="pre">hubs</span></code> folder.
 EMERGENT hooks up the network under the hood - all you have to do is define the
 node parent/child relationships.</p>
-<p>EMERGENT uses a single script, <code class="docutils literal"><span class="pre">main.py</span></code>, to launch any connected network, which
-is defined through its <code class="docutils literal"><span class="pre">network.py</span></code> file which is here in the <code class="docutils literal"><span class="pre">basic</span></code> folder.
-You can start EMERGENT with this network from the root directory (<code class="docutils literal"><span class="pre">emergent</span></code>)
+<p>EMERGENT uses a single script, <code class="docutils literal notranslate"><span class="pre">main.py</span></code>, to launch any connected network, which
+is defined through its <code class="docutils literal notranslate"><span class="pre">network.py</span></code> file which is here in the <code class="docutils literal notranslate"><span class="pre">basic</span></code> folder.
+You can start EMERGENT with this network from the root directory (<code class="docutils literal notranslate"><span class="pre">emergent</span></code>)
 by running</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">ipython</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">ipython</span>
 <span class="o">%</span><span class="n">run</span> <span class="n">main</span> <span class="n">example</span>
 </pre></div>
 </div>
@@ -192,15 +193,15 @@ the mean, standard deviation, or slope of all of the data gathered.</p>
 the result of the given experiment. With one or more inputs selected in the network
 tree and a target experiment, you can choose an optimization algorithm from the
 lower drop-down menu.</p>
-<p>Let's try tuning the <code class="docutils literal"><span class="pre">thingA</span></code> inputs to optimize the <code class="docutils literal"><span class="pre">cost_coupled</span></code> function
-using the <code class="docutils literal"><span class="pre">grid_search</span></code> algorithm and 30 steps per axis. Make sure to click the
+<p>Let's try tuning the <code class="docutils literal notranslate"><span class="pre">thingA</span></code> inputs to optimize the <code class="docutils literal notranslate"><span class="pre">cost_coupled</span></code> function
+using the <code class="docutils literal notranslate"><span class="pre">grid_search</span></code> algorithm and 30 steps per axis. Make sure to click the
 plot checkbox to display the output.</p>
 <img alt="_images/examples_grid_search.png" src="_images/examples_grid_search.png" />
 <p>When you click the Go! button, the parameter space will be sampled uniformly and
 the inputs will be set to the best discovered point:</p>
 <img alt="_images/examples_grid_search_result.png" src="_images/examples_grid_search_result.png" />
 <p>The grid search scales poorly with number of inputs, so often we will want to use
-a cleverer algorithm. The <code class="docutils literal"><span class="pre">differential_evolution</span></code> algorithm is one example that
+a cleverer algorithm. The <code class="docutils literal notranslate"><span class="pre">differential_evolution</span></code> algorithm is one example that
 we can try:</p>
 <img alt="_images/examples_differential_evolution_result.png" src="_images/examples_differential_evolution_result.png" />
 <p>In the following examples, we'll go beyond the GUI and get a feel for EMERGENT
@@ -209,30 +210,30 @@ from the command line.</p>
 <h3>State access and actuation<a class="headerlink" href="#state-access-and-actuation" title="Permalink to this headline">¶</a></h3>
 <p>In this example, we will assume that the inputs are initialized to 0.
 There are two ways that the state of one or more inputs can be changed.
-First, we could act on a Thing with the <code class="docutils literal"><span class="pre">Thing.actuate()</span></code> method:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">thingA</span><span class="o">.</span><span class="n">actuate</span><span class="p">({</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">:</span><span class="mi">1</span><span class="p">})</span>
+First, we could act on a Thing with the <code class="docutils literal notranslate"><span class="pre">Thing.actuate()</span></code> method:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">thingA</span><span class="o">.</span><span class="n">actuate</span><span class="p">({</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">:</span><span class="mi">1</span><span class="p">})</span>
 <span class="k">print</span><span class="p">(</span><span class="n">thingA</span><span class="o">.</span><span class="n">state</span><span class="p">)</span>
 <span class="k">print</span><span class="p">(</span><span class="n">hub</span><span class="o">.</span><span class="n">state</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">:</span><span class="mi">1</span><span class="p">}</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">:</span><span class="mi">1</span><span class="p">}</span>
 <span class="p">{</span><span class="s1">&#39;thingA&#39;</span><span class="p">:{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span><span class="s1">&#39;.Y&#39;</span><span class="p">:</span><span class="mi">1</span><span class="p">},</span> <span class="s1">&#39;thingB&#39;</span><span class="p">:{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">}}</span>
 </pre></div>
 </div>
-<p>We can also act on any number of inputs across any number of things through the <code class="docutils literal"><span class="pre">Hub.actuate()</span></code> method:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">hub</span><span class="o">.</span><span class="n">actuate</span><span class="p">({</span><span class="s1">&#39;thingA&#39;</span><span class="p">:{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="mi">7</span><span class="p">,</span><span class="s1">&#39;.Y&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">},</span> <span class="s1">&#39;thingB&#39;</span><span class="p">:{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="mi">13</span><span class="p">}})</span>
+<p>We can also act on any number of inputs across any number of things through the <code class="docutils literal notranslate"><span class="pre">Hub.actuate()</span></code> method:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">hub</span><span class="o">.</span><span class="n">actuate</span><span class="p">({</span><span class="s1">&#39;thingA&#39;</span><span class="p">:{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="mi">7</span><span class="p">,</span><span class="s1">&#39;.Y&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">},</span> <span class="s1">&#39;thingB&#39;</span><span class="p">:{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="mi">13</span><span class="p">}})</span>
 <span class="k">print</span><span class="p">(</span><span class="n">thingA</span><span class="o">.</span><span class="n">state</span><span class="p">)</span>
 <span class="k">print</span><span class="p">(</span><span class="n">thingB</span><span class="o">.</span><span class="n">state</span><span class="p">)</span>
 <span class="k">print</span><span class="p">(</span><span class="n">hub</span><span class="o">.</span><span class="n">state</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="mi">7</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">}</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="mi">7</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">}</span>
 <span class="p">{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="mi">13</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">}</span>
 <span class="p">{</span><span class="s1">&#39;thingA&#39;</span><span class="p">:{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="mi">7</span><span class="p">,</span><span class="s1">&#39;.Y&#39;</span><span class="p">:</span><span class="mi">2</span><span class="p">},</span> <span class="s1">&#39;thingB&#39;</span><span class="p">:{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span><span class="mi">13</span><span class="p">}}</span>
 </pre></div>
 </div>
 <p>No matter which method we use, the result is the same: the value of each targeted
-Input node is changed, and both <code class="docutils literal"><span class="pre">thing.state</span></code> and <code class="docutils literal"><span class="pre">hub.state</span></code> are updated.</p>
+Input node is changed, and both <code class="docutils literal notranslate"><span class="pre">thing.state</span></code> and <code class="docutils literal notranslate"><span class="pre">hub.state</span></code> are updated.</p>
 </div>
 </div>
 </div>
@@ -257,7 +258,7 @@ Input node is changed, and both <code class="docutils literal"><span class="pre"
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, Robert Fasano.
+        &copy; Copyright 2018, Robert Fasano
 
     </p>
   </div> 
@@ -275,20 +276,13 @@ Input node is changed, and both <code class="docutils literal"><span class="pre"
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'0.1alpha',
-            LANGUAGE:'python',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+    
 
   
 
