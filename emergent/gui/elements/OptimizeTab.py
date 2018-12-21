@@ -134,7 +134,9 @@ class OptimizeLayout(QVBoxLayout, ProcessHandler):
         return settings
 
     def run_process(self, sampler):
+        sampler.hub.enable_watchdogs(False)
         sampler.algorithm.run(sampler.state)
+        sampler.hub.enable_watchdogs(True)
         log.info('Optimization complete!')
         sampler.log(sampler.start_time.replace(':','') + ' - ' + sampler.experiment.__name__ + ' - ' + sampler.algorithm.name)
         sampler.active = False
