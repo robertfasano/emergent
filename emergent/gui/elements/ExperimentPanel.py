@@ -15,7 +15,7 @@ import datetime
 import __main__
 import os
 import importlib
-from emergent.utility import list_errors, list_experiments
+from emergent.utility import list_errors, list_experiments, list_triggers
 
 
 class ExperimentLayout(QVBoxLayout, ProcessHandler):
@@ -149,6 +149,11 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         d = recommender.load_experiment_parameters(hub, experiment.__name__)
         panel.experiment_table.set_parameters(d)
 
+        ''' update triggers '''
+        panel.trigger_box.clear()
+        for t in list_triggers(hub):
+            panel.trigger_box.addItem(t)
+
     def update_algorithm_and_experiment(self, panel, default = False, update_algorithm = True, update_experiment = True):
         if panel.experiment_box.currentText() is '':
             return
@@ -222,6 +227,12 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         ''' Create taskPanel task '''
         row = self.parent.taskPanel.add_event(sampler)
 
+        ''' Assign trigger '''
+        if process == 'run':
+            sampler.trigger = None
+            if panel.trigger_box.currentText() != '':
+                sampler.trigger = getattr(sampler.hub, panel.trigger_box.currentText())
+                
         ''' Run process '''
         if settings['state'] == {} and process != 'run':
             log.warn('Please select at least one Input node for optimization.')

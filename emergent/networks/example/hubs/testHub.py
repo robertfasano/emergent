@@ -1,6 +1,6 @@
 import numpy as np
 from emergent.modules import Hub, Watchdog, Sampler
-from emergent.utility import experiment, error
+from emergent.utility import experiment, error, trigger
 import datetime
 import time
 import numpy as np
@@ -37,6 +37,11 @@ class TestHub(Hub):
 
         def cost_coupled(self, state, params={}):
             return self.cost_uncoupled(state, theta=30*np.pi/180)
+
+        @trigger
+        def trigger(self):
+            print('triggered')
+            return True
 
         @experiment
         def transmitted_power(self, state, params = {'sigma_x': 0.3, 'sigma_y': 0.8, 'x0': 0.3, 'y0': 0.6, 'noise':0, 'delay': 0.5}):

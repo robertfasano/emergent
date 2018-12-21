@@ -130,7 +130,7 @@ def error(func, *args, **kwargs):
 @decorator.decorator
 def trigger(func, *args, **kwargs):
     ''' Wait until the passed function returns True before proceeding. '''
-    while not func():
+    while not func(*args):
         continue
 
 @decorator.decorator
