@@ -21,10 +21,11 @@ class Network():
         self.path='networks/%s'%name
         self.data_path = self.path+'/data/'
         self.state_path = self.path+'/state/'
+        self.params_path = self.path+'/params/'
         self.tree = None
         self.sync_delay = 0.1
         self.reconnect_delay = 1
-        for p in [self.state_path, self.data_path]:
+        for p in [self.state_path, self.data_path, self.params_path]:
             pathlib.Path(p).mkdir(parents=True, exist_ok=True)
         self.clients = {}
         self.hubs = {}

@@ -107,7 +107,7 @@ class OptimizeLayout(QVBoxLayout, ProcessHandler):
         self.experiment_box.currentTextChanged.connect(lambda: self.parent.update_algorithm_and_experiment(self))
         optimizeButtonsLayout = QHBoxLayout()
         parent.optimizer_button = QPushButton('Go!')
-        parent.optimizer_button.clicked.connect(lambda: parent.start_process(process='optimize', settings = {}))
+        parent.optimizer_button.clicked.connect(lambda: parent.start_process(process='optimize', settings = {}, load_from_gui=True))
 
         optimizeButtonsLayout.addWidget(parent.optimizer_button)
         self.addLayout(optimizeButtonsLayout)

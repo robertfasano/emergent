@@ -39,7 +39,7 @@ class ServoLayout(QVBoxLayout, ProcessHandler):
 
         optimizeButtonsLayout = QHBoxLayout()
         self.optimizer_button = QPushButton('Go!')
-        self.optimizer_button.clicked.connect(lambda: parent.start_process(process='servo', settings = {}))
+        self.optimizer_button.clicked.connect(lambda: parent.start_process(process='servo', settings = {}, load_from_gui=True))
 
         optimizeButtonsLayout.addWidget(self.optimizer_button)
         self.addLayout(optimizeButtonsLayout)

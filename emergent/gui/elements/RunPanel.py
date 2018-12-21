@@ -48,7 +48,7 @@ class RunLayout(QVBoxLayout, ProcessHandler):
 
         self.runButtonsLayout = QHBoxLayout()
         self.runExperimentButton = QPushButton('Go!')
-        self.runExperimentButton.clicked.connect(lambda: parent.start_process(process='run', settings = {}))
+        self.runExperimentButton.clicked.connect(lambda: parent.start_process(process='run', settings = {}, load_from_gui=True))
 
         self.runButtonsLayout.addWidget(self.runExperimentButton)
         self.addLayout(self.runButtonsLayout)

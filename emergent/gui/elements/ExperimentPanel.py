@@ -4,6 +4,7 @@ from PyQt5.QtCore import *
 from emergent.gui.elements import OptimizeLayout, ServoLayout, RunLayout
 from emergent.modules.parallel import ProcessHandler
 from emergent.modules import Sampler
+from emergent.modules import recommender
 import inspect
 import json
 import logging as log
@@ -56,104 +57,20 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         self.panel = self.tabWidget.currentWidget().layout()
 
     def get_default_params(self, name, panel):
-        inst = self.get_algorithm(name, panel)
-        params = inst.params
-        algo_params = {}
-        for p in params:
-            algo_params[p] = params[p].value
-
-        return algo_params
-
-    def load_module(self, panel):
-        if panel.name == 'Optimize':
-            module = importlib.__import__('optimizers')
-        else:
-            module = importlib.__import__('servos')
-        return module
+        return {'Optimize': recommender.get_default_algorithm_params,
+                'Servo': recommender.get_default_servo_params}[panel.name](name)
 
     def get_algorithm(self, name, panel):
-        module = self.load_module(panel)
-        return getattr(module, name)()
+        return {'Optimize': recommender.get_algorithm,
+                'Servo': recommender.get_servo}[panel.name](name)
 
     def get_description(self, panel, algo_name, parameter):
         params = self.get_algorithm(algo_name, panel).params
         return params[parameter].description
 
-
     def list_algorithms(self, panel):
-        module = self.load_module(panel)
-        names = []
-        for a in dir(module):
-            if '__' not in a:
-                inst = getattr(module, a)
-                names.append(inst().name)
-        return names
-
-
-    def file_to_dict(self, algo, experiment, param_type, panel, default = False):
-        ''' Generates parameter suggestions for either the algorithm or experiment
-            params, based on the choice of param_type. '''
-
-        ''' Look for relevant parameters in the json file in the network's params directory '''
-        network_name = self.parent.network.name
-        hub = self.parent.treeWidget.currentItem().root
-
-        if not os.path.exists('./networks/%s/params/'%network_name):
-            os.mkdir('./networks/%s/params/'%network_name)
-        params_filename = './networks/%s/params/'%network_name + '%s.%s.txt'%(hub.name, experiment.__name__)
-        if not default:
-            try:
-                ''' Load params from file '''
-                with open(params_filename, 'r') as file:
-                    params = json.load(file)
-
-
-                ''' Make sure the current algorithm's parameters are contained '''
-                if param_type == 'algorithm':
-                    if algo.name in params['algorithm']:
-                        return params['algorithm'][algo.name]
-                    else:
-                        d = self.get_default_params(algo.name, panel)
-                        with open(params_filename, 'r') as file:
-                            params = json.load(file)
-                        params['algorithm'][algo.name] = d
-                        with open(params_filename, 'w') as file:
-                            json.dump(params, file)
-                        return d
-                else:
-                    if 'cycles per sample' not in params['experiment']:
-                        params['experiment']['cycles per sample'] = 1
-                    return params['experiment']
-
-            except OSError:
-                pass
-        ''' If file does not exist, then load from introspection '''
-        params = {'experiment': {}, 'algorithm': {}}
-        if param_type == 'algorithm':
-            params['algorithm'][algo.name] = {}
-
-        ''' load experiment params '''
-        args = inspect.signature(experiment).parameters
-        args = list(args.items())
-        for a in args:
-            if a[0] != 'params':
-                continue
-            d = str(a[1]).split('=')[1]
-            d = json.loads(d.replace("'", '"'))
-        params['experiment'] = d
-
-        if param_type == 'algorithm':
-            params['algorithm'][algo.name] = self.get_default_params(algo.name, panel)
-
-        with open(params_filename, 'w') as file:
-            json.dump(params, file)
-
-        if param_type == 'algorithm':
-            return params['algorithm'][algo.name]
-        else:
-            if 'cycles per sample' not in params['experiment']:
-                params['experiment']['cycles per sample'] = 1
-            return params['experiment']
+        return {'Optimize': recommender.list_algorithms,
+                'Servo': recommender.list_servos}[panel.name]()
 
     def save_params(self, panel, param_type):
         ''' param_type: 'experiment' or 'algorithm' '''
@@ -168,7 +85,6 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
             params = panel.algorithm_table.get_params()
         else:
             params = panel.experiment_table.get_params()
-        print(params)
         ''' Load old params from file '''
         with open(params_filename, 'r') as file:
             old_params = json.load(file)
@@ -223,7 +139,7 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
             return
         hub = self.parent.treeWidget.currentItem().root
         experiment = getattr(hub, panel.experiment_box.currentText())
-        d = self.file_to_dict(experiment, experiment, 'experiment', panel)
+        d = recommender.load_experiment_parameters(hub, experiment.__name__)
         panel.experiment_table.set_parameters(d)
 
     def update_algorithm_and_experiment(self, panel, default = False, update_algorithm = True, update_experiment = True):
@@ -232,32 +148,19 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         if panel.algorithm_box.currentText() is '':
             return
         hub = self.parent.treeWidget.currentItem().root
-        try:
-            experiment = getattr(hub, panel.experiment_box.currentText())
-        except AttributeError:
+        experiment_name = panel.experiment_box.currentText()
+        if experiment_name == '':
             return
         if update_algorithm:
             algo_name = panel.algorithm_box.currentText()
-            algo = self.get_algorithm(algo_name, panel)
-            algo_params = self.file_to_dict(algo, experiment, 'algorithm', panel, default = default)
+            algo_params = recommender.load_algorithm_parameters(hub, experiment_name, algo_name, default = default)
             panel.algorithm_table.set_parameters(algo_params)
-
         if update_experiment:
-            exp_params = self.file_to_dict(experiment, experiment, 'experiment', panel, default = default)
+            exp_params = recommender.load_experiment_parameters(hub, experiment_name)
+
             panel.experiment_table.set_parameters(exp_params)
 
-    def start_process(self, process = '', settings = {}):
-        ''' Load any non-passed settings from the GUI '''
-        ''' Settings contains the following fields:
-            cost_name: str
-            cost_params: dict
-            algo_params: dict
-            hub: node
-            state: dict
-
-        '''
-        panel = getattr(self, process+'Panel')
-
+    def fill_settings_from_gui(self, panel, settings):
         gui_settings = panel.get_settings_from_gui()
         if gui_settings is None:
             return
@@ -267,6 +170,24 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
                     settings[s] = gui_settings[s]
             else:
                 settings[s] = gui_settings[s]
+
+    def start_process(self, process = '', settings = {}, threaded = True, load_from_gui = False):
+        ''' Load any non-passed settings from the GUI '''
+        ''' Settings contains the following fields:
+            experiment_name: str
+            cost_params: dict
+            algo_params: dict
+            hub: node
+            state: dict
+
+        '''
+        panel = getattr(self, process+'Panel')
+
+        ''' Pull settings from the gui and fill in any missing options '''
+        if load_from_gui:
+            settings = fill_settings_from_gui(panel, settings)
+            # if settings is None:
+            #     return
 
         settings['experiment'] = getattr(settings['hub'], settings['experiment_name'])
         if hasattr(panel, 'algorithm_box'):
@@ -295,8 +216,10 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         if settings['state'] == {} and process != 'run':
             log.warn('Please select at least one Input node for optimization.')
             return
-
         stoppable = False
         if process == 'run':
             stoppable = True
-        panel._run_thread(panel.run_process, args = (sampler,), stoppable=stoppable)
+        if threaded:
+            panel._run_thread(panel.run_process, args = (sampler,), stoppable=stoppable)
+        else:
+            panel.run_process(sampler)
