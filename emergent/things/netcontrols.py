@@ -2,7 +2,7 @@ from emergent.protocols.serial import Serial, PARITY_NONE, STOPBITS_ONE, EIGHTBI
 import numpy as np
 from emergent.modules import Thing, ProcessHandler
 
-class NetHubs(Thing, ProcessHandler):
+class NetControls(Thing, ProcessHandler):
     def __init__(self, name, port = 'COM11', parent = None):
         Thing.__init__(self, name = name, parent = parent)
         ProcessHandler.__init__(self)
