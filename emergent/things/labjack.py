@@ -146,6 +146,9 @@ class LabJack(ProcessHandler, Thing):
             self._command("TDAC%i"%channel, value)
 
     ''' Digital I/O '''
+    def DIn(self, channel):
+        return ljm.eReadName(self.handle, 'DIO%i'%channel)
+        
     def DOut(self, channel, state):
         ''' Output a digital signal.
 
