@@ -11,7 +11,7 @@ import pickle
 import pathlib
 from emergent.utility import Timer, get_address
 import importlib
-from emergent.modules.client import Client
+from emergent.modules import Client, ProcessHandler
 import time
 from PyQt5.QtCore import QTimer
 import logging as log
@@ -35,6 +35,7 @@ class Network():
         self.reconnect_delay = 1
         self.clients = {}
         self.hubs = {}
+        self.manager = ProcessHandler()
 
     def __getstate__(self):
         ''' This method is called by the pickle module when attempting to serialize an
