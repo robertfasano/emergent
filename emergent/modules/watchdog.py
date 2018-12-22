@@ -56,7 +56,7 @@ class Watchdog(ProcessHandler):
         return self.state
 
     def measure(self):
-        return -self.sampler._cost(self.parent.state)
+        return -self.sampler._cost(self.parent.state, norm = False)
 
     def react(self):
         ''' Add custom reaction here '''
