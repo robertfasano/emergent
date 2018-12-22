@@ -1,20 +1,22 @@
-from PyQt5.QtWidgets import (QComboBox, QLabel, QTextEdit, QPushButton, QVBoxLayout,
-        QWidget, QProgressBar, qApp, QHBoxLayout, QCheckBox, QTabWidget, QLineEdit, QSlider)
+''' The Experiment panel contains several tabs for launching single/multi-shot or
+    continuous measurements and running optimizations or servos. Most of the methods
+    defined here are for loading GUI displays based on user selections:
+
+    * Selecting a Hub or any of its children will cause the hub's @experiment methods to be listed in a combo box.
+    * Choosing an experiment will load the default parameters from file.
+    * Default experiment parameters can be overwritten from the current parameters or from the @experiment's default params.
+    * Choosing an algorithm will load the default parameters from file.
+    * Default algorithm parameters can be overwritten from the current parameters or from the Algorithm's default Parameters.
+
+'''
+from PyQt5.QtWidgets import (QVBoxLayout, QWidget, QTabWidget)
 from PyQt5.QtCore import *
 from emergent.gui.elements import OptimizeLayout, ServoLayout, RunLayout
-from emergent.modules.parallel import ProcessHandler
-from emergent.modules import Sampler
-from emergent.modules import recommender
-import inspect
+from emergent.modules import Sampler, recommender, ProcessHandler
 import json
 import logging as log
-import time
-from scipy.stats import linregress
-import numpy as np
 import datetime
-import __main__
-import os
-import importlib
+#import __main__
 from emergent.utility import list_errors, list_experiments, list_triggers
 
 

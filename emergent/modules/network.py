@@ -1,5 +1,12 @@
-import sys
-import os
+''' This module implements a container for multiple Hubs on a PC, as well as methods
+    for getting or changing the state of Hubs on remote PCs.
+
+    At runtime, main.py passes the Network object class into the EMERGENT network's
+    initialize() method. For each local hub (Hub.addr matching the local address or
+    unspecified), the Network adds the hub to its hubs dict. For each remote hub,
+    the Network creates a Client. The Network.server object from server.py implements
+    communications between nonlocal networks.
+'''
 import pickle
 import pathlib
 from emergent.utility import Timer, get_address
@@ -8,7 +15,6 @@ from emergent.modules.client import Client
 import time
 from PyQt5.QtCore import QTimer
 import logging as log
-from emergent.modules import ProcessHandler
 
 class Network():
     def __init__(self, name, addr = None, port = 9001):
@@ -22,18 +28,20 @@ class Network():
         self.data_path = self.path+'/data/'
         self.state_path = self.path+'/state/'
         self.params_path = self.path+'/params/'
+        for p in [self.state_path, self.data_path, self.params_path]:
+            pathlib.Path(p).mkdir(parents=True, exist_ok=True)
         self.tree = None
         self.sync_delay = 0.1
         self.reconnect_delay = 1
-        for p in [self.state_path, self.data_path, self.params_path]:
-            pathlib.Path(p).mkdir(parents=True, exist_ok=True)
         self.clients = {}
         self.hubs = {}
-        self.manager = ProcessHandler()
 
     def __getstate__(self):
+        ''' This method is called by the pickle module when attempting to serialize an
+            instance of this class. We make sure to exclude any unpicklable objects from
+            the return value, including anything with threads or Qt modules. '''
         d = {}
-        ignore = ['manager', 'tree', 'update_timer']
+        ignore = ['tree', 'update_timer']
         unpickled = []
         for item in ignore:
             if hasattr(self, item):
@@ -44,6 +52,7 @@ class Network():
         return d
 
     def actuate(self, state):
+        ''' Issues a macroscopic actuation to all connected Hubs. '''
         for hub in state:
             self.hubs[hub].actuate(state[hub])
 
@@ -59,28 +68,30 @@ class Network():
         self.hubs[hub.name] = hub
         hub.network = self
 
-    # def connect_remotes(self):
-    #     for c in self.clients:
-    #         client = self.clients[c]
-    #         client._run_thread(client.connect)
-
     def initialize(self):
+        ''' Import the network.py file for the user-specified network and runs
+            its initialize() method to instantiate all defined nodes. '''
         network_module = importlib.import_module('emergent.networks.'+self.name+'.network')
         network_module.initialize(self)
 
     def load(self):
+        ''' Loads all attached Hub states from file. '''
         for hub in self.hubs.values():
             hub.load()
 
     def post_load(self):
+        ''' Execute the post-load routine for all attached Hubs '''
         for hub in self.hubs.values():
             hub.onLoad()
 
     def save(self):
+        ''' Saves the state of all attached Hubs. '''
         for hub in self.hubs.values():
             hub.save()
 
     def state(self):
+        ''' Obtains a macroscopic state dict from aggregating the states of all
+            attached Hubs. '''
         state = {}
         for hub in self.hubs.values():
             state[hub.name] = hub.state
@@ -88,11 +99,14 @@ class Network():
         return state
 
     def keep_sync(self):
+        ''' Queries the state of all remote networks at a rate given by self.sync_delay. '''
         self.update_timer = QTimer()
         self.update_timer.timeout.connect(self.sync)
         self.update_timer.start(self.sync_delay*1000)
 
     def try_connect(self):
+        ''' Continuously attempts to connect to any not-yet-connected clients at a rate
+            given by self.reconnect_delay. Returns once all clients are connected. '''
         while True:
             disconnected_clients = len(self.clients)
             for client in self.clients.values():
@@ -108,7 +122,8 @@ class Network():
             time.sleep(self.reconnect_delay)
 
     def sync(self):
-        ''' Updates the local session with remote networks '''
+        ''' Queries each connected client for the state of its Network, then updates
+            the NetworkPanel to show the current state of the entire network. '''
         for client in self.clients.values():
             if not client._connected:
                 continue

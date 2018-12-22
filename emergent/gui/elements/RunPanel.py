@@ -1,21 +1,16 @@
+''' The RunLayout allows users to run experiments with parameters defined in the GUI.
+    Experiments can be run for a defined number of iterations or continuously. '''
+    
 from PyQt5.QtWidgets import (QComboBox, QLabel, QLineEdit, QPushButton, QVBoxLayout,
         QTableWidget, QTableWidgetItem, QHBoxLayout, QSlider)
 from PyQt5.QtCore import *
-from emergent.modules import ProcessHandler, Sampler
-import inspect
-import json
 import logging as log
-import time
-from scipy.stats import linregress
-import numpy as np
 import datetime
-import json
 from emergent.gui.elements.ParameterTable import ParameterTable
 
-class RunLayout(QVBoxLayout, ProcessHandler):
+class RunLayout(QVBoxLayout):
     def __init__(self, parent):
         QVBoxLayout.__init__(self)
-        ProcessHandler.__init__(self)
         self.parent = parent
         self.name = 'Run'
         self.experiment_box = QComboBox()

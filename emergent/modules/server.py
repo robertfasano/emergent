@@ -1,3 +1,14 @@
+''' The Server class, along with the Client class in client.py, handles communication
+    between remote EMERGENT sessions. When the EMERGENT network is initialized, all
+    PCs in the session create a server to handle the following client commands:
+
+    * _connect(): attempts to contact the server and sets self._connected=True if successful
+    * actuate(state): tells the target server to call its local cluster's actuate() method
+    * echo(msg): sends a command to the server and nominally receives the command back
+    * get_network(): requests the current state of a remote cluster
+    * get_params(): requests operational parameters from the server
+'''
+
 import asyncio
 import json
 from emergent.modules import Hub

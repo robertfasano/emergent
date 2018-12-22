@@ -1,3 +1,11 @@
+''' The State class offers several convenient features for state representation over
+    a simple dict:
+
+    * Substates including only specified indices can be obtained through State.get()
+    * State.copy() returns a detached clone of the original State (rather than creating a reference as with a dict)
+    * Multiple inputs can be updated with one call to the State.update() method
+    * The ordering in which objects are added to the State is preserved, so that State instances can be converted to and from numpy arrays without scrambling the inputs.
+'''
 from copy import deepcopy
 from collections import OrderedDict
 

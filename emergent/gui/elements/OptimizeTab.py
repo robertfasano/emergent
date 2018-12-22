@@ -1,11 +1,10 @@
-from PyQt5.QtWidgets import (QComboBox, QLabel, QTextEdit, QPushButton, QVBoxLayout,
+''' The OptimizeTab allows the user to choose algorithms and their parameters and
+    launch optimizations. '''
+from PyQt5.QtWidgets import (QComboBox, QPushButton, QVBoxLayout,
         QTableWidgetItem, QTableWidget, QHBoxLayout, QGridLayout, QMenu, QAction)
 from PyQt5.QtCore import *
 from PyQt5.QtGui import QCursor
 from emergent.modules.parallel import ProcessHandler
-import inspect
-import datetime
-import json
 import logging as log
 import numpy as np
 from emergent.gui.elements.ParameterTable import ParameterTable
@@ -96,12 +95,10 @@ class OptimizeLayout(QVBoxLayout, ProcessHandler):
         ''' Algorithm parameters '''
         self.algorithm_table = ParameterTable()
         layout.addWidget(self.algorithm_table, 2, 0)
-        self.algorithm_params_edit = QTextEdit('')
 
         ''' Experiment parameters '''
         self.experiment_table = ParameterTable()
         layout.addWidget(self.experiment_table, 2, 1)
-        self.cost_params_edit = QTextEdit('')
 
         self.algorithm_box.currentTextChanged.connect(lambda: self.parent.update_algorithm_and_experiment(self, update_experiment=False))
         self.experiment_box.currentTextChanged.connect(lambda: self.parent.update_algorithm_and_experiment(self))

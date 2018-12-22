@@ -1,23 +1,17 @@
+''' The TaskPanel displays previously run Sampler instances with the time of execution,
+    experiment, and algorithm (if applicable). Double clicking an item in the table
+    opens a visualizer window defined in PlotWindow.py. '''
+
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import inspect
-import sys
-import types
-from PyQt5.QtGui import QStandardItem, QStandardItemModel, QFont, QWindow, QCursor
-from PyQt5.QtWidgets import (QApplication, QAbstractItemView,QCheckBox, QComboBox, QGridLayout,
-        QGroupBox, QHBoxLayout, QGridLayout, QLabel, QTextEdit, QTreeView, QPushButton, QTableView,QVBoxLayout,
-        QWidget, QMenu, QAction, QTreeWidget, QTreeWidgetItem, QTableWidget, QTableWidgetItem, QDialog, QFileDialog)
+from PyQt5.QtGui import QCursor
+from PyQt5.QtWidgets import (QGridLayout,QTableView,QVBoxLayout, QWidget, QMenu,
+                             QAction, QTableWidget, QTableWidgetItem, QFileDialog)
 from PyQt5.QtCore import *
-import json
-from emergent.gui.elements import ExperimentLayout, PlotWidget
-from emergent.modules import Hub, Thing, Input
-import functools
+from emergent.gui.elements import PlotWidget
 from emergent.modules.visualization import plot_2D, plot_1D
-from emergent.modules import ProcessHandler
 import matplotlib.pyplot as plt
-import json
 import itertools
-import numpy as np
 import pickle
 
 class ContextTable(QTableWidget):

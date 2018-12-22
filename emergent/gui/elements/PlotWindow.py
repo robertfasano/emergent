@@ -1,11 +1,18 @@
-from PyQt5.QtWidgets import (QComboBox, QLabel, QTextEdit, QPushButton, QVBoxLayout,
+''' The PlotWidget class displays a summary of Sampler results with useful plots
+    including:
+
+    * Evaluated cost vs. time
+    * Cost vs. inputs
+    * Inputs vs. time
+    * Custom algorithm plots, such as a 2D interpolated grid for GridSearch or a fitted kernel model for GaussianProcessRegression
+'''
+
+from PyQt5.QtWidgets import (QComboBox, QLabel, QVBoxLayout,
         QWidget, QHBoxLayout, QTabWidget, QGridLayout, QMenu, QAction, QTreeWidget, QTreeWidgetItem)
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-import random
 from emergent.gui.elements.ParameterTable import ParameterTable
 from matplotlib.figure import Figure
-import json
 plt.ioff()
 from PyQt5.QtCore import QTimer, Qt
 from PyQt5.QtGui import QCursor, QPixmap

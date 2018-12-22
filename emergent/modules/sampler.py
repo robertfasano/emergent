@@ -1,27 +1,19 @@
-''' This script implements an Aligner class from which many things inherit methods such as:
-    persistent positioning, first light acquisition, and realtime optimization
-'''
-''' TODO: store position indices for each thing, actuate functions should be threaded,
-    pca/dimensionality reduction/covariance/clustering, image convolution, drift record analysis
-'''
-import threading
-import logging as log
+''' The Sampler module serves as an interface between the real parameter space of the
+    experiment and the normalized space used by optimization algorithms. Experiments
+    are run by instantiating a Sampler with the desired parameters, then either
+    repeatedly executing Sampler._cost (for simple continuous measurement) or
+    passing the Sampler into an Algorithm instance for optimization. '''
+
 import numpy as np
 import itertools
-import sys
-import os
-from scipy.interpolate import griddata
-from scipy.stats import norm
-import matplotlib.pyplot as plt
 import pickle
 from emergent.modules.visualization import plot_1D, plot_2D
 import pandas as pd
 import time
-def warn(*args, **kwargs):
-    pass
-import warnings
-warnings.warn = warn
-from emergent.utility import methodsWithDecorator, algorithm
+# def warn(*args, **kwargs):
+#     pass
+# import warnings
+# warnings.warn = warn
 
 class Sampler():
     ''' General methods '''

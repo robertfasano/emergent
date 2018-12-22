@@ -1,15 +1,32 @@
+''' Implements the Node class, which contains methods for relating EMERGENT building
+    blocks to one another. Three further classes inherit from Node: the Input, Thing,
+    and Hub.
+
+    An Input represents a physical quantity that you can set in the lab, like a
+    voltage or a mirror position. The Input class simply tracks a value for a
+    "knob" in your experiment.
+
+    A Thing is some sort of actuator that can control the state of Inputs, like a
+    DAC (for voltage generation) or a voltage driver for MEMS or motorized mirror
+    mounts. The user must write a device driver script which implements the actuate()
+    method to define the interface between EMERGENT and the manufacturer API. The Thing
+    class also contains methods for updating the macroscopic state representation
+    after actuation and for adding or removing inputs dynamically.
+
+    A Hub is an object which controls one or more Things to regulate the outcome
+    of an experiment. For example, for beam alignment into an optical fiber we would
+    require one or more Things for mirror control, as well as a Hub which measures
+    the transmitted power and coordinates commands to its connected Things to maximize
+    the signal. The Hub class also contains methods for saving and loading states
+    to/from file, for monitoring important variables through the Watchdog framework,
+    and for optimizing itself by interfacing with other modules.
+'''
 import json
-import os
-import weakref
 import time
-import inspect
 from emergent.modules import Sampler, State, recommender, ProcessHandler
-from PyQt5.QtWidgets import QWidget
 import logging as log
-import pandas as pd
 import datetime
 from emergent.signals import RemoveSignal, CreateSignal, ActuateSignal, ProcessSignal
-import numpy as np
 from emergent.utility import StateBuffer, MacroBuffer, get_address
 
 class Node():
@@ -17,16 +34,10 @@ class Node():
     providing useful organizational methods which are passed on to the Input,
     Thing, and Hub classes. '''
 
-    instances = []
-    ''' Contains all currently instantiated Nodes. This can
-        be accessed for a given type, e.g. Hub.instances lists all Hub
-        nodes. '''
-
     def __init__(self, name, parent=None):
         ''' Initializes a Node with a name and optionally registers
             to a parent. '''
         self.name = name
-        self.__class__.instances.append(weakref.proxy(self))
         self.children = {}
         if parent is not None:
             self.register(parent)
@@ -53,11 +64,6 @@ class Input(Node):
     ''' Input nodes represent physical variables which may affect the outcome of
         an experiment, such as laser frequency or beam alignment. '''
 
-    instances = []
-    ''' Contains all currently instantiated Nodes. This can
-        be accessed for a given type, e.g. Hub.instances lists all Hub
-        nodes. '''
-
     def __init__(self, name, parent):
         """Initializes an Input node, which is never directly used but instead
             offers a useful internal representation of a state.
@@ -73,11 +79,6 @@ class Input(Node):
 class Thing(Node):
     ''' Things represent apparatus which can control the state of Input
         nodes, such as a synthesizer or motorized actuator. '''
-
-    instances = []
-    ''' Contains all currently instantiated Nodes. This can
-        be accessed for a given type, e.g. Hub.instances lists all Hub
-        nodes. '''
 
     def __init__(self, name, parent, params = {}):
         """Initializes a Thing.
@@ -176,7 +177,6 @@ class Thing(Node):
         Args:
             state (dict): New state, e.g. {'param1':value1, 'param2':value2}.
         """
-        t = datetime.datetime.now()
         for input in state:
             self.state[input] = state[input]    # update Thing
             self.children[input].state = state[input]   # update Input
@@ -190,11 +190,6 @@ class Thing(Node):
 class Hub(Node):
     ''' The Hub oversees connected Things, allowing the Inputs to be
         algorithmically tuned to optimize some target function. '''
-
-    instances = []
-    ''' Contains all currently instantiated Nodes. This can
-        be accessed for a given type, e.g. Hub.instances lists all Hub
-        nodes. '''
 
     def __init__(self, name, addr = None, network = None, parent = None):
         """Initializes a Hub.
@@ -251,27 +246,6 @@ class Hub(Node):
         self.signal.emit(state)
 
         self.buffer.add(state)
-
-    # def load(self, thing, name):
-    #     """Loads the last saved state and attempts to reinitialize previous values for the Input node specified by full_name. If the input did not exist in the last state, then it is initialized with default values.
-    #     """
-    #     if thing not in self.state:
-    #         self.state[thing] = {}
-    #     try:
-    #         with open(self.network.state_path+self.name+'.json', 'r') as file:
-    #             state = json.load(file)
-    #
-    #         self.state[thing][name] = state[thing][name]['state']
-    #         self.settings[thing][name] = {}
-    #         for setting in ['min', 'max']:
-    #             self.settings[thing][name][setting] = state[thing][name][setting]
-    #     except Exception as e:
-    #         print('Exception:', e)
-    #         self.state[thing][name] = 0
-    #         self.settings[thing][name] = {}
-    #         for setting in ['min', 'max']:
-    #             self.settings[thing][name][setting] = 0
-    #         log.warn('Could not find csv for input %s; creating new settings.'%name)
 
     def check_lock(self):
         ''' Check if any of the monitored signals are outside a threshold. Return True if not. '''

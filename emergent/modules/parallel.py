@@ -1,3 +1,8 @@
+''' This module implements a convenient framework for parallelizing code with either
+    the multiprocessing or threading modules. The _run_thread() and _run_process()
+    methods allow for one-line parallelization as well as tracking all running
+    threads/processes for easy termination.
+'''
 import multiprocessing
 import threading
 class ProcessHandler():
@@ -11,7 +16,7 @@ class ProcessHandler():
         ''' Instantiates and starts a process running a target function.
 
             Note:
-                Process do not share memory with the rest of the code, so they must be entirely self-contained.
+                Processes do not share memory with the rest of the code, so they must be entirely self-contained.
             Args:
                 func (function/str): target function to run in process. Can also pass a string matching the function name.
                 args (tuple): arguments to be passed in to func

@@ -1,3 +1,10 @@
+''' This module implements a table to display the current state of defined
+    Watchdog nodes. If no experiment is running, the user can right-click the
+    node to check the state, which will also cause the Watchdog to react() if
+    it is currently active. The threshold of each Watchdog is editable through the
+    threshold column. '''
+
+
 from PyQt5.QtWidgets import (QComboBox, QLabel, QTextEdit, QPushButton, QVBoxLayout,
         QWidget, QProgressBar, qApp, QHBoxLayout, QTableWidget, QMenu, QAction, QCheckBox, QTabWidget, QLineEdit, QSlider, QTableWidgetItem, QHeaderView)
 from PyQt5.QtCore import *

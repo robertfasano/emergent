@@ -1,6 +1,6 @@
+''' The visualization module allows 1D or 2D plots to be created and return a figure
+    and axis, such that widgets can generate plots with very little of their own code. '''
 import matplotlib.pyplot as plt
-import threading
-import logging as log
 from scipy.interpolate import griddata
 import numpy as np
 import pandas as pd
@@ -10,9 +10,6 @@ plt.ioff()
 
 def plot_1D(points, costs, cost_name = 'Cost', normalized_cost = False, limits = None,
             save = False, ax = None, xlabel = None, ylabel = None, errors = None):
-    if threading.current_thread() is not threading.main_thread():
-        log.warn('Cannot create matplotlib plot in thread.')
-        return
     passed_ax = ax
     fig = None
     if ax is None:
@@ -42,10 +39,6 @@ def plot_1D(points, costs, cost_name = 'Cost', normalized_cost = False, limits =
 def plot_2D(points, costs, normalized_cost = False, limits = None,
             save = False, color_map='viridis_r', ax = None):
     ''' Interpolates and plots a cost function sampled at an array of points. '''
-    if threading.current_thread() is not threading.main_thread():
-        log.warn('Cannot create matplotlib plot in thread.')
-        return
-
     costs = costs.copy()[::-1]
     points = points.copy()[::-1]        # ignore last point where we return to max, since this messes up the interpolation
     norm_points = points.copy()[::-1]

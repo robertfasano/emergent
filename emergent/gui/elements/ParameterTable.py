@@ -1,3 +1,7 @@
+''' The ParameterTable class is a custom implementation of QTableWidget whose display
+    can be updated by passing a dict to set_parameters, and whose parameters can be
+    obtained in dict form with get_params. '''
+
 from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QHeaderView
 from PyQt5.QtCore import Qt
 from emergent.modules import State

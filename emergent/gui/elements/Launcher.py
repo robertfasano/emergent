@@ -1,14 +1,17 @@
+''' The Launcher offers a convenient way to start an EMERGENT session with the
+    network, IP address, and port chosen from the GUI instead of passing these
+    arguments in through the command line. When the user clicks the launch button,
+    main.py is run with the specified parameters and the Launcher is closed.
+
+    The GUI also offers default port suggestions by requesting an open port from
+    the PC, as well as offering choice of IP address between the network card and
+    localhost (for testing).
+'''
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import inspect
-import sys
-import types
 from PyQt5.QtGui import QFontDatabase, QIcon
-from PyQt5.QtWidgets import (QWidget, QComboBox, QLabel, QHBoxLayout, QVBoxLayout, QPushButton, QCheckBox, QLineEdit)
-from PyQt5.QtCore import *
-import json
+from PyQt5.QtWidgets import (QWidget, QComboBox, QLabel, QHBoxLayout, QVBoxLayout, QPushButton, QLineEdit)
 import os
-import sys
 from emergent.utility import get_address, get_open_port
 
 class Launcher(QWidget):

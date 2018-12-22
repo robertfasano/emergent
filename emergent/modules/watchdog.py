@@ -1,3 +1,15 @@
+''' The Watchdog class implements an object-oriented monitoring and reaction framework.
+    A watchdog is attached to a Hub through the parent argument. The user also defines an
+    experiment and a threshold. Every time the Hub runs an experiment, it first commands
+    every watchdog to run its own experiment and compare the result to a threshold. The resulting
+    logic either returns control to the Hub (if good) or calls the react() method (if bad). The
+    user implements a custom react() method for their use case; examples include:
+
+    * Launching an optimization when a signal dips below a threshold
+    * Sounding an audio alarm
+    * Returning control to the Hub but flagging any saved data as unlocked
+'''
+
 import numpy as np
 from emergent.signals import WatchdogSignal
 import logging as log
@@ -47,6 +59,7 @@ class Watchdog(ProcessHandler):
         return -self.sampler._cost(self.parent.state)
 
     def react(self):
+        ''' Add custom reaction here '''
         self.confirm_lock()
 
     def confirm_lock(self):

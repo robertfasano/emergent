@@ -1,3 +1,15 @@
+''' This module implements methods for parameter persistence, allowing the following
+    quantities to be saved/loaded to/from file:
+
+    * Experiment parameters
+    * Algorithm parameters for each experiment
+    * Default algorithm to use for each experiment
+
+    It also implements methods allowing algorithm/servo instances to be constructed
+    and returned by name, as well as listing all algorithms/servos included in the
+    __init__.py files in the emergent/optimizers and emergent/servos folders
+    respectively.
+'''
 import importlib
 import json
 import inspect

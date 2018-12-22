@@ -1,3 +1,7 @@
+''' This module implements a basic FIFO queue which allows messages to be simultaneously
+    dispatched to the same device by EMERGENT without risking message overlap on the
+    actual device.
+'''
 import queue
 import time
 import logging as log

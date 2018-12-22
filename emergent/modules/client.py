@@ -1,12 +1,20 @@
+''' The Client class, along with the Server class in server.py, handles communication
+    between remote EMERGENT sessions. When the EMERGENT network is initialized, any
+    local hubs are instantiated on the PC and a Client is created for each remote hub.
+    Possible network commands include:
+
+    * _connect(): attempts to contact the server and sets self._connected=True if successful
+    * actuate(state): tells the target server to call its local cluster's actuate() method
+    * echo(msg): sends a command to the server and nominally receives the command back
+    * get_network(): requests the current state of a remote cluster
+    * get_params(): requests operational parameters from the server
+'''
 import asyncio
 import json
 import pickle
-from emergent.modules import ProcessHandler
-import time
 
-class Client(ProcessHandler):
+class Client():
     def __init__(self, addr, port = 8888):
-        ProcessHandler.__init__(self)
         self.addr = addr
         self.port = port
         self._connected = False
@@ -28,9 +36,7 @@ class Client(ProcessHandler):
         return asyncio.run(self.send({'op': 'actuate', 'params': state}))[0]
 
     def connect(self):
-        # while not self._connected and not stopped():
         self._connected = asyncio.run(self.send({'op': 'connect'}))[0]['params']
-        # time.sleep(self.reconnect_delay)
 
     def echo(self, message):
         message = {'op': 'echo', 'params': message}
@@ -39,7 +45,6 @@ class Client(ProcessHandler):
 
     async def send(self, message):
         loop = asyncio.get_event_loop()
-        # response = loop.run_until_complete(self.tcp_echo_client(message, loop))
         response = await asyncio.gather(self.tcp_echo_client(message, loop))
         return response
 
@@ -50,9 +55,7 @@ class Client(ProcessHandler):
         await writer.drain()
         data = await reader.read()
         writer.close()
-        # await writer.wait_closed()
         return pickle.loads(data)
-        # return json.loads(data.decode())
 
     def get_network(self):
         return asyncio.run(self.send({'op': 'get_network'}))[0]

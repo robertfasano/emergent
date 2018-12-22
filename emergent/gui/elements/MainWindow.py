@@ -1,17 +1,14 @@
+''' The MainFrame is the main window of EMERGENT, hosting panels imported from
+    other modules in the emergent/gui/elements folder. '''
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import inspect
-import sys
-import types
-from PyQt5.QtGui import QIcon, QStandardItem, QStandardItemModel, QFont, QFontDatabase
-from PyQt5.QtWidgets import (QHBoxLayout, QLabel, QTreeView, QPushButton, QVBoxLayout,
-        QWidget, QMenu, QAction, QTreeWidget, QTreeWidgetItem, QMainWindow, QStatusBar, QMenuBar, QStyleFactory)
-from PyQt5.QtCore import *
-import json
+from PyQt5.QtGui import QIcon, QFont, QFontDatabase
+from PyQt5.QtWidgets import (QHBoxLayout, QLabel, QVBoxLayout,
+        QWidget, QMenu, QAction, QMainWindow, QStatusBar, QMenuBar, QStyleFactory)
+from PyQt5.QtCore import QTimer
 from emergent.gui.elements import ExperimentLayout, TaskPanel, ServoLayout, NodeTree, MonitorLayout
 import os
 import psutil
-import sys
 
 class MainFrame(QMainWindow):
     def __init__(self, app, network):

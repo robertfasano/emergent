@@ -1,18 +1,20 @@
+''' The NetworkPanel displays a custom implementation of a QTreeWidget with the
+    following features:
+
+    * Each node is linked to its corresponding "leaf".
+    * Local or remote actuate() calls can be issued by changing a value and pressing enter.
+    * The NodeTree.generate(network) method examines the passed network; any new Hubs are added, while existing hubs have their state display updated.
+    * The Hub.actuate() method emits a signal which updates leaves corresponding to actuated nodes.
+    * Undo/redo buttons allow Thing/Hub states to be recalled from a buffer.
+'''
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import inspect
-import sys
-import types
-from PyQt5.QtWidgets import (QWidget, QAbstractItemView,QTreeView, QVBoxLayout,
-        QMenu, QAction, QTreeWidget, QTreeWidgetItem, QHeaderView, QPushButton, QHBoxLayout)
+from PyQt5.QtWidgets import (QWidget, QAbstractItemView, QVBoxLayout,
+        QMenu, QAction, QTreeWidget, QTreeWidgetItem, QHeaderView, QPushButton)
 from PyQt5.QtGui import QPixmap, QIcon
 from PyQt5.QtCore import *
-import json
-from emergent.gui.elements import ExperimentLayout
-from emergent.modules import Hub, Thing, Input, State
+from emergent.modules import State
 from emergent.signals import ActuateSignal
-import functools
-import logging as log
 
 class UndoButton(QWidget):
     def __init__(self, item, buffer, signal):
