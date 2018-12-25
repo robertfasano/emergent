@@ -42,7 +42,7 @@ class Network():
             instance of this class. We make sure to exclude any unpicklable objects from
             the return value, including anything with threads or Qt modules. '''
         d = {}
-        ignore = ['tree', 'update_timer']
+        ignore = ['manager', 'tree', 'update_timer']
         unpickled = []
         for item in ignore:
             if hasattr(self, item):
