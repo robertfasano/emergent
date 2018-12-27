@@ -79,6 +79,4 @@ Table of Contents
    gettingstarted
    architecture
    optimization
-   examples
-   modules
-   things
+   reference

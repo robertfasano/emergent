@@ -85,8 +85,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../gettingstarted.html">Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../architecture.html">Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../optimization.html">Optimization</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../modules.html">Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reference.html">API Reference</a></li>
 </ul>
 
             
@@ -153,10 +152,29 @@
             
   <div class="section" id="module-node">
 <span id="input"></span><h1>Input<a class="headerlink" href="#module-node" title="Permalink to this headline">¶</a></h1>
+<p>Implements the Node class, which contains methods for relating EMERGENT building
+blocks to one another. Three further classes inherit from Node: the Input, Thing,
+and Hub.</p>
+<p>An Input represents a physical quantity that you can set in the lab, like a
+voltage or a mirror position. The Input class simply tracks a value for a
+&quot;knob&quot; in your experiment.</p>
+<p>A Thing is some sort of actuator that can control the state of Inputs, like a
+DAC (for voltage generation) or a voltage driver for MEMS or motorized mirror
+mounts. The user must write a device driver script which implements the actuate()
+method to define the interface between EMERGENT and the manufacturer API. The Thing
+class also contains methods for updating the macroscopic state representation
+after actuation and for adding or removing inputs dynamically.</p>
+<p>A Hub is an object which controls one or more Things to regulate the outcome
+of an experiment. For example, for beam alignment into an optical fiber we would
+require one or more Things for mirror control, as well as a Hub which measures
+the transmitted power and coordinates commands to its connected Things to maximize
+the signal. The Hub class also contains methods for saving and loading states
+to/from file, for monitoring important variables through the Watchdog framework,
+and for optimizing itself by interfacing with other modules.</p>
 <dl class="class">
 <dt id="node.Input">
 <em class="property">class </em><code class="descclassname">node.</code><code class="descname">Input</code><span class="sig-paren">(</span><em>name</em>, <em>parent</em><span class="sig-paren">)</span><a class="headerlink" href="#node.Input" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="node.html#node.Node" title="node.Node"><code class="xref py py-class docutils literal notranslate"><span class="pre">node.Node</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="../modules/node.html#node.Node" title="node.Node"><code class="xref py py-class docutils literal notranslate"><span class="pre">node.Node</span></code></a></p>
 <p>Input nodes represent physical variables which may affect the outcome of
 an experiment, such as laser frequency or beam alignment.</p>
 <dl class="method">
@@ -178,14 +196,6 @@ an experiment, such as laser frequency or beam alignment.</p>
 </tr>
 </tbody>
 </table>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="node.Input.instances">
-<code class="descname">instances</code><em class="property"> = []</em><a class="headerlink" href="#node.Input.instances" title="Permalink to this definition">¶</a></dt>
-<dd><p>Contains all currently instantiated Nodes. This can
-be accessed for a given type, e.g. Hub.instances lists all Hub
-nodes.</p>
 </dd></dl>
 
 </dd></dl>
@@ -223,7 +233,17 @@ nodes.</p>
 
     
     
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'../',
+              VERSION:'0.1alpha',
+              LANGUAGE:'python',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  true,
+              SOURCELINK_SUFFIX: '.txt'
+          };
+      </script>
         <script type="text/javascript" src="../_static/jquery.js"></script>
         <script type="text/javascript" src="../_static/underscore.js"></script>
         <script type="text/javascript" src="../_static/doctools.js"></script>
