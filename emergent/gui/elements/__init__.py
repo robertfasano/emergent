@@ -9,3 +9,4 @@ from emergent.gui.elements.MonitorPanel import MonitorLayout
 from emergent.gui.elements.MainWindow import MainFrame
 from emergent.gui.elements.RemoteViewer import RemoteViewer
 from emergent.gui.elements.Launcher import Launcher
+from emergent.gui.elements.Creator import Creator
