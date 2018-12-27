@@ -3,13 +3,13 @@ import numpy as np
 
 class TestThing(Thing):
     ''' Thing driver for the virtual network in the 'basic' example. '''
-    def __init__(self, name, parent, inputs):
+    def __init__(self, name, params = {'inputs': ['X']}, parent = None):
         ''' Register with the network and create two Input nodes, 'X' and 'Y'. '''
         super().__init__(name, parent)
         if not self.local:
             return
-            
-        for input in inputs:
+
+        for input in params['inputs']:
             self.add_input(input)
 
     def _actuate(self, state):

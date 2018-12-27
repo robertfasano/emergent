@@ -12,13 +12,12 @@ import logging as log
 @thing
 class PicoAmp(Thing):
     ''' Thing driver for the Mirrorcle PicoAmp board. '''
-    def __init__(self, name, labjack, parent = None, comm='digital'):
+    def __init__(self, name, params = {'labjack': None, 'type': 'digital'}, parent = None):
         ''' Initialize the Thing for use. '''
         super().__init__(name, parent = parent)
         self.addr = {'A': '000', 'B': '001', 'C': '010', 'D': '011', 'ALL': '111'}
-        self.labjack = labjack
+        self.labjack = self.params['labjack']
         assert comm in ['digital', 'analog']
-        self.comm = comm
         self.add_input('X')
         self.add_input('Y')
 
@@ -27,7 +26,7 @@ class PicoAmp(Thing):
     def _connect(self):
         ''' Initializes the PicoAmp via SPI. '''
         if self.labjack._connected:
-            if self.comm == 'digital':
+            if self.params['type'] == 'digital':
                 self.labjack.spi_initialize(mode=0, CLK = 0, CS = 1, MISO = 3, MOSI = 2)
             self._initialize()
         else:
@@ -37,7 +36,7 @@ class PicoAmp(Thing):
         ''' Initializes the DAC and sets the bias voltage on all four channels to 80 V. '''
         self.labjack.PWM(3, 49000, 50)
 
-        if self.comm == 'digital':
+        if self.params['type'] == 'digital':
             FULL_RESET = '001010000000000000000001'    #2621441
             ENABLE_INTERNAL_REFERENCE =  '001110000000000000000001'     #3670017
             ENABLE_ALL_DAC_CHANNELS = '001000000000000000001111'      #2097167
@@ -71,7 +70,7 @@ class PicoAmp(Thing):
         ''' Sets a target differential voltage V=HV_A-HV_B if axis is 'X' or V=HV_C-HV_D if axis is 'Y'.
             For example, if V=2 and  axis is 'X', this sets HV_A=81 and HV_2=79.
             Allowed range of V is -80 to 80.'''
-        if self.comm == 'digital':
+        if self.params['type'] == 'digital':
             V = np.clip(float(V), -80, 80)
             cmdPlus = '00' + '011' + {'X':self.addr['A'], 'Y': self.addr['C']}[axis] + self.digital(self.Vbias+V)
             cmdMinus = '00' + '011' + {'X':self.addr['B'], 'Y': self.addr['D']}[axis] + self.digital(self.Vbias-V)

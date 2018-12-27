@@ -5,9 +5,8 @@ from emergent.modules import Thing
 import logging as log
 
 class Novatech(Thing):
-    def __init__(self, name, port, parent = None):
-        super().__init__(name='novatech', parent = parent)
-        self.port = port
+    def __init__(self, name, params = {'port': None}, parent = None):
+        super().__init__(name='novatech', params = params, parent = parent)
         # self._connected = self._connect()
         self.add_input('slowing')
         self.add_input('trapping')

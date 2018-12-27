@@ -3,15 +3,21 @@ import numpy as np
 from emergent.modules import Thing, ProcessHandler
 
 class NetControls(Thing, ProcessHandler):
-    def __init__(self, name, port = 'COM11', parent = None):
-        Thing.__init__(self, name = name, parent = parent)
+    def __init__(self, name, params = {'port': 'COM11'}, parent = None):
+        Thing.__init__(self, name = name, parent = parent, params = params)
         ProcessHandler.__init__(self)
-        self.port = port
         self.add_input('Z')
         # self._connected = self._connect()
 
     def _connect(self):
-        self.serial = Serial(port = self.port, baudrate = 38400, encoding = 'ascii', parity = PARITY_NONE, stopbits = STOPBITS_ONE, bytesize = EIGHTBITS, timeout = 1, name = 'NetHubs driver')
+        self.serial = Serial(port = self.params['port'],
+                             baudrate = 38400,
+                             encoding = 'ascii',
+                             parity = PARITY_NONE,
+                             stopbits = STOPBITS_ONE,
+                             bytesize = EIGHTBITS,
+                             timeout = 1,
+                             name = 'NetControls driver')
 
         if self.serial._connected:
             self.axis = 1

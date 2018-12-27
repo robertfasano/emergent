@@ -2,6 +2,7 @@ import sys
 import numpy as np
 sys.path.append('O:/Public/Yb clock')
 from emergent.things.genesys import Genesys
+from emergent.things import LabJack
 from emergent.modules import Thing
 from emergent.modules.parallel import ProcessHandler
 from scipy.stats import linregress
@@ -23,21 +24,17 @@ class CurrentDriver(Thing, ProcessHandler):
     ''' Current driver for quadrupole coils using two TDK Genesys programmable
         power supplies and a bespoke current servo board. '''
 
-    def __init__(self, name, port1, port2, parent = None, labjack = None):
+    def __init__(self, name, params = {'labjack': None}, parent = None):
         ''' Initialize the Thing for use.
 
             Args:
                 name (str): Name of Thing.
-                port1 (str): Serial port for the first power supply (e.g. 'COM1').
-                port2 (str): Serial port for the second power supply (e.g. 'COM2').
                 parent (str): Name of the parent Hub.
                 labjack (modules.labjack.LabJack): LabJack instance to use.
         '''
         Thing.__init__(self, name=name, parent = parent)
         ProcessHandler.__init__(self)
-        self.port1 = port1
-        self.port2 = port2
-        self.labjack = labjack
+        self.labjack = LabJack(params = self.params['labjack'])
         self.enable_setpoint(1)
         self.disable_setpoint(2)
         self.slope = [26.2895, 26.0752]

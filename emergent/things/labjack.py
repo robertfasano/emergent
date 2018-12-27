@@ -28,24 +28,16 @@ def queue(func, *args, **kwargs):
 class LabJack(ProcessHandler, Thing):
     ''' Python interface for the LabJack T7. '''
 
-    def __init__(self, thing = "ANY", connection = "ANY", devid = "ANY", arange = 10, name = 'LabJack', parent = None):
+    def __init__(self, name = 'LabJack', parent = None, params = {'device': 'ANY', 'connection': 'ANY', 'devid': 'ANY', 'arange': 10}):
         ''' Attempt to connect to a LabJack.
 
             Args:
-                thing (str): Thing type ("ANY", "T7" are currently supported).
-                connection (str): Desired connection type ("ANY", "USB", "TCP", "ETHERNET", or "WIFI").
-                devid (str): Serial number, which can be found on the underside of the LabJack.
-                arange (float): analog input range.'''
+                params (dict)
+        '''
         ProcessHandler.__init__(self)
         self.parent = parent
         if parent is not None:
-            Thing.__init__(self, name, parent)
-        self.thing = thing
-        self.connection = connection
-        self.devid = devid
-        self.arange = arange
-        self.name = name
-        self._connected = 0
+            Thing.__init__(self, name, parent, params = params)
         self.stream_mode = None
 
         ''' Define a FIFO queue running in a separate thread so that multiple
@@ -58,19 +50,21 @@ class LabJack(ProcessHandler, Thing):
         if self._connected:
             return
         try:
-            self.handle = ljm.openS(self.thing, self.connection, self.devid)
+            self.handle = ljm.openS(self.params['device'],
+                                    self.params['connection'],
+                                    self.params['devid'])
             info = ljm.getHandleInfo(self.handle)
 
-            self.thingType = info[0]
-            assert self.thingType in [ljm.constants.dtT7, ljm.constants.dtT4]
-            if self.thingType == ljm.constants.dtT7:
+            self.deviceType = info[0]
+            assert self.deviceType in [ljm.constants.dtT7, ljm.constants.dtT4]
+            if self.deviceType == ljm.constants.dtT7:
                 self._command('AIN_ALL_RANGE', self.arange)
             log.info('Connected to LabJack (%i).'%(info[2]))
             self.clock = 80e6       # internal clock frequency
 
             if self.parent is not None:
                 self.input_channels = ['AIN0', 'AIN1', 'AIN2', 'AIN3']
-                if self.thingType == ljm.constants.dtT4:
+                if self.deviceType == ljm.constants.dtT4:
                     self.digital_channels = ['FIO4', 'FIO5','FIO6','FIO7']
                 else:
                     self.digital_channels = ['FIO0', 'FIO1', 'FIO2', 'FIO3']
@@ -148,7 +142,7 @@ class LabJack(ProcessHandler, Thing):
     ''' Digital I/O '''
     def DIn(self, channel):
         return ljm.eReadName(self.handle, 'DIO%i'%channel)
-        
+
     def DOut(self, channel, state):
         ''' Output a digital signal.
 
@@ -336,7 +330,7 @@ class LabJack(ProcessHandler, Thing):
             aValues = [0, 3, 0, 2, 1, 2000+trigger]
             # self._command('STREAM_TRIGGER_INDEX', 2000+trigger)
             ljm.writeLibraryConfigS('LJM_STREAM_RECEIVE_TIMEOUT_MS',0)  #disable timeout
-        if self.thingType == ljm.constants.dtT7:
+        if self.deviceType == ljm.constants.dtT7:
             # self._command("STREAM_CLOCK_SOURCE", 0)  # enable internal clock
             aNames.append('STREAM_CLOCK_SOURCE')   # enable internal clock
             aValues.append(0)
@@ -357,9 +351,9 @@ class LabJack(ProcessHandler, Thing):
                 automatically adjusted to avoid overfilling the buffer.
 
                 '''
-        if self.thingType == ljm.constants.dtT7:
+        if self.deviceType == ljm.constants.dtT7:
             max_speed = 100000
-        elif self.thingType == ljm.constants.dtT4:
+        elif self.deviceType == ljm.constants.dtT4:
             max_speed = 40000
 
         cutoff = max_samples / max_speed
@@ -417,7 +411,7 @@ class LabJack(ProcessHandler, Thing):
 
         aNames.extend(["STREAM_SETTLING_US", "STREAM_RESOLUTION_INDEX"])
         aValues.extend([0, 0])
-        if self.thingType == ljm.constants.dtT7:
+        if self.deviceType == ljm.constants.dtT7:
             aNames.append('STREAM_CLOCK_SOURCE')    # Enabling internally-clocked stream.
             aValues.append(0)
         self._write_array(aNames, aValues)
@@ -493,9 +487,9 @@ class LabJack(ProcessHandler, Thing):
         buffer_size = 2**14
         if max_samples is None:
             max_samples = int(buffer_size/2)-1
-        if self.thingType == ljm.constants.dtT7:
+        if self.deviceType == ljm.constants.dtT7:
             max_speed = 100000 / channels
-        elif self.thingType == ljm.constants.dtT4:
+        elif self.deviceType == ljm.constants.dtT4:
             max_speed = 40000 / channels
 
         cutoff = max_samples / max_speed

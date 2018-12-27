@@ -8,9 +8,10 @@ def initialize(network):
     autoAlign = TestHub('autoAlign', network = network)
     autoAlign.watchdogs['watchdog'] = TestWatchdog(autoAlign, experiment = autoAlign.transmitted_power, name = 'fiber power')
 
-    MEMS = TestThing('MEMS', parent=autoAlign, inputs = ['X', 'Y'])
+    MEMS = TestThing('MEMS', params = {'inputs': ['Z']}, parent=autoAlign)
     otherHub = TestHub('otherHub', addr = '127.0.0.1', network = network)
-    otherThing = TestThing('otherThing', parent=otherHub, inputs = ['X', 'Y'])
+    otherThing = TestThing('otherThing', params = {'inputs': ['Z']}, parent=otherHub)
 
+    ''' Add hubs to network '''
     for hub in [autoAlign, otherHub]:
         network.addHub(hub)
