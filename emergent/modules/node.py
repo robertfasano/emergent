@@ -92,6 +92,7 @@ class Thing(Node):
             self.local = False
             return
         super().__init__(name, parent=parent)
+        self._connected = 0
         self.state = {}
         self.params = params
         self.parent.state[self.name] = {}
