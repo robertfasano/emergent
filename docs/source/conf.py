@@ -20,6 +20,8 @@
 import os
 import sys
 sys.path.insert(0, os.path.abspath('../../emergent/modules'))
+sys.path.insert(0, os.path.abspath('../../emergent/gui/elements'))
+
 sys.path.insert(0, os.path.abspath('../../emergent/things'))
 sys.path.insert(0, os.path.abspath('../../emergent/'))
 

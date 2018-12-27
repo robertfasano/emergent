@@ -1,7 +1,7 @@
-Historian
+Network Panel
 ================
 
-.. automodule:: historian
+.. automodule:: NetworkPanel
     :members:
     :undoc-members:
     :special-members:

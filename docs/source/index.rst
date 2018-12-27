@@ -79,3 +79,4 @@ Table of Contents
    gettingstarted
    architecture
    optimization
+   reference
