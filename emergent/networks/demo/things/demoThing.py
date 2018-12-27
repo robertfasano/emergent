@@ -1,7 +1,7 @@
 from emergent.modules import Thing
 import numpy as np
 
-class TestThing(Thing):
+class DemoThing(Thing):
     ''' Thing driver for the virtual network in the 'basic' example. '''
     def __init__(self, name, params = {'inputs': ['X']}, parent = None):
         ''' Register with the network and create two Input nodes, 'X' and 'Y'. '''
@@ -9,7 +9,7 @@ class TestThing(Thing):
         if not self.local:
             return
 
-        for input in self.params['inputs']:
+        for input in params['inputs']:
             self.add_input(input)
 
     def _actuate(self, state):

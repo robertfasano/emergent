@@ -7,7 +7,7 @@ import numpy as np
 import socket
 import importlib
 
-class TestHub(Hub):
+class DemoHub(Hub):
         def __init__(self, name, params = {}, addr=None, network=None):
                 super().__init__(name, addr=addr, network = network, params = params)
 

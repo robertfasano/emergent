@@ -8,7 +8,6 @@
     communications between nonlocal networks.
 '''
 import pickle
-import pathlib
 from emergent.utility import Timer, get_address
 import importlib
 from emergent.modules import Client, ProcessHandler
@@ -28,13 +27,12 @@ class Network():
         self.data_path = self.path+'/data/'
         self.state_path = self.path+'/state/'
         self.params_path = self.path+'/params/'
-        for p in [self.state_path, self.data_path, self.params_path]:
-            pathlib.Path(p).mkdir(parents=True, exist_ok=True)
         self.tree = None
         self.sync_delay = 0.1
         self.reconnect_delay = 1
         self.clients = {}
         self.hubs = {}
+        self.params = {}
         self.manager = ProcessHandler()
 
     def __getstate__(self):
@@ -68,6 +66,13 @@ class Network():
 
         self.hubs[hub.name] = hub
         hub.network = self
+
+    def add_params(self, params):
+        for hub in params:
+            if hub not in self.params:
+                self.params[hub] = {}
+            for thing in params[hub]:
+                self.params[hub][thing] = params[hub][thing]
 
     def initialize(self):
         ''' Import the network.py file for the user-specified network and runs

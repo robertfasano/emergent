@@ -87,14 +87,25 @@ class Thing(Node):
             name (str): node name. Things which share a Hub should have unique names.
             parent (str): name of parent Hub.
         """
+        self._name_ = name      # save hardcoded name as private variable
         self.local = True
         if not parent.local:
             self.local = False
             return
+        self.params = params
+        ''' Update self.params with any parameters associated with the Network '''
+        try:
+            network_params = parent.network.params[parent._name_]['params'][name]['params']
+        except KeyError:
+            network_params = {}
+        for p in network_params:
+            self.params[p] = network_params[p]
+        if 'name' in self.params:
+            name = self.params['name']
         super().__init__(name, parent=parent)
         self._connected = 0
         self.state = {}
-        self.params = params
+
         self.parent.state[self.name] = {}
         self.parent.settings[self.name] = {}
 
@@ -192,7 +203,7 @@ class Hub(Node):
     ''' The Hub oversees connected Things, allowing the Inputs to be
         algorithmically tuned to optimize some target function. '''
 
-    def __init__(self, name, addr = None, network = None, parent = None):
+    def __init__(self, name, params = {}, addr = None, network = None, parent = None):
         """Initializes a Hub.
 
         Args:
@@ -201,6 +212,18 @@ class Hub(Node):
             path (str): network path relative to the emergent/ folder. For example, if the network.py file is located in emergent/networks/example, then path should be 'networks/example.'
 
         """
+        self.params = params
+        self._name_ = name      # save hardcoded name as private variable
+        ''' Update self.params with any parameters associated with the Network '''
+        try:
+            network_params = network.params[name]
+        except KeyError:
+            network.params[name] = {}
+            network_params = {}
+        for p in network_params:
+            self.params[p] = network_params[p]
+        if 'name' in network_params:
+            name = network_params['name']
         self.watchdogs = {}
         self.network = network
         self.name = name
