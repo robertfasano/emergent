@@ -2,7 +2,7 @@
 import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("name", help="Network name")
-parser.add_argument("templates", help='Templates to import', type = list)
+parser.add_argument("-templates", "-t", action='append', help='Template to import')
 
 args = parser.parse_args()
 
@@ -21,12 +21,13 @@ for dir in ['data', 'hubs', 'params', 'state', 'things', 'watchdogs']:
 ''' Import the target network '''
 templates = args.templates
 lines = []
-for template in templates:
-    lines.append('from emergent.networks.%s import network as nw'%template)
+
 lines.append('\n\n')
 lines.append('def initialize(network, params = {}):')
 lines.append('\n\t network.add_params(params)')
 lines.append('\n')
+for template in templates:
+    lines.append('\n\t from emergent.networks.%s import network as nw'%template)
 for template in templates:
     lines.append('\n\t nw_params = {}')
     lines.append('\n\t nw.initialize(network, nw_params)')
