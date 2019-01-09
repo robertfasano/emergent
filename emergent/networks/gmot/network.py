@@ -1,4 +1,4 @@
-from emergent.hubs.autoAlign import AutoAlign
+# from emergent.hubs.autoAlign import AutoAlign
 from emergent.networks.gmot.hubs import MOT, Loader
 from emergent.things import LabJack, PicoAmp, NetControls, Novatech
 from emergent.networks.gmot.things import CurrentDriver, IntensityServo
