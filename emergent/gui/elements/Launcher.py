@@ -47,6 +47,12 @@ class Launcher(QWidget):
             self.addr_box.addItem(item)
         addr_layout.addWidget(self.addr_box)
 
+        db_layout = QHBoxLayout()
+        self.layout.addLayout(db_layout)
+        db_layout.addWidget(QLabel('Database address'))
+        self.db_edit = QLineEdit('3.17.63.193')
+        db_layout.addWidget(self.db_edit)
+
         port_layout = QHBoxLayout()
         self.layout.addLayout(port_layout)
         port_layout.addWidget(QLabel('Port'))
@@ -63,5 +69,6 @@ class Launcher(QWidget):
         network = self.network_box.currentText()
         address = self.addr_box.currentText()
         port = int(self.port_box.text())
+        db_addr = self.db_edit.text()
         self.close()
-        os.system('ipython -i main.py -- %s --addr %s --port %i'%(network, address, port))
+        os.system('ipython -i main.py -- %s --addr %s --port %i --database_addr %s'%(network, address, port, db_addr))

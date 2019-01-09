@@ -29,6 +29,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument("name", help="Network name")
 parser.add_argument("--addr", help='EMERGENT session IP address')
 parser.add_argument("--port", help='EMERGENT session networking port', type = int)
+parser.add_argument("--database_addr", help='Remote InfluxDB address')
+
 parser.add_argument("-v", "--verbose", help="Increase output verbosity", action="store_true")
 args = parser.parse_args()
 if args.verbose:
@@ -44,7 +46,10 @@ else:
 port = 8000
 if args.port:
     port = args.port
-network = Network(name=args.name, addr = addr, port = port)
+database_addr = None
+if args.database_addr:
+    database_addr = args.database_addr
+network = Network(name=args.name, addr = addr, port = port, database_addr = database_addr)
 network.initialize()        # instantiate nodes
 network.load()              # load previous state from file
 network.post_load()         # run post-load routine to prepare physical state

@@ -244,6 +244,7 @@ class Hub(Node):
         self.signal = ActuateSignal()
         self.process_signal = ProcessSignal()
         self.ignored = []
+
     def __getstate__(self):
         d = {}
         ignore = ['root', 'manager', 'watchdogs', 'signal', 'process_signal', 'samplers', 'network']
@@ -283,6 +284,8 @@ class Hub(Node):
                     locked = locked and w.check()           # check the watchdog state
             if not locked:
                 time.sleep(0.1)
+        ''' Here, add overall watchdog state to a queue to write to the database '''
+
         return
 
     def enable_watchdogs(self, enabled):

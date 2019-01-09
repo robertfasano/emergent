@@ -11,15 +11,26 @@ import pickle
 from emergent.utility import Timer, get_address
 import importlib
 from emergent.modules import Client, ProcessHandler
+from emergent.protocols.tick import TICKClient
 import time
 from PyQt5.QtCore import QTimer
 import logging as log
 
 class Network():
-    def __init__(self, name, addr = None, port = 9001):
+    def __init__(self, name, addr = None, port = 9001, database_addr = None):
         self.addr = addr
         if self.addr is None:
             self.addr = get_address()
+        if database_addr is not None:
+            self.database = TICKClient(database_addr, 'admin', 'admin', name)
+            already_exists = False
+            dbs = self.database.client.get_list_database()
+            for db in dbs:
+                if db['name'] == name:
+                    already_exists = True
+                    break
+            if not already_exists:
+                self.database.client.create_database(name)
         self.port = port
         self.timer = Timer()
         self.name = name
@@ -127,6 +138,10 @@ class Network():
                 return
             time.sleep(self.reconnect_delay)
 
+    def save_to_database(self):
+        if hasattr(self, 'database'):
+            self.database.write_network_state(self.state())
+            
     def sync(self):
         ''' Queries each connected client for the state of its Network, then updates
             the NetworkPanel to show the current state of the entire network. '''
