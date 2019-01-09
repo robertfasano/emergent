@@ -26,6 +26,8 @@ def initialize(network, params = {}):
     params = {'autoAlign': {'name': 'AA',
                             'params': {'MEMS':
                                         {'name': 'mems',
-                                         'params': {'inputs': ['u', 'v']}}}}}
+                                         'params': {'inputs': ['u', 'v']},
+                                         'inputs': {'u': 'U', 'v': 'V'}
+                                         }}}}
 
     nw.initialize(network, params = params)
