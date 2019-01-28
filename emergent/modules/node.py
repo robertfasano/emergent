@@ -117,9 +117,12 @@ class Thing(Node):
         self.create_signal = CreateSignal()
         self.remove_signal = RemoveSignal()
 
+        self.ignored = []       # objects to ignore during pickling
+
     def __getstate__(self):
         d = {}
         ignore = ['signal', 'create_signal', 'remove_signal']
+        ignore.extend(self.ignored)
         unpickled = []
         for item in ignore:
             if hasattr(self, item):
