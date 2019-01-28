@@ -547,6 +547,27 @@ class LabJack(Thing):
         seq = np.array(seq)
         return self.sequence2stream(seq, period, max_samples, wave.shape[1])
 
+class MultiJack():
+    ''' A shared interface for multiple LabJacks. All i/o methods use a composite channel string
+        referencing both the LabJack and its channel that you want to access, e.g. 'A0' accesses
+        channel 0 of self.labjacks['A']. '''
+    def __init__(self, params_list = []):
+        self.labjacks = {}
+        index = 'A'
+        for p in params_list:
+            lj = LabJack(name = p['name'], parent = p['parent'], params = p['params'])
+            self.labjacks[index] = lj
+            index = chr(ord(index)+1)
+
+    def AIn(self, ch):
+        return self.labjacks[ch[0]].AIn(int(ch[1::]))
+
+    def AOut(self, ch):
+        self.labjacks[ch[0]].AOut(int(ch[1::]))
+
+    def DIn(self, ch):
+        return self.labjacks[ch[0]].DIn(int(ch[1::]))
+
 if __name__ == '__main__':
     params = {'device': 'T7', 'connection': 'ETHERNET', 'devid': '470016934', 'arange': 10}
     lj = LabJack(params = params)
