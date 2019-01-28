@@ -25,7 +25,7 @@ def queue(func, *args, **kwargs):
         except KeyError:
             continue
 
-class LabJack(ProcessHandler, Thing):
+class LabJack(Thing):
     ''' Python interface for the LabJack T7. '''
 
     def __init__(self, name = 'LabJack', parent = None, params = {'device': 'ANY', 'connection': 'ANY', 'devid': 'ANY', 'arange': 10}):
@@ -34,13 +34,11 @@ class LabJack(ProcessHandler, Thing):
             Args:
                 params (dict)
         '''
-        ProcessHandler.__init__(self)
         self.parent = parent
         if parent is not None:
             Thing.__init__(self, name, parent, params = params)
         self.params = params
         self.stream_mode = None
-
         for param in ['device', 'connection', 'devid']:
             if param not in self.params:
                 self.params[param] = 'ANY'
@@ -49,10 +47,13 @@ class LabJack(ProcessHandler, Thing):
 
         ''' Define a FIFO queue running in a separate thread so that multiple
             simultaneous threads can share a LabJack without interference. '''
+        self.manager = ProcessHandler()
         self.queue = FIFO()
-        self._run_thread(self.queue.run)
+        self.manager._run_thread(self.queue.run)
         self._connected = 0
         self._connected = self._connect()
+
+        self.ignored = ['queue', 'manager']
 
     def _connect(self):
         if self._connected:
