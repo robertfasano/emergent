@@ -16,9 +16,10 @@ import logging as log
 from emergent.modules import Sampler, recommender, ProcessHandler
 
 class Watchdog(ProcessHandler):
-    def __init__(self, parent, experiment, threshold, input_state = None, name = 'watchdog'):
+    def __init__(self, parent, experiment, threshold, input_state = None, name = 'watchdog', channel = None):
         super().__init__()
         self.parent = parent
+        self.channel = channel
         self.experiment = experiment        # experiment to run to check lock state
         self.threshold = threshold
         self.input_state = input_state
@@ -35,6 +36,7 @@ class Watchdog(ProcessHandler):
 
         ''' Set up sampler object '''
         experiment_params = recommender.load_experiment_parameters(self.parent, experiment.__name__)
+        experiment_params['channel'] = self.channel
         self.sampler = Sampler('Watchdog',
                           self.input_state,
                           self.parent,
