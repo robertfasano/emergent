@@ -1,20 +1,26 @@
 from emergent.modules import Hub, Watchdog
 from utility import experiment, trigger
+import time
 
 class Monitor(Hub):
-    def __init__(self, name, addr = None, network = None, params = {}):
+    def __init__(self, name, addr = None, network = None, params = []):
+        ''' Each entry in params should contain a name and params dict. '''
         super().__init__(name, addr = addr, network = network, params = params)
-        self.trigger_channel = 4
+        self.trigger_channel = 'A4'
 
-        if self.params['daq']['type'] == 'labjack':
-            from emergent.things.labjack import LabJack
-            devid = self.params['daq']['addr']
-            self.daq = LabJack(params = {'devid': devid}, name='labjack', parent = self)
+        from emergent.things.labjack import LabJack, MultiJack
 
+        params_list = []
+        for d in params['daqs']:
+            params_list.append({})
+            params_list[-1]['params'] = d['params']
+            params_list[-1]['parent'] = self
+            params_list[-1]['name'] = d['name']
+        self.daq = MultiJack(params_list)
         for channel in params['watchdogs']:
             threshold = params['watchdogs'][channel]['threshold']
             ch = params['watchdogs'][channel]['channel']
-            self.watchdogs[channel] = Watchdog(parent = self, experiment = self.monitor, name = channel, threshold = threshold, channel = ch)
+            self.watchdogs[channel] = Watchdog(parent = self, experiment = self.measure, name = channel, threshold = threshold, channel = ch)
 
 
         self.ignored = ['daq']          # add the names of any unpicklable attributes here
@@ -29,12 +35,12 @@ class Monitor(Hub):
         return True
 
     @experiment
-    def sync(self, state, params = {}):
+    def monitor(self, state, params = {'delay': 1}):
         ''' A dummy experiment for standalone monitoring. '''
         print('sync')
-
-        return self.labjack.DIn(self.trigger_channel)
+        time.sleep(params['delay'])
+        return self.daq.DIn(self.trigger_channel)
 
     @experiment
-    def monitor(self, state, params = {'channel': 0}):
+    def measure(self, state, params = {'channel': 0}):
         return -self.daq.AIn(params['channel'])
