@@ -173,14 +173,16 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
 
         ''' update triggers '''
         panel.trigger_box.clear()
+        panel.trigger_box.addItem('')
         for t in list_triggers(hub):
             panel.trigger_box.addItem(t)
 
     def update_algorithm_and_experiment(self, panel, default = False, update_algorithm = True, update_experiment = True):
         if panel.experiment_box.currentText() is '':
             return
-        if panel.algorithm_box.currentText() is '':
-            return
+        if hasattr(panel, 'algorithm_box'):
+            if panel.algorithm_box.currentText() is '':
+                return
         hub = self.parent.treeWidget.currentItem().root
         experiment_name = panel.experiment_box.currentText()
         if experiment_name == '':
