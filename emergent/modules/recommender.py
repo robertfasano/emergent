@@ -27,7 +27,12 @@ def get_default_algorithm(hub, experiment_name):
     params_filename = hub.network.params_path + '%s.%s.txt'%(hub.name, experiment_name)
     with open(params_filename, 'r') as file:
         params = json.load(file)
-    return get_algorithm(params['algorithm']['default'])
+    try:
+        return get_algorithm(params['algorithm']['default'])
+    except KeyError:
+        save_default_algorithm(hub, experiment_name, 'GridSearch')
+        return get_algorithm('GridSearch')
+
 
 def get_default_algorithm_params(name):
     instance = get_algorithm(name)
