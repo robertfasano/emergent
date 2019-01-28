@@ -7,6 +7,6 @@ def initialize(network, params = {}):
 
     labjack = LabJack(name='labjack', params = {'devid': '470017899'})
     hub = AutoAlign(name='autoAlign', labjack=labjack, network = network)
-    thing = PicoAmp('MEMS', labjack, parent=hub)
+    thing = PicoAmp('MEMS', parent=hub, params = {'labjack': labjack, 'type': 'digital'})
 
     network.addHub(hub)

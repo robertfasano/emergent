@@ -16,7 +16,7 @@ class IntensityServo(Thing):
     '''
     def __init__(self, name, params = {'devid': None}, parent = None):
         super().__init__(name, parent = parent, params = params)
-        self.labjack = LabJack(devid=params['devid'])
+        self.labjack = LabJack(params={'devid': params['devid']})
 
         self.add_input('probe')
         # self.add_input('V1')

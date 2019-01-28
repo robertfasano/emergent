@@ -14,10 +14,10 @@ class PicoAmp(Thing):
     ''' Thing driver for the Mirrorcle PicoAmp board. '''
     def __init__(self, name, params = {'labjack': None, 'type': 'digital'}, parent = None):
         ''' Initialize the Thing for use. '''
-        super().__init__(name, parent = parent)
+        super().__init__(name, parent = parent, params = params)
         self.addr = {'A': '000', 'B': '001', 'C': '010', 'D': '011', 'ALL': '111'}
         self.labjack = self.params['labjack']
-        assert comm in ['digital', 'analog']
+        assert self.params['type'] in ['digital', 'analog']
         self.add_input('X')
         self.add_input('Y')
 

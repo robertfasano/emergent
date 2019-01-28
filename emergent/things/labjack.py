@@ -38,12 +38,20 @@ class LabJack(ProcessHandler, Thing):
         self.parent = parent
         if parent is not None:
             Thing.__init__(self, name, parent, params = params)
+        self.params = params
         self.stream_mode = None
+
+        for param in ['device', 'connection', 'devid']:
+            if param not in self.params:
+                self.params[param] = 'ANY'
+        if 'arange' not in self.params:
+            self.params['arange'] = 10
 
         ''' Define a FIFO queue running in a separate thread so that multiple
             simultaneous threads can share a LabJack without interference. '''
         self.queue = FIFO()
         self._run_thread(self.queue.run)
+        self._connected = 0
         self._connected = self._connect()
 
     def _connect(self):
@@ -58,7 +66,7 @@ class LabJack(ProcessHandler, Thing):
             self.deviceType = info[0]
             assert self.deviceType in [ljm.constants.dtT7, ljm.constants.dtT4]
             if self.deviceType == ljm.constants.dtT7:
-                self._command('AIN_ALL_RANGE', self.arange)
+                self._command('AIN_ALL_RANGE', self.params['arange'])
             log.info('Connected to LabJack (%i).'%(info[2]))
             self.clock = 80e6       # internal clock frequency
 
@@ -82,7 +90,7 @@ class LabJack(ProcessHandler, Thing):
             return 1
 
         except Exception as e:
-            log.error('Failed to connect to LabJack (%s): %s.'%(self.devid, e))
+            log.error('Failed to connect to LabJack (%s): %s.'%(self.params['devid'], e))
 
     def _actuate(self, state):
         for key in state:
@@ -539,10 +547,5 @@ class LabJack(ProcessHandler, Thing):
         return self.sequence2stream(seq, period, max_samples, wave.shape[1])
 
 if __name__ == '__main__':
-    lj = LabJack(devid='470016973')
-    sequence = [(0,0), (0.05,1)]
-    period = .1
-    stream, speed = lj.sequence2stream(sequence, period)
-    lj.stream_out([0], stream, speed, trigger = 0)
-    for i in range(100):
-        lj.DOut(2,i%2)
+    params = {'device': 'T7', 'connection': 'ETHERNET', 'devid': '470016934', 'arange': 10}
+    lj = LabJack(params = params)

@@ -15,7 +15,7 @@ class Novatech(Thing):
 
     def _connect(self):
         self.serial = Serial(
-                port=self.port,
+                port=self.params['port'],
                 baudrate=19200,
                 parity=serial.PARITY_NONE,
                 stopbits=serial.STOPBITS_ONE,
