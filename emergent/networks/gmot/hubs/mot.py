@@ -150,9 +150,11 @@ class MOT(Hub):
     def fluorescence(self, state, params = {'settling time': 0.1, 'duration': 0.25}):
         self.actuate(state)
         time.sleep(params['settling time'])
-        data = self.labjack.streamburst(duration=params['duration'], operation = None)
-        print(str(np.mean(data)*1000) + '+/-' + str(np.std(data)*1000))
-        return -np.mean(data)
+        # data = self.labjack.streamburst(duration=params['duration'], operation = None)
+        # print(str(np.mean(data)*1000) + '+/-' + str(np.std(data)*1000))
+
+        return -self.labjack.AIn(0)
+        # return -np.mean(data)
 
     def probe_trigger(self, trigger_delay = 0.1):
         i = 0
