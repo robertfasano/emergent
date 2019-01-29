@@ -21,11 +21,11 @@ class MOT(Hub):
         self.trigger_labjack = LabJack(params = {'devid': '440010734'}, name='trigger')
         self.timer = Timer()
 
-        self.PROBE_LIGHT = 1 #done
-        self.MOT_RF = 2
-        self.MOT_INTEGRATOR = 4
+        self.PROBE_LIGHT = 1 # integrator, probe rf switch TTL
+        self.MOT_RF = 2  # slowing + cooling rf switches
+        self.MOT_INTEGRATOR = 4   # slowing/cooling integrators
         self.ADC = self.MOT_INTEGRATOR
-        self.MOT_SHUTTER = 3
+        self.MOT_SHUTTER = 3      # slowing/cooling shutters
 
         ''' Enable MOT '''
         self.TTL.DOut(self.PROBE_LIGHT, 1)     # disable probe
