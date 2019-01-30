@@ -269,7 +269,7 @@ class Sampler():
 
         return points, costs
 
-    def grid_sampling(self, state, points, args=None, norm = True, callback = None):
+    def grid_sampling(self, state, points, sweeps = 1, args=None, norm = True, callback = None):
         ''' Performs a uniformly-spaced sampling of the cost function in the
             space spanned by the passed-in state dict. '''
         if callback is None:
@@ -285,12 +285,13 @@ class Sampler():
 
         ''' Actuate search '''
         costs = np.array([])
-        for point in points:
-            if not callback():
-                return points[0:len(costs)], costs
-            c = self._cost(point)
+        for i in range(int(sweeps)):
+            for point in points:
+                if not callback():
+                    return points[0:len(costs)], costs
+                c = self._cost(point)
 
-            costs = np.append(costs, c)
-            self.progress = len(costs) / len(points)
+                costs = np.append(costs, c)
+                self.progress = len(costs) / len(points) / sweeps
 
         return points, costs
