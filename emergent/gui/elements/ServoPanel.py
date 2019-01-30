@@ -1,16 +1,18 @@
 ''' The ServoLayout allows the user to start servo processes, such as digital PID
     loops, targeting an @error method with specified parameters. '''
-    
+
 from PyQt5.QtWidgets import (QComboBox, QLabel, QPushButton, QVBoxLayout,
         QTableWidget, QGridLayout, QTableWidgetItem, QHBoxLayout)
 from PyQt5.QtCore import *
 import logging as log
 import datetime
 from emergent.gui.elements.ParameterTable import ParameterTable
+from emergent.modules.parallel import ProcessHandler
 
-class ServoLayout(QVBoxLayout):
+class ServoLayout(QVBoxLayout, ProcessHandler):
     def __init__(self, parent):
         QVBoxLayout.__init__(self)
+        ProcessHandler.__init__(self)
         self.parent = parent
         self.name = 'Servo'
         layout = QGridLayout()
