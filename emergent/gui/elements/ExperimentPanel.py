@@ -187,6 +187,12 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         experiment_name = panel.experiment_box.currentText()
         if experiment_name == '':
             return
+        if hasattr(panel, 'trigger_box'):
+            panel.trigger_box.clear()
+            panel.trigger_box.addItem('')
+            for t in list_triggers(hub):
+                panel.trigger_box.addItem(t)
+
         if update_algorithm:
             algo_name = panel.algorithm_box.currentText()
             if panel.name == 'Optimize':
@@ -255,7 +261,7 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         row = self.parent.taskPanel.add_event(sampler)
 
         ''' Assign trigger '''
-        if process == 'run':
+        if hasattr(panel, 'trigger_box'):
             sampler.trigger = None
             if panel.trigger_box.currentText() != '':
                 sampler.trigger = getattr(sampler.hub, panel.trigger_box.currentText())

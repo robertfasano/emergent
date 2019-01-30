@@ -1,7 +1,7 @@
 ''' The OptimizeTab allows the user to choose algorithms and their parameters and
     launch optimizations. '''
 from PyQt5.QtWidgets import (QComboBox, QPushButton, QVBoxLayout,
-        QTableWidgetItem, QTableWidget, QHBoxLayout, QGridLayout, QMenu, QAction)
+        QTableWidgetItem, QTableWidget, QHBoxLayout, QGridLayout, QLabel, QMenu, QAction)
 from PyQt5.QtCore import *
 from PyQt5.QtGui import QCursor
 from emergent.modules.parallel import ProcessHandler
@@ -102,6 +102,16 @@ class OptimizeLayout(QVBoxLayout, ProcessHandler):
 
         self.algorithm_box.currentTextChanged.connect(lambda: self.parent.update_algorithm_and_experiment(self, update_experiment=False))
         self.experiment_box.currentTextChanged.connect(lambda: self.parent.update_algorithm_and_experiment(self))
+
+        self.triggerLayout = QHBoxLayout()
+        label = QLabel('Trigger')
+        self.triggerLayout.addWidget(label)
+        label.setStyleSheet('color:"#000000"; font-weight: light; font-family: "Exo 2"; font-size: 14px; background-color: transparent')
+        self.trigger_box = QComboBox()
+        self.triggerLayout.addWidget(self.trigger_box)
+        self.addLayout(self.triggerLayout)
+
+
         optimizeButtonsLayout = QHBoxLayout()
         parent.optimizer_button = QPushButton('Go!')
         parent.optimizer_button.clicked.connect(lambda: parent.start_process(process='optimize', settings = {}, load_from_gui=True))

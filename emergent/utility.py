@@ -112,6 +112,8 @@ def experiment(func, hub, sampler, state):
     if not sampler.skip_lock_check:
         hub.check_lock()
     for i in range(int(params['cycles per sample'])):
+        if sampler.trigger is not None:
+            sampler.trigger()
         c = func(hub, state, params)
         results.append(c)
 
