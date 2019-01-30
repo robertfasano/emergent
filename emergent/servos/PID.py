@@ -30,7 +30,7 @@ class PID():
                                             description = 'Sign of correction')
 
     @servo
-    def run(self, state, params={'Proportional gain':1, 'Integral gain':0, 'Derivative gain':0, 'Sign':-1}, error_params = {}, callback = None):
+    def run(self, state, callback = None):
         error = self.sampler.experiment
         if callback is None:
             callback = self.sampler.callback
@@ -50,24 +50,24 @@ class PID():
         while callback(e):
             e = error(state, self.sampler.experiment_params)
             t = time.time()
-            print(t)
             self.sampler.history.loc[t,'cost']=e
             for thing in state:
                 for input in state[thing]:
                     self.sampler.history.loc[t,thing+'.'+input] = state[thing][input]
-            print('State:', state, 'Error:', e)
+            # print('State:', state, 'Error:', e)
             delta_t = t - last_time
             delta_e = e - last_error
 
-            proportional = params['Proportional gain'] * e
-            integral += params['Integral gain'] * e * delta_t
-            derivative = params['Derivative gain'] * delta_e/delta_t
+            proportional = self.sampler.algorithm_params['Proportional gain'] * e
+            integral += self.sampler.algorithm_params['Integral gain'] * e * delta_t
+            derivative = self.sampler.algorithm_params['Derivative gain'] * delta_e/delta_t
 
             last_time = t
             last_error = e
 
             target = proportional + integral + derivative
-            state[thing][input] -= params['Sign']*target  # gets passed into error in the next loop
+            # print('Correction:', target)
+            state[thing][input] -= self.sampler.algorithm_params['Sign']*target  # gets passed into error in the next loop
 
     def set_params(self, params):
         for p in params:
