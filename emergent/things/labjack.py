@@ -96,15 +96,20 @@ class LabJack(Thing):
     def _actuate(self, state):
         for key in state:
             prefix = key[0:3]
-            channel = int(key[3])
             value = float(state[key])
-            if prefix == 'DAC':
+            if 'TDAC' in key:
+                channel = int(key[4::])
+                self.AOut(channel, value, HV=True)
+            elif prefix == 'DAC':
+                channel = int(key[3])
                 self.AOut(channel, value)
                 self.channels[key] = value
             elif prefix == 'FIO':
+                channel = int(key[3])
                 self.DOut(channel, value)
                 self.channels[key] = value
             elif prefix == 'AIN':
+                channel = int(key[3])
                 self.channels[key] = self.AIn(channel)
 
     @queue
