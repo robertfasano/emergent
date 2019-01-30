@@ -95,6 +95,21 @@ class MOT(Hub):
         self.TTL.DIO_STATE([self.PROBE_LIGHT, self.MOT_RF, self.MOT_SHUTTER, self.MOT_INTEGRATOR], [0, 1, 0, 1])
 
     @experiment
+    def loading_fluorescence(self, state, params = {'loading delay': 0.1}):
+        self.TTL.DIO_STATE([self.MOT_RF, self.MOT_SHUTTER, self.MOT_INTEGRATOR], [1, 0, 1])        # turn MOT off
+
+        for key in ['loading time', 'probe time', 'probe delay', 'gate time', 'AOM delay']:
+            params[key] = self.children['loader'].state[key]/1000
+        time.sleep(params['AOM delay'])
+        self.TTL.DOut(self.MOT_RF, 0)        # switch RF back on to avoid thermalization, but keep shutter closed
+
+        time.sleep(params['loading delay']-params['AOM delay'])
+
+        self.TTL.DIO_STATE([self.MOT_RF, self.MOT_SHUTTER, self.MOT_INTEGRATOR], [0, 1, 0])        # turn MOT on
+        time.sleep(params['loading time'])
+        return -self.labjack.AIn(0)
+
+    @experiment
     def probe(self, state, params = {'samples': 1}):
         results = []
         self.actuate(state)
