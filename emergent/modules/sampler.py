@@ -22,6 +22,7 @@ class Sampler():
         self.name = name
         self.state = state
         self.hub = hub
+        self.trigger = None
         self.index = len(hub.samplers)
         hub.samplers[self.index] = self
         self.experiment = experiment
