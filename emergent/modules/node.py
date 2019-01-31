@@ -250,7 +250,7 @@ class Hub(Node):
 
     def __getstate__(self):
         d = {}
-        ignore = ['root', 'manager', 'watchdogs', 'signal', 'process_signal', 'samplers', 'network']
+        ignore = ['root', 'manager', 'watchdogs', 'children', 'signal', 'process_signal', 'samplers', 'network']
         ignore.extend(self.ignored)
         unpickled = []
         for item in ignore:
