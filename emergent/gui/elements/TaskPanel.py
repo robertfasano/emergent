@@ -6,7 +6,7 @@
 # -*- coding: utf-8 -*-
 from PyQt5.QtGui import QCursor
 from PyQt5.QtWidgets import (QGridLayout,QTableView,QVBoxLayout, QWidget, QMenu,
-                             QAction, QTableWidget, QTableWidgetItem, QFileDialog)
+                             QAction, QTableWidget, QTableWidgetItem, QFileDialog, QComboBox)
 from PyQt5.QtCore import *
 from emergent.gui.elements import PlotWidget
 from emergent.modules.visualization import plot_2D, plot_1D
@@ -20,11 +20,12 @@ class ContextTable(QTableWidget):
 
         self.horizontalHeader().setFixedHeight(30)
         self.setColumnCount(5)
-        for col in [3, 4]:
+        for col in [4]:
             self.hideColumn(col)
-        self.setHorizontalHeaderLabels(['Time', 'Experiment', 'Event', 'Status', 'Object'])
+        self.setHorizontalHeaderLabels(['Time', 'Experiment', 'Event', 'Active', 'Object'])
         self.horizontalHeader().setStretchLastSection(True)
         self.setStyleSheet('color:"#000000"; font-weight: light; font-family: "Exo 2"; font-size: 14px; background-color: rgba(255, 255, 255, 80%);')
+
     def contextMenuEvent(self, event):
         self.menu = QMenu(self)
         self.action = QAction('Terminate')
@@ -49,9 +50,20 @@ class TaskPanel(QVBoxLayout):
     def __init__(self, parent):
         super().__init__()
         self.parent = parent
+        self.active_tasks = []
         self.table = ContextTable()
         self.table.cellDoubleClicked.connect(self.on_double_click)
         self.addWidget(self.table)
+
+        self.update_timer = QTimer(self)
+        self.update_timer.timeout.connect(lambda: self.update_visible_rows(''))
+        self.update_timer.start(250)
+
+        self.show_box = QComboBox()
+        for item in ['All', 'Active', 'Inactive']:
+            self.show_box.addItem(item)
+        self.show_box.currentTextChanged.connect(self.update_visible_rows)
+        self.addWidget(self.show_box)
 
     def add_event(self, sampler, status = ''):
         row = self.table.rowCount()
@@ -63,14 +75,49 @@ class TaskPanel(QVBoxLayout):
         else:
             algorithm_name = 'Run'
         self.table.setItem(row, 2, QTableWidgetItem(algorithm_name))
-        self.table.setItem(row, 3, QTableWidgetItem(status))
+        self.table.setItem(row, 3, QTableWidgetItem('True'))
         self.table.setItem(row, 4, SamplerItem(sampler, status))
 
+        ''' Set row visibility based on self.show_box '''
+        if self.show_box.currentText() == 'Inactive':
+            self.table.setRowHidden(row, True)
         return row
+
+    def check_active_rows(self):
+        active_rows = []
+        for r in range(self.table.rowCount()):
+            active = self.table.item(r, 4).sampler.active
+            if active:
+                active_rows.append(r)
+            self.table.setItem(r, 3, QTableWidgetItem(str(active)))
+        return active_rows
+
+    def hide_inactive(self, hide):
+        for r in range(self.table.rowCount()):
+            self.table.setRowHidden(r, False)
+        active_rows = self.check_active_rows()
+        for r in range(self.table.rowCount()):
+            if r not in active_rows:
+                self.table.setRowHidden(r, hide)
 
     def update_event_status(self, row, status):
         self.table.item(row, 3).setText(status)
         self.table.viewport().update()
+
+    def update_visible_rows(self, text):
+        text = self.show_box.currentText()
+        for r in range(self.table.rowCount()):
+            self.table.setRowHidden(r, False)
+
+        active_rows = self.check_active_rows()
+        for r in range(self.table.rowCount()):
+            if r not in active_rows:
+                if text == 'Active':
+                    self.table.setRowHidden(r, True)
+            else:
+                if text == 'Inactive':
+                    self.table.setRowHidden(r, True)
+
 
     def on_double_click(self, row, col):
         sampler = self.table.item(row, 4).sampler
