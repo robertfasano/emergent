@@ -11,7 +11,7 @@
 '''
 from PyQt5.QtWidgets import (QVBoxLayout, QWidget, QTabWidget)
 from PyQt5.QtCore import *
-from emergent.gui.elements import OptimizeLayout, ServoLayout, RunLayout
+from emergent.gui.elements import OptimizeLayout, ServoLayout, RunLayout, MonitorLayout
 from emergent.modules import Sampler, recommender, ProcessHandler
 import json
 import logging as log
@@ -50,6 +50,15 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         runTab.setLayout(self.runPanel)
         runTab.setStyleSheet('background-color: rgba(255, 255, 255, 50%)')
         self.tabWidget.addTab(runTab, 'Run')
+
+
+        ''' Create Monitor tab '''
+        monitorTab = QWidget()
+        self.monitorPanel = MonitorLayout(self.parent.network, self.parent)
+        monitorTab.setLayout(self.monitorPanel)
+        monitorTab.setStyleSheet('background-color: rgba(255, 255, 255, 50%)')
+        self.tabWidget.addTab(monitorTab, 'Monitor')
+
 
         self.update_panel()
 

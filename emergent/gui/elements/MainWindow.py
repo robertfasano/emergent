@@ -24,7 +24,7 @@ class MainFrame(QMainWindow):
         self.setWindowIcon(QIcon('gui/media/icon.png'))
         self.setCentralWidget(self.central_widget)
         layout= QHBoxLayout(self.central_widget)
-        width = 1280
+        width = 960
         height = 720
         self.resize(width, height)
 
@@ -54,9 +54,9 @@ class MainFrame(QMainWindow):
         self.taskPanel = TaskPanel(self)
         self.experiment_layout.addLayout(self.taskPanel)
 
-        ''' Create monitor panel '''
-        self.monitorPanel = MonitorLayout(self.network, self)
-        layout.addLayout(self.monitorPanel)
+        # ''' Create monitor panel '''
+        # self.monitorPanel = MonitorLayout(self.network, self)
+        # layout.addLayout(self.monitorPanel)
 
 
         ''' Create menu bar '''
