@@ -173,6 +173,7 @@
  | <a href="#T"><strong>T</strong></a>
  | <a href="#U"><strong>U</strong></a>
  | <a href="#V"><strong>V</strong></a>
+ | <a href="#W"><strong>W</strong></a>
  
 </div>
 <h2 id="_">_</h2>
@@ -233,6 +234,8 @@
 </li>
         <li><a href="modules/server.html#server.Server.__init__">(server.Server method)</a>
 </li>
+        <li><a href="modules/watchdog.html#watchdog.Watchdog.__init__">(watchdog.Watchdog method)</a>
+</li>
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -243,6 +246,8 @@
       <li><a href="architecture/thing.html#node.Thing._connect">_connect() (node.Thing method)</a>, <a href="modules/node.html#node.Thing._connect">[1]</a>
 </li>
       <li><a href="modules/sampler.html#sampler.Sampler._cost">_cost() (sampler.Sampler method)</a>
+</li>
+      <li><a href="architecture/hub.html#node.Hub._name_">_name_ (node.Hub attribute)</a>, <a href="modules/node.html#node.Hub._name_">[1]</a>
 </li>
       <li><a href="modules/Parallel.html#parallel.ProcessHandler._quit_process">_quit_process() (parallel.ProcessHandler method)</a>
 </li>
@@ -272,10 +277,10 @@
         <li><a href="modules/server.html#server.Server.actuate">(server.Server method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/fifo.html#fifo.FIFO.add">add() (fifo.FIFO method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="gui/NetworkPanel.html#NetworkPanel.NodeWidget.add_buffer_buttons">add_buffer_buttons() (NetworkPanel.NodeWidget method)</a>
 </li>
       <li><a href="gui/TaskPanel.html#TaskPanel.TaskPanel.add_event">add_event() (TaskPanel.TaskPanel method)</a>
@@ -283,6 +288,8 @@
       <li><a href="architecture/thing.html#node.Thing.add_input">add_input() (node.Thing method)</a>, <a href="modules/node.html#node.Thing.add_input">[1]</a>
 </li>
       <li><a href="modules/server.html#server.Server.add_listener">add_listener() (server.Server method)</a>
+</li>
+      <li><a href="modules/network.html#network.Network.add_params">add_params() (network.Network method)</a>
 </li>
       <li><a href="modules/network.html#network.Network.addHub">addHub() (network.Network method)</a>
 </li>
@@ -296,6 +303,10 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/sampler.html#sampler.Sampler.callback">callback() (sampler.Sampler method)</a>
 </li>
+      <li><a href="modules/watchdog.html#watchdog.Watchdog.check">check() (watchdog.Watchdog method)</a>
+</li>
+      <li><a href="gui/TaskPanel.html#TaskPanel.TaskPanel.check_active_rows">check_active_rows() (TaskPanel.TaskPanel method)</a>
+</li>
       <li><a href="architecture/hub.html#node.Hub.check_lock">check_lock() (node.Hub method)</a>, <a href="modules/node.html#node.Hub.check_lock">[1]</a>
 </li>
       <li><a href="gui/TaskPanel.html#TaskPanel.Visualizer.check_progress">check_progress() (TaskPanel.Visualizer method)</a>
@@ -307,6 +318,8 @@
       <li><a href="modules/client.html#module-client">client (module)</a>
 </li>
       <li><a href="gui/NetworkPanel.html#NetworkPanel.NodeTree.close_editor">close_editor() (NetworkPanel.NodeTree method)</a>
+</li>
+      <li><a href="modules/watchdog.html#watchdog.Watchdog.confirm_lock">confirm_lock() (watchdog.Watchdog method)</a>
 </li>
       <li><a href="modules/client.html#client.Client.connect">connect() (client.Client method)</a>
 </li>
@@ -406,6 +419,8 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="gui/TaskPanel.html#TaskPanel.TaskPanel.hide_inactive">hide_inactive() (TaskPanel.TaskPanel method)</a>
+</li>
       <li><a href="architecture/hub.html#node.Hub">Hub (class in node)</a>, <a href="modules/node.html#node.Hub">[1]</a>
 </li>
   </ul></td>
@@ -414,10 +429,16 @@
 <h2 id="I">I</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="modules/network.html#network.Network.initialize">initialize() (network.Network method)</a>
+      <li><a href="architecture/hub.html#node.Hub.ignored">ignored (node.Hub attribute)</a>, <a href="modules/node.html#node.Hub.ignored">[1]</a>
+
+      <ul>
+        <li><a href="architecture/thing.html#node.Thing.ignored">(node.Thing attribute)</a>, <a href="modules/node.html#node.Thing.ignored">[1]</a>
 </li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="modules/network.html#network.Network.initialize">initialize() (network.Network method)</a>
+</li>
       <li><a href="architecture/input.html#node.Input">Input (class in node)</a>, <a href="modules/node.html#node.Input">[1]</a>
 </li>
   </ul></td>
@@ -455,6 +476,10 @@
 
 <h2 id="M">M</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="modules/watchdog.html#watchdog.Watchdog.measure">measure() (watchdog.Watchdog method)</a>
+</li>
+  </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/fifo.html#fifo.Message">Message (class in fifo)</a>
 </li>
@@ -516,12 +541,14 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/Parallel.html#module-parallel">parallel (module)</a>
 </li>
-      <li><a href="modules/sampler.html#sampler.Sampler.plot_optimization">plot_optimization() (sampler.Sampler method)</a>
+      <li><a href="architecture/thing.html#node.Thing.params">params (node.Thing attribute)</a>, <a href="modules/node.html#node.Thing.params">[1]</a>
 </li>
-      <li><a href="modules/network.html#network.Network.post_load">post_load() (network.Network method)</a>
+      <li><a href="modules/sampler.html#sampler.Sampler.plot_optimization">plot_optimization() (sampler.Sampler method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="modules/network.html#network.Network.post_load">post_load() (network.Network method)</a>
+</li>
       <li><a href="modules/sampler.html#sampler.Sampler.prepare">prepare() (sampler.Sampler method)</a>
 </li>
       <li><a href="modules/Parallel.html#parallel.Process">Process (class in parallel)</a>
@@ -536,15 +563,21 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/sampler.html#sampler.Sampler.random_sampling">random_sampling() (sampler.Sampler method)</a>
 </li>
-      <li><a href="gui/NetworkPanel.html#NetworkPanel.RedoButton.redo">redo() (NetworkPanel.RedoButton method)</a>
+      <li><a href="modules/watchdog.html#watchdog.Watchdog.react">react() (watchdog.Watchdog method)</a>
 </li>
-      <li><a href="gui/NetworkPanel.html#NetworkPanel.RedoButton">RedoButton (class in NetworkPanel)</a>
+      <li><a href="modules/watchdog.html#watchdog.Watchdog.reacting">reacting (watchdog.Watchdog attribute)</a>
+</li>
+      <li><a href="gui/NetworkPanel.html#NetworkPanel.RedoButton.redo">redo() (NetworkPanel.RedoButton method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="gui/NetworkPanel.html#NetworkPanel.RedoButton">RedoButton (class in NetworkPanel)</a>
+</li>
       <li><a href="architecture/node.html#node.Node.register">register() (node.Node method)</a>, <a href="modules/node.html#node.Node.register">[1]</a>
 </li>
       <li><a href="architecture/thing.html#node.Thing.remove_input">remove_input() (node.Thing method)</a>, <a href="modules/node.html#node.Thing.remove_input">[1]</a>
+</li>
+      <li><a href="modules/watchdog.html#watchdog.Watchdog.reoptimize">reoptimize() (watchdog.Watchdog method)</a>
 </li>
       <li><a href="modules/fifo.html#fifo.FIFO.run">run() (fifo.FIFO method)</a>
 </li>
@@ -570,6 +603,8 @@
         <li><a href="modules/sampler.html#sampler.Sampler.save">(sampler.Sampler method)</a>
 </li>
       </ul></li>
+      <li><a href="modules/network.html#network.Network.save_to_database">save_to_database() (network.Network method)</a>
+</li>
       <li><a href="modules/sampler.html#sampler.Sampler.search_database">search_database() (sampler.Sampler method)</a>
 </li>
       <li><a href="modules/client.html#client.Client.send">send() (client.Client method)</a>
@@ -648,13 +683,15 @@
 </li>
       <li><a href="modules/sampler.html#sampler.Sampler.unnormalize">unnormalize() (sampler.Sampler method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="architecture/thing.html#node.Thing.update">update() (node.Thing method)</a>, <a href="modules/node.html#node.Thing.update">[1]</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="gui/NetworkPanel.html#NetworkPanel.NodeTree.update_editor">update_editor() (NetworkPanel.NodeTree method)</a>
 </li>
       <li><a href="gui/TaskPanel.html#TaskPanel.TaskPanel.update_event_status">update_event_status() (TaskPanel.TaskPanel method)</a>
+</li>
+      <li><a href="gui/TaskPanel.html#TaskPanel.TaskPanel.update_visible_rows">update_visible_rows() (TaskPanel.TaskPanel method)</a>
 </li>
       <li><a href="gui/NetworkPanel.html#NetworkPanel.NodeWidget.updateStateText">updateStateText() (NetworkPanel.NodeWidget method)</a>
 </li>
@@ -665,6 +702,18 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="gui/TaskPanel.html#TaskPanel.Visualizer">Visualizer (class in TaskPanel)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="W">W</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="modules/watchdog.html#watchdog.Watchdog">Watchdog (class in watchdog)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="modules/watchdog.html#module-watchdog">watchdog (module)</a>
 </li>
   </ul></td>
 </tr></table>
