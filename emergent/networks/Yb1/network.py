@@ -22,4 +22,4 @@ def initialize(network):
     # monitor.initialize(network, params = params)
 
     for hub in [pa]:
-        network.addHub(hub)
+        network.add_hub(hub)

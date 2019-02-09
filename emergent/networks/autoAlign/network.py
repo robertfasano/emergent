@@ -9,4 +9,4 @@ def initialize(network, params = {'autoAlign': {'name': '', 'params': {'MEMS':{'
     hub = AutoAlign(name='autoAlign', labjack=labjack, network = network)
     thing = PicoAmp('MEMS', parent=hub, params = {'labjack': labjack, 'type': 'digital'})
 
-    network.addHub(hub)
+    network.add_hub(hub)

@@ -7,11 +7,11 @@
     the PC, as well as offering choice of IP address between the network card and
     localhost (for testing).
 '''
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-from PyQt5.QtGui import QFontDatabase, QIcon
-from PyQt5.QtWidgets import (QWidget, QComboBox, QLabel, QHBoxLayout, QVBoxLayout, QPushButton, QLineEdit)
+
 import os
+from PyQt5.QtGui import QFontDatabase, QIcon
+from PyQt5.QtWidgets import (QWidget, QComboBox, QLabel, QHBoxLayout, QVBoxLayout,
+                             QPushButton, QLineEdit)
 from emergent.utilities.networking import get_address, get_open_port
 
 class Launcher(QWidget):
@@ -22,7 +22,7 @@ class Launcher(QWidget):
 
         QFontDatabase.addApplicationFont('gui/media/Exo2-Light.ttf')
 
-        with open('gui/stylesheet.txt',"r") as file:
+        with open('gui/stylesheet.txt', "r") as file:
             self.setStyleSheet(file.read())
 
         self.setWindowTitle('EMERGENT')
@@ -66,6 +66,7 @@ class Launcher(QWidget):
         self.show()
 
     def launch(self):
+        ''' Start an EMERGENT session with settings from the GUI. '''
         network = self.network_box.currentText()
         address = self.addr_box.currentText()
         port = int(self.port_box.text())

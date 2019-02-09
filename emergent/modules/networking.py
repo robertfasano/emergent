@@ -3,17 +3,16 @@
 
 import asyncio
 import json
-from emergent.modules import Hub
+import time
 from threading import Thread
 import logging as log
 import pickle
+import importlib
+from PyQt5.QtCore import QTimer
 from emergent.utilities.networking import get_address
 from emergent.utilities.testing import Timer
-import importlib
 from emergent.modules import ProcessHandler
 from emergent.protocols.tick import TICKClient
-import time
-from PyQt5.QtCore import QTimer
 
 class Client():
     ''' The Client class, along with the Server class in server.py, handles communication
@@ -31,9 +30,10 @@ class Client():
         self.addr = addr
         self.port = port
         self._connected = False
-        self.reconnect_delay = 1
 
     def __getstate__(self):
+        ''' Returns a dictionary for byte serialization when requested by the
+            pickle module. '''
         d = {}
         ignore = ['network']
         unpickled = []
@@ -46,22 +46,27 @@ class Client():
         return d
 
     def actuate(self, state):
+        ''' Sends a command to the server to actuate remote inputs. '''
         return asyncio.run(self.send({'op': 'actuate', 'params': state}))[0]
 
     def connect(self):
+        ''' Initialize a connection with the server. '''
         self._connected = asyncio.run(self.send({'op': 'connect'}))[0]['params']
 
     def echo(self, message):
+        ''' Client/server echo for debugging '''
         message = {'op': 'echo', 'params': message}
         resp = self.send(message)
         return resp
 
     async def send(self, message):
+        ''' Passes a message to the server asynchronously and returns the response. '''
         loop = asyncio.get_event_loop()
         response = await asyncio.gather(self.tcp_echo_client(message, loop))
         return response
 
     async def tcp_echo_client(self, message, loop):
+        ''' Passes a message to the server. '''
         reader, writer = await asyncio.open_connection(self.addr, self.port,
                                                        loop=loop)
         writer.write(json.dumps(message).encode())
@@ -71,9 +76,11 @@ class Client():
         return pickle.loads(data)
 
     def get_network(self):
+        ''' Queries the server for the remote network state. '''
         return asyncio.run(self.send({'op': 'get_network'}))[0]
 
     def get_params(self):
+        ''' Queries the server for connection parameters. '''
         return asyncio.run(self.send({'op': 'get_params'}))[0]
 
 class Server():
@@ -109,17 +116,22 @@ class Server():
         thread = Thread(target=self.start)
         thread.start()
 
-    async def actuate(self, state, reader, writer):
+    async def actuate(self, state, writer):
+        ''' Actuates local inputs in response to a remote request and confirms
+            success with the client. '''
         self.network.actuate(state)
-        await self.send({'op': 'update', 'params': 1}, reader, writer)
+        await self.send({'op': 'update', 'params': 1}, writer)
 
-    async def echo(self, message, reader, writer):
-        await self.send(message, reader, writer)
+    async def echo(self, message, writer):
+        ''' Client/server echo for debugging '''
+        await self.send(message, writer)
 
     def start(self):
+        ''' Start the server. '''
         self.loop.run_forever()
 
-    async def send(self, msg, reader, writer):
+    async def send(self, msg, writer):
+        ''' Sends a message asynchronously to the client. '''
         resp = pickle.dumps(msg)
         writer.write(resp)
         await writer.drain()
@@ -127,25 +139,26 @@ class Server():
         await writer.wait_closed()
 
     async def handle_command(self, reader, writer):
+        ''' Intercepts and reacts to a message from the client. '''
         data = await reader.read(100)
-        addr = writer.get_extra_info('peername')
         message = json.loads(data.decode())
         op = message['op']
 
         if 'get' in op:
             var = getattr(self, op.split('_')[1])
-            await self.send(var, reader, writer)
+            await self.send(var, writer)
         elif op == 'connect':
-            await self.add_listener(reader, writer)
+            await self.add_listener(writer)
         elif op == 'actuate':
-            await self.actuate(message['params'], reader, writer)
+            await self.actuate(message['params'], writer)
         elif op == 'echo':
-            await self.echo(message['params'], reader, writer)
+            await self.echo(message['params'], writer)
 
 
-    async def add_listener(self, reader, writer):
-        log.info('New listener at %s on port %i.'%(self.addr, self.port))
-        await self.send({'op': 'update', 'params': 1}, reader, writer)
+    async def add_listener(self, writer):
+        ''' Confirm a new connection to a client. '''
+        log.info('New listener at %s on port %i.', self.addr, self.port)
+        await self.send({'op': 'update', 'params': 1}, writer)
 
 class Network():
     ''' This class implements a container for multiple Hubs on a PC, as well as methods
@@ -157,7 +170,7 @@ class Network():
         the Network creates a Client. The Network.server object from server.py implements
         communications between nonlocal networks.
     '''
-    def __init__(self, name, addr = None, port = 9001, database_addr = None):
+    def __init__(self, name, addr=None, port=9001, database_addr=None):
         self.addr = addr
         if self.addr is None:
             self.addr = get_address()
@@ -174,17 +187,17 @@ class Network():
         self.port = port
         self.timer = Timer()
         self.name = name
-        self.path='networks/%s'%name
-        self.data_path = self.path+'/data/'
-        self.state_path = self.path+'/state/'
-        self.params_path = self.path+'/params/'
+        self.path = {'network': 'networks/%s'%name}
+        self.path['data'] = self.path['network']+'/data/'
+        self.path['state'] = self.path['network']+'/state/'
+        self.path['params'] = self.path['network']+'/params/'
         self.tree = None
-        self.sync_delay = 0.1
-        self.reconnect_delay = 1
+        self.connection_params = {'sync delay': 0.1, 'reconnect delay': 1}
         self.clients = {}
         self.hubs = {}
         self.params = {}
         self.manager = ProcessHandler()
+        self.update_timer = QTimer()
 
     def __getstate__(self):
         ''' This method is called by the pickle module when attempting to serialize an
@@ -195,7 +208,7 @@ class Network():
         unpickled = []
         for item in ignore:
             if hasattr(self, item):
-                unpickled.append(getattr(self,item))
+                unpickled.append(getattr(self, item))
         for item in self.__dict__:
             if self.__dict__[item] not in unpickled:
                 d[item] = self.__dict__[item]
@@ -206,9 +219,10 @@ class Network():
         for hub in state:
             self.hubs[hub].actuate(state[hub])
 
-    def addHub(self, hub):
-        ''' If the address and port match self.addr and self.port, add a local hub. Otherwise,
-            check if they match any in self.clients and assign to that one; otherwise, create a new client. '''
+    def add_hub(self, hub):
+        ''' If the address and port match self.addr and self.port, add a local
+            hub. Otherwise, check if they match any in self.clients and assign
+            to that one; otherwise, create a new client. '''
         if hub.addr is not None:
             if not hub.addr == self.addr:
                 if hub.addr not in self.clients:
@@ -219,6 +233,8 @@ class Network():
         hub.network = self
 
     def add_params(self, params):
+        ''' Add parameters passed in from the network's initialize() method
+            to allow custom chunked networks to be constructed. '''
         for hub in params:
             if hub not in self.params:
                 self.params[hub] = {}
@@ -239,7 +255,7 @@ class Network():
     def post_load(self):
         ''' Execute the post-load routine for all attached Hubs '''
         for hub in self.hubs.values():
-            hub.onLoad()
+            hub.on_load()
 
     def save(self):
         ''' Saves the state of all attached Hubs. '''
@@ -256,29 +272,33 @@ class Network():
         return state
 
     def keep_sync(self):
-        ''' Queries the state of all remote networks at a rate given by self.sync_delay. '''
-        self.update_timer = QTimer()
+        ''' Queries the state of all remote networks at a rate given by
+            self.connection_params['sync delay']. '''
         self.update_timer.timeout.connect(self.sync)
-        self.update_timer.start(self.sync_delay*1000)
+        self.update_timer.start(self.connection_params['sync delay']*1000)
 
     def try_connect(self):
-        ''' Continuously attempts to connect to any not-yet-connected clients at a rate
-            given by self.reconnect_delay. Returns once all clients are connected. '''
+        ''' Continuously attempts to connect to any not-yet-connected clients at
+            a rate given by self.connection_params['reconnect delay']. Returns
+            once all clients are connected. '''
         while True:
             disconnected_clients = len(self.clients)
             for client in self.clients.values():
                 if not client._connected:
                     try:
                         client.connect()
-                    except ConnectionRefusedError: #note: using localhost instead of 127.0.0.1 will throw multiple exceptions here
+                    except ConnectionRefusedError:
+                        ''' note: using localhost instead of 127.0.0.1 will throw
+                            multiple exceptions here '''
                         continue
                 else:
                     disconnected_clients -= 1
             if disconnected_clients == 0:
                 return
-            time.sleep(self.reconnect_delay)
+            time.sleep(self.connection_params['reconnect delay'])
 
     def save_to_database(self):
+        ''' Write the network state to the database. '''
         if hasattr(self, 'database'):
             self.database.write_network_state(self.state())
 
@@ -292,5 +312,5 @@ class Network():
                 client.network = client.get_network()
             except ConnectionRefusedError:
                 self.update_timer.stop()
-                log.warn('Connection refused by server at %s:%i.'%(client.addr, client.port))
+                log.warning('Connection refused by server at %s:%i.', client.addr, client.port)
             self.tree.generate(client.network)

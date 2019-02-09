@@ -27,4 +27,4 @@ def initialize(network):
 
     ''' Add hubs to network '''
     for hub in [mot]:
-        network.addHub(hub)
+        network.add_hub(hub)

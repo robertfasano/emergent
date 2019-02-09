@@ -10,4 +10,4 @@ def initialize(network):
     params = {'devid': '440010635'}
     pzt = PZT(params, parent=lock)
     wm = Wavemeter(addr='TCPIP::10.199.199.1::23::SOCKET', parent=lock)
-    network.addHub(lock)
+    network.add_hub(lock)

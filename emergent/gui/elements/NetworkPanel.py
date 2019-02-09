@@ -357,10 +357,10 @@ class NodeWidget(QTreeWidgetItem):
             signal = self.node.process_signal
             buffer = self.node.macro_buffer
         self.undo_button = UndoButton(self, buffer, signal)
-        self.treeWidget().setItemWidget(self, 4, self.undo_button)
+        self.tree_widget().setItemWidget(self, 4, self.undo_button)
 
         self.redo_button = RedoButton(self, buffer, signal)
-        self.treeWidget().setItemWidget(self, 5, self.redo_button)
+        self.tree_widget().setItemWidget(self, 5, self.redo_button)
 
     def __repr__(self):
         try:
@@ -379,7 +379,7 @@ class NodeWidget(QTreeWidgetItem):
                 return root
 
     def onActuateSignal(self, state):
-        self.treeWidget().actuate(self.node.name, state)
+        self.tree_widget().actuate(self.node.name, state)
 
     def updateStateText(self, state):
         self.setText(1, str('%.2f'%state))

@@ -1,15 +1,16 @@
-''' The Creator offers a graphical wizard for network creation, not only
-    automatically setting up directory structure for a new network but also
-    creating necessary scripts and allowing importing of templates.
-'''
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-from PyQt5.QtGui import QFontDatabase, QIcon
-from PyQt5.QtWidgets import (QWidget, QComboBox, QLabel, QHBoxLayout, QVBoxLayout, QPushButton, QLineEdit)
+''' Network creation GUI '''
+
 import os
+from PyQt5.QtGui import QFontDatabase, QIcon
+from PyQt5.QtWidgets import (QWidget, QComboBox, QLabel, QHBoxLayout, QVBoxLayout,
+                             QPushButton, QLineEdit)
 
 
 class Creator(QWidget):
+    ''' The Creator offers a graphical wizard for network creation, not only
+        automatically setting up directory structure for a new network but also
+        creating necessary scripts and allowing importing of templates.
+    '''
     def __init__(self, app):
         QWidget.__init__(self)
         self.app = app
@@ -17,7 +18,7 @@ class Creator(QWidget):
 
         QFontDatabase.addApplicationFont('gui/media/Exo2-Light.ttf')
 
-        with open('gui/stylesheet.txt',"r") as file:
+        with open('gui/stylesheet.txt', "r") as file:
             self.setStyleSheet(file.read())
 
         self.setWindowTitle('Network wizard')
@@ -44,6 +45,7 @@ class Creator(QWidget):
         self.show()
 
     def add_template(self):
+        ''' Allows the user to add a template network to inherit from. '''
         choice_layout = QHBoxLayout()
         self.layout.addLayout(choice_layout)
         choice_layout.addWidget(QLabel('Template'))
@@ -52,11 +54,11 @@ class Creator(QWidget):
         for item in dir(nw):
             if '__' not in item:
                 self.network_boxes[-1].addItem(item)
-        # self.network_boxes[-1].currentTextChanged.connect(self.show_template)
         choice_layout.addWidget(self.network_boxes[-1])
 
 
     def create(self):
+        ''' Create a new network with the settings specified in the GUI. '''
         templates = []
         for box in self.network_boxes:
             templates.append(box.currentText())
@@ -65,9 +67,6 @@ class Creator(QWidget):
         print('Created new network %s from templates %s.'%(name, templates))
         self.close()
         run_command = 'python utilities/new.py %s'%name
-        for t in templates:
-            run_command += ' -t %s'%t
+        for template in templates:
+            run_command += ' -t %s'%template
         os.system(run_command)
-
-    # def show_template(self):
-    #     print(self.network_box.currentText())

@@ -127,7 +127,7 @@ class TaskPanel(QVBoxLayout):
 
     def load_task(self):
         self.fileWidget = QWidget()
-        filename = QFileDialog.getOpenFileName(self.fileWidget, 'Open experiment', self.parent.network.data_path, 'Samplers (*.sci)')[0]
+        filename = QFileDialog.getOpenFileName(self.fileWidget, 'Open experiment', self.parent.network.path['data'], 'Samplers (*.sci)')[0]
         with open(filename, 'rb') as f:
             sampler = pickle.load(f)
         self.add_event(sampler)
