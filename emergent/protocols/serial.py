@@ -9,6 +9,7 @@ class Serial():
         self.port, self.baudrate, self.parity, self.stopbits, self.bytesize, self.timeout, self.encoding = port, baudrate, parity, stopbits, bytesize, timeout, encoding
         self.name = name
         self._connected = 0
+        self.picklable = False
         self.connect()
 
     def connect(self):
@@ -47,6 +48,6 @@ class Serial():
     def read(self):
         reply = self.ser.readline()
         return reply.decode()
-        
+
     def close(self):
         self.ser.close()

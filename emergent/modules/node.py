@@ -124,7 +124,7 @@ class Thing(Node):
             calls this method to obtain a dict to serialize. We intentionally omit
             any unpicklable objects from this dict to avoid errors. '''
         d = {}
-        ignore = []
+        ignore = ['parent', 'root']
         ignore.extend(self.ignored)
         unpickled = []
         for item in ignore:
@@ -258,7 +258,7 @@ class Hub(Node):
 
     def __getstate__(self):
         d = {}
-        ignore = ['root', 'watchdogs', 'children', 'samplers', 'network']
+        ignore = ['root', 'watchdogs', 'samplers', 'network']
         ignore.extend(self.ignored)
         unpickled = []
         for item in ignore:

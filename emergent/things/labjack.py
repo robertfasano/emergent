@@ -49,6 +49,7 @@ class LabJack(Thing):
             simultaneous threads can share a LabJack without interference. '''
         self.manager = ProcessHandler()
         self.queue = FIFO()
+        self.picklable = False
         self.manager._run_thread(self.queue.run)
         self._connected = 0
         self._connected = self._connect()
