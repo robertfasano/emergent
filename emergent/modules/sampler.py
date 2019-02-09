@@ -4,20 +4,16 @@
     repeatedly executing Sampler._cost (for simple continuous measurement) or
     passing the Sampler into an Algorithm instance for optimization. '''
 
-import numpy as np
 import itertools
 import pickle
-from emergent.utilities.plotting import plot_1D, plot_2D
-import pandas as pd
 import time
-# def warn(*args, **kwargs):
-#     pass
-# import warnings
-# warnings.warn = warn
+import pandas as pd
+import numpy as np
+from emergent.utilities.plotting import plot_1D
 
 class Sampler():
     ''' General methods '''
-    def __init__(self, name, state, hub, experiment, experiment_params, algorithm = None, algorithm_params = {}, t = None):
+    def __init__(self, name, state, hub, experiment, experiment_params, algorithm=None, algorithm_params={}, t=None):
         ''' Initialize the sampler and link to the parent Hub. '''
         self.name = name
         self.state = state
@@ -51,16 +47,19 @@ class Sampler():
         return d
 
     def callback(self, *args):
+        ''' Check if the sampler is active. This is used to terminate processes
+            early by setting the active flag to False, through the GUI or otherwise. '''
         return self.active
 
     def log(self, filename):
         ''' Saves the sampled data to file and updates the buffer '''
-        self.history.to_csv(self.hub.network.data_path+filename+'.csv')
+        self.history.to_csv(self.hub.network.path['data']+filename+'.csv')
         self.hub.macro_buffer.add(self.hub.state)
         self.hub.process_signal.emit(self.hub.state)
         self.save(filename)
 
     def terminate(self):
+        ''' Set a flag to terminate a process early through the callback check. '''
         self.active = False
 
     ''' State conversion functions '''
@@ -83,7 +82,7 @@ class Sampler():
                 arr = np.append(arr, state[thing][input])
         return arr
 
-    def get_history(self, include_database = False):
+    def get_history(self, include_database=False):
         ''' Return a multidimensional array and corresponding points from the history df'''
         arrays = []
         state = {}
@@ -124,7 +123,9 @@ class Sampler():
         subdf = database
         for thing in constant_state.keys():
             for input in constant_state[thing]:
-                subdf = subdf[np.isclose(subdf[thing+': '+input],constant_state[thing][input], atol = 1e-12)]
+                subdf = subdf[np.isclose(subdf[thing+': '+input],
+                                         constant_state[thing][input],
+                                         atol=1e-12)]
 
         ''' Form points, costs arrays '''
         for i in range(len(subdf)):
@@ -133,7 +134,9 @@ class Sampler():
                 old_state[thing] = {}
                 for input in state[thing]:
                     old_state[thing][input] = subdf.iloc[i][thing+': '+input]
-                    points = np.append(points, np.atleast_2d(self.state2array(self.normalize(old_state))), axis=0)
+                    points = np.append(points,
+                                       np.atleast_2d(self.state2array(self.normalize(old_state))),
+                                       axis=0)
                     costs = np.append(costs, subdf.iloc[i][cost.__name__])
         return points, costs
 
@@ -153,31 +156,32 @@ class Sampler():
 
         ''' Update history '''
         t = time.time()
-        self.history.loc[t,'cost']=c
-        self.history.loc[t,'error'] = error
+        self.history.loc[t, 'cost'] = c
+        self.history.loc[t, 'error'] = error
         self.result = c
         for thing in target:
             for input in target[thing]:
-                self.history.loc[t,thing+'.'+input] = norm_target[thing][input]
+                self.history.loc[t, thing+'.'+input] = norm_target[thing][input]
         return c
 
     def estimate_gradient(self, arr, step_size):
-        g = np.array([])
+        gradient = np.array([])
         for i in range(len(arr)):
             step = np.zeros(len(arr))
             step[i] = step_size
-            gi = (self._cost(arr+step/2)-self._cost(arr-step/2))/step_size
-            g = np.append(g, gi)
-        return g
+            g_i = (self._cost(arr+step/2)-self._cost(arr-step/2))/step_size
+            gradient = np.append(gradient, g_i)
+        return gradient
 
     def get_limits(self):
+        ''' Get the limits of all inputs in self.history from the Hub. '''
         limits = {}
         for col in self.history.columns:
             if col in ['cost', 'error']:
                 continue
             thing = col.split('.')[0]
             input = col.split('.')[1]
-            limits[col.replace('.', ': ')] =  self.hub.settings[thing][input]
+            limits[col.replace('.', ': ')] = self.hub.settings[thing][input]
 
         return limits
 
@@ -194,7 +198,7 @@ class Sampler():
         state = self.normalize(state)
         cols.append('cost')
         self.history = pd.DataFrame(columns=cols)
-        bounds = np.array(list(itertools.repeat([0,1], num_items)))
+        bounds = np.array(list(itertools.repeat([0, 1], num_items)))
         state = self.state2array(state)
 
         return state, bounds
@@ -207,82 +211,71 @@ class Sampler():
         for thing in unnorm:
             norm[thing] = {}
             for i in unnorm[thing]:
-                min = self.hub.settings[thing][i]['min']
-                max = self.hub.settings[thing][i]['max']
-                norm[thing][i] = (unnorm[thing][i] - min)/(max-min)
+                min_val = self.hub.settings[thing][i]['min']
+                max_val = self.hub.settings[thing][i]['max']
+                norm[thing][i] = (unnorm[thing][i] - min_val)/(max_val-min_val)
 
         return norm
 
-    def unnormalize(self, norm, return_array = False):
+    def unnormalize(self, norm, return_array=False):
         ''' Converts normalized (0-1) state to physical state based on specified
             max and min parameter values. '''
-        if type(norm) == np.ndarray:
+        if isinstance(norm, np.ndarray):
             norm = self.array2state(norm)
         unnorm = {}
         for thing in norm:
             unnorm[thing] = {}
             for i in norm[thing]:
-                min = self.hub.settings[thing][i]['min']
-                max = self.hub.settings[thing][i]['max']
-                unnorm[thing][i] = min + norm[thing][i] * (max-min)
+                min_val = self.hub.settings[thing][i]['min']
+                max_val = self.hub.settings[thing][i]['max']
+                unnorm[thing][i] = min_val + norm[thing][i] * (max_val-min_val)
         if return_array:
             return self.state2array(unnorm)
-        else:
-            return unnorm
+        return unnorm
 
     def save(self, filename):
-        with open(self.hub.network.data_path+'%s.sci'%filename, 'wb') as file:
+        ''' Byte-serialize the sampler and all attached picklable objects and
+            save to file. '''
+        with open(self.hub.network.path['data']+'%s.sci'%filename, 'wb') as file:
             pickle.dump(self, file)
 
     ''' Visualization methods '''
-    def plot_optimization(self, yscale = 'linear'):
+    def plot_optimization(self):
         ''' Plots an optimization time series stored in self.history. '''
         t, points, costs, errors = self.get_history()
         t = t.copy() - t[0]
-        ax, fig = plot_1D(t, -costs, errors=errors, xlabel='Time (s)', ylabel = self.experiment.__name__)
+        ax, fig = plot_1D(t,
+                          -costs,
+                          errors=errors,
+                          xlabel='Time (s)',
+                          ylabel=self.experiment.__name__)
 
         return fig
 
     ''' Sampling methods '''
-    def sample(self, state, method='random_sampling', points = 1, bounds = None):
+    def sample(self, state, method='random_sampling', points=1, bounds=None):
         ''' Returns a list of points sampled with the specified method, as well as
             the cost function evaluated at these points. '''
         if bounds is None:
-            bounds = np.array(list(itertools.repeat([0,1], len(state.keys()))))
+            bounds = np.array(list(itertools.repeat([0, 1], len(state.keys()))))
         func = getattr(self, method)
         points, cost = func(state, int(points), bounds)
 
         return points, cost
 
-    def random_sampling(self,state, points, bounds, callback = None):
-        ''' Performs a random sampling of the cost function at N points within
-            the specified bounds. '''
-        if callback is None:
-            callback = self.callback
-        dof = sum(len(state[x]) for x in state)
-        points = np.random.uniform(size=(int(points),dof))
-        costs = []
-        for point in points:
-            if not callback():
-                return points[0:len(costs)], costs
-            c = self._cost(point)
-            costs.append(c)
-
-        return points, costs
-
-    def grid_sampling(self, state, points, sweeps = 1, args=None, norm = True, callback = None):
+    def grid_sampling(self, state, points, sweeps=1, callback=None):
         ''' Performs a uniformly-spaced sampling of the cost function in the
             space spanned by the passed-in state dict. '''
         if callback is None:
             callback = self.callback
         arr, bounds = self.prepare(state)
-        N = len(arr)
+        dim = len(arr)
         grid = []
-        for n in range(N):
+        for n in range(dim):
             space = np.linspace(bounds[n][0], bounds[n][1], int(points))
             grid.append(space)
         grid = np.array(grid)
-        points = np.transpose(np.meshgrid(*[grid[n] for n in range(N)])).reshape(-1,N)
+        points = np.transpose(np.meshgrid(*[grid[n] for n in range(dim)])).reshape(-1, dim)
 
         ''' Actuate search '''
         costs = np.array([])

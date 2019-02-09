@@ -28,4 +28,4 @@ def initialize(network, params = {}):
 
     ''' Add hubs to network '''
     for hub in [autoAlign, otherHub]:
-        network.addHub(hub)
+        network.add_hub(hub)

@@ -48,14 +48,14 @@ class SolsTiS(Thing):
                       'integral_gain':0.05,
                       'derivative_gain':0,
                       'sign':1}
-            servoPanel = self.leaf.treeWidget().parent.optimizer.servoPanel
+            servo_panel = self.leaf.tree_widget().parent.optimizer.servo_panel
             settings = {'hub': self.parent,
                         'state': {self.name: self.state},
                         'experiment_name': 'error',
                         'algorithm_params': algo_params,
                         'experiment_params': cost_params,
                         'callback': self.callback}
-            servoPanel.prepare_optimizer(settings=settings)
+            servo_panel.prepare_optimizer(settings=settings)
             error = self.parent.error(error_params)
 
     def callback(self, error, threshold=0.5):

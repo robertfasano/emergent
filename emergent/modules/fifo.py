@@ -3,62 +3,39 @@
     actual device.
 '''
 import queue
-import time
 import logging as log
 
 class Message():
-    """abstract message class"""
-    def __init__(self, id, *args, **kwargs):
+    ''' Container for queue message-passing '''
+    def __init__(self, ID, *args, **kwargs):
         self.args = args
         self.kwargs = kwargs
-        self.id = id
+        self.ID = ID
 
 class FIFO(queue.Queue):
+    ''' Implements a threaded queue which continuously executes commands in
+        a FIFO order. '''
     def __init__(self):
         super().__init__()
         self.buffer = {}
 
-    def add(self, func, id, *args, **kwargs):
+    def add(self, func, ID, *args, **kwargs):
         ''' Adds a function with optional positional and keyword arguments to the queue. '''
-        class msg(Message):
+        class NewMessage(Message):
+            ''' A container for a queued function call. '''
             def run(self):
+                ''' Return the function defined by the add() method. '''
                 return func(*self.args)
-        log.debug('Added %s to queue with id %f.'%(func, id))
-        self.put(msg(id, *args, **kwargs))
-
+        log.debug('Added %s to queue with ID %f.', func, ID)
+        self.put(NewMessage(ID, *args, **kwargs))
 
     def next(self):
         ''' Retrieves and executes the next function on a FIFO basis. '''
         msg = self.get()
-        r = msg.run()
-        self.buffer[msg.id] = r
+        result = msg.run()
+        self.buffer[msg.ID] = result
 
     def run(self, stopped):
+        ''' Continuously retrieve and execute the next task. '''
         while not stopped():
             self.next()
-
-if __name__ == '__main__':
-    import decorator
-    @decorator.decorator
-    def wait(func, *args, **kwargs):
-        obj = args[0]
-        id = time.time()
-        q = getattr(obj, 'queue')
-        q.add(func, id, *args, **kwargs)
-        while True:
-            try:
-                return q.buffer[id]
-            except KeyError:
-                continue
-
-    from emergent.modules import ProcessHandler
-    class TestClass(ProcessHandler):
-        def __init__(self):
-            super().__init__()
-            self.queue = FIFO()
-            self._run_thread(self.queue.run)
-
-        @wait
-        def foo(self, string):
-            return string
-    c = TestClass()

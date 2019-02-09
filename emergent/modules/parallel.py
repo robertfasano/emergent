@@ -12,20 +12,22 @@ class ProcessHandler():
         self.threads = []
         self.processes = []
         self.picklable = False
-        
-    def _run_process(self, func, args = None):
+
+    def _run_process(self, func, args=None):
         ''' Instantiates and starts a process running a target function.
 
             Note:
-                Processes do not share memory with the rest of the code, so they must be entirely self-contained.
+                Processes do not share memory with the rest of the code, so they
+                must be entirely self-contained.
             Args:
-                func (function/str): target function to run in process. Can also pass a string matching the function name.
+                func (function/str): target function to run in process. Can also
+                                     pass a string matching the function name.
                 args (tuple): arguments to be passed in to func
             '''
-        if type(func) == str:
+        if isinstance(func, str):
             func = getattr(self, func)
         assert callable(func)
-        Process(target=func, args=args, parent = self)
+        Process(target=func, args=args, parent=self)
 
     def _quit_process(self, target):
         ''' Terminates a process by looking for the first running process in
@@ -34,41 +36,46 @@ class ProcessHandler():
             Args:
                 target (function/str): function or string matching function name
             '''
-        if type(target) == str:
+        if isinstance(target, str):
             target = getattr(self, target)
         assert callable(target)
         for thread in self.processes:
             if thread.target == target:
                 thread.stop()
 
-    def _run_thread(self, target, args = None, stoppable = True):
+    def _run_thread(self, target, args=None, stoppable=True):
         ''' Instantiates and starts a thread running a target function.
 
             Note:
                 Threads can share memory freely with the rest of the code.
 
             Note:
-                The ``stoppable`` flag allows early termination of functions. To properly implement a stoppable threaded function, the main loop of the function should be executed inside a ``while not stopped():`` statement.
+                The ``stoppable`` flag allows early termination of functions.
+                To properly implement a stoppable threaded function, the main loop
+                of the function should be executed inside a ``while not stopped():``
+                statement.
             Args:
-                target (function/str): target function to run in thread. Can also pass a string matching the function name.
+                target (function/str): target function to run in thread. Can also
+                                       pass a string matching the function name.
                 args (tuple): arguments to pass into func
                 stoppable (bool): whether or not we should allow early termination of the Thread
             '''
-        if type(target) == str:
+        if isinstance(target, str):
             target = getattr(self, target)
         assert callable(target)
-        Thread(target=target, args=args, parent = self, stoppable = stoppable)
+        Thread(target=target, args=args, parent=self, stoppable=stoppable)
 
     def _quit_thread(self, target):
         ''' Terminates a thread by looking for the first running thread in self.threads
             matching the target function and stops it.
 
             Warning:
-                Stopping a thread can have unintended consequences, as threads share memory with the rest of the code.
+                Stopping a thread can have unintended consequences, as threads
+                share memory with the rest of the code.
             Args:
                 target (function/str): function or string matching function name
         '''
-        if type(target) == str:
+        if isinstance(target, str):
             target = getattr(self, target)
         assert callable(target)
         for thread in self.threads:
@@ -83,7 +90,7 @@ class Process(multiprocessing.Process):
         registers it with the parent ProcessHandler. '''
         self.target = target
         if args is not None:
-            super().__init__(target=target, args = args)
+            super().__init__(target=target, args=args)
         else:
             super().__init__(target=target)
 
@@ -105,7 +112,7 @@ class Process(multiprocessing.Process):
 class Thread(threading.Thread):
     ''' Inherits from threading.Thread to provide streamlined, intuitive
         thread instantiation and termination. '''
-    def __init__(self, target, args, parent, stoppable = True):
+    def __init__(self, target, args, parent, stoppable=True):
         ''' Creates and starts a thread running the target function and
             registers it with the parent ProcessHandler. '''
         self.target = target
@@ -116,11 +123,11 @@ class Thread(threading.Thread):
             if stoppable:
                 args.append(self.stopped)
             args = tuple(args)
-            super().__init__(target=target, args = args)
+            super().__init__(target=target, args=args)
         else:
             if stoppable:
                 args = (self.stopped,)
-                super().__init__(target=target, args = args)
+                super().__init__(target=target, args=args)
             else:
                 super().__init__(target=target)
 

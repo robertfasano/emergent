@@ -122,10 +122,10 @@ class OptimizeLayout(QVBoxLayout, ProcessHandler):
 
     def get_settings_from_gui(self):
         settings = {}
-        settings['state'] = self.parent.parent.treeWidget.get_selected_state()
+        settings['state'] = self.parent.parent.tree_widget.get_selected_state()
         settings['experiment_name'] = self.experiment_box.currentText()
         try:
-            settings['hub'] = self.parent.parent.treeWidget.get_selected_hub()
+            settings['hub'] = self.parent.parent.tree_widget.get_selected_hub()
         except Exception as e:
             if e == IndexError:
                 log.warn('Select inputs before starting optimization!')

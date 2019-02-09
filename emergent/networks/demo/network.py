@@ -20,7 +20,7 @@ def initialize(network, params = {}):
 
     ''' Add hubs to network '''
     for hub in [hub]:
-        network.addHub(hub)
+        network.add_hub(hub)
 
     ''' Load other network '''
     params = {'autoAlign': {'name': 'AA',

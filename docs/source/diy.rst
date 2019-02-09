@@ -41,7 +41,7 @@ the following instructions:
 
 	    ''' Add hubs to network '''
 	    for hub in [hub]:
-	        network.addHub(hub)
+	        network.add_hub(hub)
 
 The important steps include above are:
 
@@ -71,7 +71,7 @@ initialize method within our own initialize method:
 
 	    ''' Add hubs to network '''
 	    for hub in [hub]:
-	        network.addHub(hub)
+	        network.add_hub(hub)
 
 	    ''' Load other network '''
 	    nw.initialize(network)

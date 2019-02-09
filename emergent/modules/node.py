@@ -23,11 +23,11 @@
 '''
 import json
 import time
+import logging as log
+import datetime
 from emergent.modules import Sampler, ProcessHandler
 from emergent.utilities.containers import State
 from emergent.utilities import recommender
-import logging as log
-import datetime
 from emergent.utilities.signals import DictSignal
 from emergent.utilities.buffers import StateBuffer, MacroBuffer
 from emergent.utilities.networking import get_address
@@ -83,7 +83,7 @@ class Thing(Node):
     ''' Things represent apparatus which can control the state of Input
         nodes, such as a synthesizer or motorized actuator. '''
 
-    def __init__(self, name, parent, params = {}):
+    def __init__(self, name, parent, params={}):
         """Initializes a Thing.
 
         Args:
@@ -137,7 +137,7 @@ class Thing(Node):
         unpickled = []
         for item in ignore:
             if hasattr(self, item):
-                unpickled.append(getattr(self,item))
+                unpickled.append(getattr(self, item))
 
         for item in self.__dict__:
             obj = getattr(self, item)
@@ -160,7 +160,7 @@ class Thing(Node):
         self.create_signal.emit({'hub': self.parent, 'thing': self, 'input': name})
         if self.loaded:
             # self.actuate({name:self.parent.state[self.name][name]})
-            log.warn('Inputs changed but not actuated; physical state not synched with virtual state. Run parent.actuate(parent.state) to resolve, where parent is the name of the parent hub node.')
+            log.warning('Inputs changed but not actuated; physical state not synced with virtual state. Run parent.actuate(parent.state) to resolve, where parent is the name of the parent hub node.')
 
     def remove_input(self, name):
         ''' Detaches the Input node with the specified name. '''
@@ -183,7 +183,7 @@ class Thing(Node):
             from this method.
 
         Args:
-            state (dict): Target state of the form {'param1':value1, 'param2':value2,...}.
+            state (dict): Target state such as {'param1':value1, 'param2':value2}.
         """
         return
 
@@ -202,7 +202,7 @@ class Thing(Node):
         self.update(state)
         self.signal.emit(state)
 
-    def update(self,state):
+    def update(self, state):
         """Synchronously updates the state of the Input, Thing, and Hub.
 
         Args:
@@ -222,7 +222,7 @@ class Hub(Node):
     ''' The Hub oversees connected Things, allowing the Inputs to be
         algorithmically tuned to optimize some target function. '''
 
-    def __init__(self, name, params = {}, addr = None, network = None, parent = None):
+    def __init__(self, name, params={}, addr=None, network=None, parent=None):
         """Initializes a Hub.
 
         Args:
@@ -253,8 +253,7 @@ class Hub(Node):
         if network.addr != addr and addr is not None:
             self.local = False
             return
-        else:
-            self.local = True
+        self.local = True
         super().__init__(name, parent)
         self.state = State()
         self.settings = {}
@@ -273,7 +272,7 @@ class Hub(Node):
         unpickled = []
         for item in ignore:
             if hasattr(self, item):
-                unpickled.append(getattr(self,item))
+                unpickled.append(getattr(self, item))
         for item in self.__dict__:
             obj = getattr(self, item)
             if hasattr(obj, 'picklable'):
@@ -297,14 +296,14 @@ class Hub(Node):
 
         self.buffer.add(state)
 
-    def check_lock(self, block = False):
-        ''' Check if any of the monitored signals are outside a threshold. Return True if not. '''
+    def check_lock(self, block=False):
+        ''' Return True if none of the monitored signals are outside a threshold. '''
         locked = False
         ''' Block until all watchdogs are enabled and locked '''
         while not locked:
             locked = True
             for w in self.watchdogs.values():
-                locked = locked and not w.reacting              # if a watchdog is reacting, we are unlocked
+                locked = locked and not w.reacting # if a watchdog is reacting, we are unlocked
                 if w.enabled:
                     c = w.check()
                     locked = locked and c          # check the watchdog state
@@ -318,12 +317,14 @@ class Hub(Node):
         return
 
     def enable_watchdogs(self, enabled):
+        ''' Enable all attached watchdogs. '''
         for w in self.watchdogs.values():
             w.enabled = enabled
 
     def load(self):
+        ''' Load input states from file. '''
         try:
-            with open(self.network.state_path+self.name+'.json', 'r') as file:
+            with open(self.network.path['state']+self.name+'.json', 'r') as file:
                 state = json.load(file)
         except FileNotFoundError:
             state = {}
@@ -334,18 +335,21 @@ class Hub(Node):
                     self.settings[thing.name][input.name] = {}
                     for setting in ['min', 'max']:
                         self.settings[thing.name][input.name][setting] = state[thing.name][input.name][setting]
-                except Exception as e:
+                except Exception:
                     self.state[thing.name][input.name] = 0
                     self.settings[thing.name][input.name] = {'min': 0, 'max': 1}
-                    log.warn('Could not find csv for input %s; creating new settings.'%input.name)
+                    log.warning('Could not find csv for input %s; creating new settings.', input.name)
 
-    def optimize(self, state, experiment_name, threaded = True, skip_lock_check = False):
+    def optimize(self, state, experiment_name, threaded=True, skip_lock_check=False):
+        ''' Launch an optimization. '''
         if threaded:
-            self.manager._run_thread(self.optimize_thread, args = (state, experiment_name, skip_lock_check), stoppable = False)
+            self.manager._run_thread(self.optimize_thread,
+                                     args=(state, experiment_name, skip_lock_check),
+                                     stoppable=False)
         else:
             self.optimize_thread(state, experiment_name, skip_lock_check)
 
-    def optimize_thread(self, state, experiment_name, skip_lock_check = False):
+    def optimize_thread(self, state, experiment_name, skip_lock_check=False):
         ''' Optimizes an experiment with the default settings from file '''
         experiment_params = recommender.load_experiment_parameters(self, experiment_name)
         algorithm = recommender.get_default_algorithm(self, experiment_name)
@@ -369,6 +373,7 @@ class Hub(Node):
         sampler.active = False
 
     def save(self):
+        ''' Save input states to file. '''
         state = {}
         for thing in self.state:
             state[thing] = {}
@@ -378,10 +383,10 @@ class Hub(Node):
                 state[thing][input]['min'] = self.settings[thing][input]['min']
                 state[thing][input]['max'] = self.settings[thing][input]['max']
 
-        with open(self.network.state_path+self.name+'.json', 'w') as file:
+        with open(self.network.path['state']+self.name+'.json', 'w') as file:
             json.dump(state, file)
 
-    def onLoad(self):
+    def on_load(self):
         """Tasks to be carried out after all Things and Inputs are initialized."""
         for thing in self.children.values():
             thing._connected = thing._connect()
