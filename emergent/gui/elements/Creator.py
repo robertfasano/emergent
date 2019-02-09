@@ -64,7 +64,7 @@ class Creator(QWidget):
 
         print('Created new network %s from templates %s.'%(name, templates))
         self.close()
-        run_command = 'python new.py %s'%name
+        run_command = 'python utilities/new.py %s'%name
         for t in templates:
             run_command += ' -t %s'%t
         os.system(run_command)

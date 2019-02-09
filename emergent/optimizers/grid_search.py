@@ -1,6 +1,7 @@
-from utility import Parameter, algorithm
+from emergent.utilities.containers import Parameter
+from emergent.utilities.decorators import algorithm
 import numpy as np
-from emergent.modules import visualization
+from emergent.utilities.plotting import plot_2D
 
 class GridSearch():
     def __init__(self):
@@ -34,4 +35,4 @@ class GridSearch():
             self.params[p].value = params[p]
 
     def plot(self):
-        return visualization.plot_2D(self.points, -self.costs, limits=self.sampler.get_limits())
+        return plot_2D(self.points, -self.costs, limits=self.sampler.get_limits())

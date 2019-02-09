@@ -1,4 +1,4 @@
-''' The visualization module allows 1D or 2D plots to be created and return a figure
+''' The plotting module allows 1D or 2D plots to be created and return a figure
     and axis, such that widgets can generate plots with very little of their own code. '''
 import matplotlib.pyplot as plt
 from scipy.interpolate import griddata

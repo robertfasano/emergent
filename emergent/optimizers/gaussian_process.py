@@ -1,9 +1,10 @@
-from utility import Parameter, algorithm
+from emergent.utilities.containers import Parameter
+from emergent.utilities.decorators import algorithm
 import numpy as np
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C, WhiteKernel
 from scipy.optimize import minimize
-from emergent.modules import visualization
+from emergent.utilities.plotting import plot_2D
 
 class GaussianProcessRegression():
     def __init__(self):
@@ -152,4 +153,4 @@ class GaussianProcessRegression():
         predict_costs, predict_uncertainties = self.gp.predict(predict_points, return_std = True)
         predict_costs *= -1
 
-        return visualization.plot_2D(predict_points, predict_costs, limits=self.sampler.get_limits())
+        return plot_2D(predict_points, predict_costs, limits=self.sampler.get_limits())

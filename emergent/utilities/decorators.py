@@ -1,4 +1,5 @@
 import decorator
+import numpy as np
 
 @decorator.decorator
 def experiment(func, hub, sampler, state):
@@ -41,3 +42,15 @@ def algorithm(func, *args, **kwargs):
 def servo(func, *args, **kwargs):
     func(*args, **kwargs)
     args[0].sampler.hub.save()
+
+@decorator.decorator
+def queue(func, *args, **kwargs):
+    obj = args[0]
+    id = time.time()
+    q = getattr(obj, 'queue')
+    q.add(func, id, *args, **kwargs)
+    while True:
+        try:
+            return q.buffer[id]
+        except KeyError:
+            continue

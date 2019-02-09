@@ -1,5 +1,5 @@
 from emergent.modules import Hub, Watchdog
-from utility import experiment, trigger
+from emergent.utilities.decorators import experiment, trigger
 import time
 
 class Monitor(Hub):

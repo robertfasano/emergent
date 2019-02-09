@@ -8,7 +8,8 @@
     communications between nonlocal networks.
 '''
 import pickle
-from emergent.utility import Timer, get_address
+from emergent.utilities.networking import get_address
+from emergent.utilities.testing import Timer
 import importlib
 from emergent.modules import Client, ProcessHandler
 from emergent.protocols.tick import TICKClient
@@ -141,7 +142,7 @@ class Network():
     def save_to_database(self):
         if hasattr(self, 'database'):
             self.database.write_network_state(self.state())
-            
+
     def sync(self):
         ''' Queries each connected client for the state of its Network, then updates
             the NetworkPanel to show the current state of the entire network. '''

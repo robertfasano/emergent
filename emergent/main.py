@@ -9,7 +9,7 @@ from emergent.gui.elements import MainFrame
 from emergent.modules import Hub
 from emergent.modules.server import Server
 from emergent.modules.network import Network
-from emergent.utility import get_address
+from emergent.utilities.networking import get_address
 import numpy as np
 sys.path.append('networks/%s'%sys.argv[1])
 import logging as log

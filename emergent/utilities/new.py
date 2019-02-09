@@ -8,7 +8,7 @@ args = parser.parse_args()
 
 import sys
 import pathlib
-base_path = 'networks/%s/'%args.name
+base_path = '../networks/%s/'%args.name
 
 ''' Make network directory '''
 pathlib.Path(base_path).mkdir(parents=True, exist_ok=True)

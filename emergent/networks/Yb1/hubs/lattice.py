@@ -1,7 +1,13 @@
 from emergent.modules import Hub
-from utility import experiment, extract_pulses, trigger
+from emergent.utilities.decorators import experiment, trigger
 import numpy as np
 import time
+
+def extract_pulses(data, threshold):
+    ''' Splits a numpy array into segments which are above a threshold. '''
+    data = np.array(data)
+    return np.split(data, np.where(np.diff(data > threshold))[0] + 1)[1::2]
+
 
 class Lattice(Hub):
     def __init__(self, name, addr = None, network = None):

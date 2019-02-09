@@ -15,7 +15,7 @@ from emergent.modules import Hub
 from threading import Thread
 import logging as log
 import pickle
-from emergent.utility import get_address
+from emergent.utilities.networking import get_address
 
 class Server():
     ''' Allows decentralized data viewing via asynchronous communications between the EMERGENT

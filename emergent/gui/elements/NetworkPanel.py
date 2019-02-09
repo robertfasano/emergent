@@ -13,8 +13,7 @@ from PyQt5.QtWidgets import (QWidget, QAbstractItemView, QVBoxLayout,
         QMenu, QAction, QTreeWidget, QTreeWidgetItem, QHeaderView, QPushButton)
 from PyQt5.QtGui import QPixmap, QIcon
 from PyQt5.QtCore import *
-from emergent.modules import State
-from emergent.signals import ActuateSignal
+from emergent.utilities.containers import State
 
 class UndoButton(QWidget):
     def __init__(self, item, buffer, signal):
@@ -338,9 +337,7 @@ class NodeWidget(QTreeWidgetItem):
 
         if self.node.node_type == 'hub' and hasattr(self.node, 'signal'):
             self.node.signal.connect(self.onActuateSignal)
-        # if self.node.node_type == 'thing':
-        #     self.node.create_signal.connect(self.onCreateSignal)
-        #     self.node.remove_signal.connect(self.onRemoveSignal)
+
         elif self.node.node_type == 'input':
             name = self.node.name
             thing = self.node.parent.name
@@ -383,13 +380,3 @@ class NodeWidget(QTreeWidgetItem):
 
     def updateStateText(self, state):
         self.setText(1, str('%.2f'%state))
-
-    # def onCreateSignal(self, d):
-    #     if self.node == d['thing']:
-    #         child_item = NodeWidget([d['input']], d['thing'].children[d['input']])
-    #         self.addChild(child_item)
-    #
-    # def onRemoveSignal(self, d):
-    #     if self.node == d['thing']:
-    #         child_item = self.node.children[d['input']].leaf
-    #         self.removeChild(child_item)

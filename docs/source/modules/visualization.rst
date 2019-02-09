@@ -1,7 +1,7 @@
-Visualization
+Plotting
 ================
 
-.. automodule:: visualization
+.. automodule:: plotting
     :members:
     :undoc-members:
     :special-members:

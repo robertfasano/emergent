@@ -23,11 +23,14 @@
 '''
 import json
 import time
-from emergent.modules import Sampler, State, recommender, ProcessHandler
+from emergent.modules import Sampler, ProcessHandler
+from emergent.utilities.containers import State
+from emergent.utilities import recommender
 import logging as log
 import datetime
-from emergent.signals import RemoveSignal, CreateSignal, ActuateSignal, ProcessSignal
-from emergent.utility import StateBuffer, MacroBuffer, get_address
+from emergent.utilities.signals import DictSignal
+from emergent.utilities.buffers import StateBuffer, MacroBuffer
+from emergent.utilities.networking import get_address
 
 class Node():
     ''' The Node class is the core building block of the EMERGENT network,
@@ -113,9 +116,9 @@ class Thing(Node):
         self.node_type = 'thing'
 
         ''' Add signals for input creation and removal '''
-        self.signal = ActuateSignal()
-        self.create_signal = CreateSignal()
-        self.remove_signal = RemoveSignal()
+        self.signal = DictSignal()
+        self.create_signal = DictSignal()
+        self.remove_signal = DictSignal()
 
         self.ignored = []       # objects to ignore during pickling
 
@@ -123,7 +126,7 @@ class Thing(Node):
         if 'inputs' in self.params:
             for input in self.params['inputs']:
                 self.add_input(input)
-                
+
     def __getstate__(self):
         ''' When the pickle module attempts to serialize this node to file, it
             calls this method to obtain a dict to serialize. We intentionally omit
@@ -154,14 +157,14 @@ class Thing(Node):
         self.children[name] = input
         self.state[name] = self.children[name].state
 
-        self.create_signal.emit(self.parent, self, name)
+        self.create_signal.emit({'hub': self.parent, 'thing': self, 'input': name})
         if self.loaded:
             # self.actuate({name:self.parent.state[self.name][name]})
             log.warn('Inputs changed but not actuated; physical state not synched with virtual state. Run parent.actuate(parent.state) to resolve, where parent is the name of the parent hub node.')
 
     def remove_input(self, name):
         ''' Detaches the Input node with the specified name. '''
-        self.remove_signal.emit(self.parent, self, name)
+        self.remove_signal.emit({'hub': self.parent, 'thing': self, 'input': name})
         del self.children[name]
         del self.state[name]
         del self.parent.state[self.name][name]
@@ -257,8 +260,8 @@ class Hub(Node):
         self.settings = {}
         self.samplers = {}
         self.node_type = 'hub'
-        self.signal = ActuateSignal()
-        self.process_signal = ProcessSignal()
+        self.signal = DictSignal()
+        self.process_signal = DictSignal()
         self.ignored = []
         ''' Establish switch interface '''
         self.switches = {}

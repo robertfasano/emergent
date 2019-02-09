@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import (QGridLayout,QTableView,QVBoxLayout, QWidget, QMenu,
                              QAction, QTableWidget, QTableWidgetItem, QFileDialog, QComboBox)
 from PyQt5.QtCore import *
 from emergent.gui.elements import PlotWidget
-from emergent.modules.visualization import plot_2D, plot_1D
+from emergent.utilities.plotting import plot_2D, plot_1D
 import matplotlib.pyplot as plt
 import itertools
 import pickle

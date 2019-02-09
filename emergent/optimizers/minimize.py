@@ -1,4 +1,5 @@
-from utility import Parameter, algorithm
+from emergent.utilities.containers import Parameter
+from emergent.utilities.decorators import algorithm
 import numpy as np
 from scipy.optimize import minimize
 
