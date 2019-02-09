@@ -119,6 +119,11 @@ class Thing(Node):
 
         self.ignored = []       # objects to ignore during pickling
 
+        ''' Add inputs passed in params dict '''
+        if 'inputs' in self.params:
+            for input in self.params['inputs']:
+                self.add_input(input)
+                
     def __getstate__(self):
         ''' When the pickle module attempts to serialize this node to file, it
             calls this method to obtain a dict to serialize. We intentionally omit

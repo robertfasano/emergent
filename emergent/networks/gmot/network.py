@@ -1,22 +1,10 @@
-# from emergent.hubs.autoAlign import AutoAlign
 from emergent.networks.gmot.hubs import MOT, Loader
 from emergent.things import LabJack, NetControls, Novatech
 from emergent.networks.gmot.things import CurrentDriver, IntensityServo
 from emergent.networks.autoAlign import network as autoAlign
-from __main__ import *
-
-
+from emergent.modules.node import Thing
 
 def initialize(network):
-    # ''' Define autoAlign '''
-    # labjack_cooling = LabJack(name='cooling', params = {'devid': '470016934'})
-    # cooling = AutoAlign(name='cooling', labjack=labjack_cooling)
-    # mems_cooling = PicoAmp('MEMS', labjack_cooling, parent=cooling)
-    #
-    # labjack_slowing = LabJack(name='slowing', params = {'devid': '470017899'})
-    # slowing = AutoAlign(name='slowing', labjack=labjack_slowing)
-    # mems_slowing = PicoAmp('MEMS', labjack_slowing, parent=slowing)
-
     ''' Import autoAlign hubs '''
     cooling_params = {'autoAlign': {'name': 'cooling',
                             'params': {'MEMS':
@@ -30,12 +18,12 @@ def initialize(network):
 
     ''' Define MOT hub '''
     mot = MOT(name='MOT', network = network)
-    loader = Loader(name='loader', parent=mot)
-    # feedthrough = NetControls('feedthrough', params = {'port': 'COM11'}, parent = mot)
+    loading_inputs =  ['probe delay', 'loading time', 'probe time', 'gate time', 'AOM delay']
+    loader = Thing(name='loader', parent=mot, params = {'inputs': loading_inputs})
+    feedthrough = NetControls('feedthrough', params = {'port': 'COM7'}, parent = mot)
     novatech = Novatech('novatech', params = {'port': 'COM4'}, parent = mot)
     servo = IntensityServo('servo', params = {'devid': '470016973'}, parent = mot)
     coils = CurrentDriver('coils', params = {'devid': '440010680'}, parent = mot)
-
 
     ''' Add hubs to network '''
     for hub in [mot]:
