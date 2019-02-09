@@ -1,6 +1,7 @@
 from emergent.modules import Hub
 import time
-from utility import experiment
+# from utility import experiment
+from emergent.utilities import experiment
 from scipy.stats import linregress
 from scipy.optimize import curve_fit
 import numpy as np
