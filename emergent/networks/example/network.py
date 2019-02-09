@@ -14,6 +14,18 @@ def initialize(network, params = {}):
     otherHub = TestHub('otherHub', addr = '127.0.0.1', network = network)
     otherThing = TestThing('otherThing', params = {'inputs': ['Z']}, parent=otherHub)
 
+    ''' Add switches '''
+    from emergent.modules.switch import Switch
+    autoAlign.switches['Switch A'] = Switch('Switch A', {}, invert = False)
+    autoAlign.switches['Switch B'] = Switch('Switch B', {}, invert = False)
+
+    ''' Add sequencing '''
+    from emergent.modules.sequencing import Timestep, Sequencer
+    A_ON = Timestep('A_ON', duration = 0.7, state = {'Switch A': 1, 'Switch B': 0})
+    B_ON = Timestep('B_ON', duration = 0.3, state ={'Switch A': 0, 'Switch B': 1})
+
+    sequencer = Sequencer('sequencer', parent = autoAlign, params = {'steps': [A_ON, B_ON], 'labjack': None})
+
     ''' Add hubs to network '''
     for hub in [autoAlign, otherHub]:
         network.addHub(hub)
