@@ -28,10 +28,11 @@ class NetControls(Thing, ProcessHandler):
             return 1
 
     def _actuate(self, state):
-        # self.set_position(state['Z'])
-        self._run_thread(self.set_position, args=(state['Z'],),stoppable=False)
+        self.set_position(state['Z'])
+        # self._run_thread(self.set_position, args=(state['Z'],),stoppable=False)
+
     def set_position(self, z):
-        z = np.clip(z, 0, 75)
+        z = np.clip(z, 0, 100)
         z -= self.zero
         z *= 10**4
         r = self.command(cmd = 'p', val = int(z))
