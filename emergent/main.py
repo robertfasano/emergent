@@ -7,8 +7,6 @@ from PyQt5.QtWidgets import QApplication, QStyleFactory
 from PyQt5.QtCore import QCoreApplication
 from emergent.gui.elements import MainFrame
 from emergent.modules import Hub
-from emergent.modules.server import Server
-from emergent.modules.network import Network
 from emergent.utilities.networking import get_address
 import numpy as np
 sys.path.append('networks/%s'%sys.argv[1])
@@ -16,6 +14,7 @@ import logging as log
 import argparse
 import time
 import importlib
+from emergent.modules.networking import Server, Network
 
 ''' Register app with OS '''
 try:
