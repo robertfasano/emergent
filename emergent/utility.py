@@ -7,6 +7,25 @@ import numpy as np
 import time
 import logging as log
 
+class Switch():
+    def __init__(self, labjack, channel, invert = False):
+        self.channel = channel
+        self.state = 0
+        self.invert = invert
+
+    def set(self, state):
+        if self.invert:
+            state = 1-state
+        self.labjack.DOut(self.channel, state)
+        self.state = state
+
+    def toggle(self):
+        if self.invert:
+            state = self.state
+        else:
+            state = 1-self.state
+        self.set(state)
+        
 def unit_test(self, func, *args, **kwargs):
     tests = 100
     times = []

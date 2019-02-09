@@ -260,6 +260,8 @@ class Hub(Node):
         self.signal = ActuateSignal()
         self.process_signal = ProcessSignal()
         self.ignored = []
+        ''' Establish switch interface '''
+        self.switches = {}
 
     def __getstate__(self):
         d = {}

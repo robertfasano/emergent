@@ -321,7 +321,13 @@ class NodeTree(QTreeWidget):
             func = item.node.options[option]
             actions[option].triggered.connect(func)
             menu.addAction(actions[option])
-
+        ''' Add switch states '''
+        if item.node.node_type == 'hub':
+            for switch in item.node.switches:
+                obj = item.node.switches[switch]
+                actions['Toggle ' + switch] = QAction('Toggle ' + switch, self)
+                actions['Toggle ' + switch].triggered.connect(obj.toggle)
+                menu.addAction(actions['Toggle ' + switch])
         selectedItem = menu.exec_(globalPos)
 
 class NodeWidget(QTreeWidgetItem):
