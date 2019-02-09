@@ -318,7 +318,6 @@ class LabJack(Thing):
 
     def array_to_bitmask(self, arr, channels):
         ''' Convert multidimensional array with one column for each channel to an array of bitmasks. '''
-        print(channels)
         y = np.zeros(len(arr))
         for i in range(len(arr)):
             states = arr[i,:]
