@@ -5,6 +5,7 @@ class ProcessSignal(QObject):
 
     def __init__(self):
         super().__init__()
+        self.picklable = False
 
     def connect(self, func):
         self.signal.connect(func)
@@ -17,6 +18,7 @@ class ActuateSignal(QObject):
 
     def __init__(self):
         super().__init__()
+        self.picklable = False
 
     def connect(self, func):
         self.signal.connect(func)
@@ -29,6 +31,7 @@ class CreateSignal(QObject):
 
     def __init__(self):
         super().__init__()
+        self.picklable = False
 
     def connect(self, func):
         self.signal.connect(func)
@@ -41,6 +44,7 @@ class RemoveSignal(QObject):
 
     def __init__(self):
         super().__init__()
+        self.picklable = False
 
     def connect(self, func):
         self.signal.connect(func)
@@ -53,6 +57,7 @@ class WatchdogSignal(QObject):
 
     def __init__(self):
         super().__init__()
+        self.picklable = False
 
     def connect(self, func):
         self.signal.connect(func)

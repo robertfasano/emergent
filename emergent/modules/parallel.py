@@ -11,7 +11,8 @@ class ProcessHandler():
         ''' Initializes the ProcessHandler with no threads. '''
         self.threads = []
         self.processes = []
-
+        self.picklable = False
+        
     def _run_process(self, func, args = None):
         ''' Instantiates and starts a process running a target function.
 
