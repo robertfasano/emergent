@@ -11,9 +11,10 @@
 '''
 
 import numpy as np
-from emergent.signals import WatchdogSignal
+from emergent.utilities.signals import DictSignal
 import logging as log
-from emergent.modules import Sampler, recommender, ProcessHandler
+from emergent.modules import Sampler, ProcessHandler
+from emergent.utilities import recommender
 
 class Watchdog(ProcessHandler):
     def __init__(self, parent, experiment, threshold, input_state = None, name = 'watchdog', channel = None):
@@ -30,7 +31,7 @@ class Watchdog(ProcessHandler):
         self.threshold_type = 'lower'
         self.value = 0
         self.state = 0
-        self.signal = WatchdogSignal()
+        self.signal = DictSignal()
         self.enabled = True
         self.reacting = False
 

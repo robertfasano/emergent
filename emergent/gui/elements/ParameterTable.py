@@ -4,7 +4,7 @@
 
 from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QHeaderView
 from PyQt5.QtCore import Qt
-from emergent.modules import State
+from emergent.utilities.containers import State
 
 class ParameterTable(QTableWidget):
     def __init__(self):

@@ -7,6 +7,5 @@ from emergent.gui.elements.PlotWindow import PlotWidget
 from emergent.gui.elements.TaskPanel import TaskPanel
 from emergent.gui.elements.NetworkPanel import NodeTree
 from emergent.gui.elements.MainWindow import MainFrame
-from emergent.gui.elements.RemoteViewer import RemoteViewer
 from emergent.gui.elements.Launcher import Launcher
 from emergent.gui.elements.Creator import Creator

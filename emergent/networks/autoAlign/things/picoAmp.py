@@ -6,10 +6,8 @@ import sys
 import os
 char = {'nt': '\\', 'posix': '/'}[os.name]
 sys.path.append(char.join(os.getcwd().split(char)[0:-1]))
-from emergent.utility import thing
 import logging as log
 
-@thing
 class PicoAmp(Thing):
     ''' Thing driver for the Mirrorcle PicoAmp board. '''
     def __init__(self, name, params = {'labjack': None, 'type': 'digital'}, parent = None):

@@ -6,7 +6,7 @@ import sys
 import os
 char = {'nt': '\\', 'posix': '/'}[os.name]
 sys.path.append(char.join(os.getcwd().split(char)[0:-1]))
-from utility import experiment
+from emergent.utilities.decorators import experiment
 import datetime
 
 class AutoAlign(Hub):

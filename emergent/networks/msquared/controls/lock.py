@@ -1,6 +1,6 @@
 import numpy as np
 from emergent.modules import Hub
-from utility import experiment, error
+from emergent.utilities.decorators import experiment, error
 import datetime
 import time
 import numpy as np

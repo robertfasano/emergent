@@ -12,7 +12,7 @@
 from PyQt5.QtGui import QFontDatabase, QIcon
 from PyQt5.QtWidgets import (QWidget, QComboBox, QLabel, QHBoxLayout, QVBoxLayout, QPushButton, QLineEdit)
 import os
-from emergent.utility import get_address, get_open_port
+from emergent.utilities.networking import get_address, get_open_port
 
 class Launcher(QWidget):
     def __init__(self, app):

@@ -7,7 +7,7 @@
 import numpy as np
 import itertools
 import pickle
-from emergent.modules.visualization import plot_1D, plot_2D
+from emergent.utilities.plotting import plot_1D, plot_2D
 import pandas as pd
 import time
 # def warn(*args, **kwargs):

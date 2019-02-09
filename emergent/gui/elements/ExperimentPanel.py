@@ -12,13 +12,13 @@
 from PyQt5.QtWidgets import (QVBoxLayout, QWidget, QTabWidget)
 from PyQt5.QtCore import *
 from emergent.gui.elements import OptimizeLayout, ServoLayout, RunLayout, MonitorLayout
-from emergent.modules import Sampler, recommender, ProcessHandler
+from emergent.modules import Sampler, ProcessHandler
 import json
 import logging as log
 import datetime
 #import __main__
-from emergent.utility import list_errors, list_experiments, list_triggers
-
+from emergent.utilities.introspection import list_errors, list_experiments, list_triggers
+from emergent.utilities import recommender
 
 class ExperimentLayout(QVBoxLayout, ProcessHandler):
     def __init__(self, parent):

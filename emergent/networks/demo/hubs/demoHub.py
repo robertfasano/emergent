@@ -1,6 +1,7 @@
 import numpy as np
 from emergent.modules import Hub, Watchdog, Sampler
-from emergent.utility import experiment, error, trigger
+from emergent.utilities.decorators import experiment, error, trigger
+
 import datetime
 import time
 import numpy as np

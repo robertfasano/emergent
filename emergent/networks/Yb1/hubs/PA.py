@@ -1,5 +1,6 @@
 from emergent.modules import Hub
-from utility import experiment, extract_pulses, trigger, error
+from utility import extract_pulses
+from emergent.utilities.decorators import experiment, trigger, error
 import numpy as np
 import time
 

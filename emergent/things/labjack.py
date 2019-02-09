@@ -10,20 +10,29 @@ from threading import Thread
 from emergent.modules.parallel import ProcessHandler
 from emergent.modules.fifo import FIFO
 from emergent.modules import Thing
+from emergent.utilities.decorators import queue
 import logging as log
 import decorator
 
-@decorator.decorator
-def queue(func, *args, **kwargs):
-    obj = args[0]
-    id = time.time()
-    q = getattr(obj, 'queue')
-    q.add(func, id, *args, **kwargs)
-    while True:
-        try:
-            return q.buffer[id]
-        except KeyError:
-            continue
+class Switch():
+    def __init__(self, labjack, channel, invert = False):
+        self.labjack = labjack
+        self.channel = channel
+        self.state = 0
+        self.invert = invert
+
+    def set(self, state):
+        if self.invert:
+            state = 1-state
+        self.labjack.DOut(self.channel, state)
+        self.state = state
+
+    def toggle(self):
+        if self.invert:
+            state = self.state
+        else:
+            state = 1-self.state
+        self.set(state)
 
 class LabJack(Thing):
     ''' Python interface for the LabJack T7. '''

@@ -51,7 +51,15 @@ class State(OrderedDict):
                 fullnames.append(thing+': '+input)
         return fullnames
 
+class Parameter():
+    def __init__(self, name, value, min = None, max = None, description = ''):
+        self.name = name
+        self.value = value
+        self.min = min
+        self.max = max
+        self.description = description
 
+        
 if __name__ == '__main__':
     s = State()
     s['a'] = 1

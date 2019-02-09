@@ -1,14 +1,13 @@
 from emergent.modules import Hub
 import time
-# from utility import experiment
-from emergent.utilities import experiment
+from emergent.utilities.decorators import experiment
 from scipy.stats import linregress
 from scipy.optimize import curve_fit
 import numpy as np
 from emergent.modules.parallel import ProcessHandler
-from emergent.things.labjack import LabJack
+from emergent.things.labjack import LabJack, Switch
 import matplotlib.pyplot as plt
-from emergent.utility import Timer, Switch
+from emergent.utilities.testing import Timer
 
 class MOT(Hub):
     def __init__(self, name, parent = None, network = None):
