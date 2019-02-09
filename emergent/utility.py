@@ -9,6 +9,7 @@ import logging as log
 
 class Switch():
     def __init__(self, labjack, channel, invert = False):
+        self.labjack = labjack
         self.channel = channel
         self.state = 0
         self.invert = invert
@@ -25,7 +26,7 @@ class Switch():
         else:
             state = 1-self.state
         self.set(state)
-        
+
 def unit_test(self, func, *args, **kwargs):
     tests = 100
     times = []
