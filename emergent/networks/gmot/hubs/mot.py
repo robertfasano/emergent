@@ -5,7 +5,7 @@ from scipy.stats import linregress
 from scipy.optimize import curve_fit
 import numpy as np
 from emergent.modules.parallel import ProcessHandler
-from emergent.things.labjack import LabJack, Switch
+from emergent.things.labjack import LabJack, LabJackSwitch
 import matplotlib.pyplot as plt
 from emergent.utilities.testing import Timer
 
@@ -111,11 +111,11 @@ class MOT(Hub):
         self.SHG_RF = 5
         self.SHG_SHUTTER = 6
 
-        self.switches['MOT_RF'] = Switch(self.TTL, 2, invert = True)
-        self.switches['MOT_INTEGRATOR'] = Switch(self.TTL, 4, invert = True)
-        self.switches['MOT_SHUTTER'] = Switch(self.TTL, 3)
-        self.switches['SHG_RF'] = Switch(self.TTL, 5)
-        self.switches['SHG_SHUTTER'] = Switch(self.TTL, 6)
+        self.switches['MOT_RF'] = LabJackSwitch(self.TTL, 2, invert = True)
+        self.switches['MOT_INTEGRATOR'] = LabJackSwitch(self.TTL, 4, invert = True)
+        self.switches['MOT_SHUTTER'] = LabJackSwitch(self.TTL, 3)
+        self.switches['SHG_RF'] = LabJackSwitch(self.TTL, 5)
+        self.switches['SHG_SHUTTER'] = LabJackSwitch(self.TTL, 6)
 
 
         loading = Timestep('loading', duration = 1, state = {'MOT_RF': 1, 'MOT_INTEGRATOR': 1, 'MOT_SHUTTER': 1, 'SHG_RF': 1, 'SHG_SHUTTER': 1})

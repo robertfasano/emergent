@@ -9,30 +9,23 @@ import time
 from threading import Thread
 from emergent.modules.parallel import ProcessHandler
 from emergent.modules.fifo import FIFO
+from emergent.modules.switch import Switch
 from emergent.modules import Thing
 from emergent.utilities.decorators import queue
 import logging as log
 import decorator
 
-class Switch():
-    def __init__(self, labjack, channel, invert = False):
-        self.labjack = labjack
-        self.channel = channel
-        self.state = 0
-        self.invert = invert
+class LabJackSwitch(Switch):
+    def __init__(self, name, params, invert = False):
+        Switch().__init__(self, name, params, invert = invert)
+        self.channel = params['channel']
+        self.labjack = params['labjack']
 
-    def set(self, state):
-        if self.invert:
-            state = 1-state
+    def _set(self, state):
+        ''' Overload with device-specific switching command, e.g. LabJack as shown '''
         self.labjack.DOut(self.channel, state)
-        self.state = state
 
-    def toggle(self):
-        if self.invert:
-            state = self.state
-        else:
-            state = 1-self.state
-        self.set(state)
+
 
 class LabJack(Thing):
     ''' Python interface for the LabJack T7. '''
