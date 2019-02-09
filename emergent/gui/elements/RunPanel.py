@@ -83,7 +83,7 @@ class RunLayout(QVBoxLayout, ProcessHandler):
         while sampler.active:
             if sampler.trigger is not None:
                 sampler.trigger()
-            result = sampler._cost(sampler.hub.state, norm=False)
+            result = sampler._cost({}, norm=False)
             count += 1
             if type(sampler.experiment_params['iterations']) is int:
                 if count >= sampler.experiment_params['iterations']:
