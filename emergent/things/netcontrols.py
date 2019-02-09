@@ -7,7 +7,7 @@ class NetControls(Thing, ProcessHandler):
         Thing.__init__(self, name = name, parent = parent, params = params)
         ProcessHandler.__init__(self)
         self.add_input('Z')
-        # self._connected = self._connect()
+        self.children['Z'].tooltip = 'Feedthrough position in mm'
 
     def _connect(self):
         self.serial = Serial(port = self.params['port'],

@@ -10,6 +10,8 @@ class Novatech(Thing):
         # self._connected = self._connect()
         self.add_input('slowing')
         self.add_input('trapping')
+        for input in ['slowing', 'trapping']:
+            self.children[input].tooltip = input.capitalize() + ' frequency in MHz'
         self.frequency = {}
         self.amplitude = {}
 

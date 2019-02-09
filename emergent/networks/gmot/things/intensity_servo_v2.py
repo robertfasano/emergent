@@ -19,10 +19,10 @@ class IntensityServo(Thing):
         self.labjack = LabJack(params={'devid': params['devid']})
 
         self.add_input('probe')
-        # self.add_input('V1')
         self.add_input('slowing')
         self.add_input('trapping')
-
+        for input in ['probe', 'slowing', 'trapping']:
+            self.children[input].tooltip = input.capitalize() + ' setpoint in V'
         self.options['Probe'] = self.probe
         self.options['Load'] = self.load
 
