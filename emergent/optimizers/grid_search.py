@@ -34,4 +34,4 @@ class GridSearch():
             self.params[p].value = params[p]
 
     def plot(self):
-        return visualization.plot_2D(self.points, -self.costs)
+        return visualization.plot_2D(self.points, -self.costs, limits=self.sampler.get_limits())
