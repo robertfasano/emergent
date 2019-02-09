@@ -344,6 +344,9 @@ class NodeWidget(QTreeWidgetItem):
             self.setText(2, str(self.root.settings[thing][name]['min']))
             self.setText(3,str(self.root.settings[thing][name]['max']))
 
+        if hasattr(self.node, 'tooltip'):
+            self.setToolTip(0, self.node.tooltip)
+
     def add_buffer_buttons(self):
         if not (hasattr(self.node, 'signal') or hasattr(self.node, 'process_signal')):
             return

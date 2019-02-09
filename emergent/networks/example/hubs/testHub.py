@@ -9,7 +9,8 @@ import importlib
 
 class TestHub(Hub):
         def __init__(self, name, params = {}, addr=None, network=None):
-                super().__init__(name, addr=addr, network = network, params = params)
+            super().__init__(name, addr=addr, network = network, params = params)
+            self.tooltip = 'An example hub'
 
         def cost_coupled(self, state, params={}):
             return self.cost_uncoupled(state, theta=30*np.pi/180)
@@ -32,6 +33,19 @@ class TestHub(Hub):
 
             return -power
 
+        @experiment
+        def rotated_gaussian(self, state, params = {'theta': 45, 'sigma_x': 0.3, 'sigma_y': 0.8, 'x0': 0.3, 'y0': 0.6, 'noise':0, 'delay': 0.5}):
+            self.actuate(state)
+            theta = params['theta'] * np.pi / 180
+            x=np.cos(theta)*self.state['MEMS']['X']-np.sin(theta)*self.state['MEMS']['Y']
+            y=np.sin(theta)*self.state['MEMS']['X']+np.cos(theta)*self.state['MEMS']['X']
+            x0 = params['x0']
+            y0 = params['y0']
+            sigma_x = params['sigma_x']
+            sigma_y = params['sigma_y']
+            power =  np.exp(-(x-x0)**2/sigma_x**2)*np.exp(-(y-y0)**2/sigma_y**2) + np.random.normal(0, params['noise'])
+
+            return -power
 
 
         @experiment

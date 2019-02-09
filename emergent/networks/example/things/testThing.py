@@ -12,6 +12,11 @@ class TestThing(Thing):
         for input in self.params['inputs']:
             self.add_input(input)
 
+        self.tooltip = 'An example thing'
+
+        self.children['X'].tooltip = 'The X axis'
+        self.children['Y'].tooltip = 'The Y axis'
+
     def _actuate(self, state):
         ''' Usually this method would change a physical state, but for our
             virtual network we only print the argument (note: the virtual state
