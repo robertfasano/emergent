@@ -1,9 +1,6 @@
-<<<<<<< HEAD
 import time
 import numpy as np
 
-=======
->>>>>>> 31803e2934583a9e7f1a5204f7bc537ac920e227
 def unit_test(self, func, *args, **kwargs):
     tests = 100
     times = []
@@ -16,10 +13,6 @@ def unit_test(self, func, *args, **kwargs):
 
 class Timer():
     def __init__(self):
-<<<<<<< HEAD
-=======
-        import time
->>>>>>> 31803e2934583a9e7f1a5204f7bc537ac920e227
         self.times = [time.time()]
 
     def log(self, name = None):
