@@ -9,6 +9,88 @@ from emergent.things.labjack import LabJack, Switch
 import matplotlib.pyplot as plt
 from emergent.utilities.testing import Timer
 
+from emergent.modules import Thing
+import pandas as pd
+
+class Timestep():
+    def __init__(self, name, duration, state):
+        ''' Args:
+                name (str): the name of this timestep
+                duration (float): the duration of this timestep in seconds
+                state (dict): boolean state of all switches at this timestep
+        '''
+        self.name = name
+        self.duration = duration
+        self.state = state
+
+class Sequencer(Thing):
+    def __init__(self, name, parent, params = {'steps': [], 'labjack': None}):
+        Thing.__init__(self, name, parent, params = params)
+        self.channels = []
+        self.labjack = params['labjack']
+
+        for step in params['steps']:
+            self.add_input(step.name)
+            for channel in step.state:
+                if channel not in self.channels:
+                    self.channels.append(channel)
+
+        self.steps = params['steps']
+
+    def get_time(self, step):
+        ''' Returns the time when the specified integer step starts '''
+        now = 0
+        for i in range(step):
+            now += self.state[steps[i].name]
+        return now
+
+    def goto_step(self, step):
+        step = self.steps[step]
+        for channel in step.state:
+            self.parent.switches[channel].set(step.state.channel)
+
+    def prepare(self, accuracy = 1e-4):
+        ''' Parse the sequence into the proper form to send to the LabJack.
+            Returns:
+                numpy.ndarray: an array of bitmasks corresponding to the overall state at each timestep. '''
+
+        ''' Get channel numbers and prepare digital stream '''
+        channel_numbers = []
+        for channel in self.channels:
+            channel_numbers.append(self.parent.switches[channel].channel)
+        self.labjack.prepare_digital_stream(self.channel_numbers)
+        self.labjack.prepare_stream_out(trigger=0)
+
+        ''' Calculate cycle time '''
+        self.cycle_time = 0
+        for s in self.steps:
+            self.cycle_time += self.state[s.name]
+        stream_steps = int(self.cycle_time/accuracy)
+
+        t = np.linspace(0, self.cycle_time, stream_steps)
+        stream = pd.DataFrame(index = t, columns = self.channels)
+        now = 0
+        for step in self.steps:
+            duration = self.state[step]
+            timeslice = stream.index[(stream.index >= now) & (stream.index <= now + duration)]
+            for channel in step.state:
+                stream.loc[timeslice, channel] = step.state[channel]
+            now += duration
+
+        bitmask = self.labjack.array_to_bitmask(stream.values, channel_numbers)
+        sequence, scanRate = self.labjack.resample(np.atleast_2d(bitmask).T, self.cycle_time)
+        self.labjack.stream_out(['FIO_STATE'], sequence, scanRate, loop=0)
+
+    def run(self):
+        self.prepare()
+        if self.labjack.stream_mode is not 'in-triggered':
+            self.labjack.prepare_streamburst(0, trigger=0)
+        self.parent.stream_complete = False
+        data = np.array(self.labjack.streamburst(self.cycle_time))
+        self.parent.stream_complete = True
+
+        return data
+
 class MOT(Hub):
     def __init__(self, name, parent = None, network = None):
         super().__init__(name, parent = parent, network = network)
@@ -26,26 +108,30 @@ class MOT(Hub):
         self.MOT_RF = 2  # slowing + cooling rf switches
         self.MOT_INTEGRATOR = 4   # slowing/cooling integrators
         self.MOT_SHUTTER = 3      # slowing/cooling shutters
-        self.SHG_SWITCH = 5
+        self.SHG_RF = 5
         self.SHG_SHUTTER = 6
 
         self.switches['MOT_RF'] = Switch(self.TTL, 2, invert = True)
         self.switches['MOT_INTEGRATOR'] = Switch(self.TTL, 4, invert = True)
         self.switches['MOT_SHUTTER'] = Switch(self.TTL, 3)
-        self.switches['SHG_SWITCH'] = Switch(self.TTL, 5)
+        self.switches['SHG_RF'] = Switch(self.TTL, 5)
         self.switches['SHG_SHUTTER'] = Switch(self.TTL, 6)
 
-        ''' Enable MOT '''
-        # self.TTL.DOut(self.PROBE_LIGHT, 1)     # disable probe
-        # self.TTL.DOut(self.MOT_RF, 0)     # enable MOT AOM
-        # self.TTL.DOut(self.MOT_SHUTTER,1)      # open MOT shutter
-        # self.TTL.DOut(self.MOT_INTEGRATOR,0)      # enable MOT integrator
 
+        loading = Timestep('loading', duration = 1, state = {'MOT_RF': 1, 'MOT_INTEGRATOR': 1, 'MOT_SHUTTER': 1, 'SHG_RF': 1, 'SHG_SHUTTER': 1})
+        probe_delay = Timestep('probe delay', duration = 3e-3, state = {'MOT_RF': 0, 'MOT_INTEGRATOR': 0, 'MOT_SHUTTER': 1, 'SHG_RF': 0, 'SHG_SHUTTER': 0})
+        probe = Timestep('probe', duration = 10e-3, state = {'MOT_RF': 1, 'MOT_INTEGRATOR': 1, 'MOT_SHUTTER': 1, 'SHG_RF': 0, 'SHG_SHUTTER': 0})
+        rf_off = Timestep('rf off', duration = 10e-3, state = {'MOT_RF': 0, 'MOT_INTEGRATOR': 0, 'MOT_SHUTTER': 0, 'SHG_RF': 0, 'SHG_SHUTTER': 0})
+        rf_on = Timestep('rf on', duration = 10e-3, state = {'MOT_RF': 1, 'MOT_INTEGRATOR': 0, 'MOT_SHUTTER': 0, 'SHG_RF': 1, 'SHG_SHUTTER': 0})
+
+        self.sequencer = Sequencer('sequencer', parent = self, params = {'steps': [loading, probe_delay, probe, rf_off, rf_on]})
+
+        ''' Enable MOT '''
         for switch in ['MOT_RF', 'MOT_SHUTTER', 'MOT_INTEGRATOR']:
             self.switches[switch].set(1)
 
-        # self.ignored = ['labjack', 'TTL', 'trigger_labjack']
         self.options['Load'] = self.ready
+
     def atom_number(self, signal, background):
         ''' Experimental variables '''
         probe_power = 4.05e-3
@@ -138,7 +224,7 @@ class MOT(Hub):
         ''' gMOT sequence '''
         ''' For shot 1, turn off light after gMOT loading time set in the GUI. For shot 2, set gMOT loading time
             to end 100 us before the helper probe pulse '''
-        sequence[self.SHG_SWITCH] = [(0, 1),
+        sequence[self.SHG_RF] = [(0, 1),
                                      (params['gMOT loading time'], 0),
                                      (params['gMOT loading time'] + params['AOM delay'], 1)]
         sequence[self.SHG_SHUTTER] = [(0, 1),
@@ -194,6 +280,40 @@ class MOT(Hub):
         return data
 
     @experiment
+    def new_loading(self, state, params = {}):
+        self.actuate(state)
+
+        ''' Initial TTL state '''
+        for switch in ['MOT_RF', 'SHG_RF']:
+            self.switches[switch].set(1)
+        for switch in ['MOT_SHUTTER', 'MOT_INTEGRATOR', 'SHG_SHUTTER']:
+            self.switches[switch].set(0)
+
+        ''' Prepare sequence '''
+        self.sequencer.prepare()
+
+        if self.labjack.stream_mode is not 'in-triggered':
+            self.labjack.prepare_streamburst(0, trigger=0)
+        self.stream_complete = False
+        self.process_manager._run_thread(self.probe_trigger, args=(0,), stoppable=False)
+        data = np.array(self.labjack.streamburst(self.sequencer.cycle_time))
+        self.stream_complete = True
+        # self.process_manager._run_thread(self.probe_trigger, args=(0,), stoppable=False)
+        # data = self.sequencer.run()
+
+        ''' Process data '''
+        time_per_point = stream_time / len(data)
+        first_point = int((stream_time - params['probe time']) / time_per_point)
+        duration = int(params['probe time']/time_per_point*.9)
+        data = data[first_point:first_point+duration]
+        t = np.linspace(0, params['probe time'], len(data))
+
+        results = np.mean(data)
+
+
+        return -results
+
+    @experiment
     def load_hybrid_MOT(self, state, params = {}):
         results = []
         self.actuate(state)
@@ -206,7 +326,7 @@ class MOT(Hub):
         self.TTL.DOut(self.MOT_RF, 0)     # enable MOT AOM
         self.TTL.DOut(self.MOT_SHUTTER,0)      # close MOT shutter
         self.TTL.DOut(self.MOT_INTEGRATOR,1)      # disable MOT integrator
-        self.TTL.DOut(self.SHG_SWITCH, 1)
+        self.TTL.DOut(self.SHG_RF, 1)
         self.TTL.DOut(self.SHG_SHUTTER, 0)
 
         self.TTL.prepare_stream_out(trigger=0)
@@ -250,7 +370,7 @@ class MOT(Hub):
         self.TTL.DOut(self.MOT_RF, 0)     # enable MOT AOM
         self.TTL.DOut(self.MOT_SHUTTER,0)      # close MOT shutter
         self.TTL.DOut(self.MOT_INTEGRATOR,1)      # disable MOT integrator
-        self.TTL.DOut(self.SHG_SWITCH, 1)
+        self.TTL.DOut(self.SHG_RF, 1)
         self.TTL.DOut(self.SHG_SHUTTER, 1)
 
         self.TTL.prepare_stream_out(trigger=0)
@@ -367,8 +487,8 @@ class MOT(Hub):
             self.trigger_labjack.DOut(4, i%2)
 
     def ready(self):
-        # self.TTL.DIO_STATE([self.PROBE_LIGHT, self.MOT_RF, self.MOT_SHUTTER, self.MOT_INTEGRATOR, self.SHG_SWITCH, self.SHG_SHUTTER], [1, 0, 1, 0, 1, 1])
-        for switch in ['MOT_RF', 'MOT_SHUTTER', 'MOT_INTEGRATOR', 'SHG_SWITCH', 'SHG_SHUTTER']:
+        # self.TTL.DIO_STATE([self.PROBE_LIGHT, self.MOT_RF, self.MOT_SHUTTER, self.MOT_INTEGRATOR, self.SHG_RF, self.SHG_SHUTTER], [1, 0, 1, 0, 1, 1])
+        for switch in ['MOT_RF', 'MOT_SHUTTER', 'MOT_INTEGRATOR', 'SHG_RF', 'SHG_SHUTTER']:
             self.switches[switch].set(1)
 
     @experiment
@@ -397,7 +517,7 @@ class HybridMOT():
         self.TTL.DOut(self.MOT_RF, 0)     # enable MOT AOM
         self.TTL.DOut(self.MOT_SHUTTER,0)      # close MOT shutter
         self.TTL.DOut(self.MOT_INTEGRATOR,1)      # disable MOT integrator
-        self.TTL.DOut(self.SHG_SWITCH, 1)
+        self.TTL.DOut(self.SHG_RF, 1)
         self.TTL.DOut(self.SHG_SHUTTER, 0)
 
         self.TTL.prepare_stream_out(trigger=0)
