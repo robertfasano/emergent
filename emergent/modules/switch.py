@@ -18,8 +18,8 @@ class Switch():
             when switch states are unintuitive, e.g. when TTL low turns a device on. '''
         if self.invert:
             state = 1-state
-        if state == self.state:         # ignore commands that would leave the state unchanged
-            return
+        # if state == self.state:         # ignore commands that would leave the state unchanged
+        #     return
         self._set(state)
         self.state = state
 
