@@ -1,5 +1,6 @@
 import decorator
 import numpy as np
+import time
 
 @decorator.decorator
 def experiment(func, hub, sampler, state):
