@@ -247,7 +247,7 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
             state: dict
 
         '''
-        panel = getattr(self, process+'Panel')
+        panel = getattr(self, process+'_panel')
 
         ''' Pull settings from the gui and fill in any missing options '''
         if load_from_gui:
