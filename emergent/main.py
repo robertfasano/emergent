@@ -25,7 +25,7 @@ def launch():
         ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID('EMERGENT')
     except AttributeError:
         pass
-
+    global network
     char = {'nt': '\\', 'posix': '/'}[os.name]
     sys.path.append(char.join(os.getcwd().split(char)[0:-3]))
     sys.path.append('networks/%s'%sys.argv[1])
