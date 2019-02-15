@@ -3,6 +3,7 @@ from emergent.things import LabJack, NetControls, Novatech
 from emergent.networks.gmot.things import CurrentDriver, IntensityServo
 from emergent.networks.autoAlign import network as autoAlign
 from emergent.modules.node import Thing
+from emergent.networks.monitor import network as monitor
 
 def initialize(network):
     ''' Import autoAlign hubs '''
@@ -25,6 +26,14 @@ def initialize(network):
     servo = IntensityServo('servo', params = {'devid': '470016973'}, parent = mot)
     coils = CurrentDriver('coils', params = {'devid': '440010680'}, parent = mot)
 
+    ''' Import monitor hub '''
+    params = {'daqs': [{'name': 'labjack', 'params':{'devid': '470018943'}}],
+              'watchdogs': {
+                        'Chamber ion pump current': {'threshold': 0.1, 'channel': 'A0', 'units': 'mV'}
+                        }
+                     }
+    monitor.initialize(network, params = params)
+    
     ''' Add hubs to network '''
     for hub in [mot]:
         network.add_hub(hub)
