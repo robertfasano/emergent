@@ -517,7 +517,7 @@ class MultiJack():
         self.labjacks = {}
         index = 'A'
         for p in params_list:
-            lj = LabJack(name = p['name'], parent = p['parent'], params = p['params'])
+            lj = LabJack(name = p['name'], params = p['params'])
             self.labjacks[index] = lj
             index = chr(ord(index)+1)
 
