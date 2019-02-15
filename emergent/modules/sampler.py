@@ -289,3 +289,19 @@ class Sampler():
                 self.progress = len(costs) / len(points) / sweeps
 
         return points, costs
+
+    def random_sampling(self,state, points, bounds, callback = None):
+        ''' Performs a random sampling of the cost function at N points within
+            the specified bounds. '''
+        if callback is None:
+            callback = self.callback
+        dof = sum(len(state[x]) for x in state)
+        points = np.random.uniform(size=(int(points),dof))
+        costs = []
+        for point in points:
+            if not callback():
+                return points[0:len(costs)], costs
+            c = self._cost(point)
+            costs.append(c)
+
+        return points, costs
