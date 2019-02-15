@@ -19,6 +19,12 @@ from emergent.modules.networking import Server, Network
 from emergent.utilities.networking import get_address
 
 def launch():
+    QApplication.setStyle(QStyleFactory.create("Fusion"))
+    app = QApplication.instance()
+    if app is None:
+        app = QApplication(sys.argv)         # Create an instance of the application
+    app.setStyle(QStyleFactory.create("Fusion"))
+
     ''' Register app with OS '''
     try:
         import ctypes
@@ -67,13 +73,6 @@ def launch():
         names = [x for x in process.__dict__ if not x.startswith("_")]
     globals().update({k: getattr(process, k) for k in names})
 
-# if __name__ == "__main__":
-    QApplication.setStyle(QStyleFactory.create("Fusion"))
-    app = QApplication.instance()
-    # app = None
-    if app is None:
-        app = QApplication(sys.argv)         # Create an instance of the application
-    app.setStyle(QStyleFactory.create("Fusion"))
 
     main = MainWindow(app, network)
     network.manager._run_thread(network.try_connect, stoppable=False)
