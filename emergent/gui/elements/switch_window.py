@@ -1,5 +1,5 @@
 
-from PyQt5.QtWidgets import (QComboBox, QLabel, QVBoxLayout, QLineEdit, QLayout,
+from PyQt5.QtWidgets import (QComboBox, QLabel, QVBoxLayout, QLineEdit, QLayout, QScrollArea,
         QWidget, QCheckBox, QHBoxLayout, QTabWidget, QGridLayout, QMenu, QAction, QTreeWidget, QTreeWidgetItem)
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -63,9 +63,20 @@ class StepEdit(QLineEdit):
         self.returnPressed.connect(self.onReturn)
         self.setMaximumWidth(75)
         self.setFixedWidth(75)
-        
+
     def onReturn(self):
         self.sequencer.parent.actuate({'sequencer':{self.name: float(self.text())}})
+
+class BoldLabel(QLabel):
+    def __init__(self, name):
+        super().__init__(name)
+        self.name = name
+
+    def setBold(self, bold):
+        if bold:
+            self.setText('<b>'+self.name+'</b>')
+        else:
+            self.setText(self.name)
 
 class GridWindow(QWidget):
     def __init__(self, sequencer):
@@ -74,9 +85,21 @@ class GridWindow(QWidget):
             self.setStyleSheet(file.read())
         self.setWindowTitle('Timing grid')
         self.sequencer = sequencer
+        self.sequencer.parent.signal.connect(self.actuate)
         self.picklable = False
+
+        self.layout = QHBoxLayout()
+        self.setLayout(self.layout)
+
+        self.widget = QWidget()
         layout = QGridLayout()
-        self.setLayout(layout)
+        self.widget.setLayout(layout)
+        # self.scrollArea = QScrollArea()
+        # self.scrollArea.setWidgetResizable(True)
+        # self.scrollArea.setWidget(self.widget)
+        # self.layout.addWidget(self.scrollArea)
+        self.layout.addWidget(self.widget)
+
         ''' Create switch labels '''
         row = 2
         for switch in self.sequencer.parent.switches:
@@ -85,9 +108,13 @@ class GridWindow(QWidget):
 
         ''' Create step labels '''
         col = 1
+        self.labels = {}
+        self.step_edits = {}
         for step in self.sequencer.steps:
-            layout.addWidget(QLabel(step.name), 0, col)
-            layout.addWidget(StepEdit(step.name, str(self.sequencer.state[step.name]), self.sequencer), 1, col)
+            self.labels[step.name] = BoldLabel(step.name)
+            layout.addWidget(self.labels[step.name], 0, col)
+            self.step_edits[step.name] = StepEdit(step.name, str(self.sequencer.state[step.name]), self.sequencer)
+            layout.addWidget(self.step_edits[step.name], 1, col)
             col += 1
 
         ''' Create checkboxes '''
@@ -99,5 +126,20 @@ class GridWindow(QWidget):
                 row += 1
             col += 1
 
-    def update_duration(self):
-        return
+        self.bold_active_step()
+
+    def bold_active_step(self):
+        for step in self.sequencer.steps:
+            if step.name == self.sequencer.current_step:
+                self.labels[step.name].setBold(True)
+            else:
+                self.labels[step.name].setBold(False)
+
+    def actuate(self, state):
+        try:
+            state = state['sequencer']
+        except KeyError:
+            return
+        for step_name in self.step_edits:
+            if step_name in state:
+                self.step_edits[step_name].setText(str(state[step_name]))

@@ -70,6 +70,8 @@ class Sequencer(Thing):
             #     state = 1-state
             self.parent.switches[channel].set(state)
         self.current_step = step.name
+        if hasattr(self, 'grid'):
+            self.grid.bold_active_step()
 
     def get_step(self, step):
         ''' Returns a Timestep object corresponding to the passed integer (place)
@@ -107,7 +109,8 @@ class Sequencer(Thing):
         return stream
 
     def open_grid(self):
-        self.grid = GridWindow(self)
+        if not hasattr(self, 'grid'):
+            self.grid = GridWindow(self)
         self.grid.show()
 
     def open_switch_panel(self, step):
