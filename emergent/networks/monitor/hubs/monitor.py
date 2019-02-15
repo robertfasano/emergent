@@ -19,8 +19,9 @@ class Monitor(Hub):
         self.daq = MultiJack(params_list)
         for channel in params['watchdogs']:
             threshold = params['watchdogs'][channel]['threshold']
+            units = params['watchdogs'][channel]['units']
             ch = params['watchdogs'][channel]['channel']
-            self.watchdogs[channel] = Watchdog(parent = self, experiment = self.measure, name = channel, threshold = threshold, channel = ch)
+            self.watchdogs[channel] = Watchdog(parent = self, experiment = self.measure, name = channel, threshold = threshold, channel = ch, units = units)
 
 
         self.ignored = ['daq']          # add the names of any unpicklable attributes here

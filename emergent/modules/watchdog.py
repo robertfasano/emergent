@@ -4,6 +4,7 @@ import logging as log
 from emergent.utilities.signals import DictSignal
 from emergent.modules import Sampler
 from emergent.utilities import recommender
+from emergent.modules.units import Units
 
 class Watchdog():
     ''' The Watchdog class implements an object-oriented monitoring and reaction framework.
@@ -18,7 +19,7 @@ class Watchdog():
         * Sounding an audio alarm
         * Returning control to the Hub but flagging any saved data as unlocked
     '''
-    def __init__(self, parent, experiment, threshold, input_state=None, name='watchdog', channel=None):
+    def __init__(self, parent, experiment, threshold, input_state=None, name='watchdog', channel=None, units = ''):
         ''' Args:
                 parent (Hub): the hub to which to attach this monitor
                 experiment (function): an EMERGENT experiment to check the monitored variable
@@ -43,6 +44,13 @@ class Watchdog():
         self.enabled = True
         self.reacting = False
 
+        ''' Set up unit parsing '''
+        self.units = units
+        self.unit_parser = Units()
+
+        if self.units != '':
+            self.threshold /= self.unit_parser.get_scaling(self.units)
+
         ''' Set up sampler object '''
         experiment_params = recommender.load_experiment_parameters(self.parent, experiment.__name__)
         experiment_params['channel'] = self.channel
@@ -55,20 +63,26 @@ class Watchdog():
 
     def check(self):
         ''' Private method which calls self.measure then updates the state '''
-        value = self.measure()
+        self.value = self.measure()
         if self.threshold_type == 'upper':
-            self.state = value < self.threshold
+            self.state = self.value < self.threshold
         elif self.threshold_type == 'lower':
-            self.state = value > self.threshold
-        self.signal.emit({'state': self.state, 'threshold': self.threshold, 'value': value})
+            self.state = self.value > self.threshold
+        self.signal.emit({'state': self.state, 'threshold': self.threshold, 'value': self.value, 'units': self.units})
         if not self.state:
-            log.info('Watchdog %s is reacting to an unlock!', self.name)
+            log.debug('Watchdog %s is reacting to an unlock!', self.name)
             self.react()
         return self.state
 
     def measure(self):
         ''' Measures the parameter under watch. '''
-        return -self.sampler._cost(self.parent.state, norm=False)
+        value = -self.sampler._cost(self.parent.state, norm=False)
+
+        ''' Perform unit conversion to desired units '''
+        if self.units != '':
+            scaling = self.unit_parser.get_scaling(self.units)
+            value /= scaling
+        return value
 
     def react(self):
         ''' Overload this method to allow a custom reaction when monitored

@@ -47,9 +47,15 @@ class ContextTable(QTableWidget):
         if col != 2:
             return
         try:
-            self.item(row, 4).watchdog.threshold = float(self.item(row, col).text())
+            watchdog = self.item(row, 4).watchdog
         except AttributeError:
             return
+        if watchdog.units != '':
+            threshold = self.item(row, col).text().split(' ')[0]
+        else:
+            threshold = self.item(row, col).text()
+        watchdog.threshold = float(threshold)
+
 
 class MonitorLayout(QVBoxLayout, ProcessHandler):
     def __init__(self, network, parent):
@@ -106,9 +112,15 @@ class WatchdogItem():
         i = 0
 
         for col in ['name', 'state', 'threshold', 'value']:
-            item = QTableWidgetItem(str(getattr(self.watchdog, col)))
+            string = str(getattr(self.watchdog, col))
+            if self.watchdog.units != '':
+                if col in ['threshold', 'value']:
+                    string += ' ' + self.watchdog.units
+            item = QTableWidgetItem(string)
             if col is not 'threshold':
                 item.setFlags(item.flags() ^ Qt.ItemIsEditable)
+
+
             self.table.setItem(row, i, item)
             self.items[col] = item
             i += 1
@@ -120,5 +132,5 @@ class WatchdogItem():
 
     def update(self, params):
         self.items['state'].setText(str(int(params['state'])))
-        self.items['value'].setText('%.2f'%params['value'])
-        self.items['threshold'].setText('%.2f'%params['threshold'])
+        self.items['value'].setText('%.2f'%params['value'] + ' ' + params['units'])
+        self.items['threshold'].setText('%.2f'%params['threshold'] + ' ' + params['units'])
