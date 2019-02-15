@@ -27,3 +27,13 @@ QTreeView::item:selected{background-color: rgba(63,91,112,255); color: white}
 QTreeView::branch:selected{background-color: rgba(63,91,112,255); color: white}
 
 QMainWindow{border-image: url("gui/media/background.jpg") 0 0 0 0 stretch stretch;}
+
+
+QCheckBox::indicator:unchecked {
+    image: url("gui/media/unchecked.png");
+}
+
+
+QCheckBox::indicator:checked {
+    image: url("gui/media/checked.png");
+}

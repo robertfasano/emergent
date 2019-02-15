@@ -16,12 +16,12 @@ class Switch():
         ''' Set the state of the switch. If self.invert, the physical state will
             be the opposite of the virtual state - this is offered for convenience
             when switch states are unintuitive, e.g. when TTL low turns a device on. '''
+        self.state = state
         if self.invert:
             state = 1-state
         # if state == self.state:         # ignore commands that would leave the state unchanged
         #     return
         self._set(state)
-        self.state = state
 
     def _set(self, state):
         ''' Overload with device-specific switching command '''

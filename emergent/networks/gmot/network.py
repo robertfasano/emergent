@@ -19,8 +19,6 @@ def initialize(network):
 
     ''' Define MOT hub '''
     mot = MOT(name='MOT', network = network)
-    loading_inputs =  ['probe delay', 'loading time', 'probe time', 'gate time', 'AOM delay']
-    loader = Thing(name='loader', parent=mot, params = {'inputs': loading_inputs})
     feedthrough = NetControls('feedthrough', params = {'port': 'COM7'}, parent = mot)
     novatech = Novatech('novatech', params = {'port': 'COM4'}, parent = mot)
     servo = IntensityServo('servo', params = {'devid': '470016973'}, parent = mot)
@@ -33,7 +31,7 @@ def initialize(network):
                         }
                      }
     monitor.initialize(network, params = params)
-    
+
     ''' Add hubs to network '''
     for hub in [mot]:
         network.add_hub(hub)
