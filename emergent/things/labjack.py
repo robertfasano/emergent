@@ -17,9 +17,9 @@ import decorator
 
 class LabJackSwitch(Switch):
     def __init__(self, name, params, invert = False):
-        Switch().__init__(self, name, params, invert = invert)
-        self.channel = params['channel']
         self.labjack = params['labjack']
+        self.channel = params['channel']
+        super().__init__(name, params, invert = invert)
 
     def _set(self, state):
         ''' Overload with device-specific switching command, e.g. LabJack as shown '''
