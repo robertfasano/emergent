@@ -298,8 +298,11 @@ class Hub(Node):
 
     def check_lock(self, block=False):
         ''' Return True if none of the monitored signals are outside a threshold. '''
+        if len(self.watchdogs) == 0:
+            return
         locked = False
         ''' Block until all watchdogs are enabled and locked '''
+        states = {}
         while not locked:
             locked = True
             for w in self.watchdogs.values():
@@ -307,11 +310,14 @@ class Hub(Node):
                 if w.enabled:
                     c = w.check()
                     locked = locked and c          # check the watchdog state
+                    states[w.name] = w.value
+            ''' Here, add overall watchdog state to a queue to write to the database '''
+            self.network.database.write(states, measurement = 'watchdog')
             if not block:
                 return
             if not locked:
                 time.sleep(0.1)
-                ''' Here, add overall watchdog state to a queue to write to the database '''
+
 
 
         return
