@@ -38,7 +38,6 @@ class Monitor(Hub):
     @experiment
     def monitor(self, state, params = {'delay': 1}):
         ''' A dummy experiment for standalone monitoring. '''
-        print('sync')
         time.sleep(params['delay'])
         return self.daq.DIn(self.trigger_channel)
 
