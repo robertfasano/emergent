@@ -6,6 +6,7 @@ import time
 import logging as log
 import pandas as pd
 import numpy as np
+import json
 from emergent.modules import Thing
 from emergent.gui.elements import SwitchWindow, GridWindow
 
@@ -203,3 +204,29 @@ class Sequencer(Thing):
         self.current_step = self.steps[-1].name
 
         return data
+
+    def save(self):
+        filename = self.parent.network.path['state'] + 'sequence.json'
+        sequence = {}
+        for step in self.steps:
+            sequence[step.name] = {'duration': self.state[step.name],
+                                   'state': step.state}
+        with open(filename, 'w') as file:
+            json.dump(sequence, file)
+
+    def load(self):
+        filename = self.parent.network.path['state'] + 'sequence.json'
+        with open(filename, 'r') as file:
+            sequence = json.load(file)
+
+        self.steps = []
+        inputs = list(self.children.keys())
+        state = {}
+        for input in inputs:
+            self.remove_input(input)
+        for step in sequence:
+            s = Timestep(step, duration = sequence[step]['duration'], state = sequence[step]['state'])
+            self.steps.append(s)
+            self.add_input(step)
+            state[step] = s.duration
+        self.parent.actuate({'sequencer': state})
