@@ -132,7 +132,7 @@ class Thing(Node):
             calls this method to obtain a dict to serialize. We intentionally omit
             any unpicklable objects from this dict to avoid errors. '''
         d = {}
-        ignore = ['parent', 'root']
+        ignore = ['parent', 'root', 'leaf']
         ignore.extend(self.ignored)
         unpickled = []
         for item in ignore:
@@ -158,9 +158,9 @@ class Thing(Node):
         self.state[name] = self.children[name].state
 
         self.create_signal.emit({'hub': self.parent, 'thing': self, 'input': name})
-        if self.loaded:
+        #if self.loaded:
             # self.actuate({name:self.parent.state[self.name][name]})
-            log.warning('Inputs changed but not actuated; physical state not synced with virtual state. Run parent.actuate(parent.state) to resolve, where parent is the name of the parent hub node.')
+            #log.warning('Inputs changed but not actuated; physical state not synced with virtual state. Run parent.actuate(parent.state) to resolve, where parent is the name of the parent hub node.')
 
     def remove_input(self, name):
         ''' Detaches the Input node with the specified name. '''
@@ -267,7 +267,7 @@ class Hub(Node):
 
     def __getstate__(self):
         d = {}
-        ignore = ['root', 'watchdogs', 'samplers', 'network']
+        ignore = ['root', 'watchdogs', 'samplers', 'network', 'leaf']
         ignore.extend(self.ignored)
         unpickled = []
         for item in ignore:

@@ -30,27 +30,32 @@ class Sequence():
 class Sequencer(Thing):
     ''' This class handles TTL pattern generation in a way that is easy
         to define, device-agnostic, and easily testable in the lab. '''
+
     def __init__(self, name, parent, params={'steps': [], 'labjack': None}):
         Thing.__init__(self, name, parent, params=params)
         self.channels = []
         self.labjack = params['labjack']
         self.picklable = False
         self.options['Show grid'] = self.open_grid
+        self.options['Save'] = self.save
+        self.options['Load'] = self.load
 
         goto_option = lambda s: lambda: self.goto(s)
-        switch_option = lambda s: lambda: self.open_switch_panel(s)
+        move_down_option = lambda s: lambda: self.move(s, 1)
+        move_up_option = lambda s: lambda: self.move(s, -1)
 
         for step in params['steps']:
             self.add_input(step.name)
             self.children[step.name].options = {'Go to %s'%step.name: (goto_option(step.name))}
-            self.children[step.name].options['Open switch panel'] = switch_option(step)
+            self.children[step.name].options['Move up'] = move_up_option(step.name)
+            self.children[step.name].options['Move down'] = move_down_option(step.name)
+
             for channel in step.state:
                 if channel not in self.channels:
                     self.channels.append(channel)
 
         self.steps = params['steps']
         self.cycle_time = 0
-
         self.current_step = None
 
     def get_time(self, step):
@@ -85,6 +90,27 @@ class Sequencer(Thing):
         else:
             log.warning('Invalid timestep specified.')
             return -1
+
+    def move(self, step, n):
+        ''' Moves the passed step (integer or string) n places to the left (negative n)
+            or right (positive n). '''
+        step = self.get_step(step)
+        ''' get integer place '''
+        i = 0
+        for s in self.steps:
+            if s.name == step.name:
+                break
+            i += 1
+        self.steps.insert(i+n, self.steps.pop(i))
+
+        ''' Move in NetworkPanel '''
+        input_node = self.children[step.name]
+        input_node.leaf.move(n)
+
+        ''' Redraw grid '''
+        if hasattr(self, 'grid'):
+            self.grid.redraw()
+
 
     def form_stream(self, dt=1e-4):
         ''' Prepare a dataframe representing the streamed switch states '''

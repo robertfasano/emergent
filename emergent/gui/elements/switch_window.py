@@ -106,27 +106,53 @@ class GridWindow(QWidget):
             layout.addWidget(QLabel(switch), row, 0)
             row += 1
 
-        ''' Create step labels '''
-        col = 1
+        ''' Create step elements '''
+
+        self.grid_layout = layout
+
+        self.draw()
+
+    def draw(self):
         self.labels = {}
         self.step_edits = {}
-        for step in self.sequencer.steps:
-            self.labels[step.name] = BoldLabel(step.name)
-            layout.addWidget(self.labels[step.name], 0, col)
-            self.step_edits[step.name] = StepEdit(step.name, str(self.sequencer.state[step.name]), self.sequencer)
-            layout.addWidget(self.step_edits[step.name], 1, col)
-            col += 1
-
-        ''' Create checkboxes '''
+        self.checkboxes = {}
         col = 1
         for step in self.sequencer.steps:
-            row = 2
-            for switch in self.sequencer.parent.switches:
-                layout.addWidget(StateCheckbox(step, switch, self.sequencer), row, col)
-                row += 1
+            self.add_step(step.name, col)
             col += 1
-
         self.bold_active_step()
+
+    def redraw(self):
+        for step in self.labels:
+            self.remove_step(step)
+        self.draw()
+
+    def add_step(self, step, col):
+        step = self.sequencer.get_step(step)
+        ''' Add label and edit '''
+        self.labels[step.name] = BoldLabel(step.name)
+        self.grid_layout.addWidget(self.labels[step.name], 0, col)
+        self.step_edits[step.name] = StepEdit(step.name, str(self.sequencer.state[step.name]), self.sequencer)
+        self.grid_layout.addWidget(self.step_edits[step.name], 1, col)
+
+        ''' Add checkboxes '''
+        row = 2
+        self.checkboxes[step.name] = {}
+        for switch in self.sequencer.parent.switches:
+            box = StateCheckbox(step, switch, self.sequencer)
+            self.grid_layout.addWidget(box, row, col)
+            self.checkboxes[step.name][switch] = box
+            row += 1
+
+    def remove_step(self, step):
+        remove = [self.labels[step], self.step_edits[step]]
+        for switch in self.sequencer.parent.switches:
+            remove.append(self.checkboxes[step][switch])
+        for widget in remove:
+            self.grid_layout.removeWidget(widget)
+            widget.deleteLater()
+
+        ''' Move all further columns back by one '''
 
     def bold_active_step(self):
         for step in self.sequencer.steps:

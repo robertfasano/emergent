@@ -333,10 +333,14 @@ class NodeWidget(QTreeWidgetItem):
     def __init__(self, node):
         super().__init__([node.name])
         self.node = node
+        self.node.leaf = self
         self.root = self.get_root()
 
         if self.node.node_type == 'hub' and hasattr(self.node, 'signal'):
             self.node.signal.connect(self.onActuateSignal)
+        if self.node.node_type == 'thing':
+            self.node.create_signal.connect(self.onCreateSignal)
+            self.node.remove_signal.connect(self.onRemoveSignal)
 
         elif self.node.node_type == 'input':
             name = self.node.name
@@ -383,3 +387,25 @@ class NodeWidget(QTreeWidgetItem):
 
     def updateStateText(self, state):
         self.setText(1, str('%.2f'%state))
+
+    def onCreateSignal(self, d):
+        if self.node == d['thing']:
+            child_item = NodeWidget(d['thing'].children[d['input']])
+            self.addChild(child_item)
+
+    def onRemoveSignal(self, d):
+        if self.node == d['thing']:
+            child_item = self.node.children[d['input']].leaf
+            self.removeChild(child_item)
+
+    def move(self, n):
+        ''' Moves the NodeWidget n steps up (negative n) or down (positive n)
+            in the tree '''
+        current_index = self.parent().indexOfChild(self)
+        if current_index == 0 and n < 0:
+            return
+        if current_index == self.parent().childCount()-1 and n > 0:
+            return
+        parent = self.parent()
+        parent.takeChild(current_index)
+        parent.insertChild(current_index+n, self)
