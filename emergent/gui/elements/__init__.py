@@ -9,4 +9,4 @@ from emergent.gui.elements.NetworkPanel import NodeTree
 from emergent.gui.elements.main_window import MainWindow
 from emergent.gui.elements.launcher import Launcher
 from emergent.gui.elements.creator import Creator
-from emergent.gui.elements.switch_window import SwitchWindow, GridWindow
+from emergent.gui.elements.switch_window import GridWindow

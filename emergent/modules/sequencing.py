@@ -8,7 +8,7 @@ import pandas as pd
 import numpy as np
 import json
 from emergent.modules import Thing
-from emergent.gui.elements import SwitchWindow, GridWindow
+from emergent.gui.elements import GridWindow
 
 class Timestep():
     ''' A container for state representation of many switches at a given time. '''
@@ -139,10 +139,6 @@ class Sequencer(Thing):
         if not hasattr(self, 'grid'):
             self.grid = GridWindow(self)
         self.grid.show()
-
-    def open_switch_panel(self, step):
-        self.sw = SwitchWindow(step)
-        self.sw.show()
 
     def prepare(self):
         ''' Parse the sequence into the proper form to send to the LabJack.

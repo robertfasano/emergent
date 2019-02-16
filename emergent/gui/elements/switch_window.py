@@ -39,21 +39,6 @@ class StateCheckbox(QCheckBox):
             if self.timestep.name == self.sequencer.current_step:
                 self.sequencer.goto(self.timestep.name)
 
-
-class SwitchWindow(QWidget):
-    def __init__(self, timestep):
-        super(SwitchWindow, self).__init__(None)
-        layout = QGridLayout()
-        self.setLayout(layout)
-        self.picklable = False
-        self.checkboxes = {}
-        row = 0
-        for ch in timestep.state:
-            layout.addWidget(QLabel(ch), row, 0)
-            self.checkboxes[ch] = StateCheckbox(timestep, ch, None)
-            layout.addWidget(self.checkboxes[ch], row, 1)
-            row += 1
-
 class StepEdit(QLineEdit):
     def __init__(self, name, text, sequencer):
         super().__init__(text)
