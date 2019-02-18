@@ -92,6 +92,44 @@ class Sequencer(Thing):
             log.warning('Invalid timestep specified.')
             return -1
 
+    def add_step(self, name, duration = 0):
+        ''' Creates a new step with default TTL off state. '''
+        state = {}
+        for switch in self.parent.switches:
+            state[switch] = 0
+        step = Timestep(name, duration, state)
+        self.steps.append(step)
+
+        goto_option = lambda s: lambda: self.goto(s)
+        move_down_option = lambda s: lambda: self.move(s, 1)
+        move_up_option = lambda s: lambda: self.move(s, -1)
+        self.add_input(step.name)
+        self.children[step.name].options = {'Go to %s'%step.name: (goto_option(step.name))}
+        self.children[step.name].options['Move up'] = move_up_option(step.name)
+        self.children[step.name].options['Move down'] = move_down_option(step.name)
+        self.parent.actuate({'sequencer': {step.name: 0}})
+
+        ''' Redraw grid '''
+        if hasattr(self, 'grid'):
+            self.grid.redraw()
+
+    def remove_step(self, name):
+        ''' Removes a step '''
+
+        ''' Remove from class list '''
+        i = 0
+        for step in self.steps:
+            if step.name == name:
+                del self.steps[i]
+                break
+            i += 1
+
+        ''' Remove from inputs '''
+        self.remove_input(name)
+        
+        ''' Redraw grid '''
+        if hasattr(self, 'grid'):
+            self.grid.redraw()
     def move(self, step, n):
         ''' Moves the passed step (integer or string) n places to the left (negative n)
             or right (positive n). '''

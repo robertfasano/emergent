@@ -1,6 +1,6 @@
 
-from PyQt5.QtWidgets import (QComboBox, QLabel, QVBoxLayout, QLineEdit, QLayout, QScrollArea,
-        QWidget, QCheckBox, QHBoxLayout, QTabWidget, QGridLayout, QMenu, QAction, QTreeWidget, QTreeWidgetItem)
+from PyQt5.QtWidgets import (QApplication, QComboBox, QLabel, QVBoxLayout, QLineEdit, QLayout, QScrollArea,
+        QWidget, QCheckBox, QHBoxLayout, QTabWidget, QGridLayout, QMenu, QAction, QTreeWidget, QTreeWidgetItem, QSizePolicy)
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from emergent.gui.elements.ParameterTable import ParameterTable
@@ -69,6 +69,9 @@ class GridWindow(QWidget):
         with open('gui/stylesheet.txt', "r") as file:
             self.setStyleSheet(file.read())
         self.setWindowTitle('Timing grid')
+        self.setObjectName('timingGrid')
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding);
+
         self.sequencer = sequencer
         self.sequencer.parent.signal.connect(self.actuate)
         self.picklable = False
@@ -77,8 +80,8 @@ class GridWindow(QWidget):
         self.setLayout(self.layout)
 
         self.widget = QWidget()
-        layout = QGridLayout()
-        self.widget.setLayout(layout)
+        self.grid_layout = QGridLayout()
+        self.widget.setLayout(self.grid_layout)
         # self.scrollArea = QScrollArea()
         # self.scrollArea.setWidgetResizable(True)
         # self.scrollArea.setWidget(self.widget)
@@ -88,12 +91,8 @@ class GridWindow(QWidget):
         ''' Create switch labels '''
         row = 2
         for switch in self.sequencer.parent.switches:
-            layout.addWidget(QLabel(switch), row, 0)
+            self.grid_layout.addWidget(QLabel(switch), row, 0)
             row += 1
-
-        ''' Create step elements '''
-
-        self.grid_layout = layout
 
         self.draw()
 
@@ -111,6 +110,8 @@ class GridWindow(QWidget):
         for step in self.labels:
             self.remove_step(step)
         self.draw()
+        QApplication.processEvents()        # determine new minimumSize
+        self.resize(self.minimumSize())
 
     def add_step(self, step, col):
         step = self.sequencer.get_step(step)
