@@ -13,6 +13,7 @@ from emergent.utilities.networking import get_address
 from emergent.utilities.testing import Timer
 from emergent.modules import ProcessHandler
 from emergent.protocols.tick import TICKClient
+from emergent.gui.elements import ThingCreator
 
 class Client():
     ''' The Client class, along with the Server class in server.py, handles communication
@@ -240,6 +241,10 @@ class Network():
                 self.params[hub] = {}
             for thing in params[hub]:
                 self.params[hub][thing] = params[hub][thing]
+
+    def add_thing(self):
+        self.thing_creator = ThingCreator(self)
+        self.thing_creator.show()
 
     def initialize(self):
         ''' Import the network.py file for the user-specified network and runs

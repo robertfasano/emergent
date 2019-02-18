@@ -28,7 +28,12 @@ class ParameterTable(QTableWidget):
         for row in range(self.rowCount()):
             name = self.item(row, 0).text()
             value = self.item(row, 1).text()
-            params[name] = float(value)
+            if value == '[]':
+                params[name] = []
+            elif value == 'None':
+                params[name] = None
+            else:
+                params[name] = float(value)
         return params
 
     def set_parameters(self, params):

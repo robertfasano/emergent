@@ -67,6 +67,9 @@ class MainWindow(QMainWindow):
         self.create_menu_action(self.network_menu,
                                 'Save state',
                                 self.network.save)
+        self.create_menu_action(self.network_menu,
+                                'New Thing',
+                                self.network.add_thing)
         self.create_menu_action(self.algorithm_menu,
                                 'Save parameters',
                                 lambda: self.experiment_panel.save_params(self.experiment_panel.panel, 'algorithm'))
