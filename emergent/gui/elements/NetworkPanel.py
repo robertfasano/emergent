@@ -144,6 +144,14 @@ class NodeTree(QTreeWidget):
             for input in state[thing]:
                 self.get_input(hub, thing, input).updateStateText(state[thing][input])
 
+    def add_node(self, parent, node):
+        leaf = NodeWidget(node)
+        parent.addChild(leaf)
+        return leaf
+
+    def add_thing(self, hub, thing):
+        self.add_node(hub.leaf, thing)
+
     def close_editor(self):
         ''' Disable editing after the user clicks another node. '''
         try:
@@ -173,7 +181,7 @@ class NodeTree(QTreeWidget):
 
     def generate(self, network):
         ''' Adds the passed network to the tree. If any hubs are already registered with the tree,
-            instead updates their state based on the past network. '''
+            instead updates their state based on the passed network. '''
         for hub in network.hubs.values():
             if self.get_hub(hub.name) is not None:
                 self.actuate(hub.name, hub.state)
@@ -181,11 +189,9 @@ class NodeTree(QTreeWidget):
             root = NodeWidget(hub)
             self.insertTopLevelItems(self.topLevelItemCount(), [root])
             for thing in hub.children.values():
-                branch = NodeWidget(thing)
-                root.addChild(branch)
+                branch = self.add_node(root, thing)
                 for input in thing.children.values():
-                    leaf = NodeWidget(input)
-                    branch.addChild(leaf)
+                    leaf = self.add_node(branch, input)
             self.actuate(hub.name, hub.state)       # update tree to current hub state
             self.expand('hub')
             self.expand('thing')
@@ -345,8 +351,14 @@ class NodeWidget(QTreeWidgetItem):
         elif self.node.node_type == 'input':
             name = self.node.name
             thing = self.node.parent.name
-            self.setText(2, str(self.root.settings[thing][name]['min']))
-            self.setText(3,str(self.root.settings[thing][name]['max']))
+            try:
+                self.setText(2, str(self.root.settings[thing][name]['min']))
+            except KeyError:
+                self.setText(2, '0')
+            try:
+                self.setText(3,str(self.root.settings[thing][name]['max']))
+            except KeyError:
+                self.setText(3, '1')
 
         if hasattr(self.node, 'tooltip'):
             self.setToolTip(0, self.node.tooltip)
