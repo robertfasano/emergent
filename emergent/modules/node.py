@@ -31,6 +31,7 @@ from emergent.utilities import recommender
 from emergent.utilities.signals import DictSignal
 from emergent.utilities.buffers import StateBuffer, MacroBuffer
 from emergent.utilities.networking import get_address
+from emergent.utilities.commandline import get_hub
 
 class Node():
     ''' The Node class is the core building block of the EMERGENT network,
@@ -41,6 +42,7 @@ class Node():
         ''' Initializes a Node with a name and optionally registers
             to a parent. '''
         self.name = name
+        self.display_name = name
         self.children = {}
         if parent is not None:
             self.register(parent)
@@ -63,6 +65,7 @@ class Node():
         self.parent = parent
         parent.children[self.name] = self
 
+
 class Input(Node):
     ''' Input nodes represent physical variables which may affect the outcome of
         an experiment, such as laser frequency or beam alignment. '''
@@ -75,9 +78,45 @@ class Input(Node):
             name (str): node name. Nodes which share a Thing should have unique names.
             parent (str): name of parent Thing.
         """
+        # self._name_ = name
+        # hub = parent.parent
+        # if parent._name_ in hub.renaming:
+        #     if name in hub.renaming[parent._name_]['inputs']:
+        #         name = hub.renaming[parent._name_]['inputs'][name]['name']
         super().__init__(name, parent=parent)
         self.state = None
         self.node_type = 'input'
+
+
+
+    def rename(self, name):
+        ''' Update Thing '''
+        thing = self.parent
+        hub = self.parent.parent
+        thing.rename_input(self, name)
+        hub.rename_input(self, name)
+        self.display_name = name
+        self.leaf.setText(0, name)
+
+    def __getstate__(self):
+        ''' When the pickle module attempts to serialize this node to file, it
+            calls this method to obtain a dict to serialize. We intentionally omit
+            any unpicklable objects from this dict to avoid errors. '''
+        d = {}
+        ignore = ['parent', 'root', 'leaf']
+        unpickled = []
+        for item in ignore:
+            if hasattr(self, item):
+                unpickled.append(getattr(self, item))
+
+        for item in self.__dict__:
+            obj = getattr(self, item)
+            if hasattr(obj, 'picklable'):
+                if not obj.picklable:
+                    continue
+            if self.__dict__[item] not in unpickled:
+                d[item] = self.__dict__[item]
+        return d
 
 class Thing(Node):
     ''' Things represent apparatus which can control the state of Input
@@ -105,9 +144,16 @@ class Thing(Node):
             self.params[p] = network_params[p]
         if 'name' in self.params:
             name = self.params['name']
+
+
+        # ''' Rename from hub dictionary '''
+        # if name in parent.renaming:
+        #     name = parent.renaming[name]['name']
+
         super().__init__(name, parent=parent)
         self._connected = 0
         self.state = {}
+        # self.state = State()
 
         self.parent.state[self.name] = {}
         self.parent.settings[self.name] = {}
@@ -169,6 +215,14 @@ class Thing(Node):
         del self.state[name]
         del self.parent.state[self.name][name]
 
+    def rename_input(self, node, name):
+        self.state[name] = self.state.pop(node.display_name)
+        self.children[name] = self.children.pop(node.display_name)
+        self._rename_input(node, name)
+
+    def _rename_input(self, node, name):
+        ''' Reimplement if any class-specific tasks need to be done when renaming
+            children '''
 
     def _actuate(self, state):
         """Private placeholder for the thing-specific driver.
@@ -191,14 +245,31 @@ class Thing(Node):
         """Private placeholder for the thing-specific initiation method. """
         return 1
 
+    def _translate(self, state):
+        ''' Convert a state with display names into a state with original names. '''
+        new_state = {}
+        for display_name in state:
+            for node in self.children.values():
+                if node.display_name == display_name:
+                    new_state[node.name] = state[display_name]
+
+        return new_state
+
     def actuate(self, state):
         """Makes a physical thing change in the lab with the _actuate() method, then registers this change with EMERGENT.
 
         Args:
             state (dict): Target state of the form {'param1':value1, 'param2':value2,...}.
         """
-
-        self._actuate(state)
+        ''' Translate to original input names to send to driver '''
+        # print(state)
+        # for input_name in state:
+        #     input = self.children[input_name]
+        #     if input_name != input._name_:
+        #         state[input._name_] = state.pop(input.name)
+        # print(state)
+        translated_state = self._translate(state)
+        self._actuate(translated_state)
         self.update(state)
         self.signal.emit(state)
 
@@ -265,9 +336,14 @@ class Hub(Node):
         ''' Establish switch interface '''
         self.switches = {}
 
+        self.options['Fill commandline'] = lambda: get_hub(self.name, self.network)
+
+
+        # self.renaming = {'MEMS': {'name': 'mems', 'inputs':{'X': {'name': 'x'}}}}
+
     def __getstate__(self):
         d = {}
-        ignore = ['root', 'watchdogs', 'samplers', 'network', 'leaf']
+        ignore = ['root', 'watchdogs', 'samplers', 'network', 'leaf', 'children', 'options']
         ignore.extend(self.ignored)
         unpickled = []
         for item in ignore:
@@ -312,13 +388,11 @@ class Hub(Node):
                     locked = locked and c          # check the watchdog state
                     states[w.name] = w.value
             ''' Here, add overall watchdog state to a queue to write to the database '''
-            self.network.database.write(states, measurement = 'watchdog')
+            # self.network.database.write(states, measurement = 'watchdog')
             if not block:
                 return
             if not locked:
                 time.sleep(0.1)
-
-
 
         return
 
@@ -334,17 +408,24 @@ class Hub(Node):
                 state = json.load(file)
         except FileNotFoundError:
             state = {}
+
         for thing in self.children.values():
-            for input in thing.children.values():
+            thing_children = list(thing.children.values())
+            for input in thing_children:
                 try:
-                    self.state[thing.name][input.name] = state[thing.name][input.name]['state']
-                    self.settings[thing.name][input.name] = {}
+                    if 'display name' in state[thing.name][input.name]:
+                        display_name = state[thing.name][input.name]['display name']
+                        self.children[thing.name].children[input.name].display_name = display_name
+                        self.children[thing.name].children[display_name] = self.children[thing.name].children.pop(input.name)
+                        self.children[thing.name].state[display_name] = self.children[thing.name].state.pop(input.name)
+                    self.state[thing.name][input.display_name] = state[thing.name][input.name]['state']
+                    self.settings[thing.name][input.display_name] = {}
                     for setting in ['min', 'max']:
-                        self.settings[thing.name][input.name][setting] = state[thing.name][input.name][setting]
-                except Exception:
-                    self.state[thing.name][input.name] = 0
-                    self.settings[thing.name][input.name] = {'min': 0, 'max': 1}
-                    log.warning('Could not find csv for input %s; creating new settings.', input.name)
+                        self.settings[thing.name][input.display_name][setting] = state[thing.name][input.name][setting]
+                except Exception as e:
+                    self.state[thing.name][input.display_name] = 0
+                    self.settings[thing.name][input.display_name] = {'min': 0, 'max': 1}
+                    log.warning('Could not find csv for input %s; creating new settings.', input.display_name)
 
     def optimize(self, state, experiment_name, threaded=True, skip_lock_check=False):
         ''' Launch an optimization. '''
@@ -378,17 +459,23 @@ class Hub(Node):
         self.enable_watchdogs(True)
         sampler.active = False
 
+    def rename_input(self, node, name):
+        thing = node.parent
+        self.state[thing.name][name] = self.state[thing.name].pop(node.display_name)
+        self.settings[thing.name][name] = self.settings[thing.name].pop(node.display_name)
+
     def save(self):
         ''' Save input states to file. '''
         state = {}
         for thing in self.state:
             state[thing] = {}
             for input in self.state[thing]:
-                state[thing][input] = {}
-                state[thing][input]['state'] = self.state[thing][input]
-                state[thing][input]['min'] = self.settings[thing][input]['min']
-                state[thing][input]['max'] = self.settings[thing][input]['max']
-
+                node = self.children[thing].children[input]
+                state[thing][node.name] = {}
+                state[thing][node.name]['state'] = self.state[thing][input]
+                state[thing][node.name]['min'] = self.settings[thing][input]['min']
+                state[thing][node.name]['max'] = self.settings[thing][input]['max']
+                state[thing][node.name]['display name'] = self.children[thing].children[input].display_name
         with open(self.network.path['state']+self.name+'.json', 'w') as file:
             json.dump(state, file)
 

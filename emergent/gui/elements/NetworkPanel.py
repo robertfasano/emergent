@@ -140,9 +140,11 @@ class NodeTree(QTreeWidget):
 
     def actuate(self, hub, state):
         hub_item = self.get_hub(hub)
-        for thing in state:
-            for input in state[thing]:
-                self.get_input(hub, thing, input).updateStateText(state[thing][input])
+        for thing_name in state:
+            thing = self.get_thing(hub, thing_name)
+            translated_state = thing.node._translate(state[thing_name])
+            for input in state[thing_name]:
+                self.get_input(hub, thing_name, input).updateStateText(state[thing_name][input])
 
     def add_node(self, parent, node):
         leaf = NodeWidget(node)
@@ -259,7 +261,7 @@ class NodeTree(QTreeWidget):
             thing = input.parent
             if thing.name not in state:
                 state[thing.name] = {}
-            state[thing.name][input.name] = input.state
+            state[thing.name][input.display_name] = input.state
 
         return state
 
@@ -286,8 +288,7 @@ class NodeTree(QTreeWidget):
 
             hub_name = self.current_item.parent().parent().text(0)
             hub = self.current_item.node.parent.parent
-            # hub = self.network.hubs[hub_name]
-            input = self.current_item.node.name
+            input = self.current_item.node.display_name
             thing = self.current_item.node.parent.name
             if col == 1:
                 state = {thing:{input: float(value)}}
@@ -337,7 +338,7 @@ class NodeTree(QTreeWidget):
 
 class NodeWidget(QTreeWidgetItem):
     def __init__(self, node):
-        super().__init__([node.name])
+        super().__init__([node.display_name])
         self.node = node
         self.node.leaf = self
         self.root = self.get_root()

@@ -126,10 +126,18 @@ class Sequencer(Thing):
 
         ''' Remove from inputs '''
         self.remove_input(name)
-        
+
         ''' Redraw grid '''
         if hasattr(self, 'grid'):
             self.grid.redraw()
+
+    def _rename_input(self, node, name):
+        for step in self.steps:
+            if step.name == node.name:
+                step.name = name
+        if hasattr(self, 'grid'):
+            self.grid.redraw()
+
     def move(self, step, n):
         ''' Moves the passed step (integer or string) n places to the left (negative n)
             or right (positive n). '''

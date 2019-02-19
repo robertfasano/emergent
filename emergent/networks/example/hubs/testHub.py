@@ -23,8 +23,9 @@ class TestHub(Hub):
         @experiment
         def transmitted_power(self, state, params = {'sigma_x': 0.3, 'sigma_y': 0.8, 'x0': 0.3, 'y0': 0.6, 'noise':0, 'delay': 0.5}):
             self.actuate(state)
-            x=self.state['MEMS']['X']
-            y=self.state['MEMS']['Y']
+            state = {'MEMS': self.children['MEMS']._translate(state['MEMS'])}
+            x=state['MEMS']['X']
+            y=state['MEMS']['Y']
             x0 = params['x0']
             y0 = params['y0']
             sigma_x = params['sigma_x']
@@ -36,9 +37,10 @@ class TestHub(Hub):
         @experiment
         def rotated_gaussian(self, state, params = {'theta': 45, 'sigma_x': 0.3, 'sigma_y': 0.8, 'x0': 0.3, 'y0': 0.6, 'noise':0, 'delay': 0.5}):
             self.actuate(state)
+            state = self.children['MEMS']._translate(state)
             theta = params['theta'] * np.pi / 180
-            x=np.cos(theta)*self.state['MEMS']['X']-np.sin(theta)*self.state['MEMS']['Y']
-            y=np.sin(theta)*self.state['MEMS']['X']+np.cos(theta)*self.state['MEMS']['X']
+            x=np.cos(theta)*state['MEMS']['X']-np.sin(theta)*state['MEMS']['Y']
+            y=np.sin(theta)*state['MEMS']['X']+np.cos(theta)*state['MEMS']['X']
             x0 = params['x0']
             y0 = params['y0']
             sigma_x = params['sigma_x']
