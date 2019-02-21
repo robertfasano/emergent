@@ -65,7 +65,11 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         self.model_panel = ModelLayout(self)
         self.model_tab.setLayout(self.model_panel)
         self.model_tab.setStyleSheet('background-color: rgba(255, 255, 255, 50%)')
+<<<<<<< HEAD
         self.tab_widget.addTab(self.model_tab, 'Model')
+=======
+        self.tab_widget.addTab(self.model_tab, 'Modeling')
+>>>>>>> 24ea444c77020390c5cc550fb7cc1a2f35fe92f5
 
         self.update_panel()
 
@@ -175,6 +179,7 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
                 self.tab_widget.addTab(self.servo_tab, 'Servo')
 
         ''' Show/hide optimize tab if we do/don't have inputs selected '''
+<<<<<<< HEAD
         # index = self.tab_widget.indexOf(self.optimize_tab)
         # state = self.parent.tree_widget.get_selected_state()
         # if len(state) == 0:
@@ -182,6 +187,15 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         # else:
         #     if index == -1:
         #         self.tab_widget.addTab(self.optimize_tab, 'Optimize')
+=======
+        index = self.tab_widget.indexOf(self.optimize_tab)
+        state = self.parent.tree_widget.get_selected_state()
+        if len(state) == 0:
+            self.tab_widget.removeTab(self.tab_widget.indexOf(self.optimize_tab))
+        else:
+            if index == -1:
+                self.tab_widget.addTab(self.optimize_tab, 'Optimize')
+>>>>>>> 24ea444c77020390c5cc550fb7cc1a2f35fe92f5
 
     def update_hub(self):
         hub = self.parent.tree_widget.currentItem().root
@@ -307,8 +321,11 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
             settings['algorithm'] = self.get_algorithm(settings['algorithm_name'], panel)
             settings['algorithm'].set_params(settings['algorithm_params'])
             name = settings['algorithm_name']
+<<<<<<< HEAD
             if 'end at' in settings:
                 settings['algorithm'].end_at = settings['end at']
+=======
+>>>>>>> 24ea444c77020390c5cc550fb7cc1a2f35fe92f5
         else:
             settings['algorithm'] = None
             settings['algorithm_params'] = None

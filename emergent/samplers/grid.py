@@ -1,6 +1,7 @@
 from emergent.utilities.containers import Parameter
 import numpy as np
 from emergent.utilities.plotting import plot_2D
+<<<<<<< HEAD
 from emergent.samplers.sampling import Sampling
 
 class GridSampling(Sampling):
@@ -8,6 +9,15 @@ class GridSampling(Sampling):
         ''' Define default parameters '''
         super().__init__(sampler)
         self.name = 'GridSampling'
+=======
+
+class GridSampling():
+    def __init__(self, sampler = None):
+        ''' Define default parameters '''
+        self.name = 'GridSampling'
+        self.sampler = sampler
+        self.params = {}
+>>>>>>> 24ea444c77020390c5cc550fb7cc1a2f35fe92f5
         self.params['Steps'] = Parameter(name= 'Steps',
                                             value = 20,
                                             min = 5,
@@ -19,7 +29,12 @@ class GridSampling(Sampling):
                                             max = 10,
                                             description = 'Number of sweeps to do')
 
+<<<<<<< HEAD
     def _run(self, state):
+=======
+
+    def run(self, state, go_to_best = False):
+>>>>>>> 24ea444c77020390c5cc550fb7cc1a2f35fe92f5
         ''' Performs a uniformly-spaced sampling of the cost function in the
             space spanned by the passed-in state dict. '''
         arr, bounds = self.sampler.prepare(state)
@@ -40,3 +55,23 @@ class GridSampling(Sampling):
                 c = self.sampler._cost(point)
 
                 self.costs = np.append(self.costs, c)
+<<<<<<< HEAD
+=======
+
+        if go_to_best:
+            best_point = self.sampler.array2state(self.points[np.argmin(self.costs)])
+            self.sampler._cost(best_point)
+
+        ''' If a model has been attached to the sampler, fit it now '''
+        if self.sampler.model is not None:
+            self.sampler.model.append(self.points, self.costs)
+            self.sampler.model.fit()
+        return self.points, self.costs
+
+    def set_params(self, params):
+        for p in params:
+            self.params[p].value = params[p]
+
+    def plot(self):
+        return plot_2D(self.points, -self.costs, limits=self.sampler.get_limits())
+>>>>>>> 24ea444c77020390c5cc550fb7cc1a2f35fe92f5

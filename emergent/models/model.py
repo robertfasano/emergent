@@ -1,18 +1,24 @@
 import numpy as np
 from scipy.optimize import minimize
 from emergent.utilities.plotting import plot_2D
+<<<<<<< HEAD
 from emergent.utilities.containers import Parameter
 
+=======
+>>>>>>> 24ea444c77020390c5cc550fb7cc1a2f35fe92f5
 
 class Model():
     def __init__(self, name=None):
         self.name = name
         self.params = {}
+<<<<<<< HEAD
         self.params['Leash'] = Parameter(name= 'Leash',
                                             value = 0.25,
                                             min = 0.01,
                                             max = 0.25,
                                             description = 'Allowed search range relative to last best point')
+=======
+>>>>>>> 24ea444c77020390c5cc550fb7cc1a2f35fe92f5
 
     def append(self, point, cost):
         self.points = np.append(np.atleast_2d(self.points), np.atleast_2d(point), axis=0)
@@ -28,9 +34,12 @@ class Model():
     def fit(self):
         return
 
+<<<<<<< HEAD
     def minimum(self):
         return self.next_sample(1)
 
+=======
+>>>>>>> 24ea444c77020390c5cc550fb7cc1a2f35fe92f5
     def next_sample(self, b, restarts=25):
         ''' Generates the next sampling point by minimizing cost on the virtual
             response surface. '''
