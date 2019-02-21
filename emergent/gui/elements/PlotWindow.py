@@ -129,11 +129,12 @@ class PlotWidget(QWidget):
         if len(inputs) == 2 and self.sampler.algorithm is not None:
             self.tab_algo = QWidget()
             fig = self.sampler.algorithm.plot()
-            self.tabs.addTab(self.tab_algo, '2D')
-            self.canvas_algorithm = Canvas(fig, self)
-            self.tab_algo_layout = QVBoxLayout(self.tab_algo)
-            self.tab_algo_layout.addWidget(self.canvas_algorithm)
-            self.canvas_algorithm.draw()
+            if fig is not None:
+                self.tabs.addTab(self.tab_algo, '2D')
+                self.canvas_algorithm = Canvas(fig, self)
+                self.tab_algo_layout = QVBoxLayout(self.tab_algo)
+                self.tab_algo_layout.addWidget(self.canvas_algorithm)
+                self.canvas_algorithm.draw()
 
         if len(inputs) == 2 and self.sampler.model is not None:
             self.tab_model = QWidget()

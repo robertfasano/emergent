@@ -30,3 +30,6 @@ class RandomSampling(Sampling):
                 return self.points[0:len(self.costs)], self.costs
             c = self.sampler._cost(point)
             self.costs = np.append(self.costs, c)
+
+    def plot(self):
+        return None
