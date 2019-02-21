@@ -13,7 +13,7 @@ from emergent.utilities.plotting import plot_1D
 
 class Sampler():
     ''' General methods '''
-    def __init__(self, name, state, hub, experiment, experiment_params, algorithm=None, algorithm_params={}, t=None):
+    def __init__(self, name, state, hub, experiment, experiment_params, algorithm=None, algorithm_params={}, model = None, t=None):
         ''' Initialize the sampler and link to the parent Hub. '''
         self.name = name
         self.state = state
@@ -28,6 +28,9 @@ class Sampler():
         if self.algorithm is not None:
             self.algorithm.sampler = self
         self.algorithm_params = algorithm_params
+        self.model = model
+        self.skip_lock_check = False           # if True, experiments will disregard watchdog state
+
 
         self.actuate = self.hub.actuate
         self.active = True        # a boolean allowing early termination through the callback method
@@ -35,9 +38,9 @@ class Sampler():
         self.result = None
         self.start_time = t
         self.hub.macro_buffer.add(self.hub.state)   # save initial state to buffer
-        self.skip_lock_check = False           # if True, experiments will disregard watchdog state
         self.prepare(self.state)
-
+        if self.model is not None:
+            self.model.prepare(self)
     def __getstate__(self):
         d = {}
         d['experiment_name'] = self.experiment.__name__

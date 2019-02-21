@@ -2,6 +2,7 @@ from emergent.utilities.containers import Parameter
 from emergent.utilities.decorators import algorithm
 import numpy as np
 from emergent.utilities.plotting import plot_2D
+from emergent.samplers.grid import GridSampling
 
 class GridSearch():
     def __init__(self):
@@ -27,8 +28,15 @@ class GridSearch():
         self.points, self.costs = self.sampler.grid_sampling(state, self.params['Steps'].value, sweeps = self.params['Sweeps'].value)
 
         best_point = self.sampler.array2state(self.points[np.argmin(self.costs)])
-        # self.sampler.actuate(self.sampler.unnormalize(best_point))
         self.sampler._cost(best_point)
+
+    # @algorithm
+    # def run(self, state):
+    #     sampler = GridSampling(self.sampler)
+    #     sampler.set_params(self.params)
+    #     self.points, self.costs = sampler.run(state)
+    #     best_point = self.sampler.array2state(self.points[np.argmin(self.costs)])
+    #     self.sampler._cost(best_point)
 
     def set_params(self, params):
         for p in params:

@@ -28,40 +28,60 @@ def get_default_algorithm(hub, experiment_name):
     with open(params_filename, 'r') as file:
         params = json.load(file)
     try:
-        return get_algorithm(params['algorithm']['default'])
+        return get_class('algorithm', params['algorithm']['default'])
     except KeyError:
         save_default_algorithm(hub, experiment_name, 'GridSearch')
-        return get_algorithm('GridSearch')
+        return get_class('algorithm', 'GridSearch')
 
 
-def get_default_algorithm_params(name):
-    instance = get_algorithm(name)
+# def get_default_algorithm_params(name):
+#     instance = get_algorithm(name)
+#     params = instance.params
+#     algo_params = {}
+#     for p in params:
+#         algo_params[p] = params[p].value
+#
+#     return algo_params
+#
+# def get_default_model_params(name):
+#     instance = get_model(name)
+#     params = instance.params
+#     model_params = {}
+#     for p in params:
+#         model_params[p] = params[p].value
+#
+#     return model_params
+#
+# def get_default_sampler_params(name):
+#     instance = get_sampler(name)
+#     params = instance.params
+#     sampler_params = {}
+#     for p in params:
+#         sampler_params[p] = params[p].value
+#
+#     return sampler_params
+
+def get_default_params(module, name):
+    module_name = {'sampler': 'samplers', 'model': 'models',
+                   'algorithm': 'optimizers', 'servo': 'servos'}[module]
+    instance = getattr(importlib.__import__(module_name), name)()
     params = instance.params
-    algo_params = {}
+    params_dict = {}
     for p in params:
-        algo_params[p] = params[p].value
+        params_dict[p] = params[p].value
 
-    return algo_params
+    return params_dict
 
-def get_algorithm(name):
-    ''' Returns an instance of an algorithm. '''
-    return getattr(importlib.__import__('optimizers'), name)()
+def get_class(module, name):
+    module_name = {'sampler': 'samplers', 'model': 'models',
+                   'algorithm': 'optimizers', 'servo': 'servos'}[module]
+    instance = getattr(importlib.__import__(module_name), name)()
+    return instance
 
-def get_default_servo_params(name):
-    instance = get_servo(name)
-    params = instance.params
-    servo_params = {}
-    for p in params:
-        servo_params[p] = params[p].value
-
-    return servo_params
-
-def get_servo(name):
-    ''' Returns an instance of a servo '''
-    return getattr(importlib.__import__('servos'), name)()
-
-def list_algorithms():
-    module = importlib.__import__('optimizers')
+def list_classes(module_type):
+    module_name = {'sampler': 'samplers', 'model': 'models',
+                   'algorithm': 'optimizers', 'servo': 'servos'}[module_type]
+    module = importlib.__import__(module_name)
     names = []
     for a in dir(module):
         if '__' not in a:
