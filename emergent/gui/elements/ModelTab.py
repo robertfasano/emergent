@@ -83,7 +83,6 @@ class ModelLayout(QVBoxLayout, ProcessHandler):
         self.parent = parent
         self.name = 'Model'
 
-<<<<<<< HEAD
         ''' Experiment select layout '''
         self.experiment_layout = QHBoxLayout()
         label = QLabel('Experiment')
@@ -103,8 +102,6 @@ class ModelLayout(QVBoxLayout, ProcessHandler):
         self.experiment_table.hide()
         self.addLayout(self.experiment_table_layout)
 
-=======
->>>>>>> 24ea444c77020390c5cc550fb7cc1a2f35fe92f5
         ''' Model select layout '''
         self.modelLayout = QHBoxLayout()
         self.model_box = QComboBox()
@@ -145,34 +142,10 @@ class ModelLayout(QVBoxLayout, ProcessHandler):
         self.algorithm_table.hide()
         self.addLayout(self.sampler_table_layout)
 
-<<<<<<< HEAD
-
-=======
-        ''' Experiment select layout '''
-        self.experiment_layout = QHBoxLayout()
-        label = QLabel('Experiment')
-        label.setStyleSheet('color:"#000000"; font-weight: light; font-family: "Exo 2"; font-size: 14px; background-color: transparent')
-        self.experiment_layout.addWidget(label)
-        self.experiment_box = QComboBox()
-        self.experiment_layout.addWidget(self.experiment_box)
-        button = QPushButton('Show/hide parameters')
-        button.clicked.connect(lambda: self.show_parameters('experiment'))
-        self.experiment_layout.addWidget(button)
-        self.addLayout(self.experiment_layout)
-
-        ''' Experiment parameters '''
-        self.experiment_table_layout = QHBoxLayout()
-        self.experiment_table = ParameterTable()
-        self.experiment_table_layout.addWidget(self.experiment_table)
-        self.experiment_table.hide()
-        self.addLayout(self.experiment_table_layout)
->>>>>>> 24ea444c77020390c5cc550fb7cc1a2f35fe92f5
-
 
         self.sampler_box.currentTextChanged.connect(lambda: self.parent.update_algorithm_and_experiment(self, update_experiment=False))
         self.experiment_box.currentTextChanged.connect(lambda: self.parent.update_algorithm_and_experiment(self))
 
-<<<<<<< HEAD
         self.gotoLayout = QHBoxLayout()
         label = QLabel('End at')
         self.gotoLayout.addWidget(label)
@@ -182,9 +155,6 @@ class ModelLayout(QVBoxLayout, ProcessHandler):
             self.goto_box.addItem(item)
         self.gotoLayout.addWidget(self.goto_box)
         self.addLayout(self.gotoLayout)
-=======
-
->>>>>>> 24ea444c77020390c5cc550fb7cc1a2f35fe92f5
 
         self.triggerLayout = QHBoxLayout()
         label = QLabel('Trigger')
@@ -236,10 +206,7 @@ class ModelLayout(QVBoxLayout, ProcessHandler):
         settings['algorithm_params'] = self.algorithm_table.get_params()
         settings['experiment_params'] = self.experiment_table.get_params()
         settings['model_params'] = self.model_table.get_params()
-<<<<<<< HEAD
         settings['end at'] = self.goto_box.currentText()
-=======
->>>>>>> 24ea444c77020390c5cc550fb7cc1a2f35fe92f5
         settings['callback'] = None
         if 'cycles per sample' not in settings['experiment_params']:
             settings['experiment_params']['cycles per sample'] = 1
