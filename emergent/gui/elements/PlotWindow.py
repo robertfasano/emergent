@@ -128,13 +128,22 @@ class PlotWidget(QWidget):
 
         if len(inputs) == 2 and self.sampler.algorithm is not None:
             self.tab_algo = QWidget()
-            self.tabs.addTab(self.tab_algo, 'Algorithm')
             fig = self.sampler.algorithm.plot()
+            self.tabs.addTab(self.tab_algo, '2D')
             self.canvas_algorithm = Canvas(fig, self)
             self.tab_algo_layout = QVBoxLayout(self.tab_algo)
             self.tab_algo_layout.addWidget(self.canvas_algorithm)
             self.canvas_algorithm.draw()
 
+        if len(inputs) == 2 and self.sampler.model is not None:
+            self.tab_model = QWidget()
+            fig = self.sampler.model.plot()
+            if fig is not None:
+                self.tabs.addTab(self.tab_model, 'Model')
+                self.canvas_model = Canvas(fig, self)
+                self.tab_model_layout = QVBoxLayout(self.tab_model)
+                self.tab_model_layout.addWidget(self.canvas_model)
+                self.canvas_model.draw()
 
         # ''' Setup auto-update '''
         # self.update_timer = QTimer(self)

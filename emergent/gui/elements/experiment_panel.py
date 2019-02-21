@@ -19,7 +19,7 @@ from PyQt5.QtWidgets import (QVBoxLayout, QWidget, QTabWidget)
 from emergent.utilities.introspection import list_errors, list_experiments, list_triggers
 from emergent.utilities import recommender
 from emergent.modules import Sampler, ProcessHandler
-from emergent.gui.elements import OptimizeLayout, ServoLayout, RunLayout, MonitorLayout
+from emergent.gui.elements import OptimizeLayout, ServoLayout, RunLayout, MonitorLayout, ModelLayout
 
 class ExperimentLayout(QVBoxLayout, ProcessHandler):
     def __init__(self, parent):
@@ -60,6 +60,12 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         monitor_tab.setStyleSheet('background-color: rgba(255, 255, 255, 50%)')
         self.tab_widget.addTab(monitor_tab, 'Monitor')
 
+        ''' Create Model tab '''
+        self.model_tab = QWidget()
+        self.model_panel = ModelLayout(self)
+        self.model_tab.setLayout(self.model_panel)
+        self.model_tab.setStyleSheet('background-color: rgba(255, 255, 255, 50%)')
+        self.tab_widget.addTab(self.model_tab, 'Modeling')
 
         self.update_panel()
 
@@ -69,20 +75,33 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         self.panel = self.tab_widget.currentWidget().layout()
 
     def get_default_params(self, name, panel):
-        return {'Optimize': recommender.get_default_algorithm_params,
-                'Servo': recommender.get_default_servo_params}[panel.name](name)
+        if panel.name == 'Optimize':
+            return recommender.get_default_params('algorithm', name)
+        elif panel.name == 'Servo':
+            return recommender.get_default_params('servo', name)
 
     def get_algorithm(self, name, panel):
-        return {'Optimize': recommender.get_algorithm,
-                'Servo': recommender.get_servo}[panel.name](name)
+        if panel.name == 'Optimize':
+            return recommender.get_class('algorithm', name)
+        elif panel.name == 'Servo':
+            return recommender.get_class('servo', name)
+        elif panel.name == 'Model':
+            return recommender.get_class('sampler', name)
 
     def get_description(self, panel, algo_name, parameter):
         params = self.get_algorithm(algo_name, panel).params
         return params[parameter].description
 
     def list_algorithms(self, panel):
-        return {'Optimize': recommender.list_algorithms,
-                'Servo': recommender.list_servos}[panel.name]()
+        if panel.name == 'Optimize':
+            return recommender.list_classes('algorithm')
+        elif panel.name == 'Servo':
+            return recommender.list_classes('servo')
+        elif panel.name == 'Model':
+            return recommender.list_classes('sampler')
+
+    def list_models(self):
+        return recommender.list_classes('model')
 
     def save_default_algorithm(self):
         if self.panel.name == 'Run':
@@ -139,7 +158,14 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
             panel.experiment_box.clear()
             for item in list_experiments(hub):
                 panel.experiment_box.addItem(item)
-
+        if hasattr(panel, 'model_box'):
+            panel.model_box.clear()
+            for m in self.list_models():
+                panel.model_box.addItem(m)
+        if hasattr(panel, 'sampler_box'):
+            panel.sampler_box.clear()
+            for s in recommender.list_classes('sampler'):
+                panel.sampler_box.addItem(s)
         ''' Show/hide servo tab based on whether the hub has any error methods'''
         index = self.tab_widget.indexOf(self.servo_tab)
         if list_errors(hub) == []:
@@ -157,9 +183,6 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
             if index == -1:
                 self.tab_widget.addTab(self.optimize_tab, 'Optimize')
 
-
-
-
     def update_hub(self):
         hub = self.parent.tree_widget.currentItem().root
         if hub == self.current_hub:
@@ -168,10 +191,16 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
             self.current_hub = hub
         self.update_hub_panel(self.optimize_panel, 'experiment', True)
         self.update_algorithm_and_experiment(self.optimize_panel)
+
         self.update_hub_panel(self.run_panel, 'experiment', False)
         self.update_experiment(self.run_panel)
+
         self.update_hub_panel(self.servo_panel, 'error', True)
         self.update_algorithm_and_experiment(self.servo_panel)
+
+        self.update_hub_panel(self.model_panel, 'experiment', False)
+        self.update_algorithm_and_experiment(self.model_panel)
+
 
     def update_experiment(self, panel):
         ''' Read default params dict from source code and insert it in self.cost_params_edit. '''
@@ -194,6 +223,9 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         if hasattr(panel, 'algorithm_box'):
             if panel.algorithm_box.currentText() == '':
                 return
+        if hasattr(panel, 'sampler_box'):
+            if panel.sampler_box.currentText() == '':
+                return
         hub = self.parent.tree_widget.currentItem().root
         experiment_name = panel.experiment_box.currentText()
         if experiment_name == '':
@@ -205,17 +237,27 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
                 panel.trigger_box.addItem(t)
 
         if update_algorithm:
-            algo_name = panel.algorithm_box.currentText()
             if panel.name == 'Optimize':
+                algo_name = panel.algorithm_box.currentText()
                 algo_params = recommender.load_algorithm_parameters(hub,
                                                                     experiment_name,
                                                                     algo_name,
+                                                                    'algorithm',
                                                                     default=default)
             elif panel.name == 'Servo':
-                algo_params = recommender.load_servo_parameters(hub,
+                algo_name = panel.algorithm_box.currentText()
+                algo_params = recommender.load_algorithm_parameters(hub,
                                                                 experiment_name,
                                                                 algo_name,
+                                                                'servo',
                                                                 default=default)
+            elif panel.name == 'Model':
+                algo_name = panel.sampler_box.currentText()
+                algo_params = recommender.load_algorithm_parameters(hub,
+                                                                    experiment_name,
+                                                                    algo_name,
+                                                                    'sampler',
+                                                                    default=default)
             panel.algorithm_table.set_parameters(algo_params)
         if update_experiment:
             exp_params = recommender.load_experiment_parameters(hub, experiment_name)
@@ -224,6 +266,11 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
             if panel.name == 'Optimize':
                 default_name = recommender.get_default_algorithm(hub, experiment_name).name
                 panel.algorithm_box.setCurrentText(default_name)
+
+        if hasattr(panel, 'model_table'):
+            model_name = panel.model_box.currentText()
+            model_params = recommender.get_default_params('model', model_name)
+            panel.model_table.set_parameters(model_params)
 
     def fill_settings_from_gui(self, panel, settings):
         gui_settings = panel.get_settings_from_gui()
@@ -252,18 +299,21 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         ''' Pull settings from the gui and fill in any missing options '''
         if load_from_gui:
             settings = self.fill_settings_from_gui(panel, settings)
-            # if settings is None:
-            #     return
+
         settings['experiment'] = getattr(settings['hub'], settings['experiment_name'])
-        if hasattr(panel, 'algorithm_box'):
-            algorithm_name = panel.algorithm_box.currentText()
-            settings['algorithm'] = self.get_algorithm(algorithm_name, panel)
+        if 'algorithm_name' in settings:
+        # if hasattr(panel, 'algorithm_box'):
+            # algorithm_name = panel.algorithm_box.currentText()
+            settings['algorithm'] = self.get_algorithm(settings['algorithm_name'], panel)
             settings['algorithm'].set_params(settings['algorithm_params'])
-            name = algorithm_name
+            name = settings['algorithm_name']
         else:
             settings['algorithm'] = None
             settings['algorithm_params'] = None
             name = 'Run'
+        settings['model'] = None
+        if 'model_name' in settings:
+            settings['model'] = recommender.get_class('model', settings['model_name'])
         t = datetime.datetime.now().strftime('%Y%m%dT%H%M')
         sampler = Sampler(name,
                           settings['state'],
@@ -272,6 +322,7 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
                           settings['experiment_params'],
                           settings['algorithm'],
                           settings['algorithm_params'],
+                          model = settings['model'],
                           t=t)
 
         ''' Create task_panel task '''

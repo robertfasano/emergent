@@ -28,40 +28,60 @@ def get_default_algorithm(hub, experiment_name):
     with open(params_filename, 'r') as file:
         params = json.load(file)
     try:
-        return get_algorithm(params['algorithm']['default'])
+        return get_class('algorithm', params['algorithm']['default'])
     except KeyError:
         save_default_algorithm(hub, experiment_name, 'GridSearch')
-        return get_algorithm('GridSearch')
+        return get_class('algorithm', 'GridSearch')
 
 
-def get_default_algorithm_params(name):
-    instance = get_algorithm(name)
+# def get_default_algorithm_params(name):
+#     instance = get_algorithm(name)
+#     params = instance.params
+#     algo_params = {}
+#     for p in params:
+#         algo_params[p] = params[p].value
+#
+#     return algo_params
+#
+# def get_default_model_params(name):
+#     instance = get_model(name)
+#     params = instance.params
+#     model_params = {}
+#     for p in params:
+#         model_params[p] = params[p].value
+#
+#     return model_params
+#
+# def get_default_sampler_params(name):
+#     instance = get_sampler(name)
+#     params = instance.params
+#     sampler_params = {}
+#     for p in params:
+#         sampler_params[p] = params[p].value
+#
+#     return sampler_params
+
+def get_default_params(module, name):
+    module_name = {'sampler': 'samplers', 'model': 'models',
+                   'algorithm': 'optimizers', 'servo': 'servos'}[module]
+    instance = getattr(importlib.__import__(module_name), name)()
     params = instance.params
-    algo_params = {}
+    params_dict = {}
     for p in params:
-        algo_params[p] = params[p].value
+        params_dict[p] = params[p].value
 
-    return algo_params
+    return params_dict
 
-def get_algorithm(name):
-    ''' Returns an instance of an algorithm. '''
-    return getattr(importlib.__import__('optimizers'), name)()
+def get_class(module, name):
+    module_name = {'sampler': 'samplers', 'model': 'models',
+                   'algorithm': 'optimizers', 'servo': 'servos'}[module]
+    instance = getattr(importlib.__import__(module_name), name)()
+    return instance
 
-def get_default_servo_params(name):
-    instance = get_servo(name)
-    params = instance.params
-    servo_params = {}
-    for p in params:
-        servo_params[p] = params[p].value
-
-    return servo_params
-
-def get_servo(name):
-    ''' Returns an instance of a servo '''
-    return getattr(importlib.__import__('servos'), name)()
-
-def list_algorithms():
-    module = importlib.__import__('optimizers')
+def list_classes(module_type):
+    module_name = {'sampler': 'samplers', 'model': 'models',
+                   'algorithm': 'optimizers', 'servo': 'servos'}[module_type]
+    module = importlib.__import__(module_name)
     names = []
     for a in dir(module):
         if '__' not in a:
@@ -69,16 +89,7 @@ def list_algorithms():
             names.append(inst().name)
     return names
 
-def list_servos():
-    module = importlib.__import__('servos')
-    names = []
-    for a in dir(module):
-        if '__' not in a:
-            inst = getattr(module, a)
-            names.append(inst().name)
-    return names
-
-def load_servo_parameters(hub, experiment_name, algorithm_name, default = False):
+def load_algorithm_parameters(hub, experiment_name, algorithm_name, module_type, default = False):
     ''' Looks for algorithm parameters in the parameterfile for the experiment. If none exist,
         get them from the default algorithm parameters.
 
@@ -87,6 +98,7 @@ def load_servo_parameters(hub, experiment_name, algorithm_name, default = False)
             experiment_name (str)
             algorithm_name (str)
             default (bool)
+            module_type (str): either 'algorithm' or 'servo'
     '''
 
     ''' Look for relevant parameters in the json file in the network's params directory '''
@@ -98,69 +110,32 @@ def load_servo_parameters(hub, experiment_name, algorithm_name, default = False)
                 params = json.load(file)
 
             ''' See if the algorithm we're interested in has saved parameters'''
-            if algorithm_name in params['algorithm']:
-                return params['algorithm'][algorithm_name]
+            if module_type in ['algorithm', 'servo']:
+                key = 'algorithm'
+            else:
+                key = 'sampler'
+            if algorithm_name in params[key]:
+                return params[key][algorithm_name]
             else:
                 ''' Load the default parameters and add them to file '''
-                d = get_default_servo_params(algorithm_name)
+                d = get_default_params(module_type, algorithm_name)
                 with open(params_filename, 'r') as file:
                     params = json.load(file)
-                params['algorithm'][algorithm_name] = d
+                params[key][algorithm_name] = d
                 with open(params_filename, 'w') as file:
                     json.dump(params, file)
                 return d
         except OSError:
             pass
     ''' If file does not exist, then load from introspection '''
-    params = {'experiment': {}, 'algorithm': {'default': 'GridSearch'}}
-    params['algorithm'][algorithm_name] = get_default_servo_params(algorithm_name)
+    default_algo = {'algorithm': 'GridSearch', 'servo': 'PID', 'sampler': 'GridSampling'}[module_type]
+    params = {'experiment': {}, key: {'default': default_algo}}
+    params[key][algorithm_name] = get_default_params(module_type, algorithm_name)
 
     with open(params_filename, 'w') as file:
         json.dump(params, file)
 
-    return params['algorithm'][algorithm_name]
-def load_algorithm_parameters(hub, experiment_name, algorithm_name, default = False):
-    ''' Looks for algorithm parameters in the parameterfile for the experiment. If none exist,
-        get them from the default algorithm parameters.
-
-        Args:
-            hub (Hub): a node whose experiment we're about to run
-            experiment_name (str)
-            algorithm_name (str)
-            default (bool)
-    '''
-
-    ''' Look for relevant parameters in the json file in the network's params directory '''
-    params_filename = hub.network.path['params'] + '%s.%s.txt'%(hub.name, experiment_name)
-    if not default:
-        try:
-            ''' Load params from file '''
-            with open(params_filename, 'r') as file:
-                params = json.load(file)
-
-            ''' See if the algorithm we're interested in has saved parameters'''
-            if algorithm_name in params['algorithm']:
-                return params['algorithm'][algorithm_name]
-            else:
-                ''' Load the default parameters and add them to file '''
-                d = get_default_algorithm_params(algorithm_name)
-                with open(params_filename, 'r') as file:
-                    params = json.load(file)
-                params['algorithm'][algorithm_name] = d
-                with open(params_filename, 'w') as file:
-                    json.dump(params, file)
-                return d
-        except OSError:
-            pass
-    ''' If file does not exist, then load from introspection '''
-    params = {'experiment': {}, 'algorithm': {'default': 'GridSearch'}}
-    params['algorithm'][algorithm_name] = get_default_algorithm_params(algorithm_name)
-
-    with open(params_filename, 'w') as file:
-        json.dump(params, file)
-
-    return params['algorithm'][algorithm_name]
-
+    return params[key][algorithm_name]
 
 def load_experiment_parameters(hub, experiment_name, default = False):
     ''' Looks for algorithm parameters in the parameterfile for the experiment. If none exist,

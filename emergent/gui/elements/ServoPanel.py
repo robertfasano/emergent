@@ -45,6 +45,7 @@ class ServoLayout(QVBoxLayout, ProcessHandler):
         settings = {}
         settings['state'] = self.parent.parent.tree_widget.get_selected_state()
         settings['experiment_name'] = self.experiment_box.currentText()
+        settings['algorithm_name'] = self.algorithm_box.currentText()
         try:
             settings['hub'] = self.parent.parent.tree_widget.get_selected_hub()
         except Exception as e:

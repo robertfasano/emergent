@@ -1,6 +1,7 @@
 from emergent.gui.elements.thing_creator import ThingCreator
 from emergent.gui.elements.ServoPanel import ServoLayout
 from emergent.gui.elements.monitor_panel import MonitorLayout
+from emergent.gui.elements.ModelTab import ModelLayout
 from emergent.gui.elements.OptimizeTab import OptimizeLayout
 from emergent.gui.elements.RunPanel import RunLayout
 from emergent.gui.elements.experiment_panel import ExperimentLayout
