@@ -20,7 +20,25 @@ class GridSampling():
                                             description = 'Number of sweeps to do')
 
 
-    def run(self, state, go_to_best = False):
+
+    def finish(self):
+        ''' If a model has been attached to the sampler, fit it now '''
+        if self.sampler.model is not None:
+            self.sampler.model.append(self.points, self.costs)
+            self.sampler.model.fit()
+
+        if self.end_at == 'First point':
+            last_point = self.points[0]
+        elif self.end_at == 'Last point':
+            last_point = self.points[-1]
+        else:
+            if self.sampler.model is not None:
+                last_point = self.sampler.model.minimum()
+            else:
+                last_point = self.points[np.argmin(self.costs)]
+        self.sampler._cost(last_point)
+        
+    def run(self, state):
         ''' Performs a uniformly-spaced sampling of the cost function in the
             space spanned by the passed-in state dict. '''
         arr, bounds = self.sampler.prepare(state)
@@ -42,14 +60,7 @@ class GridSampling():
 
                 self.costs = np.append(self.costs, c)
 
-        if go_to_best:
-            best_point = self.sampler.array2state(self.points[np.argmin(self.costs)])
-            self.sampler._cost(best_point)
-
-        ''' If a model has been attached to the sampler, fit it now '''
-        if self.sampler.model is not None:
-            self.sampler.model.append(self.points, self.costs)
-            self.sampler.model.fit()
+        self.finish()
         return self.points, self.costs
 
     def set_params(self, params):

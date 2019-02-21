@@ -114,6 +114,8 @@ def load_algorithm_parameters(hub, experiment_name, algorithm_name, module_type,
                 key = 'algorithm'
             else:
                 key = 'sampler'
+            if key not in params:
+                params[key] = {}
             if algorithm_name in params[key]:
                 return params[key][algorithm_name]
             else:
@@ -121,6 +123,8 @@ def load_algorithm_parameters(hub, experiment_name, algorithm_name, module_type,
                 d = get_default_params(module_type, algorithm_name)
                 with open(params_filename, 'r') as file:
                     params = json.load(file)
+                if key not in params:
+                    params[key] = {}
                 params[key][algorithm_name] = d
                 with open(params_filename, 'w') as file:
                     json.dump(params, file)
