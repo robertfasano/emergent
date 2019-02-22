@@ -3,11 +3,11 @@ import numpy as np
 from emergent.utilities.plotting import plot_2D
 from emergent.samplers.sampling import Sampling
 
-class RandomSampling(Sampling):
+class Random(Sampling):
     def __init__(self, sampler = None):
         ''' Define default parameters '''
         super().__init__(sampler)
-        self.name = 'RandomSampling'
+        self.name = self.__name__
         self.params['Steps'] = Parameter(name= 'Steps',
                                             value = 20,
                                             min = 5,

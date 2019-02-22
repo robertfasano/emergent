@@ -3,11 +3,11 @@ import numpy as np
 from emergent.utilities.plotting import plot_2D
 from emergent.samplers.sampling import Sampling
 
-class IntelligentSampling(Sampling):
+class Online(Sampling):
     def __init__(self, sampler = None):
         ''' Define default parameters '''
         super().__init__(sampler)
-        self.name = 'IntelligentSampling'
+        self.name = self.__name__
         self.params['Presampled points'] = Parameter(name= 'Presampled points',
                                             value = 15,
                                             min = 0,

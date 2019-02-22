@@ -1,3 +1,3 @@
-from emergent.samplers.grid import GridSampling
-from emergent.samplers.random import RandomSampling
-from emergent.samplers.intelligent import IntelligentSampling
+from emergent.samplers.grid import Grid
+from emergent.samplers.random import Random
+from emergent.samplers.online import Online
