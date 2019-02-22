@@ -19,11 +19,9 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../../emergent/modules'))
-sys.path.insert(0, os.path.abspath('../../emergent/gui/elements'))
-
-sys.path.insert(0, os.path.abspath('../../emergent/things'))
-sys.path.insert(0, os.path.abspath('../../emergent/'))
+paths = ['', 'modules', 'gui/elements', 'samplers', 'things']
+for path in paths:
+    sys.path.insert(0, os.path.abspath('../../emergent/%s'%path))
 
 # -- General configuration ------------------------------------------------
 

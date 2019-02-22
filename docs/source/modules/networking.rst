@@ -1,7 +1,7 @@
-Server
+Networking
 ================
 
-.. automodule:: server
+.. automodule:: networking
     :members:
     :undoc-members:
     :special-members:

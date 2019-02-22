@@ -1,7 +1,7 @@
-Client
+Random sampling
 ================
 
-.. automodule:: client
+.. automodule:: samplers.random
     :members:
     :undoc-members:
     :special-members:

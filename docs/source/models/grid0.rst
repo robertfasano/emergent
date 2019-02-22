@@ -1,7 +1,7 @@
-Network
+Model
 ================
 
-.. automodule:: network
+.. automodule:: models.model
     :members:
     :undoc-members:
     :special-members:

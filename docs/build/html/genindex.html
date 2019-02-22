@@ -18,32 +18,43 @@
   
 
   
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'./',
+              VERSION:'0.1alpha',
+              LANGUAGE:'python',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  true,
+              SOURCELINK_SUFFIX: '.txt'
+          };
+      </script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
     
 
   
-
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="#" />
     <link rel="search" title="Search" href="search.html" /> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
 </head>
 
 <body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
@@ -179,9 +190,15 @@
 <h2 id="_">_</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="architecture/hub.html#node.Hub.__getstate__">__getstate__() (node.Hub method)</a>, <a href="modules/node.html#node.Hub.__getstate__">[1]</a>
+      <li><a href="modules/networking.html#networking.Client.__getstate__">__getstate__() (networking.Client method)</a>
 
       <ul>
+        <li><a href="modules/networking.html#networking.Network.__getstate__">(networking.Network method)</a>
+</li>
+        <li><a href="architecture/hub.html#node.Hub.__getstate__">(node.Hub method)</a>, <a href="modules/node.html#node.Hub.__getstate__">[1]</a>
+</li>
+        <li><a href="architecture/input.html#node.Input.__getstate__">(node.Input method)</a>, <a href="modules/node.html#node.Input.__getstate__">[1]</a>
+</li>
         <li><a href="architecture/thing.html#node.Thing.__getstate__">(node.Thing method)</a>, <a href="modules/node.html#node.Thing.__getstate__">[1]</a>
 </li>
         <li><a href="modules/sampler.html#sampler.Sampler.__getstate__">(sampler.Sampler method)</a>
@@ -208,6 +225,18 @@
 </li>
         <li><a href="modules/fifo.html#fifo.Message.__init__">(fifo.Message method)</a>
 </li>
+        <li><a href="devices/genesys.html#genesys.Genesys.__init__">(genesys.Genesys method)</a>
+</li>
+        <li><a href="models/gpr.html#models.GPR.GaussianProcess.__init__">(models.GPR.GaussianProcess method)</a>
+</li>
+        <li><a href="models/grid0.html#models.model.Model.__init__">(models.model.Model method)</a>
+</li>
+        <li><a href="modules/networking.html#networking.Client.__init__">(networking.Client method)</a>
+</li>
+        <li><a href="modules/networking.html#networking.Network.__init__">(networking.Network method)</a>
+</li>
+        <li><a href="modules/networking.html#networking.Server.__init__">(networking.Server method)</a>
+</li>
         <li><a href="architecture/hub.html#node.Hub.__init__">(node.Hub method)</a>, <a href="modules/node.html#node.Hub.__init__">[1]</a>
 </li>
         <li><a href="architecture/input.html#node.Input.__init__">(node.Input method)</a>, <a href="modules/node.html#node.Input.__init__">[1]</a>
@@ -224,6 +253,14 @@
 </li>
         <li><a href="modules/sampler.html#sampler.Sampler.__init__">(sampler.Sampler method)</a>
 </li>
+        <li><a href="samplers/grid.html#samplers.grid.Grid.__init__">(samplers.grid.Grid method)</a>
+</li>
+        <li><a href="samplers/online.html#samplers.online.Online.__init__">(samplers.online.Online method)</a>
+</li>
+        <li><a href="samplers/random.html#samplers.random.Random.__init__">(samplers.random.Random method)</a>
+</li>
+        <li><a href="samplers/base.html#samplers.sampling.Sampling.__init__">(samplers.sampling.Sampling method)</a>
+</li>
         <li><a href="modules/watchdog.html#watchdog.Watchdog.__init__">(watchdog.Watchdog method)</a>
 </li>
       </ul></li>
@@ -231,11 +268,21 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="gui/NetworkPanel.html#NetworkPanel.NodeWidget.__repr__">__repr__() (NetworkPanel.NodeWidget method)</a>
 </li>
-      <li><a href="architecture/thing.html#node.Thing._actuate">_actuate() (node.Thing method)</a>, <a href="modules/node.html#node.Thing._actuate">[1]</a>
+      <li><a href="devices/genesys.html#genesys.Genesys._actuate">_actuate() (genesys.Genesys method)</a>
+
+      <ul>
+        <li><a href="architecture/thing.html#node.Thing._actuate">(node.Thing method)</a>, <a href="modules/node.html#node.Thing._actuate">[1]</a>
 </li>
-      <li><a href="architecture/thing.html#node.Thing._connect">_connect() (node.Thing method)</a>, <a href="modules/node.html#node.Thing._connect">[1]</a>
+      </ul></li>
+      <li><a href="devices/genesys.html#genesys.Genesys._connect">_connect() (genesys.Genesys method)</a>
+
+      <ul>
+        <li><a href="architecture/thing.html#node.Thing._connect">(node.Thing method)</a>, <a href="modules/node.html#node.Thing._connect">[1]</a>
 </li>
+      </ul></li>
       <li><a href="modules/sampler.html#sampler.Sampler._cost">_cost() (sampler.Sampler method)</a>
+</li>
+      <li><a href="samplers/base.html#samplers.sampling.Sampling._finish">_finish() (samplers.sampling.Sampling method)</a>
 </li>
       <li><a href="architecture/hub.html#node.Hub._name_">_name_ (node.Hub attribute)</a>, <a href="modules/node.html#node.Hub._name_">[1]</a>
 </li>
@@ -243,9 +290,23 @@
 </li>
       <li><a href="modules/Parallel.html#parallel.ProcessHandler._quit_thread">_quit_thread() (parallel.ProcessHandler method)</a>
 </li>
+      <li><a href="architecture/thing.html#node.Thing._rename_input">_rename_input() (node.Thing method)</a>, <a href="modules/node.html#node.Thing._rename_input">[1]</a>
+</li>
+      <li><a href="samplers/grid.html#samplers.grid.Grid._run">_run() (samplers.grid.Grid method)</a>
+
+      <ul>
+        <li><a href="samplers/online.html#samplers.online.Online._run">(samplers.online.Online method)</a>
+</li>
+        <li><a href="samplers/random.html#samplers.random.Random._run">(samplers.random.Random method)</a>
+</li>
+        <li><a href="samplers/base.html#samplers.sampling.Sampling._run">(samplers.sampling.Sampling method)</a>
+</li>
+      </ul></li>
       <li><a href="modules/Parallel.html#parallel.ProcessHandler._run_process">_run_process() (parallel.ProcessHandler method)</a>
 </li>
       <li><a href="modules/Parallel.html#parallel.ProcessHandler._run_thread">_run_thread() (parallel.ProcessHandler method)</a>
+</li>
+      <li><a href="architecture/thing.html#node.Thing._translate">_translate() (node.Thing method)</a>, <a href="modules/node.html#node.Thing._translate">[1]</a>
 </li>
   </ul></td>
 </tr></table>
@@ -253,9 +314,15 @@
 <h2 id="A">A</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="gui/NetworkPanel.html#NetworkPanel.NodeTree.actuate">actuate() (NetworkPanel.NodeTree method)</a>
+      <li><a href="modules/networking.html#networking.Client.actuate">actuate() (networking.Client method)</a>
 
       <ul>
+        <li><a href="gui/NetworkPanel.html#NetworkPanel.NodeTree.actuate">(NetworkPanel.NodeTree method)</a>
+</li>
+        <li><a href="modules/networking.html#networking.Network.actuate">(networking.Network method)</a>
+</li>
+        <li><a href="modules/networking.html#networking.Server.actuate">(networking.Server method)</a>
+</li>
         <li><a href="architecture/hub.html#node.Hub.actuate">(node.Hub method)</a>, <a href="modules/node.html#node.Hub.actuate">[1]</a>
 </li>
         <li><a href="architecture/thing.html#node.Thing.actuate">(node.Thing method)</a>, <a href="modules/node.html#node.Thing.actuate">[1]</a>
@@ -263,13 +330,29 @@
       </ul></li>
       <li><a href="modules/fifo.html#fifo.FIFO.add">add() (fifo.FIFO method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="gui/NetworkPanel.html#NetworkPanel.NodeWidget.add_buffer_buttons">add_buffer_buttons() (NetworkPanel.NodeWidget method)</a>
 </li>
       <li><a href="gui/TaskPanel.html#TaskPanel.TaskPanel.add_event">add_event() (TaskPanel.TaskPanel method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="modules/networking.html#networking.Network.add_hub">add_hub() (networking.Network method)</a>
+</li>
       <li><a href="architecture/thing.html#node.Thing.add_input">add_input() (node.Thing method)</a>, <a href="modules/node.html#node.Thing.add_input">[1]</a>
+</li>
+      <li><a href="modules/networking.html#networking.Server.add_listener">add_listener() (networking.Server method)</a>
+</li>
+      <li><a href="gui/NetworkPanel.html#NetworkPanel.NodeTree.add_node">add_node() (NetworkPanel.NodeTree method)</a>
+</li>
+      <li><a href="modules/networking.html#networking.Network.add_params">add_params() (networking.Network method)</a>
+</li>
+      <li><a href="modules/networking.html#networking.Network.add_thing">add_thing() (networking.Network method)</a>
+
+      <ul>
+        <li><a href="gui/NetworkPanel.html#NetworkPanel.NodeTree.add_thing">(NetworkPanel.NodeTree method)</a>
+</li>
+      </ul></li>
+      <li><a href="models/grid0.html#models.model.Model.append">append() (models.model.Model method)</a>
 </li>
       <li><a href="modules/sampler.html#sampler.Sampler.array2state">array2state() (sampler.Sampler method)</a>
 </li>
@@ -287,13 +370,17 @@
 </li>
       <li><a href="architecture/hub.html#node.Hub.check_lock">check_lock() (node.Hub method)</a>, <a href="modules/node.html#node.Hub.check_lock">[1]</a>
 </li>
+      <li><a href="gui/TaskPanel.html#TaskPanel.Visualizer.check_progress">check_progress() (TaskPanel.Visualizer method)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="gui/TaskPanel.html#TaskPanel.Visualizer.check_progress">check_progress() (TaskPanel.Visualizer method)</a>
+      <li><a href="modules/networking.html#networking.Client">Client (class in networking)</a>
 </li>
       <li><a href="gui/NetworkPanel.html#NetworkPanel.NodeTree.close_editor">close_editor() (NetworkPanel.NodeTree method)</a>
 </li>
-      <li><a href="modules/watchdog.html#watchdog.Watchdog.confirm_lock">confirm_lock() (watchdog.Watchdog method)</a>
+      <li><a href="devices/genesys.html#genesys.Genesys.command">command() (genesys.Genesys method)</a>
+</li>
+      <li><a href="modules/networking.html#networking.Client.connect">connect() (networking.Client method)</a>
 </li>
       <li><a href="gui/TaskPanel.html#TaskPanel.ContextTable.contextMenuEvent">contextMenuEvent() (TaskPanel.ContextTable method)</a>
 </li>
@@ -313,10 +400,18 @@
 <h2 id="E">E</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="architecture/hub.html#node.Hub.enable_watchdogs">enable_watchdogs() (node.Hub method)</a>, <a href="modules/node.html#node.Hub.enable_watchdogs">[1]</a>
+      <li><a href="modules/networking.html#networking.Client.echo">echo() (networking.Client method)</a>
+
+      <ul>
+        <li><a href="modules/networking.html#networking.Server.echo">(networking.Server method)</a>
+</li>
+      </ul></li>
+      <li><a href="models/grid0.html#models.model.Model.effective_cost">effective_cost() (models.model.Model method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="architecture/hub.html#node.Hub.enable_watchdogs">enable_watchdogs() (node.Hub method)</a>, <a href="modules/node.html#node.Hub.enable_watchdogs">[1]</a>
+</li>
       <li><a href="modules/sampler.html#sampler.Sampler.estimate_gradient">estimate_gradient() (sampler.Sampler method)</a>
 </li>
       <li><a href="gui/NetworkPanel.html#NetworkPanel.NodeTree.expand">expand() (NetworkPanel.NodeTree method)</a>
@@ -329,19 +424,31 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/fifo.html#fifo.FIFO">FIFO (class in fifo)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/fifo.html#module-fifo">fifo (module)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="models/gpr.html#models.GPR.GaussianProcess.fit">fit() (models.GPR.GaussianProcess method)</a>
+
+      <ul>
+        <li><a href="models/grid0.html#models.model.Model.fit">(models.model.Model method)</a>
+</li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
 <h2 id="G">G</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="models/gpr.html#models.GPR.GaussianProcess">GaussianProcess (class in models.GPR)</a>
+</li>
       <li><a href="gui/NetworkPanel.html#NetworkPanel.NodeTree.generate">generate() (NetworkPanel.NodeTree method)</a>
 </li>
       <li><a href="gui/TaskPanel.html#TaskPanel.Visualizer.generate_figures">generate_figures() (TaskPanel.Visualizer method)</a>
+</li>
+      <li><a href="devices/genesys.html#genesys.Genesys">Genesys (class in genesys)</a>
+</li>
+      <li><a href="devices/genesys.html#module-genesys">genesys (module)</a>
 </li>
       <li><a href="gui/NetworkPanel.html#NetworkPanel.NodeTree.get_all_items">get_all_items() (NetworkPanel.NodeTree method)</a>
 </li>
@@ -355,6 +462,10 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="modules/networking.html#networking.Client.get_network">get_network() (networking.Client method)</a>
+</li>
+      <li><a href="modules/networking.html#networking.Client.get_params">get_params() (networking.Client method)</a>
+</li>
       <li><a href="gui/NetworkPanel.html#NetworkPanel.NodeWidget.get_root">get_root() (NetworkPanel.NodeWidget method)</a>
 
       <ul>
@@ -369,6 +480,8 @@
 </li>
       <li><a href="gui/NetworkPanel.html#NetworkPanel.NodeTree.get_thing">get_thing() (NetworkPanel.NodeTree method)</a>
 </li>
+      <li><a href="samplers/grid.html#samplers.grid.Grid">Grid (class in samplers.grid)</a>
+</li>
       <li><a href="modules/sampler.html#sampler.Sampler.grid_sampling">grid_sampling() (sampler.Sampler method)</a>
 </li>
   </ul></td>
@@ -377,10 +490,12 @@
 <h2 id="H">H</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="gui/TaskPanel.html#TaskPanel.TaskPanel.hide_inactive">hide_inactive() (TaskPanel.TaskPanel method)</a>
+      <li><a href="modules/networking.html#networking.Server.handle_command">handle_command() (networking.Server method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="gui/TaskPanel.html#TaskPanel.TaskPanel.hide_inactive">hide_inactive() (TaskPanel.TaskPanel method)</a>
+</li>
       <li><a href="architecture/hub.html#node.Hub">Hub (class in node)</a>, <a href="modules/node.html#node.Hub">[1]</a>
 </li>
   </ul></td>
@@ -397,6 +512,8 @@
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="modules/networking.html#networking.Network.initialize">initialize() (networking.Network method)</a>
+</li>
       <li><a href="architecture/input.html#node.Input">Input (class in node)</a>, <a href="modules/node.html#node.Input">[1]</a>
 </li>
   </ul></td>
@@ -404,6 +521,10 @@
 
 <h2 id="K">K</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="modules/networking.html#networking.Network.keep_sync">keep_sync() (networking.Network method)</a>
+</li>
+  </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="gui/NetworkPanel.html#NetworkPanel.NodeTree.keyPressEvent">keyPressEvent() (NetworkPanel.NodeTree method)</a>
 </li>
@@ -413,8 +534,12 @@
 <h2 id="L">L</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="architecture/hub.html#node.Hub.load">load() (node.Hub method)</a>, <a href="modules/node.html#node.Hub.load">[1]</a>
+      <li><a href="modules/networking.html#networking.Network.load">load() (networking.Network method)</a>
+
+      <ul>
+        <li><a href="architecture/hub.html#node.Hub.load">(node.Hub method)</a>, <a href="modules/node.html#node.Hub.load">[1]</a>
 </li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="gui/TaskPanel.html#TaskPanel.TaskPanel.load_task">load_task() (TaskPanel.TaskPanel method)</a>
@@ -429,9 +554,19 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/watchdog.html#watchdog.Watchdog.measure">measure() (watchdog.Watchdog method)</a>
 </li>
+      <li><a href="modules/fifo.html#fifo.Message">Message (class in fifo)</a>
+</li>
+      <li><a href="models/grid0.html#models.model.Model.minimum">minimum() (models.model.Model method)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="modules/fifo.html#fifo.Message">Message (class in fifo)</a>
+      <li><a href="models/grid0.html#models.model.Model">Model (class in models.model)</a>
+</li>
+      <li><a href="models/gpr.html#module-models.GPR">models.GPR (module)</a>
+</li>
+      <li><a href="models/grid0.html#module-models.model">models.model (module)</a>
+</li>
+      <li><a href="gui/NetworkPanel.html#NetworkPanel.NodeWidget.move">move() (NetworkPanel.NodeWidget method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -439,16 +574,22 @@
 <h2 id="N">N</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="modules/networking.html#networking.Network">Network (class in networking)</a>
+</li>
+      <li><a href="modules/networking.html#module-networking">networking (module)</a>
+</li>
       <li><a href="gui/NetworkPanel.html#module-NetworkPanel">NetworkPanel (module)</a>
 </li>
       <li><a href="modules/fifo.html#fifo.FIFO.next">next() (fifo.FIFO method)</a>
 </li>
+      <li><a href="models/grid0.html#models.model.Model.next_sample">next_sample() (models.model.Model method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="architecture/node.html#node.Node">Node (class in node)</a>, <a href="modules/node.html#node.Node">[1]</a>
 </li>
       <li><a href="architecture/hub.html#module-node">node (module)</a>, <a href="architecture/input.html#module-node">[1]</a>, <a href="architecture/node.html#module-node">[2]</a>, <a href="architecture/thing.html#module-node">[3]</a>, <a href="modules/node.html#module-node">[4]</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="architecture/thing.html#node.Thing.node_type">node_type (node.Thing attribute)</a>, <a href="modules/node.html#node.Thing.node_type">[1]</a>
 </li>
       <li><a href="gui/NetworkPanel.html#NetworkPanel.NodeTree">NodeTree (class in NetworkPanel)</a>
@@ -469,8 +610,14 @@
 </li>
       <li><a href="gui/NetworkPanel.html#NetworkPanel.NodeWidget.onActuateSignal">onActuateSignal() (NetworkPanel.NodeWidget method)</a>
 </li>
+      <li><a href="gui/NetworkPanel.html#NetworkPanel.NodeWidget.onCreateSignal">onCreateSignal() (NetworkPanel.NodeWidget method)</a>
+</li>
+      <li><a href="samplers/online.html#samplers.online.Online">Online (class in samplers.online)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="gui/NetworkPanel.html#NetworkPanel.NodeWidget.onRemoveSignal">onRemoveSignal() (NetworkPanel.NodeWidget method)</a>
+</li>
       <li><a href="gui/NetworkPanel.html#NetworkPanel.NodeTree.open_editor">open_editor() (NetworkPanel.NodeTree method)</a>
 </li>
       <li><a href="gui/NetworkPanel.html#NetworkPanel.NodeTree.openMenu">openMenu() (NetworkPanel.NodeTree method)</a>
@@ -489,12 +636,34 @@
 </li>
       <li><a href="architecture/thing.html#node.Thing.params">params (node.Thing attribute)</a>, <a href="modules/node.html#node.Thing.params">[1]</a>
 </li>
+      <li><a href="models/grid0.html#models.model.Model.plot">plot() (models.model.Model method)</a>
+
+      <ul>
+        <li><a href="samplers/online.html#samplers.online.Online.plot">(samplers.online.Online method)</a>
+</li>
+        <li><a href="samplers/random.html#samplers.random.Random.plot">(samplers.random.Random method)</a>
+</li>
+        <li><a href="samplers/base.html#samplers.sampling.Sampling.plot">(samplers.sampling.Sampling method)</a>
+</li>
+      </ul></li>
       <li><a href="modules/sampler.html#sampler.Sampler.plot_optimization">plot_optimization() (sampler.Sampler method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="modules/sampler.html#sampler.Sampler.prepare">prepare() (sampler.Sampler method)</a>
+      <li><a href="modules/networking.html#networking.Network.post_load">post_load() (networking.Network method)</a>
 </li>
+      <li><a href="models/gpr.html#models.GPR.GaussianProcess.predict">predict() (models.GPR.GaussianProcess method)</a>
+
+      <ul>
+        <li><a href="models/grid0.html#models.model.Model.predict">(models.model.Model method)</a>
+</li>
+      </ul></li>
+      <li><a href="models/grid0.html#models.model.Model.prepare">prepare() (models.model.Model method)</a>
+
+      <ul>
+        <li><a href="modules/sampler.html#sampler.Sampler.prepare">(sampler.Sampler method)</a>
+</li>
+      </ul></li>
       <li><a href="modules/Parallel.html#parallel.Process">Process (class in parallel)</a>
 </li>
       <li><a href="modules/Parallel.html#parallel.ProcessHandler">ProcessHandler (class in parallel)</a>
@@ -505,6 +674,8 @@
 <h2 id="R">R</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="samplers/random.html#samplers.random.Random">Random (class in samplers.random)</a>
+</li>
       <li><a href="modules/sampler.html#sampler.Sampler.random_sampling">random_sampling() (sampler.Sampler method)</a>
 </li>
       <li><a href="modules/watchdog.html#watchdog.Watchdog.react">react() (watchdog.Watchdog method)</a>
@@ -513,18 +684,30 @@
 </li>
       <li><a href="gui/NetworkPanel.html#NetworkPanel.RedoButton.redo">redo() (NetworkPanel.RedoButton method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="gui/NetworkPanel.html#NetworkPanel.RedoButton">RedoButton (class in NetworkPanel)</a>
 </li>
       <li><a href="architecture/node.html#node.Node.register">register() (node.Node method)</a>, <a href="modules/node.html#node.Node.register">[1]</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="architecture/thing.html#node.Thing.remove_input">remove_input() (node.Thing method)</a>, <a href="modules/node.html#node.Thing.remove_input">[1]</a>
 </li>
+      <li><a href="architecture/input.html#node.Input.rename">rename() (node.Input method)</a>, <a href="modules/node.html#node.Input.rename">[1]</a>
+</li>
+      <li><a href="architecture/hub.html#node.Hub.rename_input">rename_input() (node.Hub method)</a>, <a href="modules/node.html#node.Hub.rename_input">[1]</a>
+
+      <ul>
+        <li><a href="architecture/thing.html#node.Thing.rename_input">(node.Thing method)</a>, <a href="modules/node.html#node.Thing.rename_input">[1]</a>
+</li>
+      </ul></li>
       <li><a href="modules/watchdog.html#watchdog.Watchdog.reoptimize">reoptimize() (watchdog.Watchdog method)</a>
 </li>
       <li><a href="modules/fifo.html#fifo.FIFO.run">run() (fifo.FIFO method)</a>
+
+      <ul>
+        <li><a href="samplers/base.html#samplers.sampling.Sampling.run">(samplers.sampling.Sampling method)</a>
 </li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -539,16 +722,48 @@
 </li>
       <li><a href="gui/TaskPanel.html#TaskPanel.SamplerItem">SamplerItem (class in TaskPanel)</a>
 </li>
-      <li><a href="architecture/hub.html#node.Hub.save">save() (node.Hub method)</a>, <a href="modules/node.html#node.Hub.save">[1]</a>
+      <li><a href="samplers/grid.html#module-samplers.grid">samplers.grid (module)</a>
+</li>
+      <li><a href="samplers/online.html#module-samplers.online">samplers.online (module)</a>
+</li>
+      <li><a href="samplers/random.html#module-samplers.random">samplers.random (module)</a>
+</li>
+      <li><a href="samplers/base.html#module-samplers.sampling">samplers.sampling (module)</a>
+</li>
+      <li><a href="samplers/base.html#samplers.sampling.Sampling">Sampling (class in samplers.sampling)</a>
+</li>
+      <li><a href="modules/networking.html#networking.Network.save">save() (networking.Network method)</a>
 
       <ul>
+        <li><a href="architecture/hub.html#node.Hub.save">(node.Hub method)</a>, <a href="modules/node.html#node.Hub.save">[1]</a>
+</li>
         <li><a href="modules/sampler.html#sampler.Sampler.save">(sampler.Sampler method)</a>
 </li>
       </ul></li>
+      <li><a href="modules/networking.html#networking.Network.save_to_database">save_to_database() (networking.Network method)</a>
+</li>
       <li><a href="modules/sampler.html#sampler.Sampler.search_database">search_database() (sampler.Sampler method)</a>
 </li>
+      <li><a href="modules/networking.html#networking.Client.send">send() (networking.Client method)</a>
+
+      <ul>
+        <li><a href="modules/networking.html#networking.Server.send">(networking.Server method)</a>
+</li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="modules/networking.html#networking.Server">Server (class in networking)</a>
+</li>
+      <li><a href="devices/genesys.html#genesys.Genesys.set_current">set_current() (genesys.Genesys method)</a>
+</li>
+      <li><a href="models/grid0.html#models.model.Model.set_params">set_params() (models.model.Model method)</a>
+
+      <ul>
+        <li><a href="samplers/base.html#samplers.sampling.Sampling.set_params">(samplers.sampling.Sampling method)</a>
+</li>
+      </ul></li>
+      <li><a href="devices/genesys.html#genesys.Genesys.set_voltage">set_voltage() (genesys.Genesys method)</a>
+</li>
       <li><a href="gui/NetworkPanel.html#NetworkPanel.RedoButton.show">show() (NetworkPanel.RedoButton method)</a>
 
       <ul>
@@ -561,6 +776,10 @@
         <li><a href="gui/NetworkPanel.html#NetworkPanel.UndoButton.sizeHint">(NetworkPanel.UndoButton method)</a>
 </li>
       </ul></li>
+      <li><a href="modules/networking.html#networking.Server.start">start() (networking.Server method)</a>
+</li>
+      <li><a href="modules/networking.html#networking.Network.state">state() (networking.Network method)</a>
+</li>
       <li><a href="modules/sampler.html#sampler.Sampler.state2array">state2array() (sampler.Sampler method)</a>
 </li>
       <li><a href="modules/Parallel.html#parallel.Process.stop">stop() (parallel.Process method)</a>
@@ -570,6 +789,8 @@
 </li>
       </ul></li>
       <li><a href="modules/Parallel.html#parallel.Thread.stopped">stopped() (parallel.Thread method)</a>
+</li>
+      <li><a href="modules/networking.html#networking.Network.sync">sync() (networking.Network method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -583,6 +804,8 @@
         <li><a href="gui/TaskPanel.html#module-TaskPanel">(module)</a>
 </li>
       </ul></li>
+      <li><a href="modules/networking.html#networking.Client.tcp_echo_client">tcp_echo_client() (networking.Client method)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/sampler.html#sampler.Sampler.terminate">terminate() (sampler.Sampler method)</a>
@@ -590,6 +813,8 @@
       <li><a href="architecture/thing.html#node.Thing">Thing (class in node)</a>, <a href="modules/node.html#node.Thing">[1]</a>
 </li>
       <li><a href="modules/Parallel.html#parallel.Thread">Thread (class in parallel)</a>
+</li>
+      <li><a href="modules/networking.html#networking.Network.try_connect">try_connect() (networking.Network method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -635,6 +860,8 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/watchdog.html#module-watchdog">watchdog (module)</a>
 </li>
+      <li><a href="devices/genesys.html#genesys.Genesys.wave">wave() (genesys.Genesys method)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -666,35 +893,16 @@
   
 
 
-  
-
-    
-    
-      <script type="text/javascript">
-          var DOCUMENTATION_OPTIONS = {
-              URL_ROOT:'./',
-              VERSION:'0.1alpha',
-              LANGUAGE:'python',
-              COLLAPSE_INDEX:false,
-              FILE_SUFFIX:'.html',
-              HAS_SOURCE:  true,
-              SOURCELINK_SUFFIX: '.txt'
-          };
-      </script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-    
-
-  
-
-  <script type="text/javascript" src="_static/js/theme.js"></script>
-
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+
+  
+  
+    
+   
 
 </body>
 </html>

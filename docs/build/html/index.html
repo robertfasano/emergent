@@ -17,33 +17,44 @@
   
 
   
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'./',
+              VERSION:'0.1alpha',
+              LANGUAGE:'python',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  true,
+              SOURCELINK_SUFFIX: '.txt'
+          };
+      </script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
     
 
   
-
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Getting started" href="gettingstarted.html" /> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
 </head>
 
 <body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
@@ -153,61 +164,46 @@
             
   <div class="section" id="emergent">
 <h1>EMERGENT<a class="headerlink" href="#emergent" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
-<p>What is an experiment? Broadly speaking, an experiment is a process which seeks
-to map out the relationship between a set of inputs and some measurable signal.
-Surprisingly many state-of-the-art experiments in modern science rely on grad students
-turning knobs, often following some informal algorithm gleaned from their own experience.
-I say this is surprising for two reasons. First, it is usually very simple to gain
-computer control of some knob, like a voltage setpoint or laser frequency. Second,
-there exist many powerful, often open-source, algorithms which can find a set of
-independent variables which extremizes an independent variable, and given computer
-control of your experiment, it is not too difficult to hook up the knobs to the
-algorithm to optimize your experiment. However, although it is simple to algorithmically
-optimize a simple problem like pointing a laser beam into a waveguide, it is not
-so simple to control a large experiment for a host of reasons:</p>
-<ul class="simple">
-<li>As the number of input variables increases, more and more sophisticated algorithms are needed to explore the parameter space.</li>
-<li>Controlling many devices from a centralized program quickly leads to tangled, unsalvageable code if scalability is not considered.</li>
-<li>Many experiments have coupled inputs, where the optimum position of one knob depends on another.</li>
-</ul>
-<p>We wrote EMERGENT to attempt to solve these problems.</p>
-<p>EMERGENT (Explorative Machine-learning EnviRonment for Generalized Experiments of Networked Things) is a library featuring device drivers and abstract classes allowing
-universal autonomous control of laboratory experiments. The library was written based on the main belief that science progresses quickest when experimentalists
-are free to spend as much time thinking and as little time turning knobs and
-writing code as possible.</p>
-</div>
 <div class="section" id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
-<p>What is an experiment? Broadly speaking, an experiment is a process which seeks
-to map out the relationship between a set of inputs and some measurable signal.
-Sometimes this relationship can be very simple, such as a linear dependence between
-a knob position and a voltage. However, many experimental outcomes depend on the
-simultaneous states of many, possibly coupled and/or nonlinear, degrees of freedom,
-and optimization of the outcome can be incredibly difficult. An example is the
-magneto-optical trap (MOT), a ubiquitous workhorse in atomic physics. The number
-of atoms a MOT can capture depends partly on the magnetic field strength and the
-laser frequency, and any attempt to optimize a MOT will quickly show that these
-two variables are coupled, i.e. any adjustments to one knob will generally change
-the optimal position of the second. In order to optimize the MOT, the experimentalist
-must adjust both knobs iteratively until the atom number converges to an optimum value.</p>
-<p>This simple example is just the tip of the iceberg: atom number generally depends
-on other variables such as the atomic velocity distribution and beam alignment, and
-so any two-dimensional optimization is unlikely to find the &quot;true&quot; maximum. But since
-our time is limited and the complexity of the optimization grows quickly as we
-consider more and more knobs, we typically turn them one or two at a time, content
-with locally-maximal yet globally-subpar results.</p>
-<p>EMERGENT aims to solve this problem by offering a simple framework for automated
-exploration of many-dimensional parameter spaces. Many algorithms specifically
-suited for this task are available in open-source libraries, and EMERGENT provides
-a simple syntactic structure to leverage these algorithms to optimize your own
-experiment. This is accomplished through three class modules: the Input, Thing,
-and Hubs. Input nodes are simple structures which only serve to represent
-the state of some experimental knob. Things are the glue between EMERGENT
-and device APIs that can change physical variables in the lab. Lastly, Hub
-nodes measure experimental outcomes and issue commands to connected Things to
-optimize the result.</p>
+<p>Development of EMERGENT began at NIST in 2018. Its earliest ancestors were
+standalone Python scripts to automate various tasks in the lab, such as</p>
+<ul class="simple">
+<li>Steering laser beams into optical fibers to maximize transmitted power</li>
+<li>Automatic locking of lasers to optical cavities</li>
+<li>Monitoring of critical experimental variables</li>
+</ul>
+<p>Around this time, several research groups published exciting applications of
+machine learning to optimization of cold-atom experiments. Boasting
+performance exceeding human capabilities, these results hint at a disruptive
+trend towards automation in experimental physics. We brainstormed a list of tasks
+that an automated experiment must be able to do and quickly began development of
+a framework including:</p>
+<ul class="simple">
+<li>Machine-learning-based modeling and optimization of complex, many-parameter experiments</li>
+<li>A reactive monitoring system which can detect and resolve experimental problems, such as
+cavity unlocks or laser power drifts</li>
+<li>Persistent storage of every bit of data collected by the experiment</li>
+<li>Support for decentralized experiments controlled by multiple networked PCs</li>
+</ul>
+<p>We called this framework EMERGENT: Experimental Machine-learning EnviRonment for
+GEneralized Networked Things. Dissecting the name, we arrive at two concepts
+driving recent tech hype:</p>
+<ul class="simple">
+<li>The Internet of Things is a term for a network of different devices, such as
+lasers, motorized mirror mounts, and voltage and current sources, which can
+exchange data and be controlled by a central PC.</li>
+<li>Machine learning is the application of powerful statistical algorithms allowing
+computers to solve tasks without explicit programming.</li>
+</ul>
+<p>Combining these two concepts, EMERGENT provides a simple framework for controlling
+your Lab of Things, and then lets you hand over the keys to an intelligent system
+which can run even the most complicated of experiments.</p>
+<p>Because of the potential for scientific advancement, we're committed to keeping
+EMERGENT open-source and growing it to fit the needs of the scientific community.
+If you're interested in deploying it in your lab, please read the Getting Started
+section. Feel free to contact us for troubleshooting, help setting up your
+automated experiment, or feature requests.</p>
 </div>
 <div class="section" id="table-of-contents">
 <h2>Table of Contents<a class="headerlink" href="#table-of-contents" title="Permalink to this headline">¶</a></h2>
@@ -238,6 +234,7 @@ optimize the result.</p>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="reference.html">API Reference</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="reference.html#modules">Modules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference.html#samplers">Samplers</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reference.html#gui">GUI</a></li>
 </ul>
 </li>
@@ -280,35 +277,16 @@ optimize the result.</p>
   
 
 
-  
-
-    
-    
-      <script type="text/javascript">
-          var DOCUMENTATION_OPTIONS = {
-              URL_ROOT:'./',
-              VERSION:'0.1alpha',
-              LANGUAGE:'python',
-              COLLAPSE_INDEX:false,
-              FILE_SUFFIX:'.html',
-              HAS_SOURCE:  true,
-              SOURCELINK_SUFFIX: '.txt'
-          };
-      </script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-    
-
-  
-
-  <script type="text/javascript" src="_static/js/theme.js"></script>
-
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+
+  
+  
+    
+   
 
 </body>
 </html>

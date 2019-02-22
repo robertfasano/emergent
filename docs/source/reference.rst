@@ -9,6 +9,14 @@ Modules
 
    modules/*
 
+Samplers
+----------
+.. toctree::
+   :glob:
+   :maxdepth: 4
+
+   samplers/*
+
 GUI
 ----------
 .. toctree::
