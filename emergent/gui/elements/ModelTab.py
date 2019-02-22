@@ -1,6 +1,6 @@
 ''' The OptimizeTab allows the user to choose algorithms and their parameters and
     launch optimizations. '''
-from PyQt5.QtWidgets import (QComboBox, QPushButton, QVBoxLayout,
+from PyQt5.QtWidgets import (QComboBox, QPushButton, QTabWidget, QVBoxLayout, QWidget,
         QTableWidgetItem, QTableWidget, QHBoxLayout, QGridLayout, QLabel, QMenu, QAction)
 from PyQt5.QtCore import *
 from PyQt5.QtGui import QCursor
@@ -85,62 +85,92 @@ class ModelLayout(QVBoxLayout, ProcessHandler):
 
         ''' Experiment select layout '''
         self.experiment_layout = QHBoxLayout()
-        label = QLabel('Experiment')
-        label.setStyleSheet('color:"#000000"; font-weight: light; font-family: "Exo 2"; font-size: 14px; background-color: transparent')
-        self.experiment_layout.addWidget(label)
+        # label = QLabel('Experiment')
+        # label.setStyleSheet('color:"#000000"; font-weight: light; font-family: "Exo 2"; font-size: 14px; background-color: transparent')
+        # self.experiment_layout.addWidget(label)
         self.experiment_box = QComboBox()
         self.experiment_layout.addWidget(self.experiment_box)
         button = QPushButton('Show/hide parameters')
         button.clicked.connect(lambda: self.show_parameters('experiment'))
-        self.experiment_layout.addWidget(button)
-        self.addLayout(self.experiment_layout)
+        # self.experiment_layout.addWidget(button)
+        # self.addLayout(self.experiment_layout)
 
         ''' Experiment parameters '''
-        self.experiment_table_layout = QHBoxLayout()
+        # self.experiment_table_layout = QHBoxLayout()
         self.experiment_table = ParameterTable()
-        self.experiment_table_layout.addWidget(self.experiment_table)
-        self.experiment_table.hide()
-        self.addLayout(self.experiment_table_layout)
+        # self.experiment_table_layout.addWidget(self.experiment_table)
+        # self.experiment_table.hide()
+        # self.addLayout(self.experiment_table_layout)
 
         ''' Model select layout '''
         self.modelLayout = QHBoxLayout()
         self.model_box = QComboBox()
         for item in ['None', 'GaussianProcess', 'NonlinearModel']:
             self.model_box.addItem(item)
-        label = QLabel('Model')
-        label.setStyleSheet('color:"#000000"; font-weight: light; font-family: "Exo 2"; font-size: 14px; background-color: transparent')
-        self.modelLayout.addWidget(label)
+        # label = QLabel('Model')
+        # label.setStyleSheet('color:"#000000"; font-weight: light; font-family: "Exo 2"; font-size: 14px; background-color: transparent')
+        # self.modelLayout.addWidget(label)
         self.modelLayout.addWidget(self.model_box)
 
         button = QPushButton('Show/hide parameters')
         button.clicked.connect(lambda: self.show_parameters('model'))
-        self.modelLayout.addWidget(button)
-        self.addLayout(self.modelLayout)
+        # self.modelLayout.addWidget(button)
+        # self.addLayout(self.modelLayout)
 
         ''' Model parameters '''
-        self.model_table_layout = QHBoxLayout()
+        # self.model_table_layout = QHBoxLayout()
         self.model_table = ParameterTable()
-        self.model_table_layout.addWidget(self.model_table)
-        self.addLayout(self.model_table_layout)
+        # self.model_table_layout.addWidget(self.model_table)
+        # self.addLayout(self.model_table_layout)
 
         ''' Algorithm select layout '''
         self.sampler_layout = QHBoxLayout()
-        label = QLabel('Sampler')
-        label.setStyleSheet('color:"#000000"; font-weight: light; font-family: "Exo 2"; font-size: 14px; background-color: transparent')
-        self.sampler_layout.addWidget(label)
+        # label = QLabel('Sampler')
+        # label.setStyleSheet('color:"#000000"; font-weight: light; font-family: "Exo 2"; font-size: 14px; background-color: transparent')
+        # self.sampler_layout.addWidget(label)
         self.sampler_box = QComboBox()
         self.sampler_layout.addWidget(self.sampler_box)
         button = QPushButton('Show/hide parameters')
         button.clicked.connect(lambda: self.show_parameters('sampler'))
-        self.sampler_layout.addWidget(button)
-        self.addLayout(self.sampler_layout)
+        # self.sampler_layout.addWidget(button)
+        # self.addLayout(self.sampler_layout)
 
-        ''' Algorithm parameters '''
-        self.sampler_table_layout = QHBoxLayout()
+        # ''' Algorithm parameters '''
+        # self.sampler_table_layout = QHBoxLayout()
         self.algorithm_table = ParameterTable()
-        self.sampler_table_layout.addWidget(self.algorithm_table)
-        self.algorithm_table.hide()
-        self.addLayout(self.sampler_table_layout)
+        # self.sampler_table_layout.addWidget(self.algorithm_table)
+        # self.algorithm_table.hide()
+        # self.addLayout(self.sampler_table_layout)
+
+
+        ''' Add parameter tables in tabs '''
+        self.tab_widget = QTabWidget()
+
+        self.experiment_widget = QWidget()
+        self.experiment_widget_layout = QVBoxLayout()
+        self.experiment_widget.setLayout(self.experiment_widget_layout)
+        self.experiment_widget_layout.addLayout(self.experiment_layout)
+        self.experiment_widget_layout.addWidget(self.experiment_table)
+        self.tab_widget.addTab(self.experiment_widget, 'Experiment')
+
+        self.model_widget = QWidget()
+        self.model_widget_layout = QVBoxLayout()
+        self.model_widget.setLayout(self.model_widget_layout)
+        self.model_widget_layout.addLayout(self.modelLayout)
+        self.model_widget_layout.addWidget(self.model_table)
+        self.tab_widget.addTab(self.model_widget, 'Model')
+
+
+        self.sampling_widget = QWidget()
+        self.sampling_widget_layout = QVBoxLayout()
+        self.sampling_widget.setLayout(self.sampling_widget_layout)
+        self.sampling_widget_layout.addLayout(self.sampler_layout)
+        self.sampling_widget_layout.addWidget(self.algorithm_table)
+        self.tab_widget.addTab(self.sampling_widget, 'Sampling')
+
+        tabLayout = QHBoxLayout()
+        tabLayout.addWidget(self.tab_widget)
+        self.addLayout(tabLayout)
 
 
         self.sampler_box.currentTextChanged.connect(lambda: self.parent.update_algorithm_and_experiment(self, update_experiment=False))
