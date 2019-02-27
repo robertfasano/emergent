@@ -7,7 +7,7 @@ class Random(Sampling):
     def __init__(self, sampler = None):
         ''' Define default parameters '''
         super().__init__(sampler)
-        self.name = self.__name__
+        self.name = 'Random'
         self.params['Steps'] = Parameter(name= 'Steps',
                                             value = 20,
                                             min = 5,

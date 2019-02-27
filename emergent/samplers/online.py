@@ -7,7 +7,7 @@ class Online(Sampling):
     def __init__(self, sampler = None):
         ''' Define default parameters '''
         super().__init__(sampler)
-        self.name = self.__name__
+        self.name = 'Online'
         self.params['Presampled points'] = Parameter(name= 'Presampled points',
                                             value = 15,
                                             min = 0,
@@ -36,7 +36,9 @@ class Online(Sampling):
         best_costs = []
         for i in range(int(self.params['Iterations'].value)):
             if not self.sampler.callback():
-                return self.model.points[0:len(self.sampler.model.costs)], self.sampler.model.costs
+                self.points = self.sampler.model.points
+                self.costs = self.sampler.model.costs
+                return self.sampler.model.points[0:len(self.sampler.model.costs)], self.sampler.model.costs
             self.sampler.model.fit()
             a = i / (self.params['Iterations'].value-1)        # scale from explorer to optimizer through iterations
             for j in range(int(self.params['Batch size'].value)):
