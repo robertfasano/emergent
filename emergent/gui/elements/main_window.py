@@ -23,8 +23,9 @@ class MainWindow(QMainWindow):
         self.setWindowIcon(QIcon('gui/media/icon.png'))
         self.setCentralWidget(self.central_widget)
         layout = QHBoxLayout(self.central_widget)
-        width = 1080
         height = 720
+        width = height*16/9
+
         self.resize(width, height)
 
         ''' Create status bar '''
