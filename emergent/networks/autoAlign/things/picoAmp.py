@@ -77,7 +77,7 @@ class PicoAmp(Thing):
         else:
             V = np.clip(float(V),-5,5)
             channel = {'X':0, 'Y':1}[axis]
-            self.labjack.AOut(channel, V, HV=True)
+            self.labjack.AOut(channel, V, TDAC=True)
 
     def wave(self, amplitude=1, frequency = 1):
         ''' Switch between 0 and the current setpoint.

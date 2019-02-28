@@ -13,7 +13,7 @@ class PZT(Thing):
         return 1
 
     def _actuate(self, state):
-        self.labjack.AOut(4,state['voltage'], HV=True)
+        self.labjack.AOut(4,state['voltage'], TDAC=True)
 
     def lock(self, state):
         self.lock_state = state

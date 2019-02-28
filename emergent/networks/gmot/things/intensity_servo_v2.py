@@ -37,7 +37,7 @@ class IntensityServo(Thing):
         '''
         for name in state:
             channel = {'probe': 0, 'slowing': 2, 'trapping': 3}[name]
-            self.labjack.AOut(channel, state[name], HV=True)
+            self.labjack.AOut(channel, state[name], TDAC=True)
 
     def _connect(self):
         return
