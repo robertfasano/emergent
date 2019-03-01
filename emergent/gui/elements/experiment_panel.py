@@ -14,7 +14,6 @@
 '''
 import json
 import logging as log
-import datetime
 from PyQt5.QtWidgets import (QVBoxLayout, QWidget, QTabWidget)
 from emergent.utilities.introspection import list_errors, list_experiments, list_triggers
 from emergent.utilities import recommender
@@ -79,18 +78,6 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
             return recommender.get_default_params('algorithm', name)
         elif panel.name == 'Servo':
             return recommender.get_default_params('servo', name)
-
-    def get_algorithm(self, name, panel):
-        if panel.name == 'Optimize':
-            return recommender.get_class('algorithm', name)
-        elif panel.name == 'Servo':
-            return recommender.get_class('servo', name)
-        elif panel.name == 'Model':
-            return recommender.get_class('sampler', name)
-
-    def get_description(self, panel, algo_name, parameter):
-        params = self.get_algorithm(algo_name, panel).params
-        return params[parameter].description
 
     def list_algorithms(self, panel):
         if panel.name == 'Optimize':
@@ -173,15 +160,6 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         else:
             if index == -1:
                 self.tab_widget.addTab(self.servo_tab, 'Servo')
-
-        ''' Show/hide optimize tab if we do/don't have inputs selected '''
-        # index = self.tab_widget.indexOf(self.optimize_tab)
-        # state = self.parent.tree_widget.get_selected_state()
-        # if len(state) == 0:
-        #     self.tab_widget.removeTab(self.tab_widget.indexOf(self.optimize_tab))
-        # else:
-        #     if index == -1:
-        #         self.tab_widget.addTab(self.optimize_tab, 'Optimize')
 
     def update_hub(self):
         hub = self.parent.tree_widget.currentItem().root
@@ -284,27 +262,20 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
                 settings[s] = gui_settings[s]
         return settings
 
-    def start_process(self, process='', settings={}, threaded=True, load_from_gui=False):
-        ''' Load any non-passed settings from the GUI and start a process. '''
+    def start_process(self, process='', threaded=True):
+        ''' Load settings from the GUI and start a process. '''
         panel = getattr(self, process+'_panel')
-
-        ''' Pull settings from the gui and fill in any missing options '''
-        if load_from_gui:
-            settings = self.fill_settings_from_gui(panel, settings)
-
+        settings = panel.get_settings_from_gui()
         settings['experiment']['instance'] = getattr(settings['hub'], settings['experiment']['name'])
 
         if 'algorithm' in settings:
-            settings['algorithm']['instance'] = self.get_algorithm(settings['algorithm']['name'], panel)
-            settings['algorithm']['instance'].set_params(settings['algorithm']['params'])
             name = settings['algorithm']['name']
             if 'end at' in settings['process']:
                 settings['algorithm']['instance'].end_at = settings['process']['end at']
         else:
             name = 'Run'
 
-        t = datetime.datetime.now().strftime('%Y%m%dT%H%M')
-        sampler = Sampler(name, settings, t=t)
+        sampler = Sampler(name, settings)
 
         ''' Create task_panel task '''
         self.parent.task_panel.add_event(sampler)

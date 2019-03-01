@@ -9,6 +9,7 @@ import pickle
 import time
 import pandas as pd
 import numpy as np
+import datetime
 import logging as log
 from emergent.utilities.plotting import plot_1D
 
@@ -33,6 +34,7 @@ class Sampler():
             self.algorithm = settings['algorithm']['instance']
             self.algorithm.sampler = self
             self.algorithm_params = settings['algorithm']['params']
+            self.algorithm.set_params(self.algorithm_params)
 
         self.skip_lock_check = False           # if True, experiments will disregard watchdog state
 
@@ -50,6 +52,10 @@ class Sampler():
         self.start_time = t
         self.hub.macro_buffer.add(self.hub.state)   # save initial state to buffer
         self.prepare(self.state)
+
+        if t is None:
+            t = datetime.datetime.now().strftime('%Y%m%dT%H%M')
+
 
     def __getstate__(self):
         d = {}
@@ -71,7 +77,7 @@ class Sampler():
                     break
         self.log(self.start_time.replace(':','') + ' - ' + self.experiment.__name__)
         self.active = False
-        
+
     def _solve(self):
         ''' Runs an algorithm. '''
         self.hub.enable_watchdogs(False)

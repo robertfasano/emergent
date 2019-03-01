@@ -92,7 +92,7 @@ class ModelLayout(QVBoxLayout, ProcessHandler):
 
         optimizeButtonsLayout = QHBoxLayout()
         parent.optimizer_button = QPushButton('Go!')
-        parent.optimizer_button.clicked.connect(lambda: parent.start_process(process='model', settings = {}, load_from_gui=True))
+        parent.optimizer_button.clicked.connect(lambda: parent.start_process(process='model'))
 
         optimizeButtonsLayout.addWidget(parent.optimizer_button)
         self.addLayout(optimizeButtonsLayout)
@@ -112,6 +112,8 @@ class ModelLayout(QVBoxLayout, ProcessHandler):
             return
         settings['model']['name'] = self.model_box.currentText()
         settings['algorithm']['params'] = self.algorithm_table.get_params()
+        settings['algorithm']['instance'] = recommender.get_class('sampler', settings['algorithm']['name'])
+
         settings['experiment']['params'] = self.experiment_table.get_params()
         settings['model']['params'] = self.model_table.get_params()
         settings['model']['instance'] = recommender.get_class('model', settings['model']['name'])

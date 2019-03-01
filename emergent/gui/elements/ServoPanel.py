@@ -8,6 +8,7 @@ import logging as log
 import datetime
 from emergent.gui.elements.ParameterTable import ParameterTable
 from emergent.modules.parallel import ProcessHandler
+from emergent.utilities import recommender
 
 class ServoLayout(QVBoxLayout, ProcessHandler):
     def __init__(self, parent):
@@ -36,7 +37,7 @@ class ServoLayout(QVBoxLayout, ProcessHandler):
 
         optimizeButtonsLayout = QHBoxLayout()
         self.optimizer_button = QPushButton('Go!')
-        self.optimizer_button.clicked.connect(lambda: parent.start_process(process='servo', settings = {}, load_from_gui=True))
+        self.optimizer_button.clicked.connect(lambda: parent.start_process(process='servo'))
 
         optimizeButtonsLayout.addWidget(self.optimizer_button)
         self.addLayout(optimizeButtonsLayout)
@@ -46,6 +47,8 @@ class ServoLayout(QVBoxLayout, ProcessHandler):
         settings['state'] = self.parent.parent.tree_widget.get_selected_state()
         settings['experiment']['name'] = self.experiment_box.currentText()
         settings['algorithm']['name'] = self.algorithm_box.currentText()
+        settings['algorithm']['instance'] = recommender.get_class('servo', settings['algorithm']['name'])
+
         try:
             settings['hub'] = self.parent.parent.tree_widget.get_selected_hub()
         except Exception as e:
