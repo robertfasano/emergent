@@ -171,8 +171,9 @@ class NodeTree(QTreeWidget):
         ''' Deselects items who are not siblings with the current item. '''
         item = self.currentItem()
         for i in self.get_all_items():
-            if i.parent() is not item.parent():
-                i.setSelected(0)
+            if i.node.node_type == 'input':
+                if i.parent().parent() is not item.parent().parent():
+                    i.setSelected(0)
 
     def expand(self, node_type):
         ''' Expand all nodes in a given layer. '''
