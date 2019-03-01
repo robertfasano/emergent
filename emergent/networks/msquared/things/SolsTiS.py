@@ -4,6 +4,8 @@ import socket
 import time
 import json
 import numpy as np
+from emergent.modules import Sampler
+from emergent.utilities import recommender
 
 class SolsTiS(Thing):
     def __init__(self, params, name = 'SolsTiS', parent = None):
@@ -37,26 +39,30 @@ class SolsTiS(Thing):
     def acquire_etalon_lock(self):
         ''' if etalon lock is on, remove it '''
         self.lock(0)
+
         ''' Servo to 0.5 GHz of threshold then cancel and apply lock. Retry if
             lock point is greater than 1 GHz from setpoint. '''
 
         error = 999
+        settings = {'experiment': {}, 'algorithm': {}}
+        settings['experiment'] = {'name': 'error', 'instance': self.parent.error}
+        settings['experiment']['params'] = {'setpoint': 394798.3, 'wait': 0.1}
+        instance = recommender.get_class('algorithm', 'PID')
+        settings['algorithm'] = {'name': 'PID', 'instance': instance}
+        settings['algorithm']['params'] = {'Proportional gain': 0.25,
+                                           'Integral gain': 0.2,
+                                           'Derivative gain': 0,
+                                           'Sign': 1}
+        settings['state'] = self.parent.state
+        settings['hub'] = self.parent
+        settings['callback'] = self.callback
+
         while np.abs(error) > 1:
-            cost_params={'setpoint': 394798.3, 'wait': 0.1}
-            algo_params = {'threshold': 'None',
-                      'proportional_gain':0.5,
-                      'integral_gain':0.05,
-                      'derivative_gain':0,
-                      'sign':1}
-            servo_panel = self.leaf.tree_widget().parent.optimizer.servo_panel
-            settings = {'hub': self.parent,
-                        'state': {self.name: self.state},
-                        'experiment_name': 'error',
-                        'algorithm_params': algo_params,
-                        'experiment_params': cost_params,
-                        'callback': self.callback}
-            servo_panel.prepare_optimizer(settings=settings)
+            sampler = Sampler('PID', settings)
+            sampler._solve()
             error = self.parent.error(error_params)
+
+        self.lock(1)
 
     def callback(self, error, threshold=0.5):
         if error is None:

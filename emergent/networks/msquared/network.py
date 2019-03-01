@@ -2,8 +2,8 @@ from emergent.networks.msquared.hubs.lock import Lock
 from emergent.networks.msquared.things import PZT, SolsTiS, Wavemeter
 import sys
 
-def initialize(network):
-    lock = Lock('lattice')
+def initialize(network, params = {}):
+    lock = Lock('lattice', network=network, addr='132.163.82.22')
     params = {'server_ip':'192.168.1.207', 'client_ip':'192.168.1.100', 'port':39933}
     s = SolsTiS(params, parent=lock)
 
