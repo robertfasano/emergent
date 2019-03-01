@@ -103,6 +103,10 @@ def load_algorithm_parameters(hub, experiment_name, algorithm_name, module_type,
 
     ''' Look for relevant parameters in the json file in the network's params directory '''
     params_filename = hub.network.path['params'] + '%s.%s.txt'%(hub.name, experiment_name)
+    if module_type in ['algorithm', 'servo']:
+        key = 'algorithm'
+    else:
+        key = 'sampler'
     if not default:
         try:
             ''' Load params from file '''
@@ -110,10 +114,6 @@ def load_algorithm_parameters(hub, experiment_name, algorithm_name, module_type,
                 params = json.load(file)
 
             ''' See if the algorithm we're interested in has saved parameters'''
-            if module_type in ['algorithm', 'servo']:
-                key = 'algorithm'
-            else:
-                key = 'sampler'
             if key not in params:
                 params[key] = {}
             if algorithm_name in params[key]:
@@ -173,6 +173,7 @@ def load_experiment_parameters(hub, experiment_name, default = False):
     experiment = getattr(hub, experiment_name)
     args = inspect.signature(experiment).parameters
     args = list(args.items())
+    d = {}
     for a in args:
         if a[0] != 'params':
             continue
