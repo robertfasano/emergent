@@ -8,6 +8,7 @@ from emergent.modules.parallel import ProcessHandler
 import logging as log
 import numpy as np
 from emergent.gui.elements.ParameterTable import ParameterTable
+from emergent.utilities import recommender
 
 class ModelLayout(QVBoxLayout, ProcessHandler):
     def __init__(self, parent):
@@ -97,10 +98,10 @@ class ModelLayout(QVBoxLayout, ProcessHandler):
         self.addLayout(optimizeButtonsLayout)
 
     def get_settings_from_gui(self):
-        settings = {}
+        settings = {'experiment': {}, 'algorithm': {}, 'model': {}, 'process': {}}
         settings['state'] = self.parent.parent.tree_widget.get_selected_state()
-        settings['experiment_name'] = self.experiment_box.currentText()
-        settings['algorithm_name'] = self.sampler_box.currentText()
+        settings['experiment']['name'] = self.experiment_box.currentText()
+        settings['algorithm']['name'] = self.sampler_box.currentText()
         try:
             settings['hub'] = self.parent.parent.tree_widget.get_selected_hub()
         except Exception as e:
@@ -109,20 +110,14 @@ class ModelLayout(QVBoxLayout, ProcessHandler):
             elif e == KeyError:
                 log.warn('Decentralized processes not yet supported.')
             return
-        settings['model_name'] = self.model_box.currentText()
-        settings['algorithm_params'] = self.algorithm_table.get_params()
-        settings['experiment_params'] = self.experiment_table.get_params()
-        settings['model_params'] = self.model_table.get_params()
-        settings['end at'] = self.goto_box.currentText()
-        settings['callback'] = None
-        if 'cycles per sample' not in settings['experiment_params']:
-            settings['experiment_params']['cycles per sample'] = 1
-        return settings
+        settings['model']['name'] = self.model_box.currentText()
+        settings['algorithm']['params'] = self.algorithm_table.get_params()
+        settings['experiment']['params'] = self.experiment_table.get_params()
+        settings['model']['params'] = self.model_table.get_params()
+        settings['model']['instance'] = recommender.get_class('model', settings['model']['name'])
 
-    def run_process(self, sampler):
-        sampler.hub.enable_watchdogs(False)
-        sampler.algorithm.run(sampler.state)
-        sampler.hub.enable_watchdogs(True)
-        log.info('Optimization complete!')
-        sampler.log(sampler.start_time.replace(':','') + ' - ' + sampler.experiment.__name__ + ' - ' + sampler.algorithm.name)
-        sampler.active = False
+        settings['process']['end at'] = self.goto_box.currentText()
+        settings['process']['callback'] = None
+        if 'cycles per sample' not in settings['experiment']['params']:
+            settings['experiment']['params']['cycles per sample'] = 1
+        return settings

@@ -9,27 +9,38 @@ import pickle
 import time
 import pandas as pd
 import numpy as np
+import logging as log
 from emergent.utilities.plotting import plot_1D
 
 class Sampler():
     ''' General methods '''
-    def __init__(self, name, state, hub, experiment, experiment_params, algorithm=None, algorithm_params={}, model = None, t=None):
+    def __init__(self, name, settings, t=None):
+
         ''' Initialize the sampler and link to the parent Hub. '''
         self.name = name
-        self.state = state
-        self.hub = hub
+        self.state = settings['state']
+        self.hub = settings['hub']
         self.trigger = None
-        self.index = len(hub.samplers)
-        hub.samplers[self.index] = self
-        self.experiment = experiment
-        self.experiment_name = experiment.__name__
-        self.experiment_params = experiment_params
-        self.algorithm = algorithm
-        if self.algorithm is not None:
+        self.index = len(self.hub.samplers)
+        self.hub.samplers[self.index] = self
+        self.experiment = settings['experiment']['instance']
+        self.experiment_name = self.experiment.__name__
+        self.experiment_params = settings['experiment']['params']
+
+        self.algorithm = None
+        self.algorithm_params = None
+        if 'algorithm' in settings:
+            self.algorithm = settings['algorithm']['instance']
             self.algorithm.sampler = self
-        self.algorithm_params = algorithm_params
-        self.model = model
+            self.algorithm_params = settings['algorithm']['params']
+
         self.skip_lock_check = False           # if True, experiments will disregard watchdog state
+
+        self.model = None
+        if 'model' in settings:
+            self.model = settings['model']['instance']
+        if self.model is not None:
+            self.model.prepare(self)
 
 
         self.actuate = self.hub.actuate
@@ -39,8 +50,7 @@ class Sampler():
         self.start_time = t
         self.hub.macro_buffer.add(self.hub.state)   # save initial state to buffer
         self.prepare(self.state)
-        if self.model is not None:
-            self.model.prepare(self)
+
     def __getstate__(self):
         d = {}
         d['experiment_name'] = self.experiment.__name__
@@ -48,6 +58,28 @@ class Sampler():
             d[x] = self.__dict__[x]
 
         return d
+
+    def _run():
+        count = 0
+        while self.active:
+            if self.trigger is not None:
+                self.trigger()
+            result = self._cost({}, norm=False)
+            count += 1
+            if type(self.experiment_params['iterations']) is int:
+                if count >= self.experiment_params['iterations']:
+                    break
+        self.log(self.start_time.replace(':','') + ' - ' + self.experiment.__name__)
+        self.active = False
+        
+    def _solve(self):
+        ''' Runs an algorithm. '''
+        self.hub.enable_watchdogs(False)
+        self.algorithm.run(self.state)
+        self.hub.enable_watchdogs(True)
+        log.info('Optimization complete!')
+        self.log(self.start_time.replace(':','') + ' - ' + self.experiment.__name__ + ' - ' + self.algorithm.name)
+        self.active = False
 
     def callback(self, *args):
         ''' Check if the sampler is active. This is used to terminate processes

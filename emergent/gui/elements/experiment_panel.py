@@ -285,47 +285,26 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         return settings
 
     def start_process(self, process='', settings={}, threaded=True, load_from_gui=False):
-        ''' Load any non-passed settings from the GUI '''
-        ''' Settings contains the following fields:
-            experiment_name: str
-            cost_params: dict
-            algo_params: dict
-            hub: node
-            state: dict
-
-        '''
+        ''' Load any non-passed settings from the GUI and start a process. '''
         panel = getattr(self, process+'_panel')
 
         ''' Pull settings from the gui and fill in any missing options '''
         if load_from_gui:
             settings = self.fill_settings_from_gui(panel, settings)
 
-        settings['experiment'] = getattr(settings['hub'], settings['experiment_name'])
-        if 'algorithm_name' in settings:
-        # if hasattr(panel, 'algorithm_box'):
-            # algorithm_name = panel.algorithm_box.currentText()
-            settings['algorithm'] = self.get_algorithm(settings['algorithm_name'], panel)
-            settings['algorithm'].set_params(settings['algorithm_params'])
-            name = settings['algorithm_name']
-            if 'end at' in settings:
-                settings['algorithm'].end_at = settings['end at']
+        settings['experiment']['instance'] = getattr(settings['hub'], settings['experiment']['name'])
+
+        if 'algorithm' in settings:
+            settings['algorithm']['instance'] = self.get_algorithm(settings['algorithm']['name'], panel)
+            settings['algorithm']['instance'].set_params(settings['algorithm']['params'])
+            name = settings['algorithm']['name']
+            if 'end at' in settings['process']:
+                settings['algorithm']['instance'].end_at = settings['process']['end at']
         else:
-            settings['algorithm'] = None
-            settings['algorithm_params'] = None
             name = 'Run'
-        settings['model'] = None
-        if 'model_name' in settings:
-            settings['model'] = recommender.get_class('model', settings['model_name'])
+
         t = datetime.datetime.now().strftime('%Y%m%dT%H%M')
-        sampler = Sampler(name,
-                          settings['state'],
-                          settings['hub'],
-                          settings['experiment'],
-                          settings['experiment_params'],
-                          settings['algorithm'],
-                          settings['algorithm_params'],
-                          model = settings['model'],
-                          t=t)
+        sampler = Sampler(name, settings, t=t)
 
         ''' Create task_panel task '''
         self.parent.task_panel.add_event(sampler)
@@ -338,12 +317,15 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
 
         ''' Run process '''
         if settings['state'] == {} and process != 'run':
-            log.warning('Please select at least one Input node for optimization.')
+            log.warning('Please select at least one Input node.')
             return
         stoppable = False
+        func = sampler._solve
         if process == 'run':
             stoppable = True
+            func = sampler._run
+
         if threaded:
-            panel._run_thread(panel.run_process, args = (sampler,), stoppable=stoppable)
+            panel._run_thread(func, stoppable=stoppable)
         else:
-            panel.run_process(sampler)
+            func()
