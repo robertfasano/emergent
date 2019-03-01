@@ -290,13 +290,12 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         if settings['state'] == {} and process != 'run':
             log.warning('Please select at least one Input node.')
             return
-        stoppable = False
+            
         func = sampler._solve
         if process == 'run':
-            stoppable = True
             func = sampler._run
 
         if threaded:
-            panel._run_thread(func, stoppable=stoppable)
+            panel._run_thread(func, stoppable=False)
         else:
             func()

@@ -66,7 +66,7 @@ class Sampler():
 
         return d
 
-    def _run():
+    def _run(self):
         count = 0
         while self.active:
             if self.trigger is not None:

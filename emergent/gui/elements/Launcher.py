@@ -72,4 +72,4 @@ class Launcher(QWidget):
         port = int(self.port_box.text())
         db_addr = self.db_edit.text()
         self.close()
-        os.system('ipython -i main.py -- %s --addr %s --port %i --database_addr %s'%(network, address, port, db_addr))
+        os.system('ipython --gui qt5 -i main.py -- %s --addr %s --port %i --database_addr %s'%(network, address, port, db_addr))
