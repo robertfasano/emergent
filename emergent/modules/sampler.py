@@ -19,6 +19,8 @@ class Sampler():
 
         ''' Initialize the sampler and link to the parent Hub. '''
         self.name = name
+        if t is None:
+            t = datetime.datetime.now().strftime('%Y%m%dT%H%M')
         self.state = settings['state']
         self.hub = settings['hub']
         self.trigger = None
@@ -53,8 +55,7 @@ class Sampler():
         self.hub.macro_buffer.add(self.hub.state)   # save initial state to buffer
         self.prepare(self.state)
 
-        if t is None:
-            t = datetime.datetime.now().strftime('%Y%m%dT%H%M')
+
 
 
     def __getstate__(self):
