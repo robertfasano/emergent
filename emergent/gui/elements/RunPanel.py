@@ -50,14 +50,14 @@ class RunLayout(QVBoxLayout, ProcessHandler):
 
         self.runButtonsLayout = QHBoxLayout()
         self.runExperimentButton = QPushButton('Go!')
-        self.runExperimentButton.clicked.connect(lambda: parent.start_process(process='run', settings = {}, load_from_gui=True))
+        self.runExperimentButton.clicked.connect(lambda: parent.start_process(process='run'))
 
         self.runButtonsLayout.addWidget(self.runExperimentButton)
         self.addLayout(self.runButtonsLayout)
 
     def get_settings_from_gui(self):
-        settings = {}
-        settings['experiment_name'] = self.experiment_box.currentText()
+        settings = {'experiment': {}, 'process': {}}
+        settings['experiment']['name'] = self.experiment_box.currentText()
         try:
             settings['hub'] = self.parent.parent.tree_widget.currentItem().root
         except Exception as e:
@@ -67,32 +67,15 @@ class RunLayout(QVBoxLayout, ProcessHandler):
                 log.warn('Decentralized processes not yet supported.')
             return
         settings['state'] = settings['hub'].state
-        settings['experiment_params'] = self.experiment_table.get_params()
-        if 'cycles per sample' not in settings['experiment_params']:
-            settings['experiment_params']['cycles per sample'] = 1#int(self.cycles_per_sample_edit.text())
-        settings['experiment_params']['iterations'] = self.runIterationsEdit.text()
-        if settings['experiment_params']['iterations'] != 'Continuous':
-            settings['experiment_params']['iterations'] = int(settings['experiment_params']['iterations'])
-        settings['callback'] = None
-        settings['algorithm_params'] = {}
+        settings['experiment']['params'] = self.experiment_table.get_params()
+        if 'cycles per sample' not in settings['experiment']['params']:
+            settings['experiment']['params']['cycles per sample'] = 1
+        settings['experiment']['params']['iterations'] = self.runIterationsEdit.text()
+        if settings['experiment']['params']['iterations'] != 'Continuous':
+            settings['experiment']['params']['iterations'] = int(settings['experiment']['params']['iterations'])
+        settings['process']['callback'] = None
 
         return settings
-
-    def run_process(self, sampler, stopped = None):
-        count = 0
-        while sampler.active:
-            if sampler.trigger is not None:
-                sampler.trigger()
-            result = sampler._cost({}, norm=False)
-            count += 1
-            if type(sampler.experiment_params['iterations']) is int:
-                if count >= sampler.experiment_params['iterations']:
-                    break
-        sampler.log(sampler.start_time.replace(':','') + ' - ' + sampler.experiment.__name__)
-        sampler.active = False
-
-    def stop_experiment(self):
-        self._quit_thread(self.run_experiment)
 
     def updateIterations(self):
         try:

@@ -33,34 +33,6 @@ def get_default_algorithm(hub, experiment_name):
         save_default_algorithm(hub, experiment_name, 'GridSearch')
         return get_class('algorithm', 'GridSearch')
 
-
-# def get_default_algorithm_params(name):
-#     instance = get_algorithm(name)
-#     params = instance.params
-#     algo_params = {}
-#     for p in params:
-#         algo_params[p] = params[p].value
-#
-#     return algo_params
-#
-# def get_default_model_params(name):
-#     instance = get_model(name)
-#     params = instance.params
-#     model_params = {}
-#     for p in params:
-#         model_params[p] = params[p].value
-#
-#     return model_params
-#
-# def get_default_sampler_params(name):
-#     instance = get_sampler(name)
-#     params = instance.params
-#     sampler_params = {}
-#     for p in params:
-#         sampler_params[p] = params[p].value
-#
-#     return sampler_params
-
 def get_default_params(module, name):
     module_name = {'sampler': 'samplers', 'model': 'models',
                    'algorithm': 'optimizers', 'servo': 'servos'}[module]

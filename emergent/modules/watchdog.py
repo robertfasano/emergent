@@ -54,11 +54,9 @@ class Watchdog():
         ''' Set up sampler object '''
         experiment_params = recommender.load_experiment_parameters(self.parent, experiment.__name__)
         experiment_params['channel'] = self.channel
-        self.sampler = Sampler('Watchdog',
-                               self.input_state,
-                               self.parent,
-                               self.experiment,
-                               experiment_params)
+        settings = {'state': self.input_state, 'hub': self.parent}
+        settings['experiment'] = {'instance': self.experiment, 'params': experiment_params}
+        self.sampler = Sampler('Watchdog', settings)
         self.sampler.skip_lock_check = True
 
     def check(self):

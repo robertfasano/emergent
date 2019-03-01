@@ -8,73 +8,7 @@ from emergent.modules.parallel import ProcessHandler
 import logging as log
 import numpy as np
 from emergent.gui.elements.ParameterTable import ParameterTable
-
-class CustomTable(QTableWidget, ProcessHandler):
-    def __init__(self, parent):
-        QTableWidget.__init__(self)
-        ProcessHandler.__init__(self)
-        self.parent = parent
-
-    def contextMenuEvent(self, event):
-        self.menu = QMenu(self)
-        self.action = QAction('Tune')
-        self.action.triggered.connect(lambda: self._run_thread(self.tune))
-        self.menu.addAction(self.action)
-        self.menu.popup(QCursor.pos())
-
-    def tune(self, stopped):
-        pos = self.viewport().mapFromGlobal(QCursor.pos())
-        row = self.rowAt(pos.y())
-        name = self.item(row, 0).text()
-        settings = self.parent.get_settings_from_gui()
-        cost = getattr(settings['hub'], settings['experiment_name'])
-        sampler, index = settings['hub'].attach_sampler(settings['state'], cost)
-        algorithm_name = self.parent.sampler_box.currentText()
-        algorithm = self.parent.parent.get_algorithm(algorithm_name, self.parent)
-        algorithm.sampler = sampler
-        algorithm.parent = settings['hub']
-        run = algorithm.run
-        default_params = algorithm.params
-        min = default_params[name].min
-        max = default_params[name].max
-        values = np.linspace(min, max, 3)
-
-        c = []
-        for v in values:
-            if stopped():
-                return
-            print('Running optimization with %s=%f...'%(name, v))
-            settings['algorithm_params'][name] = v
-            algorithm.set_params(settings['algorithm_params'])
-            settings['hub'].actuate(settings['state'])
-            run(settings['state'])
-            c.append(algorithm.sampler.history['cost'].iloc[-1])
-            print('...result:', c[-1])
-
-        print(c)
-
-
-        # state = {'thingA': {'X': 0, 'Y': 0}}
-        # cost_params = {"x0": 0.3,
-        #                "noise": 0.01,
-        #                "y0": 0.6,
-        #                "sigma_y": 0.8,
-        #                "theta": 0,
-        #                "sigma_x": 0.3,
-        #                "cycles per sample": 1}
-        # cost = self.sampler.hub.cost_uncoupled
-        # algorithm = self.adam
-        # params={'learning rate':0.1, 'steps': 100, 'dither': 0.01, 'beta_1': 0.9, 'beta_2': 0.999, 'epsilon': 1e-8}
-        # pmin = 0.001
-        # pmax = 0.1
-        # steps = 10
-        # loss = []
-        # for p in np.logspace(pmin, pmax, steps):
-        #     params['dither'] = p
-        #     algorithm(state, cost, params, cost_params)
-        #     loss.append(self.sampler.history['cost'].iloc[-1])
-        #     print(loss)
-        # return loss
+from emergent.utilities import recommender
 
 class ModelLayout(QVBoxLayout, ProcessHandler):
     def __init__(self, parent):
@@ -90,17 +24,10 @@ class ModelLayout(QVBoxLayout, ProcessHandler):
         self.experiment_layout.addWidget(label)
         self.experiment_box = QComboBox()
         self.experiment_layout.addWidget(self.experiment_box)
-        button = QPushButton('Show/hide parameters')
-        button.clicked.connect(lambda: self.show_parameters('experiment'))
-        # self.experiment_layout.addWidget(button)
-        # self.addLayout(self.experiment_layout)
+
 
         ''' Experiment parameters '''
-        # self.experiment_table_layout = QHBoxLayout()
         self.experiment_table = ParameterTable()
-        # self.experiment_table_layout.addWidget(self.experiment_table)
-        # self.experiment_table.hide()
-        # self.addLayout(self.experiment_table_layout)
 
         ''' Model select layout '''
         self.modelLayout = QVBoxLayout()
@@ -112,16 +39,10 @@ class ModelLayout(QVBoxLayout, ProcessHandler):
         self.modelLayout.addWidget(label)
         self.modelLayout.addWidget(self.model_box)
 
-        button = QPushButton('Show/hide parameters')
-        button.clicked.connect(lambda: self.show_parameters('model'))
-        # self.modelLayout.addWidget(button)
-        # self.addLayout(self.modelLayout)
+
 
         ''' Model parameters '''
-        # self.model_table_layout = QHBoxLayout()
         self.model_table = ParameterTable()
-        # self.model_table_layout.addWidget(self.model_table)
-        # self.addLayout(self.model_table_layout)
 
         ''' Algorithm select layout '''
         self.sampler_layout = QVBoxLayout()
@@ -130,54 +51,21 @@ class ModelLayout(QVBoxLayout, ProcessHandler):
         self.sampler_layout.addWidget(label)
         self.sampler_box = QComboBox()
         self.sampler_layout.addWidget(self.sampler_box)
-        button = QPushButton('Show/hide parameters')
-        button.clicked.connect(lambda: self.show_parameters('sampler'))
-        # self.sampler_layout.addWidget(button)
-        # self.addLayout(self.sampler_layout)
 
-        # ''' Algorithm parameters '''
-        # self.sampler_table_layout = QHBoxLayout()
         self.algorithm_table = ParameterTable()
-        # self.sampler_table_layout.addWidget(self.algorithm_table)
-        # self.algorithm_table.hide()
-        # self.addLayout(self.sampler_table_layout)
 
 
         ''' Add parameter tables in tabs '''
         self.horizontal_layout = QHBoxLayout()
         self.tab_widget = QTabWidget()
-
-        # self.experiment_widget = QWidget()
-        # self.experiment_widget_layout = QVBoxLayout()
-        # self.experiment_widget.setLayout(self.experiment_widget_layout)
-        # self.experiment_widget_layout.addLayout(self.experiment_layout)
-        # self.experiment_widget_layout.addWidget(self.experiment_table)
-        # self.tab_widget.addTab(self.experiment_widget, 'Experiment')
         self.experiment_layout.addWidget(self.experiment_table)
         self.horizontal_layout.addLayout(self.experiment_layout)
-
-        # self.model_widget = QWidget()
-        # self.model_widget_layout = QVBoxLayout()
-        # self.model_widget.setLayout(self.model_widget_layout)
-        # self.model_widget_layout.addLayout(self.modelLayout)
-        # self.model_widget_layout.addWidget(self.model_table)
-        # self.tab_widget.addTab(self.model_widget, 'Model')
         self.modelLayout.addWidget(self.model_table)
         self.horizontal_layout.addLayout(self.modelLayout)
 
-
-        # self.sampling_widget = QWidget()
-        # self.sampling_widget_layout = QVBoxLayout()
-        # self.sampling_widget.setLayout(self.sampling_widget_layout)
-        # self.sampling_widget_layout.addLayout(self.sampler_layout)
-        # self.sampling_widget_layout.addWidget(self.algorithm_table)
-        # self.tab_widget.addTab(self.sampling_widget, 'Sampling')
         self.sampler_layout.addWidget(self.algorithm_table)
         self.horizontal_layout.addLayout(self.sampler_layout)
 
-        # tabLayout = QHBoxLayout()
-        # tabLayout.addWidget(self.tab_widget)
-        # self.addLayout(tabLayout)
         self.addLayout(self.horizontal_layout)
 
         self.sampler_box.currentTextChanged.connect(lambda: self.parent.update_algorithm_and_experiment(self, update_experiment=False))
@@ -204,33 +92,16 @@ class ModelLayout(QVBoxLayout, ProcessHandler):
 
         optimizeButtonsLayout = QHBoxLayout()
         parent.optimizer_button = QPushButton('Go!')
-        parent.optimizer_button.clicked.connect(lambda: parent.start_process(process='model', settings = {}, load_from_gui=True))
+        parent.optimizer_button.clicked.connect(lambda: parent.start_process(process='model'))
 
         optimizeButtonsLayout.addWidget(parent.optimizer_button)
         self.addLayout(optimizeButtonsLayout)
 
-
-    def show_parameters(self, name):
-        if name == 'model':
-            table = self.model_table
-            others = [self.experiment_table, self.algorithm_table]
-        elif name == 'sampler':
-            table = self.algorithm_table
-            others = [self.experiment_table, self.model_table]
-        else:
-            table = self.experiment_table
-            others = [self.model_table, self.algorithm_table]
-        isVisible = int(table.isVisible())
-        table.setVisible(isVisible-1)
-        if not isVisible:
-            for t in others:
-                t.setVisible(isVisible)
-
     def get_settings_from_gui(self):
-        settings = {}
+        settings = {'experiment': {}, 'algorithm': {}, 'model': {}, 'process': {}}
         settings['state'] = self.parent.parent.tree_widget.get_selected_state()
-        settings['experiment_name'] = self.experiment_box.currentText()
-        settings['algorithm_name'] = self.sampler_box.currentText()
+        settings['experiment']['name'] = self.experiment_box.currentText()
+        settings['algorithm']['name'] = self.sampler_box.currentText()
         try:
             settings['hub'] = self.parent.parent.tree_widget.get_selected_hub()
         except Exception as e:
@@ -239,34 +110,16 @@ class ModelLayout(QVBoxLayout, ProcessHandler):
             elif e == KeyError:
                 log.warn('Decentralized processes not yet supported.')
             return
-        settings['model_name'] = self.model_box.currentText()
-        settings['algorithm_params'] = self.algorithm_table.get_params()
-        settings['experiment_params'] = self.experiment_table.get_params()
-        settings['model_params'] = self.model_table.get_params()
-        settings['end at'] = self.goto_box.currentText()
-        settings['callback'] = None
-        if 'cycles per sample' not in settings['experiment_params']:
-            settings['experiment_params']['cycles per sample'] = 1
+        settings['model']['name'] = self.model_box.currentText()
+        settings['algorithm']['params'] = self.algorithm_table.get_params()
+        settings['algorithm']['instance'] = recommender.get_class('sampler', settings['algorithm']['name'])
+
+        settings['experiment']['params'] = self.experiment_table.get_params()
+        settings['model']['params'] = self.model_table.get_params()
+        settings['model']['instance'] = recommender.get_class('model', settings['model']['name'])
+
+        settings['process']['end at'] = self.goto_box.currentText()
+        settings['process']['callback'] = None
+        if 'cycles per sample' not in settings['experiment']['params']:
+            settings['experiment']['params']['cycles per sample'] = 1
         return settings
-
-    def run_process(self, sampler):
-        sampler.hub.enable_watchdogs(False)
-        sampler.algorithm.run(sampler.state)
-        sampler.hub.enable_watchdogs(True)
-        log.info('Optimization complete!')
-        sampler.log(sampler.start_time.replace(':','') + ' - ' + sampler.experiment.__name__ + ' - ' + sampler.algorithm.name)
-        sampler.active = False
-
-    def openMenu(self, pos):
-        item = self.itemAt(pos)
-        print(item)
-        # globalPos = self.mapToGlobal(pos)
-        # menu = QMenu()
-        # actions = {}
-        # for option in item.node.options:
-        #     actions[option] = QAction(option, self)
-        #     func = item.node.options[option]
-        #     actions[option].triggered.connect(func)
-        #     menu.addAction(actions[option])
-        #
-        # selectedItem = menu.exec_(globalPos)
