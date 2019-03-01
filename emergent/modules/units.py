@@ -3,7 +3,7 @@ import pint
 class Units():
     def __init__(self):
         self.units = pint.UnitRegistry()
-        self.unit_list = ['V']
+        self.unit_list = ['V', 'Hz']
 
     def parse(self, string):
         ''' Converts a dimensional string into a scaled float'''
