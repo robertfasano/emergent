@@ -9,6 +9,7 @@ setup(
     packages=find_packages(exclude=['docs']),
     license='MIT',
     long_description=open('README.md').read(),
+    install_requires=['pyqt5-tools', 'pywin32', 'influxdb', 'pint', 'sip', 'matplotlib', 'pandas', 'scipy', 'psutil', 'sklearn']
 )
 
 
