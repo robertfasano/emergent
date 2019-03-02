@@ -68,12 +68,13 @@ def run_frontend():
     QApplication.setStyle(QStyleFactory.create("Fusion"))
     app = QApplication.instance()
     if app is None:
-        app = QApplication(sys.argv)         # Create an instance of the application
+        app = QApplication([" "])         # Create an instance of the application
     app.setStyle(QStyleFactory.create("Fusion"))
 
     main = MainWindow(app, network)
     main.show()
     app.processEvents()
+    app.exec()
 
 if __name__ == '__main__':
     launch()
