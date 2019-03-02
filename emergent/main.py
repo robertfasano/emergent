@@ -58,15 +58,6 @@ def launch():
     network.initialize()        # instantiate nodes
     network.load()              # load previous state from file
     network.post_load()         # run post-load routine to prepare physical state
-
-    ''' Do stuff defined in the network's process.py file '''
-    process = importlib.import_module('emergent.networks.'+network.name+'.process')
-    if "__all__" in process.__dict__:
-        names = process.__dict__["__all__"]
-    else:
-        names = [x for x in process.__dict__ if not x.startswith("_")]
-    globals().update({k: getattr(process, k) for k in names})
-
     network.manager._run_thread(network.try_connect, stoppable=False)
     network.keep_sync()     # sync network with all other EMERGENT sessions
 
