@@ -9,4 +9,6 @@ def get_address():
     return socket.gethostbyname(socket.gethostname())
 
 def get_local_addresses():
-    return [i[4][0] for i in socket.getaddrinfo(socket.gethostname(), None)]
+    addresses = [i[4][0] for i in socket.getaddrinfo(socket.gethostname(), None)]
+    addresses.append('127.0.0.1')
+    return addresses
