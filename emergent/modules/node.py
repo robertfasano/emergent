@@ -30,7 +30,7 @@ from emergent.utilities.containers import State
 from emergent.utilities import recommender
 from emergent.utilities.signals import DictSignal
 from emergent.utilities.buffers import StateBuffer, MacroBuffer
-from emergent.utilities.networking import get_address
+from emergent.utilities.networking import get_address, get_local_addresses
 from emergent.utilities.commandline import get_hub
 
 class Node():
@@ -321,7 +321,8 @@ class Hub(Node):
         self.manager = ProcessHandler()
         if self.addr is None:
             self.addr = get_address()
-        if network.addr != addr and addr is not None:
+        # if network.addr != addr and addr is not None:
+        if self.addr not in get_local_addresses():
             self.local = False
             return
         self.local = True
