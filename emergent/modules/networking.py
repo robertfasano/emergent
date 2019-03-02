@@ -110,9 +110,9 @@ class Server():
         else:
             self.addr = self.network.addr
         self.port = self.network.port
-
-        coro = asyncio.start_server(self.handle_command, self.addr, self.port, loop=self.loop)
-        self.server = self.loop.run_until_complete(coro)
+        if not self.loop.is_running():
+            coro = asyncio.start_server(self.handle_command, self.addr, self.port, loop=self.loop)
+            self.server = self.loop.run_until_complete(coro)
 
         thread = Thread(target=self.start)
         thread.start()
@@ -129,7 +129,8 @@ class Server():
 
     def start(self):
         ''' Start the server. '''
-        self.loop.run_forever()
+        if not self.loop.is_running():
+            self.loop.run_forever()
 
     async def send(self, msg, writer):
         ''' Sends a message asynchronously to the client. '''
