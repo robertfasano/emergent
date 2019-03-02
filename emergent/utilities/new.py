@@ -3,12 +3,10 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("name", help="Network name")
 parser.add_argument("-templates", "-t", action='append', help='Template to import')
-
-args = parser.parse_args()
-
+args, unknown = parser.parse_known_args()
 import sys
 import pathlib
-base_path = '../networks/%s/'%args.name
+base_path = 'networks/%s/'%args.name
 
 ''' Make network directory '''
 pathlib.Path(base_path).mkdir(parents=True, exist_ok=True)
@@ -26,10 +24,11 @@ lines.append('\n\n')
 lines.append('def initialize(network, params = {}):')
 lines.append('\n\t network.add_params(params)')
 lines.append('\n')
-for template in templates:
-    lines.append('\n\t from emergent.networks.%s import network as nw'%template)
-for template in templates:
-    lines.append('\n\t nw_params = {}')
-    lines.append('\n\t nw.initialize(network, nw_params)')
+if templates is not None:
+    for template in templates:
+        lines.append('\n\t from emergent.networks.%s import network as nw'%template)
+    for template in templates:
+        lines.append('\n\t nw_params = {}')
+        lines.append('\n\t nw.initialize(network, nw_params)')
 with open(base_path+'network.py', 'w') as file:
     file.writelines(lines)
