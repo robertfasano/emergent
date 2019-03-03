@@ -19,13 +19,14 @@ class Model():
         self.costs = np.append(self.costs, cost)
 
     def effective_cost(self, X, b):
-        ''' Computes an effective cost for Gaussian process optimization, featuring
+        ''' Computes an effective cost, featuring
             some tradeoff between optimization and learning. '''
         mu, sigma = self.predict(X)
        # return (b*mu+np.sqrt(1-b**2)*sigma)
         return b*mu-(1-b)*sigma
 
     def fit(self):
+        ''' Override for a given model with the specific fitting method used. '''
         return
 
     def minimum(self):
@@ -62,6 +63,7 @@ class Model():
         return best_x
 
     def predict(self, state):
+        ''' Override for a given model with the specific prediction method used. '''
         return
 
     def prepare(self, sampler):
