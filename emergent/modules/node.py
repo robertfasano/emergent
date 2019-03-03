@@ -103,7 +103,7 @@ class Input(Node):
             calls this method to obtain a dict to serialize. We intentionally omit
             any unpicklable objects from this dict to avoid errors. '''
         d = {}
-        ignore = ['parent', 'root', 'leaf']
+        ignore = ['parent', 'root', 'leaf', 'options']
         unpickled = []
         for item in ignore:
             if hasattr(self, item):
@@ -178,7 +178,7 @@ class Thing(Node):
             calls this method to obtain a dict to serialize. We intentionally omit
             any unpicklable objects from this dict to avoid errors. '''
         d = {}
-        ignore = ['parent', 'root', 'leaf']
+        ignore = ['parent', 'root', 'leaf', 'options']
         ignore.extend(self.ignored)
         unpickled = []
         for item in ignore:
@@ -344,7 +344,7 @@ class Hub(Node):
 
     def __getstate__(self):
         d = {}
-        ignore = ['root', 'watchdogs', 'samplers', 'network', 'leaf', 'children', 'options']
+        ignore = ['root', 'watchdogs', 'samplers', 'network', 'leaf', 'options']
         ignore.extend(self.ignored)
         unpickled = []
         for item in ignore:
