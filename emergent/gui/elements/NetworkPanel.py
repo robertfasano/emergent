@@ -340,8 +340,10 @@ class NodeWidget(QTreeWidgetItem):
         if self.node.node_type == 'hub' and hasattr(self.node, 'signal'):
             self.node.signal.connect(self.onActuateSignal)
         if self.node.node_type == 'thing':
-            self.node.create_signal.connect(self.onCreateSignal)
-            self.node.remove_signal.connect(self.onRemoveSignal)
+            if hasattr(self.node, 'create_signal'):
+                self.node.create_signal.connect(self.onCreateSignal)
+            if hasattr(self.node, 'remove_signal'):
+                self.node.remove_signal.connect(self.onRemoveSignal)
 
         elif self.node.node_type == 'input':
             name = self.node.name
