@@ -10,13 +10,13 @@ setup(
     packages=find_packages(exclude=['docs']),
     license='MIT',
     long_description=open('README.md').read(),
-    install_requires=['pyqt5==5.9.2', 'pyqt5-sip==4.19.13', 'ipython', 'pywin32', 'influxdb', 'pint', 'sip', 'matplotlib', 'pandas', 'scipy', 'psutil', 'sklearn']
+    install_requires=['pyqt5', 'pyserial', 'ipython', 'pywin32', 'influxdb', 'pint', 'sip', 'matplotlib', 'pandas', 'scipy', 'psutil', 'sklearn']
 )
 
-packages = ['pyqt5', 'pyqt5-sip', 'pyqt5-tools']
-for pkg in packages:
-    os.system('pip uninstall pkg')
-os.system('pip install pyqt5==5.9.2')
+# packages = ['pyqt5', 'pyqt5-sip', 'pyqt5-tools']
+# for pkg in packages:
+#     os.system('pip uninstall pkg')
+# os.system('pip install pyqt5==5.9.2')
 ''' Prepare batch file and shortcut '''
 import sys, os
 if os.name == 'nt':
