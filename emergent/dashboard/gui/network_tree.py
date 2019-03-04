@@ -43,7 +43,7 @@ class NodeTree(QTreeWidget):
         self.itemSelectionChanged.connect(self.close_editor)
 
         ''' Populate tree '''
-        self.generate(self.network)
+        self.set_state(self.network)
         self.setColumnWidth(0,200)
         for i in [1,2,3]:
             self.setColumnWidth(i,50)
@@ -75,7 +75,7 @@ class NodeTree(QTreeWidget):
         for item in items:
             item.setExpanded(True)
 
-    def generate(self, network, settings = None):
+    def set_state(self, network, settings = None):
         ''' Adds the passed network to the tree. If any hubs are already registered with the tree,
             instead updates their state based on the passed network. '''
         for hub in network:

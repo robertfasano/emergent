@@ -204,11 +204,11 @@ class DashAPI():
 
     def get(self, target):
         if target == 'state':
-            return {}
+            return self.dashboard.tree_widget.get_state()
 
     def set(self, target, value):
         if target == 'state':
-            self.dashboard.tree_widget.generate(value)
+            self.dashboard.tree_widget.set_state(value)
 
 class API():
     def __init__(self, network):
