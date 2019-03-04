@@ -58,11 +58,16 @@ def launch():
     network.initialize()        # instantiate nodes
     network.load()              # load previous state from file
     network.post_load()         # run post-load routine to prepare physical state
-    network.manager._run_thread(network.try_connect, stoppable=False)
-    network.keep_sync()     # sync network with all other EMERGENT sessions
+    # network.manager._run_thread(network.try_connect, stoppable=False)
+    # network.keep_sync()     # sync network with all other EMERGENT sessions
 
-    Server(network)
-    run_frontend()
+    # Server(network)
+
+    global p2p
+    from emergent.protocols.p2p import P2PNode, API
+    p2p = P2PNode('master', 'localhost', 27190, api = API(network))
+    p2p.network = network
+    # run_frontend()
 
 def run_frontend():
     QApplication.setStyle(QStyleFactory.create("Fusion"))

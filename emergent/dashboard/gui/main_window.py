@@ -10,10 +10,13 @@ from PyQt5.QtCore import QTimer
 from emergent.dashboard.gui import TaskPanel, NodeTree
 
 class Dashboard(QMainWindow):
-    def __init__(self, app, client, server):
+    def __init__(self, app, p2p):
         QMainWindow.__init__(self)
-        self.client = client
-        self.network = client.get_state()
+        self.p2p = p2p
+        from emergent.protocols.p2p import DashAPI
+        self.p2p.api = DashAPI(self)
+        self.network = self.p2p.send({'op': 'get', 'target': 'state'})['value']
+
         self.app = app
         ''' Set window style '''
         self.setWindowTitle('EMERGENT Dashboard')
@@ -36,25 +39,6 @@ class Dashboard(QMainWindow):
         self.tree_layout.addWidget(self.tree_widget)
         layout.addLayout(self.tree_layout)
 
-        self.update_timer = QTimer()
-        self.update_timer.timeout.connect(self.sync)
-        self.connection_params = {'sync delay': 0.25}
-        self.update_timer.start(self.connection_params['sync delay']*1000)
-
         ''' Experiment interface '''
         self.experiment_layout = QVBoxLayout()
         layout.addLayout(self.experiment_layout)
-
-        ''' Create task panel '''
-        self.task_panel = TaskPanel(self)
-        self.experiment_layout.addLayout(self.task_panel)
-
-    def sync(self):
-        ''' Queries each connected client for the state of its Network, then updates
-            the NetworkPanel to show the current state of the entire network. '''
-        try:
-            network = self.client.get_state()
-        except ConnectionRefusedError:
-            self.update_timer.stop()
-            log.warning('Connection refused by server at %s:%i.', client.addr, client.port)
-        self.tree_widget.generate(network)

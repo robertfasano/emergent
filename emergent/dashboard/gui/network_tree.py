@@ -16,10 +16,10 @@ from PyQt5.QtCore import *
 from emergent.utilities.containers import State
 
 class NodeTree(QTreeWidget):
-    def __init__(self, network, parent):
+    def __init__(self, network, dashboard):
         super().__init__()
         self.network = network
-        self.parent = parent
+        self.dashboard = dashboard
         self.editorOpen = 0
         self.current_item = None
         self.last_item = None
@@ -53,7 +53,7 @@ class NodeTree(QTreeWidget):
         for thing_name in state:
             thing = self.get_thing(hub, thing_name)
             for input in state[thing_name]:
-                self.get_input(hub, thing_name, input).setText(1, str(state[thing_name][input]))
+                self.get_input(hub, thing_name, input).state_signal.emit(state[thing_name][input])
 
     def set_settings(self, hub, settings):
         hub_item = self.get_hub(hub)
@@ -61,8 +61,8 @@ class NodeTree(QTreeWidget):
             thing = self.get_thing(hub, thing_name)
             for input in settings[thing_name]:
                 leaf = self.get_input(hub, thing_name, input)
-                leaf.setText(2, str(settings[thing_name][input]['min']))
-                leaf.setText(3, str(settings[thing_name][input]['max']))
+                leaf.min_signal.emit(settings[thing_name][input]['min'])
+                leaf.max_signal.emit(settings[thing_name][input]['max'])
 
     def add_node(self, parent, name):
         leaf = QTreeWidgetItem([name])
@@ -81,19 +81,22 @@ class NodeTree(QTreeWidget):
         for hub in network:
             if self.get_hub(hub) is not None:
                 self.actuate(hub, network[hub])
-                settings = self.parent.client.get_settings(hub)
-                self.set_settings(hub, settings)
+                settings = self.dashboard.p2p.send({'op': 'get', 'target': 'settings'})['value']
+                self.set_settings(hub, settings[hub])
+                self.dashboard.app.processEvents()
                 continue
             root = QTreeWidgetItem([hub])
             self.insertTopLevelItems(self.topLevelItemCount(), [root])
             for thing in network[hub]:
                 branch = self.add_node(root, thing)
                 for input in network[hub][thing]:
-                    leaf = self.add_node(branch, input)
+                    leaf = InputWidget(input)
+                    branch.addChild(leaf)
             self.actuate(hub, network[hub])       # update tree to current hub state
-            settings = self.parent.client.get_settings(hub)
-            self.set_settings(hub, settings)
+            settings = self.dashboard.p2p.send({'op': 'get', 'target': 'settings'})['value']
+            self.set_settings(hub, settings[hub])
             self.expand()
+        self.dashboard.app.processEvents()
 
 
     ''' Logistics methods '''
@@ -199,12 +202,15 @@ class NodeTree(QTreeWidget):
 
             if col == 1:
                 state = {thing_name:{input_name: float(value)}}
-                self.parent.client.actuate({hub_name: state})
+                # self.dashboard.p2p.sender.actuate({hub_name: state})
+                self.dashboard.p2p.send({'op': 'set', 'target': 'state', 'value': {hub_name: state}})
             elif col in [2,3]:
-                d = {'min': float(self.current_item.text(2)),
-                     'max': float(self.current_item.text(3))}
-                state = {hub: {thing: {input: d}}}
-                self.parent.client.set_range(state)
+                print('No settings functionality yet')
+                return
+                # d = {'min': float(self.current_item.text(2)),
+                #      'max': float(self.current_item.text(3))}
+                # state = {hub: {thing: {input: d}}}
+                # self.dashboard.client.set_range(state)
 
         except AttributeError as e:
             print(e)
@@ -224,3 +230,25 @@ class NodeTree(QTreeWidget):
             actions[option].triggered.connect(func)
             menu.addAction(actions[option])
         selectedItem = menu.exec_(globalPos)
+
+from emergent.utilities.signals import FloatSignal
+
+class InputWidget(QTreeWidgetItem):
+    def __init__(self, name):
+        super().__init__([name])
+        self.name = name
+        self.state_signal = FloatSignal()
+        self.state_signal.connect(self.updateStateText)
+        self.min_signal = FloatSignal()
+        self.min_signal.connect(self.updateMinText)
+        self.max_signal = FloatSignal()
+        self.max_signal.connect(self.updateMaxText)
+
+    def updateStateText(self, state):
+        self.setText(1, str('%.2f'%state))
+
+    def updateMinText(self, state):
+        self.setText(2, str('%.2f'%state))
+
+    def updateMaxText(self, state):
+        self.setText(3, str('%.2f'%state))

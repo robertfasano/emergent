@@ -25,21 +25,31 @@ try:
 except AttributeError:
     pass
 
+log.basicConfig(level=log.INFO)
+
 def launch():
-    client = Client(get_address(), 8000)
-    server = Server()
-    run_frontend(client, server)
+    # client = Client(get_address(), 8000)
+    # server = Server()
+
+
+    global p2p
+    from emergent.protocols.p2p import P2PNode
+    p2p = P2PNode('dashboard', 'localhost', 27191)
+    p2p.bind('localhost', 27190)
+    while not p2p._connected:
+        continue
+    run_frontend(p2p)
 
 
 
-def run_frontend(client, server):
+def run_frontend(p2p):
     QApplication.setStyle(QStyleFactory.create("Fusion"))
     app = QApplication.instance()
     if app is None:
         app = QApplication([" "])         # Create an instance of the application
     app.setStyle(QStyleFactory.create("Fusion"))
     global main
-    main = Dashboard(app, client, server)
+    main = Dashboard(app, p2p)
     main.show()
     app.processEvents()
     app.exec()

@@ -294,6 +294,24 @@ class Network():
         for hub in self.hubs.values():
             hub.save()
 
+    def set_settings(self, settings):
+        for hub in settings:
+            for thing in settings[hub]:
+                for input in settings[hub][thing]:
+                    d = settings[hub][thing][input]
+                    for qty in ['min', 'max']:
+                        if qty in d:
+                            self.settings[hub][thing][input][qty] = d[qty]
+
+    def settings(self):
+        ''' Obtains a macroscopic settings dict from aggregating the settings of all
+            attached Hubs. '''
+        settings = {}
+        for hub in self.hubs.values():
+            settings[hub.name] = hub.settings
+
+        return settings
+
     def state(self):
         ''' Obtains a macroscopic state dict from aggregating the states of all
             attached Hubs. '''
