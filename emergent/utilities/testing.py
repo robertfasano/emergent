@@ -1,5 +1,6 @@
 import time
 import numpy as np
+import logging as log
 
 def unit_test(self, func, *args, **kwargs):
     tests = 100
