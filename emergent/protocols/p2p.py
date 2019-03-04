@@ -149,11 +149,10 @@ class Listener():
                 log.info('New listener at %s on port %i.', self.addr, self.port)
                 await self.send({'op': 'update', 'params': 1}, writer)
                 ''' Attempt to make reciprocal connection '''
-                if not self._connected:
+                if not hasattr(self.node, 'sender'):
                     addr = message['params']['addr']
                     port = message['params']['port']
                     self.node.bind(addr, port)
-                    self._connected = True
             if op == 'echo':
                 await self.send({'op': 'echo', 'params': message['params']}, writer)
 
