@@ -148,6 +148,21 @@ class NodeTree(QTreeWidget):
 
         return state
 
+    def get_state(self):
+        ''' Returns a dict representating the state of the tree. '''
+        all_items = []
+        state = State()
+        for i in range(self.topLevelItemCount()):
+            hub_item = self.topLevelItem(i)
+            state[hub_item.text(0)] = {}
+            for j in range(hub_item.childCount()):
+                thing_item = hub_item.child(j)
+                state[hub_item.text(0)][thing_item.text(0)] = {}
+                for k in range(thing_item.childCount()):
+                    input_item = thing_item.child(k)
+                    state[hub_item.text(0)][thing_item.text(0)][input_item.text(0)] = input_item.text(1)
+        return state
+
     def get_subtree_nodes(self, item):
         """Returns all NodeItems in the subtree rooted at the given node."""
         nodes = []
