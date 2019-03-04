@@ -81,7 +81,7 @@ class NodeTree(QTreeWidget):
         for hub in network:
             if self.get_hub(hub) is not None:
                 self.actuate(hub, network[hub])
-                settings = self.dashboard.p2p.send({'op': 'get', 'target': 'settings'})['value']
+                settings = self.dashboard.p2p.get('settings')
                 self.set_settings(hub, settings[hub])
                 self.dashboard.app.processEvents()
                 continue
@@ -93,7 +93,7 @@ class NodeTree(QTreeWidget):
                     leaf = InputWidget(input)
                     branch.addChild(leaf)
             self.actuate(hub, network[hub])       # update tree to current hub state
-            settings = self.dashboard.p2p.send({'op': 'get', 'target': 'settings'})['value']
+            settings = self.dashboard.p2p.get('settings')
             self.set_settings(hub, settings[hub])
             self.expand()
         self.dashboard.app.processEvents()
@@ -216,12 +216,13 @@ class NodeTree(QTreeWidget):
             input_name = self.current_item.text(0)
 
             if col == 1:
-                state = {thing_name:{input_name: float(value)}}
-                # self.dashboard.p2p.sender.actuate({hub_name: state})
-                self.dashboard.p2p.send({'op': 'set', 'target': 'state', 'value': {hub_name: state}})
+                state = {hub_name: {thing_name:{input_name: float(value)}}}
+                self.dashboard.p2p.set('state', state)
+
             elif col in [2,3]:
-                print('No settings functionality yet')
-                return
+                qty = {2: 'min', 3: 'max'}[col]
+                settings = {hub_name: {thing_name:{input_name: {qty: float(value)}}}}
+                self.dashboard.p2p.set('settings', settings)
                 # d = {'min': float(self.current_item.text(2)),
                 #      'max': float(self.current_item.text(3))}
                 # state = {hub: {thing: {input: d}}}

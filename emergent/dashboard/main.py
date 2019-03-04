@@ -16,7 +16,6 @@ import importlib
 from PyQt5.QtWidgets import QApplication, QStyleFactory
 from emergent.dashboard.gui import Dashboard
 from emergent.utilities.networking import get_address
-from emergent.dashboard.networking import Client, Server
 
 ''' Register app with OS '''
 try:
@@ -32,25 +31,25 @@ def launch():
     # server = Server()
 
 
-    global p2p
     from emergent.protocols.p2p import P2PNode
-    p2p = P2PNode('dashboard', 'localhost', 27191)
-    p2p.bind('localhost', 27190)
-    while not p2p._connected:
+    global dashP2P
+    dashP2P = P2PNode('dashboard', 'localhost', 27191)
+    dashP2P.bind('localhost', 27190)
+    while not dashP2P._connected:
         continue
-    run_frontend(p2p)
+    run_frontend(dashP2P)
 
 
 
-def run_frontend(p2p):
+def run_frontend(dashP2P):
     QApplication.setStyle(QStyleFactory.create("Fusion"))
     app = QApplication.instance()
     if app is None:
         app = QApplication([" "])         # Create an instance of the application
     app.setStyle(QStyleFactory.create("Fusion"))
-    global main
-    main = Dashboard(app, p2p)
-    main.show()
+    global dash
+    dash = Dashboard(app, dashP2P)
+    dash.show()
     app.processEvents()
     app.exec()
 

@@ -194,38 +194,11 @@ class P2PNode():
         return self.sender.send(message)
 
     def set(self, target, value):
+        if not hasattr(self, 'sender'):
+            return
         self.send({'op': 'set', 'target': target, 'value': value})
         return self.get(target)
 
-class DashAPI():
-    def __init__(self, dashboard):
-        self.dashboard = dashboard
-
-    def get(self, target):
-        if target == 'state':
-            return self.dashboard.tree_widget.get_state()
-
-    def set(self, target, value):
-        if target == 'state':
-            self.dashboard.tree_widget.set_state(value)
-
-class API():
-    def __init__(self, network):
-        self.network = network
-
-    def get(self, target):
-        if target == 'state':
-            return self.network.state()
-
-        if target == 'settings':
-            return self.network.settings()
-
-    def set(self, target, value):
-        if target == 'state':
-            self.network.actuate(value)
-
-        elif target == 'settings':
-            self.network.set_settings(value)
 
 if __name__ == '__main__':
     log.basicConfig(level=log.INFO)

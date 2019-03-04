@@ -55,6 +55,12 @@ def launch():
     if args.database_addr:
         database_addr = args.database_addr
     network = Network(name=args.name, addr=addr, port=port, database_addr=database_addr)
+    global mainP2P
+    from emergent.protocols.p2p import P2PNode
+    from emergent.modules.api import MainAPI
+    mainP2P = P2PNode('master', 'localhost', 27190, api = MainAPI(network))
+    mainP2P.network = network
+    network.p2p = mainP2P
     network.initialize()        # instantiate nodes
     network.load()              # load previous state from file
     network.post_load()         # run post-load routine to prepare physical state
@@ -63,10 +69,7 @@ def launch():
 
     # Server(network)
 
-    global p2p
-    from emergent.protocols.p2p import P2PNode, API
-    p2p = P2PNode('master', 'localhost', 27190, api = API(network))
-    p2p.network = network
+
     # run_frontend()
 
 def run_frontend():

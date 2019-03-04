@@ -255,7 +255,7 @@ class Thing(Node):
 
         return new_state
 
-    def actuate(self, state):
+    def actuate(self, state, send_over_p2p = True):
         """Makes a physical thing change in the lab with the _actuate() method, then registers this change with EMERGENT.
 
         Args:
@@ -272,6 +272,8 @@ class Thing(Node):
         self._actuate(translated_state)
         self.update(state)
         self.signal.emit(state)
+        if send_over_p2p:
+            self.parent.network.p2p.set('state', {self.parent.name: {self.name: state}})
 
     def update(self, state):
         """Synchronously updates the state of the Input, Thing, and Hub.
@@ -359,7 +361,7 @@ class Hub(Node):
                 d[item] = self.__dict__[item]
         return d
 
-    def actuate(self, state):
+    def actuate(self, state, send_over_p2p = True):
         """Updates all Inputs in the given state to the given values and optionally logs the state.
 
         Args:
@@ -368,7 +370,7 @@ class Hub(Node):
         ''' Aggregate states by thing '''
         thing_states = {}
         for thing in state:
-            self.children[thing].actuate(state[thing])
+            self.children[thing].actuate(state[thing], send_over_p2p)
         self.signal.emit(state)
 
         self.buffer.add(state)

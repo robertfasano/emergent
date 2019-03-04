@@ -242,10 +242,10 @@ class Network():
                 d[item] = self.__dict__[item]
         return d
 
-    def actuate(self, state):
+    def actuate(self, state, send_over_p2p = True):
         ''' Issues a macroscopic actuation to all connected Hubs. '''
         for hub in state:
-            self.hubs[hub].actuate(state[hub])
+            self.hubs[hub].actuate(state[hub], send_over_p2p)
 
     def add_hub(self, hub):
         ''' If the address and port match self.addr and self.port, add a local
@@ -295,13 +295,14 @@ class Network():
             hub.save()
 
     def set_settings(self, settings):
-        for hub in settings:
-            for thing in settings[hub]:
-                for input in settings[hub][thing]:
-                    d = settings[hub][thing][input]
+        for hub_name in settings:
+            hub = self.hubs[hub_name]
+            for thing_name in settings[hub_name]:
+                for input_name in settings[hub_name][thing_name]:
+                    d = settings[hub_name][thing_name][input_name]
                     for qty in ['min', 'max']:
                         if qty in d:
-                            self.settings[hub][thing][input][qty] = d[qty]
+                            hub.settings[thing_name][input_name][qty] = d[qty]
 
     def settings(self):
         ''' Obtains a macroscopic settings dict from aggregating the settings of all

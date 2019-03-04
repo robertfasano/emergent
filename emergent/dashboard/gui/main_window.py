@@ -8,15 +8,14 @@ from PyQt5.QtWidgets import (QHBoxLayout, QLabel, QVBoxLayout,
                              QWidget, QMainWindow, QStatusBar, QMenuBar)
 from PyQt5.QtCore import QTimer
 from emergent.dashboard.gui import TaskPanel, NodeTree
+from emergent.modules.api import DashAPI
 
 class Dashboard(QMainWindow):
     def __init__(self, app, p2p):
         QMainWindow.__init__(self)
         self.p2p = p2p
-        from emergent.protocols.p2p import DashAPI
         self.p2p.api = DashAPI(self)
-        self.network = self.p2p.send({'op': 'get', 'target': 'state'})['value']
-
+        self.network = self.p2p.get('state')
         self.app = app
         ''' Set window style '''
         self.setWindowTitle('EMERGENT Dashboard')
