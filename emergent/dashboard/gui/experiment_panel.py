@@ -18,7 +18,7 @@ from PyQt5.QtWidgets import (QVBoxLayout, QWidget, QTabWidget)
 from emergent.utilities.introspection import list_errors, list_experiments, list_triggers
 from emergent.utilities import recommender
 from emergent.modules import Sampler, ProcessHandler
-from emergent.dashboard.gui import RunLayout
+from emergent.dashboard.gui import RunLayout, ModelLayout
 
 class ExperimentLayout(QVBoxLayout, ProcessHandler):
     def __init__(self, dashboard):
@@ -38,6 +38,12 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         run_tab.setStyleSheet('background-color: rgba(255, 255, 255, 50%)')
         self.tab_widget.addTab(run_tab, 'Run')
 
+        ''' Create Model tab '''
+        model_tab = QWidget()
+        self.model_panel = ModelLayout(self)
+        model_tab.setLayout(self.model_panel)
+        model_tab.setStyleSheet('background-color: rgba(255, 255, 255, 50%)')
+        self.tab_widget.addTab(model_tab, 'Model')
 
         self.update_panel()
 
@@ -47,7 +53,7 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         self.panel = self.tab_widget.currentWidget().layout()
 
 
-    def update_hub_panel(self, panel, exp_or_error, algo):
+    def update_hub_panel(self, panel):
         ''' Updates the algorithm box with the methods available to the currently selected hub. '''
         hub = self.dashboard.tree_widget.currentItem().parent().parent().text(0)
 
@@ -56,6 +62,11 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         for item in self.dashboard.p2p.get('experiments', params={'hub': hub}):
             panel.experiment_box.addItem(item)
 
+        for x in ['model', 'sampler', 'algorithm']:
+            if hasattr(panel, '%s_box'%x):
+                getattr(panel, '%s_box'%x).clear()
+                for item in self.dashboard.p2p.get('%ss'%x):
+                    getattr(panel, '%s_box'%x).addItem(item)
 
 
     def update_hub(self):
@@ -65,16 +76,18 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         else:
             self.current_hub = hub
 
-        self.update_hub_panel(self.run_panel, 'experiment', False)
+        self.update_hub_panel(self.run_panel)
         self.update_experiment(self.run_panel)
 
-
+        self.update_hub_panel(self.model_panel)
+        self.update_experiment(self.model_panel)
+        self.update_model(self.model_panel)
+        self.update_sampler(self.model_panel)
+        
     def update_experiment(self, panel):
-        ''' Read default params dict from source code and insert it in self.cost_params_edit. '''
         if panel.experiment_box.currentText() == '':
             return
-        hub = self.dashboard.tree_widget.currentItem().parent().parent().text(0)
-        # d = recommender.load_experiment_parameters(hub, panel.experiment_box.currentText())
+        hub = self.dashboard.tree_widget.get_selected_hub()
         d = self.dashboard.p2p.get('experiment_params', params={'hub': hub, 'experiment': panel.experiment_box.currentText()})
         panel.experiment_table.set_parameters(d)
 
@@ -83,6 +96,20 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         panel.trigger_box.addItem('')
         for t in self.dashboard.p2p.get('triggers', params={'hub': hub}):
             panel.trigger_box.addItem(t)
+
+    def update_model(self, panel):
+        if panel.model_box.currentText() == '':
+            return
+        hub = self.dashboard.tree_widget.get_selected_hub()
+        d = self.dashboard.p2p.get('model_params', params={'hub': hub, 'model': panel.model_box.currentText()})
+        panel.model_table.set_parameters(d)
+
+    def update_sampler(self, panel):
+        if panel.sampler_box.currentText() == '':
+            return
+        hub = self.dashboard.tree_widget.get_selected_hub()
+        d = self.dashboard.p2p.get('sampler_params', params={'hub': hub, 'sampler': panel.sampler_box.currentText()})
+        panel.sampler_table.set_parameters(d)
 
     def start_process(self, process='', threaded=True):
         ''' Load settings from the GUI and start a process. '''

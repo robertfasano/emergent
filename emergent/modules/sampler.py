@@ -32,10 +32,11 @@ class Sampler():
 
         self.algorithm = None
         self.algorithm_params = None
-        if 'algorithm' in settings:
-            self.algorithm = settings['algorithm']['instance']
+        if 'sampler' in settings:
+            self.algorithm = settings['sampler']['instance']
+            self.algorithm.end_at = settings['process']['end at']
             self.algorithm.sampler = self
-            self.algorithm_params = settings['algorithm']['params']
+            self.algorithm_params = settings['sampler']['params']
             self.algorithm.set_params(self.algorithm_params)
 
         self.skip_lock_check = False           # if True, experiments will disregard watchdog state
@@ -43,7 +44,6 @@ class Sampler():
         self.model = None
         if 'model' in settings:
             self.model = settings['model']['instance']
-        if self.model is not None:
             self.model.prepare(self)
 
 

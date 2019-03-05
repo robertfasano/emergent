@@ -1,5 +1,4 @@
-from emergent.utilities.introspection import list_experiments, list_triggers
-from emergent.utilities import recommender
+from emergent.utilities import recommender, introspection
 from emergent.modules.parallel import ProcessHandler
 from emergent.modules import Sampler
 
@@ -7,7 +6,7 @@ class DashAPI():
     def __init__(self, dashboard):
         self.dashboard = dashboard
 
-    def get(self, target):
+    def get(self, target, params = {}):
         if target == 'state':
             return self.dashboard.tree_widget.get_state()
 
@@ -30,20 +29,40 @@ class MainAPI():
 
         elif target == 'experiments':
             hub = self.network.hubs[params['hub']]
-            return list_experiments(hub)
+            return introspection.list_experiments(hub)
 
         elif target == 'triggers':
             hub = self.network.hubs[params['hub']]
-            return list_triggers(hub)
+            return introspection.list_triggers(hub)
 
         elif target == 'experiment_params':
             hub = self.network.hubs[params['hub']]
             params = recommender.load_experiment_parameters(hub, params['experiment'])
             return params
 
+        elif target == 'model_params':
+            return recommender.get_default_params('model', params['model'])
+
+        elif target == 'sampler_params':
+            return recommender.get_default_params('sampler', params['sampler'])
+
+        elif target == 'models':
+            return recommender.list_classes('model')
+
+        elif target == 'samplers':
+            return recommender.list_classes('sampler')
+
+        elif target == 'servos':
+            return recommender.list_classes('servo')
+
     def run(self, settings):
         settings['hub'] = self.network.hubs[settings['hub']]
         settings['experiment']['instance'] = getattr(settings['hub'], settings['experiment']['name'])
+
+        for x in ['model', 'sampler', 'algorithm']:
+            if x in settings:
+                settings[x]['instance'] = recommender.get_class(x, settings[x]['name'])
+        print('Creating sampler')
         sampler = Sampler('sampler', settings)
 
         # ''' Create task_panel task '''
@@ -57,13 +76,13 @@ class MainAPI():
         if settings['state'] == {} and settings['process']['type'] != 'run':
             log.warning('Please select at least one Input node.')
             return
-
+        print('defining func')
         func = sampler._solve
         if settings['process']['type'] == 'run':
             func = sampler._run
-
+        print('starting thread')
         self.manager._run_thread(func, stoppable=False)
-
+        print('thread started')
 
     def set(self, target, value):
         if target == 'state':

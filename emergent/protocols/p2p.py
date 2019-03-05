@@ -73,26 +73,22 @@ class Sender():
         message['timestamp'] = datetime.datetime.now().isoformat()
         future = asyncio.run_coroutine_threadsafe(self._send(message), loop=self.loop)
         resp = future.result()
-        print(datetime.datetime.now().isoformat(), '%s:'%self.name, 'Received:', resp)
+        # print(datetime.datetime.now().isoformat(), '%s:'%self.name, 'Received:', resp)
 
         return resp
 
     async def _send(self, message):
-        print(datetime.datetime.now().isoformat(), '%s:'%self.name, 'Sending:', message)
-        # print('dump:', json.dumps(message).encode())
+        # print(datetime.datetime.now().isoformat(), '%s:'%self.name, 'Sending:', message)
         self.writer.write(json.dumps(message).encode())
-        # print('wrote')
         await self.writer.drain()
-        # print('drained')
         data = await self.reader.read(self.read_size)
-        # print('read')
         return pickle.loads(data)
 
 
     def actuate(self, state):
         message = {'op': 'actuate', 'params': state}
         reply = self.send(message)
-        print(datetime.datetime.now().isoformat(), '%s:'%self.name, 'Received:', reply)
+        # print(datetime.datetime.now().isoformat(), '%s:'%self.name, 'Received:', reply)
         return reply['params']
 
     def get_state(self):
@@ -110,7 +106,7 @@ class Listener():
         ''' Sets up a new thread for serving. '''
         self.node = node
         self.name = name
-        print(datetime.datetime.now().isoformat(), '%s:'%self.name, 'Serving at %s::%i.'%(addr, port))
+        # print(datetime.datetime.now().isoformat(), '%s:'%self.name, 'Serving at %s::%i.'%(addr, port))
         self.addr = addr
         self.port = port
         self.read_size = 1024
@@ -127,7 +123,7 @@ class Listener():
 
     async def send(self, msg, writer):
         ''' Sends a message asynchronously to the client. '''
-        print(datetime.datetime.now().isoformat(), '%s:'%self.name, 'Sending:', msg)
+        # print(datetime.datetime.now().isoformat(), '%s:'%self.name, 'Sending:', msg)
         msg['timestamp'] = datetime.datetime.now().isoformat()
         resp = pickle.dumps(msg)
         writer.write(resp)
@@ -136,13 +132,12 @@ class Listener():
         ''' Intercepts and reacts to a message from the client. '''
         while True:
             data = await reader.read(self.read_size)
-            # print(data)
             try:
                 message = json.loads(data.decode())
             except json.decoder.JSONDecodeError:
                 print('JSON decode error')
                 return
-            print(datetime.datetime.now().isoformat(), '%s:'%self.name, 'Received message:', message)
+            # print(datetime.datetime.now().isoformat(), '%s:'%self.name, 'Received message:', message)
             op = message['op']
 
             if op == 'connect':
@@ -172,13 +167,6 @@ class Listener():
                 reply = {'op': 'update',
                          'value': 1}
                 await self.send(reply, writer)
-            # if op == 'actuate':
-            #     state = message['params']
-            #     if not hasattr(self.node, 'network'):
-            #         await self.send({'op': 'data', 'params': 'no network'}, writer)
-            #         return
-            #     self.node.network.actuate(state)
-            #     await self.send({'op': 'update', 'params': 1}, writer)
 
 class P2PNode():
     def __init__(self, name=None, addr = 'localhost', port = 29170, api = None):
@@ -212,14 +200,3 @@ if __name__ == '__main__':
     n1 = P2PNode('dashboard', 'localhost', 29171)
 
     n0.bind('localhost', 29171)
-    # n1.bind('localhost', 29170)
-
-async def main():
-    print(1)
-    time.sleep(1)
-    print(2)
-
-    loop = asyncio.get_running_loop()
-    loop.run_forever()
-
-# asyncio.run(main())

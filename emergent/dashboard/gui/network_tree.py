@@ -44,6 +44,10 @@ class NodeTree(QTreeWidget):
 
         ''' Populate tree '''
         self.set_state(self.network)
+        settings = self.dashboard.p2p.get('settings')
+        for hub in self.network:
+            self.set_settings(hub, settings[hub])
+            
         self.setColumnWidth(0,200)
         for i in [1,2,3]:
             self.setColumnWidth(i,50)
@@ -81,8 +85,6 @@ class NodeTree(QTreeWidget):
         for hub in network:
             if self.get_hub(hub) is not None:
                 self.actuate(hub, network[hub])
-                settings = self.dashboard.p2p.get('settings')
-                self.set_settings(hub, settings[hub])
                 self.dashboard.app.processEvents()
                 continue
             root = QTreeWidgetItem([hub])
@@ -93,8 +95,6 @@ class NodeTree(QTreeWidget):
                     leaf = InputWidget(input)
                     branch.addChild(leaf)
             self.actuate(hub, network[hub])       # update tree to current hub state
-            settings = self.dashboard.p2p.get('settings')
-            self.set_settings(hub, settings[hub])
             self.expand()
         self.dashboard.app.processEvents()
 
@@ -131,9 +131,8 @@ class NodeTree(QTreeWidget):
         ''' Returns a hub node corresponding to the selected input node. '''
         item = self.selectedItems()[0]
         hub_name = item.parent().parent().text(0)
-        hub = self.network.hubs[hub_name]
 
-        return hub
+        return hub_name
 
     def get_selected_state(self):
         ''' Build a substate from all currently selected inputs. '''
