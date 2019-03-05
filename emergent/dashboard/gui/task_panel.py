@@ -39,6 +39,7 @@ class ContextTable(QTableWidget):
         self.id = self.item(row, 4).text()
         self.hub = self.item(row, 5).text()
         self.check_action.triggered.connect(self.check)
+        self.action.triggered.connect(self.terminate)
         self.menu.popup(QCursor.pos())
 
     def check(self):
@@ -46,6 +47,10 @@ class ContextTable(QTableWidget):
         active = self.parent.dashboard.p2p.send(message)['value']
         return active
 
+    def terminate(self):
+        message = {'op': 'terminate', 'params': {'hub': self.hub, 'id': self.id}}
+        self.parent.dashboard.p2p.send(message)
+        
 class TaskPanel(QVBoxLayout):
     def __init__(self, dashboard):
         super().__init__()

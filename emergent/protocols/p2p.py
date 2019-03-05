@@ -170,8 +170,12 @@ class Listener():
 
             if op == 'run':
                 self.node.api.run(message['params'])
-                reply = {'op': 'update',
-                         'value': 1}
+                reply = {'op': 'update','value': 1}
+                await self.send(reply, writer)
+
+            if op == 'terminate':
+                self.node.api.terminate(message['params'])
+                reply = {'op': 'update','value': 1}
                 await self.send(reply, writer)
 
 class P2PNode():

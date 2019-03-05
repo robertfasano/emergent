@@ -135,3 +135,7 @@ class MainAPI():
 
         elif target == 'settings':
             self.network.set_settings(value)
+
+    def terminate(self, params):
+        sampler = self.get('sampler', params)
+        sampler.terminate()
