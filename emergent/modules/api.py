@@ -20,6 +20,10 @@ class DashAPI():
         if target == 'state':
             self.dashboard.tree_widget.set_state(value)
 
+    def shutdown(self):
+        print('Shutting down Dashboard.')
+        self.dashboard.app.quit()
+
 
 class MainAPI():
     def __init__(self, network):

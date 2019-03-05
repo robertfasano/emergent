@@ -172,6 +172,13 @@ class Listener():
                          'value': self.node.api.get(message['target'])}
                 await self.send(reply, writer)
 
+            if op == 'shutdown':
+                self.node.api.shutdown()
+                await self.confirm(writer)
+                self.node.close()
+                import sys
+                sys.exit()
+
             if op == 'run':
                 self.node.api.run(message['params'])
                 reply = {'op': 'update','value': 1}
@@ -193,6 +200,16 @@ class P2PNode():
     def bind(self, addr = 'localhost', port = 29171):
         self.sender = Sender(self, self.name, addr, port)
         self._connected = self.sender._hold_connection()
+
+    def close(self):
+        loops = [self.listener.loop]
+        if hasattr(self, 'sender'):
+            loops.append(self.sender.loop)
+        for loop in loops:
+            loop.call_soon_threadsafe(loop.stop)
+            while loop.is_running():
+                continue
+            loop.close()
 
     def get(self, target, params = {}):
         return self.send({'op': 'get', 'target': target, 'params': params})['value']
