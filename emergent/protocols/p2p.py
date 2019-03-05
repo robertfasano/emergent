@@ -19,8 +19,8 @@ def thread(func, *args, **kwargs):
 timer = Timer()
 
 def dump(message):
-    return json.dumps(message).encode()
-    # return pickle.dumps(message)
+    # return json.dumps(message).encode()
+    return pickle.dumps(message)
 
 def load(message):
     return pickle.loads(message)
@@ -79,7 +79,8 @@ class Sender():
 
     async def _send(self, message):
         # print(datetime.datetime.now().isoformat(), '%s:'%self.name, 'Sending:', message)
-        self.writer.write(json.dumps(message).encode())
+        # self.writer.write(json.dumps(message).encode())
+        self.writer.write(dump(message))
         await self.writer.drain()
         data = await self.reader.read(self.read_size)
         return pickle.loads(data)
@@ -108,7 +109,7 @@ class Listener():
         ''' Sends a message asynchronously to the client. '''
         # print(datetime.datetime.now().isoformat(), '%s:'%self.name, 'Sending:', msg)
         msg['timestamp'] = datetime.datetime.now().isoformat()
-        resp = pickle.dumps(msg)
+        resp = dump(msg)
         writer.write(resp)
 
     async def handle_command(self, reader, writer):
@@ -116,7 +117,8 @@ class Listener():
         while True:
             data = await reader.read(self.read_size)
             try:
-                message = json.loads(data.decode())
+                # message = json.loads(data.decode())
+                message = load(data)
             except json.decoder.JSONDecodeError:
                 print('JSON decode error')
                 return
@@ -137,7 +139,7 @@ class Listener():
                 reply = {'op': 'update',
                          'value': active}
                 await self.send(reply, writer)
-                
+
             if op == 'echo':
                 await self.send({'op': 'echo', 'params': message['params']}, writer)
 
