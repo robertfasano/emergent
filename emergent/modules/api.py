@@ -81,7 +81,6 @@ class MainAPI():
             return recommender.list_classes('servo')
 
         elif target == 'history':
-
             hub = self.network.hubs[params['hub']]
             for sampler in hub.samplers.values():
                 if sampler.id == params['id']:
@@ -93,7 +92,8 @@ class MainAPI():
             hub = self.network.hubs[params['hub']]
             for sampler in hub.samplers.values():
                 if sampler.id == params['id']:
-                    return sampler
+                    break
+            return sampler
 
     def run(self, settings):
         settings['hub'] = self.network.hubs[settings['hub']]

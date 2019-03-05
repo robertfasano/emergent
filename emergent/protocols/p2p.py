@@ -40,12 +40,12 @@ class Sender():
         self.loop = None
         self.reader = None
 
-        self.read_size = 512000
+        self.read_size = 10*1024000
 
     async def _open_connection(self):
         ''' Opens a connection to a remote listener. '''
         self.reader, self.writer = await asyncio.open_connection(self.addr, self.port,
-                                                           loop=self.loop)
+                                                           loop=self.loop, limit=self.read_size)
         params = {'addr': self.addr, 'port': self.node.listener.port}
         self.writer.write(dump({'op': 'connect', 'params': params}))
         await self.writer.drain()
@@ -93,7 +93,7 @@ class Listener():
         # print(datetime.datetime.now().isoformat(), '%s:'%self.name, 'Serving at %s::%i.'%(addr, port))
         self.addr = addr
         self.port = port
-        self.read_size = 512000
+        self.read_size = 10*1024000
         self._connected = False
         self.start()
 
@@ -109,7 +109,13 @@ class Listener():
         ''' Sends a message asynchronously to the client. '''
         # print(datetime.datetime.now().isoformat(), '%s:'%self.name, 'Sending:', msg)
         msg['timestamp'] = datetime.datetime.now().isoformat()
-        resp = dump(msg)
+        try:
+            resp = dump(msg)
+        except Exception as e:
+            log.warn('Could not pickle message.')
+            resp = dump({'op': 'update', 'value': 0})
+        import sys
+        print('SIZE:', sys.getsizeof(resp))
         writer.write(resp)
 
     async def handle_command(self, reader, writer):
@@ -151,8 +157,6 @@ class Listener():
 
             if op == 'get':
                 value = self.node.api.get(message['target'], params=message['params'])
-                # import sys
-                # print('SIZE:', sys.getsizeof(value))
                 await self.send({'op': op, 'value': value}, writer)
 
             if op == 'plot':

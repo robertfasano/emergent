@@ -282,8 +282,11 @@ class Sampler():
     def save(self, filename):
         ''' Byte-serialize the sampler and all attached picklable objects and
             save to file. '''
-        with open(self.hub.network.path['data']+'%s.sci'%filename, 'wb') as file:
-            pickle.dump(self, file)
+        try:
+            with open(self.hub.network.path['data']+'%s.sci'%filename, 'wb') as file:
+                pickle.dump(self, file)
+        except Exception as e:
+            log.warning('Could not pickle Sampler state:', e)
 
     ''' Visualization methods '''
     def plot_optimization(self):
