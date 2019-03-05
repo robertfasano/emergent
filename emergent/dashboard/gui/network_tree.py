@@ -140,11 +140,11 @@ class NodeTree(QTreeWidget):
         items = self.selectedItems()
         state = State()
         for i in items:
-            input = i.node
-            thing = input.parent
-            if thing.name not in state:
-                state[thing.name] = {}
-            state[thing.name][input.display_name] = input.state
+            input_name = i.name
+            thing_name = i.parent().text(0)
+            if thing_name not in state:
+                state[thing_name] = {}
+            state[thing_name][input_name] = float(i.text(1))
 
         return state
 
@@ -249,10 +249,21 @@ class NodeTree(QTreeWidget):
 
 from emergent.utilities.signals import FloatSignal
 
+class HubWidget(QTreeWidgetItem):
+    def __init__(self, name):
+        super().__init__([name])
+        self.node = 'hub'
+
+class ThingWidget(QTreeWidgetItem):
+    def __init__(self, name):
+        super().__init__([name])
+        self.node = 'thing'
+
 class InputWidget(QTreeWidgetItem):
     def __init__(self, name):
         super().__init__([name])
         self.name = name
+        self.node = 'input'
         self.state_signal = FloatSignal()
         self.state_signal.connect(self.updateStateText)
         self.min_signal = FloatSignal()

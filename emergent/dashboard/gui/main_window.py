@@ -7,7 +7,7 @@ from PyQt5.QtGui import QIcon, QFontDatabase
 from PyQt5.QtWidgets import (QHBoxLayout, QLabel, QVBoxLayout,
                              QWidget, QMainWindow, QStatusBar, QMenuBar)
 from PyQt5.QtCore import QTimer
-from emergent.dashboard.gui import TaskPanel, NodeTree
+from emergent.dashboard.gui import TaskPanel, NodeTree, ExperimentLayout
 from emergent.modules.api import DashAPI
 
 class Dashboard(QMainWindow):
@@ -41,3 +41,5 @@ class Dashboard(QMainWindow):
         ''' Experiment interface '''
         self.experiment_layout = QVBoxLayout()
         layout.addLayout(self.experiment_layout)
+        self.experiment_panel = ExperimentLayout(self)
+        self.experiment_layout.addLayout(self.experiment_panel)

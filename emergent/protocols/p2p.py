@@ -157,7 +157,7 @@ class Listener():
                 await self.send({'op': 'echo', 'params': message['params']}, writer)
 
             if op == 'get':
-                value = self.node.api.get(message['target'])
+                value = self.node.api.get(message['target'], params=message['params'])
                 await self.send({'op': op, 'value': value}, writer)
 
             if op == 'set':
@@ -167,6 +167,11 @@ class Listener():
                          'value': self.node.api.get(message['target'])}
                 await self.send(reply, writer)
 
+            if op == 'run':
+                self.node.api.run(message['params'])
+                reply = {'op': 'update',
+                         'value': 1}
+                await self.send(reply, writer)
             # if op == 'actuate':
             #     state = message['params']
             #     if not hasattr(self.node, 'network'):
@@ -187,8 +192,8 @@ class P2PNode():
         self.sender = Sender(self, self.name, addr, port)
         self._connected = self.sender._hold_connection()
 
-    def get(self, target):
-        return self.send({'op': 'get', 'target': target})['value']
+    def get(self, target, params = {}):
+        return self.send({'op': 'get', 'target': target, 'params': params})['value']
 
     def send(self, message):
         return self.sender.send(message)
