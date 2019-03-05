@@ -18,7 +18,7 @@ from PyQt5.QtWidgets import (QVBoxLayout, QWidget, QTabWidget)
 from emergent.utilities.introspection import list_errors, list_experiments, list_triggers
 from emergent.utilities import recommender
 from emergent.modules import Sampler, ProcessHandler
-from emergent.dashboard.gui import MeasureLayout, ModelLayout
+from emergent.dashboard.gui import MeasureLayout, ModelLayout, ServoLayout
 
 class ExperimentLayout(QVBoxLayout, ProcessHandler):
     def __init__(self, dashboard):
@@ -45,6 +45,13 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         model_tab.setStyleSheet('background-color: rgba(255, 255, 255, 50%)')
         self.tab_widget.addTab(model_tab, 'Model')
 
+        ''' Create Servo tab '''
+        servo_tab = QWidget()
+        self.servo_panel = ServoLayout(self)
+        servo_tab.setLayout(self.servo_panel)
+        servo_tab.setStyleSheet('background-color: rgba(255, 255, 255, 50%)')
+        self.tab_widget.addTab(servo_tab, 'Servo')
+
         self.update_panel()
 
         self.tab_widget.currentChanged.connect(self.update_panel)
@@ -57,12 +64,17 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         ''' Updates the algorithm box with the methods available to the currently selected hub. '''
         hub = self.dashboard.tree_widget.currentItem().parent().parent().text(0)
 
+        if hasattr(panel, 'experiment_box'):
+            panel.experiment_box.clear()
+            for item in self.dashboard.p2p.get('experiments', params={'hub': hub}):
+                panel.experiment_box.addItem(item)
 
-        panel.experiment_box.clear()
-        for item in self.dashboard.p2p.get('experiments', params={'hub': hub}):
-            panel.experiment_box.addItem(item)
+        if hasattr(panel, 'error_box'):
+            panel.error_box.clear()
+            for item in self.dashboard.p2p.get('errors', params={'hub': hub}):
+                panel.error_box.addItem(item)
 
-        for x in ['model', 'sampler', 'algorithm']:
+        for x in ['model', 'sampler', 'algorithm', 'servo']:
             if hasattr(panel, '%s_box'%x):
                 getattr(panel, '%s_box'%x).clear()
                 for item in self.dashboard.p2p.get('%ss'%x):
@@ -84,6 +96,10 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         self.update_model(self.model_panel)
         self.update_sampler(self.model_panel)
 
+        self.update_hub_panel(self.servo_panel)
+        self.update_error(self.servo_panel)
+        self.update_servo(self.servo_panel)
+
     def update_experiment(self, panel):
         if panel.experiment_box.currentText() == '':
             return
@@ -91,11 +107,26 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         d = self.dashboard.p2p.get('experiment_params', params={'hub': hub, 'experiment': panel.experiment_box.currentText()})
         panel.experiment_table.set_parameters(d)
 
-        ''' update triggers '''
-        panel.trigger_box.clear()
-        panel.trigger_box.addItem('')
-        for t in self.dashboard.p2p.get('triggers', params={'hub': hub}):
-            panel.trigger_box.addItem(t)
+        if hasattr(panel, 'trigger_box'):
+            ''' update triggers '''
+            panel.trigger_box.clear()
+            panel.trigger_box.addItem('')
+            for t in self.dashboard.p2p.get('triggers', params={'hub': hub}):
+                panel.trigger_box.addItem(t)
+
+    def update_error(self, panel):
+        if panel.error_box.currentText() == '':
+            return
+        hub = self.dashboard.tree_widget.get_selected_hub()
+        d = self.dashboard.p2p.get('error_params', params={'hub': hub, 'error': panel.error_box.currentText()})
+        panel.error_table.set_parameters(d)
+
+        if hasattr(panel, 'trigger_box'):
+            ''' update triggers '''
+            panel.trigger_box.clear()
+            panel.trigger_box.addItem('')
+            for t in self.dashboard.p2p.get('triggers', params={'hub': hub}):
+                panel.trigger_box.addItem(t)
 
     def update_model(self, panel):
         if panel.model_box.currentText() == '':
@@ -110,6 +141,13 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         hub = self.dashboard.tree_widget.get_selected_hub()
         d = self.dashboard.p2p.get('sampler_params', params={'hub': hub, 'sampler': panel.sampler_box.currentText()})
         panel.sampler_table.set_parameters(d)
+
+    def update_servo(self, panel):
+        if panel.servo_box.currentText() == '':
+            return
+        hub = self.dashboard.tree_widget.get_selected_hub()
+        d = self.dashboard.p2p.get('servo_params', params={'hub': hub, 'servo': panel.servo_box.currentText()})
+        panel.servo_table.set_parameters(d)
 
     def start_process(self, process='', threaded=True):
         ''' Load settings from the GUI and start a process. '''

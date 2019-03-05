@@ -38,7 +38,11 @@ class Sampler():
             self.algorithm.sampler = self
             self.algorithm_params = settings['sampler']['params']
             self.algorithm.set_params(self.algorithm_params)
-
+        if 'servo' in settings:
+            self.algorithm = settings['servo']['instance']
+            self.algorithm.sampler = self
+            self.algorithm_params = settings['servo']['params']
+            self.algorithm.set_params(self.algorithm_params)
         self.skip_lock_check = False           # if True, experiments will disregard watchdog state
 
         self.model = None

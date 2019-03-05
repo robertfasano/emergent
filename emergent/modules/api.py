@@ -31,6 +31,10 @@ class MainAPI():
             hub = self.network.hubs[params['hub']]
             return introspection.list_experiments(hub)
 
+        elif target == 'errors':
+            hub = self.network.hubs[params['hub']]
+            return introspection.list_errors(hub)
+
         elif target == 'triggers':
             hub = self.network.hubs[params['hub']]
             return introspection.list_triggers(hub)
@@ -46,6 +50,14 @@ class MainAPI():
         elif target == 'sampler_params':
             return recommender.get_default_params('sampler', params['sampler'])
 
+        elif target == 'servo_params':
+            return recommender.get_default_params('servo', params['servo'])
+
+        elif target == 'error_params':
+            hub = self.network.hubs[params['hub']]
+            params = recommender.load_experiment_parameters(hub, params['error'])
+            return params
+
         elif target == 'models':
             return recommender.list_classes('model')
 
@@ -59,7 +71,7 @@ class MainAPI():
         settings['hub'] = self.network.hubs[settings['hub']]
         settings['experiment']['instance'] = getattr(settings['hub'], settings['experiment']['name'])
 
-        for x in ['model', 'sampler', 'algorithm']:
+        for x in ['model', 'sampler', 'servo']:
             if x in settings:
                 settings[x]['instance'] = recommender.get_class(x, settings[x]['name'])
         print('Creating sampler')
@@ -76,13 +88,10 @@ class MainAPI():
         if settings['state'] == {} and settings['process']['type'] != 'run':
             log.warning('Please select at least one Input node.')
             return
-        print('defining func')
         func = sampler._solve
         if settings['process']['type'] == 'run':
             func = sampler._run
-        print('starting thread')
         self.manager._run_thread(func, stoppable=False)
-        print('thread started')
 
     def set(self, target, value):
         if target == 'state':
