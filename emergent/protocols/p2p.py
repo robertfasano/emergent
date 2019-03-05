@@ -105,6 +105,10 @@ class Listener():
         self.loop.run_until_complete(coro)
         self.loop.run_forever()
 
+    async def confirm(self, writer, success=True):
+            reply = {'op': 'update', 'value': success}
+            await self.send(reply, writer)
+
     async def send(self, msg, writer):
         ''' Sends a message asynchronously to the client. '''
         # print(datetime.datetime.now().isoformat(), '%s:'%self.name, 'Sending:', msg)
@@ -114,8 +118,8 @@ class Listener():
         except Exception as e:
             log.warn('Could not pickle message.')
             resp = dump({'op': 'update', 'value': 0})
-        import sys
-        print('SIZE:', sys.getsizeof(resp))
+        # import sys
+        # print('SIZE:', sys.getsizeof(resp))
         writer.write(resp)
 
     async def handle_command(self, reader, writer):
@@ -151,9 +155,7 @@ class Listener():
 
             if op == 'event':
                 self.node.api.event(message['params'])
-                reply = {'op': 'update',
-                         'value': 1}
-                await self.send(reply, writer)
+                await self.confirm(writer)
 
             if op == 'get':
                 value = self.node.api.get(message['target'], params=message['params'])
@@ -181,13 +183,12 @@ class Listener():
 
             if op == 'run':
                 self.node.api.run(message['params'])
-                reply = {'op': 'update','value': 1}
-                await self.send(reply, writer)
+                await self.confirm(writer)
 
             if op == 'terminate':
                 self.node.api.terminate(message['params'])
-                reply = {'op': 'update','value': 1}
-                await self.send(reply, writer)
+                await self.confirm(writer)
+
 
 class P2PNode():
     def __init__(self, name=None, addr = 'localhost', port = 29170, api = None):
@@ -215,7 +216,8 @@ class P2PNode():
         return self.send({'op': 'get', 'target': target, 'params': params})['value']
 
     def send(self, message):
-        return self.sender.send(message)
+        if hasattr(self, 'sender'):
+            return self.sender.send(message)
 
     def set(self, target, value):
         if not hasattr(self, 'sender'):
