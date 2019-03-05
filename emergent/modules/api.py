@@ -80,6 +80,15 @@ class MainAPI():
         elif target == 'servos':
             return recommender.list_classes('servo')
 
+    def plot(self, params):
+        from emergent.dashboard.gui.task_panel import Visualizer
+        import sys
+        hub = self.network.hubs[params['hub']]
+        for sampler in hub.samplers.values():
+            if sampler.id == params['id']:
+                break
+        return Visualizer(sampler)
+
     def run(self, settings):
         settings['hub'] = self.network.hubs[settings['hub']]
         settings['experiment']['instance'] = getattr(settings['hub'], settings['experiment']['name'])

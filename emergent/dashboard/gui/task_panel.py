@@ -8,7 +8,7 @@ from PyQt5.QtGui import QCursor
 from PyQt5.QtWidgets import (QGridLayout,QTableView,QVBoxLayout, QWidget, QMenu,
                              QAction, QTableWidget, QTableWidgetItem, QFileDialog, QComboBox)
 from PyQt5.QtCore import *
-from emergent.gui.elements import PlotWidget
+from emergent.dashboard.gui import PlotWidget
 from emergent.utilities.plotting import plot_2D, plot_1D
 from emergent.utilities.signals import DictSignal
 import matplotlib.pyplot as plt
@@ -33,9 +33,6 @@ class ContextTable(QTableWidget):
         self.menu.addAction(self.action)
         self.check_action = QAction('Check')
         self.menu.addAction(self.check_action)
-
-
-
         pos = self.viewport().mapFromGlobal(QCursor.pos())
         row = self.rowAt(pos.y())
         name = self.item(row, 0).text()
@@ -75,7 +72,6 @@ class TaskPanel(QVBoxLayout):
         self.signal.emit(event)
 
     def _add_event(self, event, status = ''):
-
         row = self.table.rowCount()
         self.table.insertRow(row)
         self.table.setItem(row, 0, QTableWidgetItem(event['start time']))
@@ -107,18 +103,6 @@ class TaskPanel(QVBoxLayout):
             self.table.setItem(r, 3, QTableWidgetItem(str(active)))
         return active_rows
 
-    def hide_inactive(self, hide):
-        for r in range(self.table.rowCount()):
-            self.table.setRowHidden(r, False)
-        active_rows = self.check_active_rows()
-        for r in range(self.table.rowCount()):
-            if r not in active_rows:
-                self.table.setRowHidden(r, hide)
-
-    def update_event_status(self, row, status):
-        self.table.item(row, 3).setText(status)
-        self.table.viewport().update()
-
     def update_visible_rows(self, text):
         text = self.show_box.currentText()
         for r in range(self.table.rowCount()):
@@ -133,35 +117,26 @@ class TaskPanel(QVBoxLayout):
                 if text == 'Inactive':
                     self.table.setRowHidden(r, True)
 
-
     # def on_double_click(self, row, col):
-    #     sampler = self.table.item(row, 4).sampler
-    #     process_type = self.table.item(row, 4).process_type
-    #     algorithm = self.table.item(row, 2).text()
-    #     self.popup = Visualizer(sampler, self, row, process_type)
+    #     id = self.table.item(row, 4).text()
+    #     hub = self.table.item(row, 5).text()
+    #     message = {'op': 'plot', 'params': {'id': id, 'hub': hub}}
+    #     visualizer = self.dashboard.p2p.send(message)
+    #     cost_vs_param, param_vs_time = visualizer.generate_figures()
+    #     self.pw = PlotWidget(visualizer, self)
+    #     self.pw.show()
 
-    def load_task(self):
-        self.fileWidget = QWidget()
-        filename = QFileDialog.getOpenFileName(self.fileWidget, 'Open experiment', self.dashboard.network.path['data'], 'Samplers (*.sci)')[0]
-        with open(filename, 'rb') as f:
-            sampler = pickle.load(f)
-        self.add_event(sampler)
-
-class Visualizer(QWidget):
-    def __init__(self, sampler, parent, row, process_type):
-        super(Visualizer, self).__init__()
-        QWidget().__init__()
-        self.parent = parent
+class Visualizer():
+    def __init__(self, sampler):
+        # super(Visualizer, self).__init__()
+        # QWidget().__init__()
         self.sampler = sampler
-        self.process_type = process_type
-        self.row = row
-        self.sampler = sampler
-        self.layout= QGridLayout()
-        self.setLayout(self.layout)
+        # self.layout= QGridLayout()
+        # self.setLayout(self.layout)
 
-        cost_vs_param, param_vs_time = self.generate_figures()
-        self.pw = PlotWidget(self, self.sampler, cost_vs_param, param_vs_time, title='Visualizer: %s'%self.sampler.experiment.__name__)
-        self.pw.show()
+        self.cost_vs_param, self.param_vs_time = self.generate_figures()
+        # self.pw = PlotWidget(self, self.sampler, cost_vs_param, param_vs_time, title='Visualizer: %s'%self.sampler.experiment.__name__)
+        # self.pw.show()
 
     def generate_figures(self):
         ''' Show cost vs time, parameters vs time, and parameters vs cost '''
@@ -209,34 +184,4 @@ class Visualizer(QWidget):
                 cax.set_ylabel(self.sampler.history.columns[i])
                 cax.set_xlabel('Time (s)')
 
-        ''' 2d plots '''
-
-        # axis_combos = list(itertools.combinations(range(num_inputs),2))
-        # fig2d = {}
-        # if self.process_type == 'optimize':
-        #     for a in axis_combos:
-        #         limits = {}
-        #         full_names = []
-        #         for ax in a:
-        #             full_name =  self.sampler.history.columns[ax]
-        #             full_names.append(full_name)
-        #             thing = full_name.split('.')[0]
-        #             input = full_name.split('.')[1]
-        #             limits[full_name.replace('.', ': ')] =  hub.settings[thing][input]
-        #         axis_combo_name = full_names[0] + '/' + full_names[1]
-        #         p = points[:,a]
-        #         fig2d[axis_combo_name] = plot_2D(p, costs, limits = limits)
-
-
         return cost_vs_param, param_vs_time
-
-    def check_progress(self):
-        if not self.sampler.active:
-            progress = 'Aborted'
-        elif self.sampler.progress < 1:
-            progress = '%.0f%%'%(self.sampler.progress*100)
-        else:
-            progress = 'Done'
-        self.progress_label.setText(progress)
-        self.result_label.setText(str(self.sampler.result))
-        self.parent.update_event_status(self.row, progress)

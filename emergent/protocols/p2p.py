@@ -151,6 +151,12 @@ class Listener():
                 value = self.node.api.get(message['target'], params=message['params'])
                 await self.send({'op': op, 'value': value}, writer)
 
+            if op == 'plot':
+                plot = self.node.api.plot(message['params'])
+                reply = {'op': 'update',
+                         'value': plot}
+                await self.send(reply, writer)
+
             if op == 'set':
                 self.node.api.set(message['target'], message['value'])
                 reply = {'op': 'set',

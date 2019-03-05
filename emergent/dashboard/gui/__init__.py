@@ -1,4 +1,5 @@
 from emergent.dashboard.gui.network_tree import NodeTree
+from emergent.dashboard.gui.visualizer import PlotWidget
 from emergent.dashboard.gui.task_panel import TaskPanel
 from emergent.dashboard.gui.measure_tab import MeasureLayout
 from emergent.dashboard.gui.model_tab import ModelLayout
