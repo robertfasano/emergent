@@ -71,6 +71,8 @@ class ModelLayout(QVBoxLayout, ProcessHandler):
         # self.sampler_box.currentTextChanged.connect(lambda: self.parent.update_algorithm_and_experiment(self, update_experiment=False))
         # self.experiment_box.currentTextChanged.connect(lambda: self.parent.update_algorithm_and_experiment(self))
         self.experiment_box.currentTextChanged.connect(lambda: self.parent.update_experiment(self))
+        self.sampler_box.currentTextChanged.connect(lambda: self.parent.update_sampler(self))
+        self.model_box.currentTextChanged.connect(lambda: self.parent.update_model(self))
 
         self.gotoLayout = QHBoxLayout()
         label = QLabel('End at')
