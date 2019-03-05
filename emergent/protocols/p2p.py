@@ -84,23 +84,6 @@ class Sender():
         data = await self.reader.read(self.read_size)
         return pickle.loads(data)
 
-
-    def actuate(self, state):
-        message = {'op': 'actuate', 'params': state}
-        reply = self.send(message)
-        # print(datetime.datetime.now().isoformat(), '%s:'%self.name, 'Received:', reply)
-        return reply['params']
-
-    def get_state(self):
-        message = {'op': 'get', 'params': 'state'}
-        reply = self.send(message)
-        return reply['params']
-
-    def get_settings(self, hub):
-        message = {'op': 'get_settings', 'params': hub}
-        reply = self.send(message)
-        return reply['params']
-
 class Listener():
     def __init__(self, node, name = None, addr = 'localhost', port = 29170):
         ''' Sets up a new thread for serving. '''
@@ -148,8 +131,21 @@ class Listener():
                     addr = message['params']['addr']
                     port = message['params']['port']
                     self.node.bind(addr, port)
+
+            if op == 'check':
+                active = self.node.api.check(message['params'])
+                reply = {'op': 'update',
+                         'value': active}
+                await self.send(reply, writer)
+                
             if op == 'echo':
                 await self.send({'op': 'echo', 'params': message['params']}, writer)
+
+            if op == 'event':
+                self.node.api.event(message['params'])
+                reply = {'op': 'update',
+                         'value': 1}
+                await self.send(reply, writer)
 
             if op == 'get':
                 value = self.node.api.get(message['target'], params=message['params'])

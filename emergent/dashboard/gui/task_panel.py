@@ -10,19 +10,20 @@ from PyQt5.QtWidgets import (QGridLayout,QTableView,QVBoxLayout, QWidget, QMenu,
 from PyQt5.QtCore import *
 from emergent.gui.elements import PlotWidget
 from emergent.utilities.plotting import plot_2D, plot_1D
+from emergent.utilities.signals import DictSignal
 import matplotlib.pyplot as plt
 import itertools
 import pickle
 
 class ContextTable(QTableWidget):
-    def __init__(self):
+    def __init__(self, parent):
         QTableWidget.__init__(self)
-
+        self.parent = parent
         self.horizontalHeader().setFixedHeight(30)
-        self.setColumnCount(5)
-        for col in [4]:
+        self.setColumnCount(6)
+        for col in [4, 5]:
             self.hideColumn(col)
-        self.setHorizontalHeaderLabels(['Time', 'Experiment', 'Event', 'Active', 'Object'])
+        self.setHorizontalHeaderLabels(['Time', 'Experiment', 'Event', 'Active', 'ID', 'Hub'])
         self.horizontalHeader().setStretchLastSection(True)
         self.setStyleSheet('color:"#000000"; font-weight: light; font-family: "Exo 2"; font-size: 14px; background-color: rgba(255, 255, 255, 80%);')
 
@@ -30,34 +31,32 @@ class ContextTable(QTableWidget):
         self.menu = QMenu(self)
         self.action = QAction('Terminate')
         self.menu.addAction(self.action)
-        self.menu.popup(QCursor.pos())
+        self.check_action = QAction('Check')
+        self.menu.addAction(self.check_action)
+
+
 
         pos = self.viewport().mapFromGlobal(QCursor.pos())
         row = self.rowAt(pos.y())
         name = self.item(row, 0).text()
-        sampler = self.item(row, 4).sampler
-        self.action.triggered.connect(sampler.terminate)
+        self.id = self.item(row, 4).text()
+        self.hub = self.item(row, 5).text()
+        self.check_action.triggered.connect(self.check)
+        self.menu.popup(QCursor.pos())
 
-
-class SamplerItem(QTableWidgetItem):
-    def __init__(self, sampler, process_type):
-        super().__init__()
-        self.sampler = sampler
-        self.process_type = process_type
-
+    def check(self):
+        message = {'op': 'check', 'params': {'hub': self.hub, 'id': self.id}}
+        active = self.parent.dashboard.p2p.send(message)['value']
+        return active
 
 class TaskPanel(QVBoxLayout):
-    def __init__(self, parent):
+    def __init__(self, dashboard):
         super().__init__()
-        self.parent = parent
+        self.dashboard = dashboard
         self.active_tasks = []
-        self.table = ContextTable()
-        self.table.cellDoubleClicked.connect(self.on_double_click)
+        self.table = ContextTable(self)
+        # self.table.cellDoubleClicked.connect(self.on_double_click)
         self.addWidget(self.table)
-
-        self.update_timer = QTimer(self)
-        self.update_timer.timeout.connect(lambda: self.update_visible_rows(''))
-        self.update_timer.start(250)
 
         self.show_box = QComboBox()
         for item in ['All', 'Active', 'Inactive']:
@@ -65,18 +64,31 @@ class TaskPanel(QVBoxLayout):
         self.show_box.currentTextChanged.connect(self.update_visible_rows)
         self.addWidget(self.show_box)
 
-    def add_event(self, sampler, status = ''):
+        self.update_timer = QTimer(self)
+        self.update_timer.timeout.connect(lambda: self.update_visible_rows(''))
+        self.update_timer.start(250)
+
+        self.signal = DictSignal()
+        self.signal.connect(self._add_event)
+
+    def add_event(self, event):
+        self.signal.emit(event)
+
+    def _add_event(self, event, status = ''):
+
         row = self.table.rowCount()
         self.table.insertRow(row)
-        self.table.setItem(row, 0, QTableWidgetItem(sampler.start_time))
-        self.table.setItem(row, 1, QTableWidgetItem(sampler.experiment_name))
-        if sampler.algorithm is not None:
-            algorithm_name = sampler.algorithm.name
+        self.table.setItem(row, 0, QTableWidgetItem(event['start time']))
+        self.table.setItem(row, 1, QTableWidgetItem(event['experiment']))
+        if 'algorithm' in event:
+            algorithm_name = event['algorithm']
         else:
-            algorithm_name = 'Run'
+            algorithm_name = 'Measure'
+
         self.table.setItem(row, 2, QTableWidgetItem(algorithm_name))
         self.table.setItem(row, 3, QTableWidgetItem('True'))
-        self.table.setItem(row, 4, SamplerItem(sampler, status))
+        self.table.setItem(row, 4, QTableWidgetItem(event['id']))
+        self.table.setItem(row, 5, QTableWidgetItem(event['hub']))
 
         ''' Set row visibility based on self.show_box '''
         if self.show_box.currentText() == 'Inactive':
@@ -86,7 +98,10 @@ class TaskPanel(QVBoxLayout):
     def check_active_rows(self):
         active_rows = []
         for r in range(self.table.rowCount()):
-            active = self.table.item(r, 4).sampler.active
+            id = self.table.item(r, 4).text()
+            hub = self.table.item(r, 5).text()
+            message = {'op': 'check', 'params': {'hub': hub, 'id': id}}
+            active = self.dashboard.p2p.send(message)['value']
             if active:
                 active_rows.append(r)
             self.table.setItem(r, 3, QTableWidgetItem(str(active)))
@@ -119,15 +134,15 @@ class TaskPanel(QVBoxLayout):
                     self.table.setRowHidden(r, True)
 
 
-    def on_double_click(self, row, col):
-        sampler = self.table.item(row, 4).sampler
-        process_type = self.table.item(row, 4).process_type
-        algorithm = self.table.item(row, 2).text()
-        self.popup = Visualizer(sampler, self, row, process_type)
+    # def on_double_click(self, row, col):
+    #     sampler = self.table.item(row, 4).sampler
+    #     process_type = self.table.item(row, 4).process_type
+    #     algorithm = self.table.item(row, 2).text()
+    #     self.popup = Visualizer(sampler, self, row, process_type)
 
     def load_task(self):
         self.fileWidget = QWidget()
-        filename = QFileDialog.getOpenFileName(self.fileWidget, 'Open experiment', self.parent.network.path['data'], 'Samplers (*.sci)')[0]
+        filename = QFileDialog.getOpenFileName(self.fileWidget, 'Open experiment', self.dashboard.network.path['data'], 'Samplers (*.sci)')[0]
         with open(filename, 'rb') as f:
             sampler = pickle.load(f)
         self.add_event(sampler)

@@ -1,10 +1,16 @@
 from emergent.utilities import recommender, introspection
 from emergent.modules.parallel import ProcessHandler
 from emergent.modules import Sampler
+import datetime
+import uuid
 
 class DashAPI():
     def __init__(self, dashboard):
         self.dashboard = dashboard
+
+    def event(self, event = {}):
+        ''' Adds an event to the TaskPanel '''
+        self.dashboard.task_panel.add_event(event)
 
     def get(self, target, params = {}):
         if target == 'state':
@@ -19,6 +25,13 @@ class MainAPI():
     def __init__(self, network):
         self.network = network
         self.manager = ProcessHandler()
+
+    def check(self, params):
+        ''' Check whether the sampler with the given uuid is active. '''
+        hub = self.network.hubs[params['hub']]
+        for sampler in hub.samplers.values():
+            if sampler.id == params['id']:
+                return sampler.active
 
     def get(self, target, params = {}):
         if target == 'state':
@@ -74,11 +87,19 @@ class MainAPI():
         for x in ['model', 'sampler', 'servo']:
             if x in settings:
                 settings[x]['instance'] = recommender.get_class(x, settings[x]['name'])
-        print('Creating sampler')
         sampler = Sampler('sampler', settings)
+        sampler.id = str(uuid.uuid1())
+        ''' Create task_panel task '''
 
-        # ''' Create task_panel task '''
-        # self.dashboard.task_panel.add_event(sampler)
+        params = {'start time': datetime.datetime.now().isoformat(),
+                  'experiment': settings['experiment']['name'],
+                  'id': sampler.id,
+                  'hub': sampler.hub.name}
+
+        if 'algorithm' in settings:
+            params['algorithm'] = settings['algorithm']['name']
+        message = {'op': 'event', 'params': params}
+        self.network.p2p.send(message)
 
 
         if 'trigger' in settings['process']:

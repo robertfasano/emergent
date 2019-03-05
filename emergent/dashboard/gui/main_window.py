@@ -43,3 +43,7 @@ class Dashboard(QMainWindow):
         layout.addLayout(self.experiment_layout)
         self.experiment_panel = ExperimentLayout(self)
         self.experiment_layout.addLayout(self.experiment_panel)
+
+        ''' Create task panel '''
+        self.task_panel = TaskPanel(self)
+        self.experiment_layout.addLayout(self.task_panel)
