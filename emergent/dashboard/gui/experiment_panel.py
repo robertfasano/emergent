@@ -18,7 +18,7 @@ from PyQt5.QtWidgets import (QVBoxLayout, QWidget, QTabWidget)
 from emergent.utilities.introspection import list_errors, list_experiments, list_triggers
 from emergent.utilities import recommender
 from emergent.modules import Sampler, ProcessHandler
-from emergent.dashboard.gui import RunLayout, ModelLayout
+from emergent.dashboard.gui import MeasureLayout, ModelLayout
 
 class ExperimentLayout(QVBoxLayout, ProcessHandler):
     def __init__(self, dashboard):
@@ -32,11 +32,11 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
 
 
         ''' Create Run tab '''
-        run_tab = QWidget()
-        self.run_panel = RunLayout(self)
-        run_tab.setLayout(self.run_panel)
-        run_tab.setStyleSheet('background-color: rgba(255, 255, 255, 50%)')
-        self.tab_widget.addTab(run_tab, 'Run')
+        measure_tab = QWidget()
+        self.measure_panel = MeasureLayout(self)
+        measure_tab.setLayout(self.measure_panel)
+        measure_tab.setStyleSheet('background-color: rgba(255, 255, 255, 50%)')
+        self.tab_widget.addTab(measure_tab, 'Measure')
 
         ''' Create Model tab '''
         model_tab = QWidget()
@@ -76,14 +76,14 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         else:
             self.current_hub = hub
 
-        self.update_hub_panel(self.run_panel)
-        self.update_experiment(self.run_panel)
+        self.update_hub_panel(self.measure_panel)
+        self.update_experiment(self.measure_panel)
 
         self.update_hub_panel(self.model_panel)
         self.update_experiment(self.model_panel)
         self.update_model(self.model_panel)
         self.update_sampler(self.model_panel)
-        
+
     def update_experiment(self, panel):
         if panel.experiment_box.currentText() == '':
             return

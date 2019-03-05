@@ -1,4 +1,4 @@
-''' The RunLayout allows users to run experiments with parameters defined in the GUI.
+''' The MeasureLayout allows users to run experiments with parameters defined in the GUI.
     Experiments can be run for a defined number of iterations or continuously. '''
 
 from PyQt5.QtWidgets import (QComboBox, QLabel, QLineEdit, QPushButton, QVBoxLayout,
@@ -9,12 +9,12 @@ import datetime
 from emergent.gui.elements.ParameterTable import ParameterTable
 from emergent.modules.parallel import ProcessHandler
 
-class RunLayout(QVBoxLayout, ProcessHandler):
+class MeasureLayout(QVBoxLayout, ProcessHandler):
     def __init__(self, parent):
         QVBoxLayout.__init__(self)
         ProcessHandler.__init__(self)
         self.parent = parent
-        self.name = 'Run'
+        self.name = 'Measure'
         self.experiment_box = QComboBox()
 
         self.addWidget(self.experiment_box)
@@ -50,7 +50,7 @@ class RunLayout(QVBoxLayout, ProcessHandler):
 
         self.runButtonsLayout = QHBoxLayout()
         self.runExperimentButton = QPushButton('Go!')
-        self.runExperimentButton.clicked.connect(lambda: parent.start_process(process='run'))
+        self.runExperimentButton.clicked.connect(lambda: parent.start_process(process='measure'))
 
         self.runButtonsLayout.addWidget(self.runExperimentButton)
         self.addLayout(self.runButtonsLayout)
@@ -78,7 +78,7 @@ class RunLayout(QVBoxLayout, ProcessHandler):
 
         if self.trigger_box.currentText() != '':
             settings['process']['trigger'] = self.trigger_box.currentText()
-        settings['process']['type'] = 'run'
+        settings['process']['type'] = 'measure'
 
         return settings
 
