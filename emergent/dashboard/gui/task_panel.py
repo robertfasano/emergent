@@ -52,7 +52,7 @@ class TaskPanel(QVBoxLayout):
         self.dashboard = dashboard
         self.active_tasks = []
         self.table = ContextTable(self)
-        # self.table.cellDoubleClicked.connect(self.on_double_click)
+        self.table.cellDoubleClicked.connect(self.on_double_click)
         self.addWidget(self.table)
 
         self.show_box = QComboBox()
@@ -117,26 +117,27 @@ class TaskPanel(QVBoxLayout):
                 if text == 'Inactive':
                     self.table.setRowHidden(r, True)
 
-    # def on_double_click(self, row, col):
-    #     id = self.table.item(row, 4).text()
-    #     hub = self.table.item(row, 5).text()
-    #     message = {'op': 'plot', 'params': {'id': id, 'hub': hub}}
-    #     visualizer = self.dashboard.p2p.send(message)
-    #     cost_vs_param, param_vs_time = visualizer.generate_figures()
-    #     self.pw = PlotWidget(visualizer, self)
-    #     self.pw.show()
+    def on_double_click(self, row, col):
+        id = self.table.item(row, 4).text()
+        hub = self.table.item(row, 5).text()
+        # history = self.dashboard.p2p.get('history', params={'id': id, 'hub': hub})
+        sampler = self.dashboard.p2p.get('sampler', params={'id': id, 'hub': hub})
+        self.visualizer = Visualizer(sampler, self)
 
-class Visualizer():
-    def __init__(self, sampler):
+
+class Visualizer(QWidget):
+    def __init__(self, sampler, parent):
         # super(Visualizer, self).__init__()
         # QWidget().__init__()
+        super().__init__()
         self.sampler = sampler
+        self.parent = parent
         # self.layout= QGridLayout()
         # self.setLayout(self.layout)
 
-        self.cost_vs_param, self.param_vs_time = self.generate_figures()
-        # self.pw = PlotWidget(self, self.sampler, cost_vs_param, param_vs_time, title='Visualizer: %s'%self.sampler.experiment.__name__)
-        # self.pw.show()
+        cost_vs_param, param_vs_time = self.generate_figures()
+        self.pw = PlotWidget(self.sampler, cost_vs_param, param_vs_time, self)
+        self.pw.show()
 
     def generate_figures(self):
         ''' Show cost vs time, parameters vs time, and parameters vs cost '''

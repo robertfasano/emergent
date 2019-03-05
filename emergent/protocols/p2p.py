@@ -40,7 +40,7 @@ class Sender():
         self.loop = None
         self.reader = None
 
-        self.read_size = 1024
+        self.read_size = 512000
 
     async def _open_connection(self):
         ''' Opens a connection to a remote listener. '''
@@ -50,7 +50,7 @@ class Sender():
         self.writer.write(dump({'op': 'connect', 'params': params}))
         await self.writer.drain()
         resp = load(await self.reader.read(100))
-        print(datetime.datetime.now().isoformat(), '%s:'%self.name, 'Received:', resp)
+        # print(datetime.datetime.now().isoformat(), '%s:'%self.name, 'Received:', resp)
         self.node._connected = resp['params']
 
     @thread
@@ -93,7 +93,7 @@ class Listener():
         # print(datetime.datetime.now().isoformat(), '%s:'%self.name, 'Serving at %s::%i.'%(addr, port))
         self.addr = addr
         self.port = port
-        self.read_size = 1024
+        self.read_size = 512000
         self._connected = False
         self.start()
 
@@ -151,6 +151,8 @@ class Listener():
 
             if op == 'get':
                 value = self.node.api.get(message['target'], params=message['params'])
+                # import sys
+                # print('SIZE:', sys.getsizeof(value))
                 await self.send({'op': op, 'value': value}, writer)
 
             if op == 'plot':
