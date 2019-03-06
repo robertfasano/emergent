@@ -34,6 +34,8 @@ def get_default_algorithm(hub, experiment_name):
         return get_class('algorithm', 'GridSearch')
 
 def get_default_params(module, name):
+    if name == 'None':
+        return {}
     module_name = {'sampler': 'samplers', 'model': 'models',
                    'algorithm': 'optimizers', 'servo': 'servos'}[module]
     instance = getattr(importlib.__import__(module_name), name)()
@@ -45,6 +47,8 @@ def get_default_params(module, name):
     return params_dict
 
 def get_class(module, name):
+    if name == 'None':
+        return None
     module_name = {'sampler': 'samplers', 'model': 'models',
                    'algorithm': 'optimizers', 'servo': 'servos'}[module]
     instance = getattr(importlib.__import__(module_name), name)()

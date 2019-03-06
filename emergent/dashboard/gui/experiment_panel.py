@@ -77,8 +77,11 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         for x in ['model', 'sampler', 'algorithm', 'servo']:
             if hasattr(panel, '%s_box'%x):
                 getattr(panel, '%s_box'%x).clear()
+                if x == 'model':
+                    panel.model_box.addItem('None')
                 for item in self.dashboard.p2p.get('%ss'%x):
                     getattr(panel, '%s_box'%x).addItem(item)
+
 
 
     def update_hub(self):

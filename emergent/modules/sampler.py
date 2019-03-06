@@ -47,8 +47,9 @@ class Sampler():
 
         self.model = None
         if 'model' in settings:
-            self.model = settings['model']['instance']
-            self.model.prepare(self)
+            if settings['model']['instance'] is not None:
+                self.model = settings['model']['instance']
+                self.model.prepare(self)
 
 
         self.actuate = self.hub.actuate
