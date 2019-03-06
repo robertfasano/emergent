@@ -25,6 +25,9 @@ QTreeView::branch:hover{background-color: rgba(63,91,112,255); color: white}
 
 QTreeView::item:selected{background-color: rgba(63,91,112,255); color: white}
 QTreeView::branch:selected{background-color: rgba(63,91,112,255); color: white}
+QTreeWidget::item {
+  padding: 1px 0;
+}
 
 QMainWindow{border-image: url("gui/media/background.jpg") 0 0 0 0 stretch stretch;}
 
