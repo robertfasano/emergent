@@ -83,6 +83,9 @@ class MainAPI():
                     break
             return sampler
 
+        elif target == 'sequencer':
+            return hub.children['sequencer']
+
     def option(self, params):
         if 'hub' in params:
             hub = self.network.hubs[params['hub']]
