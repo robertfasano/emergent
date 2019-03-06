@@ -160,6 +160,13 @@ class Listener():
                 value = self.node.api.get(message['target'], params=message['params'])
                 await self.send({'op': op, 'value': value}, writer)
 
+            if op == 'option':
+                try:
+                    self.node.api.option(message['params'])
+                except Exception:
+                    pass
+                await self.confirm(writer)
+
             if op == 'plot':
                 plot = self.node.api.plot(message['params'])
                 reply = {'op': 'update',

@@ -339,9 +339,6 @@ class Hub(Node):
         ''' Establish switch interface '''
         self.switches = {}
 
-        self.options['Fill commandline'] = lambda: get_hub(self.name, self.network)
-
-
         # self.renaming = {'MEMS': {'name': 'mems', 'inputs':{'X': {'name': 'x'}}}}
 
     def __getstate__(self):

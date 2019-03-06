@@ -14,6 +14,7 @@ from PyQt5.QtWidgets import (QWidget, QAbstractItemView, QVBoxLayout,
 from PyQt5.QtGui import QPixmap, QIcon
 from PyQt5.QtCore import *
 from emergent.utilities.containers import State
+from functools import partial
 
 class NodeTree(QTreeWidget):
     def __init__(self, dashboard):
@@ -37,8 +38,8 @@ class NodeTree(QTreeWidget):
         #
         # self.header().setFixedHeight(25)
         #
-        # self.customContextMenuRequested.connect(self.openMenu)
-        # self.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.customContextMenuRequested.connect(self.openMenu)
+        self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.itemDoubleClicked.connect(self.open_editor)
         self.itemSelectionChanged.connect(self.close_editor)
 
@@ -87,10 +88,11 @@ class NodeTree(QTreeWidget):
                 self.actuate(hub, network[hub])
                 self.dashboard.app.processEvents()
                 continue
-            root = QTreeWidgetItem([hub])
+            root = HubWidget(hub)
             self.insertTopLevelItems(self.topLevelItemCount(), [root])
             for thing in network[hub]:
-                branch = self.add_node(root, thing)
+                branch = ThingWidget(thing)
+                root.addChild(branch)
                 for input in network[hub][thing]:
                     leaf = InputWidget(input)
                     branch.addChild(leaf)
@@ -239,23 +241,53 @@ class NodeTree(QTreeWidget):
         globalPos = self.mapToGlobal(pos)
         menu = QMenu()
         actions = {}
-        for option in item.node.options:
+        if item.node == 'input':
+            input = item.name
+            thing = item.parent().name
+            hub = item.parent().parent().name
+            params = {'input': input, 'thing': thing, 'hub': hub}
+        elif item.node == 'thing':
+            input = None
+            thing = item.name
+            hub = item.parent().name
+            params = {'thing': thing, 'hub': hub}
+        elif item.node == 'hub':
+            input = None
+            thing = None
+            hub = item.name
+            params = {'hub': hub}
+
+        options = self.dashboard.p2p.get('options', params=params)
+        print('Options:', options)
+
+        for option in options:
             actions[option] = QAction(option, self)
-            func = item.node.options[option]
-            actions[option].triggered.connect(func)
+            actions[option].triggered.connect(partial(self.exec_option, params, option))
             menu.addAction(actions[option])
         selectedItem = menu.exec_(globalPos)
+
+    def exec_option(self, params, option):
+        ''' Takes a params dict containing a node specified by input, thing, hub
+            and a key corresponding to the options dict on the node '''
+        print('Sending option exec:', params)
+        d = {}
+        for key in params:
+            d[key] = params[key]
+        d['method'] = option
+        self.dashboard.p2p.send({'op': 'option', 'params': d})
 
 from emergent.utilities.signals import FloatSignal
 
 class HubWidget(QTreeWidgetItem):
     def __init__(self, name):
         super().__init__([name])
+        self.name = name
         self.node = 'hub'
 
 class ThingWidget(QTreeWidgetItem):
     def __init__(self, name):
         super().__init__([name])
+        self.name = name
         self.node = 'thing'
 
 class InputWidget(QTreeWidgetItem):

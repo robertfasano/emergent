@@ -41,6 +41,13 @@ class MainAPI():
     def get(self, target, params = {}):
         if 'hub' in params:
             hub = self.network.hubs[params['hub']]
+            node = hub
+            if 'thing' in params:
+                thing = hub.children[params['thing']]
+                node = thing
+                if 'input' in params:
+                    input = thing.children[params['input']]
+                    node = input
         targets = {'state': self.network.state,
                    'settings': self.network.settings,
                    'experiments': lambda: introspection.list_experiments(hub),
@@ -66,6 +73,9 @@ class MainAPI():
             sampler.history = sampler.history.fillna(0)
             return sampler.history
 
+        elif target == 'options':
+            return list(node.options.keys())
+
         elif target == 'sampler':
             hub = self.network.hubs[params['hub']]
             for sampler in hub.samplers.values():
@@ -73,6 +83,19 @@ class MainAPI():
                     break
             return sampler
 
+    def option(self, params):
+        if 'hub' in params:
+            hub = self.network.hubs[params['hub']]
+            node = hub
+            if 'thing' in params:
+                thing = hub.children[params['thing']]
+                node = thing
+                if 'input' in params:
+                    input = thing.children[params['input']]
+                    node = input
+
+        node.options[params['method']]()
+                
     def run(self, settings):
         settings['hub'] = self.network.hubs[settings['hub']]
         settings['experiment']['instance'] = getattr(settings['hub'], settings['experiment']['name'])
