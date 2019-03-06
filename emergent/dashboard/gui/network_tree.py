@@ -16,10 +16,10 @@ from PyQt5.QtCore import *
 from emergent.utilities.containers import State
 
 class NodeTree(QTreeWidget):
-    def __init__(self, network, dashboard):
+    def __init__(self, dashboard):
         super().__init__()
-        self.network = network
         self.dashboard = dashboard
+        self.network = self.dashboard.p2p.get('state')
         self.editorOpen = 0
         self.current_item = None
         self.last_item = None

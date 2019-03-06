@@ -15,7 +15,6 @@ class Dashboard(QMainWindow):
         QMainWindow.__init__(self)
         self.p2p = p2p
         self.p2p.api = DashAPI(self)
-        self.network = self.p2p.get('state')
         self.app = app
         ''' Set window style '''
         self.setWindowTitle('EMERGENT Dashboard')
@@ -31,10 +30,9 @@ class Dashboard(QMainWindow):
 
         self.resize(width, height)
 
-
         ''' Create QTreeWidget '''
         self.tree_layout = QVBoxLayout()
-        self.tree_widget = NodeTree(self.network, self)
+        self.tree_widget = NodeTree(self)
         self.tree_layout.addWidget(self.tree_widget)
         layout.addLayout(self.tree_layout)
 
