@@ -36,7 +36,7 @@ def launch():
     parser.add_argument("--addr", help='EMERGENT session IP address')
     parser.add_argument("--port", help='EMERGENT session networking port', type=int)
     parser.add_argument("--database_addr", help='Remote InfluxDB address')
-    parser.add_argument("--gui", help='1 to use native GUI; 0 to use remote server')
+    parser.add_argument("--gui", help='1 to use native GUI; 0 to use remote server', action='store_true')
 
     parser.add_argument("-v", "--verbose", help="Increase output verbosity", action="store_true")
     args = parser.parse_args()
@@ -52,9 +52,7 @@ def launch():
         addr = get_address()
     port = 8000
 
-    gui = 0
-    if args.gui:
-        gui = args.gui
+
     if args.port:
         port = args.port
     database_addr = None
@@ -75,8 +73,7 @@ def launch():
 
     # Server(network)
 
-    if gui is True:
-        print(gui)
+    if args.gui:
         run_frontend()
     global sys_argv
     sys_argv = args
