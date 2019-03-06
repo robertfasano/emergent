@@ -24,13 +24,17 @@ try:
 except AttributeError:
     pass
 
-log.basicConfig(level=log.INFO)
+
+''' Parse arguments and set verbosity for logging '''
+parser = argparse.ArgumentParser()
+parser.add_argument("-v", "--verbose", help="Increase output verbosity", action="store_true")
+args = parser.parse_args()
+if args.verbose:
+    log.basicConfig(level=log.DEBUG)
+else:
+    log.basicConfig(level=log.INFO)
 
 def launch():
-    # client = Client(get_address(), 8000)
-    # server = Server()
-
-
     from emergent.protocols.p2p import P2PNode
     global dashP2P
     dashP2P = P2PNode('dashboard', 'localhost', 27191)
