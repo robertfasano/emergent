@@ -146,8 +146,7 @@ class Listener():
 
             if op == 'check':
                 active = self.node.api.check(message['params'])
-                reply = {'op': 'update',
-                         'value': active}
+                reply = {'op': 'update', 'value': active}
                 await self.send(reply, writer)
 
             if op == 'echo':

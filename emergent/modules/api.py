@@ -25,6 +25,7 @@ class DashAPI():
         self.dashboard.app.quit()
 
 
+
 class MainAPI():
     def __init__(self, network):
         self.network = network
@@ -38,51 +39,24 @@ class MainAPI():
                 return sampler.active
 
     def get(self, target, params = {}):
-        if target == 'state':
-            return self.network.state()
-
-        if target == 'settings':
-            return self.network.settings()
-
-        elif target == 'experiments':
+        if 'hub' in params:
             hub = self.network.hubs[params['hub']]
-            return introspection.list_experiments(hub)
-
-        elif target == 'errors':
-            hub = self.network.hubs[params['hub']]
-            return introspection.list_errors(hub)
-
-        elif target == 'triggers':
-            hub = self.network.hubs[params['hub']]
-            return introspection.list_triggers(hub)
-
-        elif target == 'experiment_params':
-            hub = self.network.hubs[params['hub']]
-            params = recommender.load_experiment_parameters(hub, params['experiment'])
-            return params
-
-        elif target == 'model_params':
-            return recommender.get_default_params('model', params['model'])
-
-        elif target == 'sampler_params':
-            return recommender.get_default_params('sampler', params['sampler'])
-
-        elif target == 'servo_params':
-            return recommender.get_default_params('servo', params['servo'])
-
-        elif target == 'error_params':
-            hub = self.network.hubs[params['hub']]
-            params = recommender.load_experiment_parameters(hub, params['error'])
-            return params
-
-        elif target == 'models':
-            return recommender.list_classes('model')
-
-        elif target == 'samplers':
-            return recommender.list_classes('sampler')
-
-        elif target == 'servos':
-            return recommender.list_classes('servo')
+        targets = {'state': self.network.state,
+                   'settings': self.network.settings,
+                   'experiments': lambda: introspection.list_experiments(hub),
+                   'errors': lambda: introspection.list_errors(hub),
+                   'triggers': lambda: introspection.list_triggers(hub),
+                   'experiment_params': lambda: recommender.load_experiment_parameters(hub, params['experiment']),
+                   'model_params': lambda: recommender.get_default_params('model', params['model']),
+                   'sampler_params': lambda: recommender.get_default_params('sampler', params['sampler']),
+                   'servo_params': lambda: recommender.get_default_params('servo', params['servo']),
+                   'error_params': lambda: recommender.load_experiment_parameters(hub, params['error']),
+                   'models': lambda: recommender.list_classes('model'),
+                   'samplers': lambda: recommender.list_classes('sampler'),
+                   'servos': lambda: recommender.list_classes('servo')
+                     }
+        if target in targets:
+            return targets[target]()
 
         elif target == 'history':
             hub = self.network.hubs[params['hub']]
