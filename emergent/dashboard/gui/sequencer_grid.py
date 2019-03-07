@@ -24,8 +24,9 @@ class VerticalLabel(QWidget):
         painter.end()
 
 class StateCheckbox(QCheckBox):
-    def __init__(self, timestep, channel, dashboard, hub, grid):
+    def __init__(self, name, timestep, channel, dashboard, hub, grid):
         super().__init__()
+        self.name = name
         self.timestep = timestep
         self.channel = channel
         self.dashboard = dashboard
@@ -41,6 +42,9 @@ class StateCheckbox(QCheckBox):
         print('Setting sequence to:', sequence)
         params = {'hub': self.hub}
         self.dashboard.p2p.set('sequence', sequence, params = params)
+        current_step = self.dashboard.p2p.get('sequence step', params = {'hub': self.hub})
+        if current_step == self.name:
+            self.dashboard.p2p.send({'op': 'goto', 'params': {'hub': self.hub, 'step': self.name}})
         # if self.sequencer is not None:
         #     if self.timestep['name'] == self.sequencer.current_step:
         #         self.sequencer.goto(self.timestep['name'])
@@ -143,7 +147,7 @@ class GridWindow(QWidget):
         row = 2
         self.checkboxes[name] = {}
         for switch in self.switches:
-            box = StateCheckbox(step, switch, self.dashboard, self.hub, self)
+            box = StateCheckbox(name, step, switch, self.dashboard, self.hub, self)
             self.grid_layout.addWidget(box, row, col)
             self.checkboxes[name][switch] = box
             row += 1

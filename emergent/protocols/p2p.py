@@ -161,6 +161,12 @@ class Listener():
                 value = self.node.api.get(message['target'], params=message['params'])
                 await self.send({'op': op, 'value': value}, writer)
 
+            if op == 'goto':
+                ''' 'params' should contain a 'hub' to grab the sequencer from 
+                     and a 'step' key that we want to go to '''
+                self.node.api.goto(params=message['params'])
+                await self.confirm(writer)
+
             if op == 'option':
                 try:
                     self.node.api.option(message['params'])

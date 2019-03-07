@@ -106,8 +106,16 @@ class MainAPI():
             s = hub.children['sequencer']
             return s.steps
 
+        elif target == 'sequence step':
+            s = hub.children['sequencer']
+            return s.current_step
+            
         elif target == 'switches':
             return hub.switches
+
+    def goto(self, params):
+        sequencer = self.get('sequencer', params)
+        sequencer.goto(params['step'])
 
     def option(self, params):
         if 'hub' in params:

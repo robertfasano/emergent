@@ -49,7 +49,7 @@ class Sequencer(Thing):
     def _actuate(self, state):
         for step in state:
             self.steps[step]['duration'] = state[step]
-            
+
     def get_time(self, step):
         ''' Returns the time when the specified integer step starts '''
         now = 0
@@ -57,14 +57,14 @@ class Sequencer(Thing):
             now += self.state[step]
         return now
 
-    def goto(self, step):
-        ''' Go to a step specified by an integer or string name. '''
-        step = self.steps[step]
+    def goto(self, step_name):
+        ''' Go to a step specified by a string name. '''
+        step = self.steps[step_name]
 
         for channel in step['state']:
             state = step['state'][channel]
             self.parent.switches[channel].set(state)
-        self.current_step = step
+        self.current_step = step_name
         if hasattr(self, 'grid'):
             self.grid.bold_active_step()
 
