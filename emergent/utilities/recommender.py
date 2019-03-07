@@ -248,6 +248,8 @@ def load_experiment_parameters(hub, experiment_name, default = False):
             ''' Load params from file '''
             with open(params_filename, 'r') as file:
                 params = json.load(file)
+            if 'experiment' not in params:
+                raise OSError
             if params['experiment'] == {}:
                 raise OSError
             if 'cycles per sample' not in params['experiment']:
