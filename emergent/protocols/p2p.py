@@ -134,7 +134,8 @@ class Listener():
                 return
             # print(datetime.datetime.now().isoformat(), '%s:'%self.name, 'Received message:', message)
             op = message['op']
-
+            if 'params' not in message:
+                message['params'] = {}
             if op == 'connect':
                 log.info('New listener at %s on port %i.', self.addr, self.port)
                 await self.send({'op': 'update', 'params': 1}, writer)
@@ -174,10 +175,10 @@ class Listener():
                 await self.send(reply, writer)
 
             if op == 'set':
-                self.node.api.set(message['target'], message['value'])
+                self.node.api.set(message['target'], message['value'], message['params'])
                 reply = {'op': 'set',
                          'target': message['target'],
-                         'value': self.node.api.get(message['target'])}
+                         'value': self.node.api.get(message['target'], params=message['params'])}
                 await self.send(reply, writer)
 
             if op == 'shutdown':
@@ -225,11 +226,11 @@ class P2PNode():
         if hasattr(self, 'sender'):
             return self.sender.send(message)
 
-    def set(self, target, value):
+    def set(self, target, value, params = {}):
         if not hasattr(self, 'sender'):
             return
-        self.send({'op': 'set', 'target': target, 'value': value})
-        return self.get(target)
+        self.send({'op': 'set', 'target': target, 'value': value, 'params': params})
+        return self.get(target, params = params)
 
 
 if __name__ == '__main__':

@@ -16,7 +16,7 @@ class DashAPI():
         if target == 'state':
             return self.dashboard.tree_widget.get_state()
 
-    def set(self, target, value):
+    def set(self, target, value, params = {}):
         if target == 'state':
             # self.dashboard.tree_widget.set_state(value)
             self.dashboard.actuate_signal.emit(value)
@@ -31,6 +31,21 @@ class MainAPI():
     def __init__(self, network):
         self.network = network
         self.manager = ProcessHandler()
+
+        self.sequencer = self.Sequencer(self, self.network)
+
+    class Sequencer():
+        def __init__(self, api, network):
+            self.api = api
+            self.network = network
+
+        def get_object(self, params):
+            return self.network.hubs[params['hub']].children['sequencer']
+
+        def set(self, target, value, params):
+            sequencer = self.get_object(params)
+            if target == 'sequence':
+                sequencer.set_sequence(value)
 
     def check(self, params):
         ''' Check whether the sampler with the given uuid is active. '''
@@ -87,13 +102,9 @@ class MainAPI():
         elif target == 'sequencer':
             return hub.children['sequencer']
 
-        elif target == 'timesteps':
+        elif target == 'sequence':
             s = hub.children['sequencer']
-            steps = []
-            for s in s.steps:
-                step = {'name': s.name, 'duration': s.duration, 'state': s.state}
-                steps.append(step)
-            return steps
+            return s.steps
 
         elif target == 'switches':
             return hub.switches
@@ -145,12 +156,16 @@ class MainAPI():
             func = sampler._run
         self.manager._run_thread(func, stoppable=False)
 
-    def set(self, target, value):
+    def set(self, target, value, params = {}):
         if target == 'state':
             self.network.actuate(value, send_over_p2p = False)
 
         elif target == 'settings':
             self.network.set_settings(value)
+
+        elif target == 'sequence':
+            sequencer = self.get('sequencer', params)
+            sequencer.steps = value
 
     def terminate(self, params):
         sampler = self.get('sampler', params)

@@ -24,16 +24,23 @@ class VerticalLabel(QWidget):
         painter.end()
 
 class StateCheckbox(QCheckBox):
-    def __init__(self, timestep, channel):
+    def __init__(self, timestep, channel, dashboard, hub, grid):
         super().__init__()
         self.timestep = timestep
         self.channel = channel
+        self.dashboard = dashboard
+        self.grid = grid
+        self.hub = hub
         self.picklable = False
         self.setChecked(self.timestep['state'][self.channel])
         self.stateChanged.connect(self.onChanged)
 
     def onChanged(self, state):
-        self.timestep['state'][self.channel] = int(self.isChecked())
+        # self.timestep['state'][self.channel] = int(self.isChecked())
+        sequence = self.grid.get_sequence()
+        print('Setting sequence to:', sequence)
+        params = {'hub': self.hub}
+        self.dashboard.p2p.set('sequence', sequence, params = params)
         # if self.sequencer is not None:
         #     if self.timestep['name'] == self.sequencer.current_step:
         #         self.sequencer.goto(self.timestep['name'])
@@ -92,51 +99,62 @@ class GridWindow(QWidget):
             self.grid_layout.addWidget(QLabel(switch), row, 0)
             row += 1
 
-        self.draw()
+        timesteps = self.dashboard.p2p.get('sequence', params={'hub': self.hub})
+        self.draw(timesteps)
 
         self.dashboard.actuate_signal.connect(self.actuate)
 
-    def draw(self):
+    def draw(self, sequence):
         self.labels = {}
         self.step_edits = {}
         self.checkboxes = {}
-        timesteps = self.dashboard.p2p.get('timesteps', params={'hub': self.hub})
         col = 1
-        for step in timesteps:
-            self.add_step(step, col)
+        for step in sequence:
+            self.add_step(step, sequence[step], col)
             col += 1
         # self.bold_active_step()
 
-    def redraw(self):
+    def redraw(self, sequence):
         for step in self.labels:
             self.remove_step(step)
-        self.draw()
+        self.draw(sequence)
         QApplication.processEvents()        # determine new minimumSize
         self.resize(self.minimumSize())
 
-    def add_step(self, step, col):
+    def get_sequence(self):
+        sequence = {}
+        for step in self.labels:
+            sequence[step] = {}
+            sequence[step]['duration'] = self.step_edits[step].text()
+            sequence[step]['state'] = {}
+            for switch in self.switches:
+                sequence[step]['state'][switch] = self.checkboxes[step][switch].isChecked()
+
+        return sequence
+
+    def add_step(self, name, step, col):
         ''' Add label and edit '''
-        self.labels[step['name']] = BoldLabel(step['name'])
-        self.grid_layout.addWidget(self.labels[step['name']], 0, col)
-        self.step_edits[step['name']] = StepEdit(step['name'], str(step['duration']), self.dashboard, self.hub)
-        self.grid_layout.addWidget(self.step_edits[step['name']], 1, col)
+        self.labels[name] = BoldLabel(name)
+        self.grid_layout.addWidget(self.labels[name], 0, col)
+        self.step_edits[name] = StepEdit(name, str(step['duration']), self.dashboard, self.hub)
+        self.grid_layout.addWidget(self.step_edits[name], 1, col)
 
         ''' Add checkboxes '''
         row = 2
-        self.checkboxes[step['name']] = {}
+        self.checkboxes[name] = {}
         for switch in self.switches:
-            box = StateCheckbox(step, switch)
+            box = StateCheckbox(step, switch, self.dashboard, self.hub, self)
             self.grid_layout.addWidget(box, row, col)
-            self.checkboxes[step['name']][switch] = box
+            self.checkboxes[name][switch] = box
             row += 1
 
-    # def remove_step(self, step):
-    #     remove = [self.labels[step], self.step_edits[step]]
-    #     for switch in self.sequencer.parent.switches:
-    #         remove.append(self.checkboxes[step][switch])
-    #     for widget in remove:
-    #         self.grid_layout.removeWidget(widget)
-    #         widget.deleteLater()
+    def remove_step(self, step):
+        remove = [self.labels[step], self.step_edits[step]]
+        for switch in self.switches:
+            remove.append(self.checkboxes[step][switch])
+        for widget in remove:
+            self.grid_layout.removeWidget(widget)
+            widget.deleteLater()
 
     #
     # def bold_active_step(self):
