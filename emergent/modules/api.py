@@ -69,17 +69,29 @@ class MainAPI():
                    'experiments': lambda: introspection.list_experiments(hub),
                    'errors': lambda: introspection.list_errors(hub),
                    'triggers': lambda: introspection.list_triggers(hub),
-                   'experiment_params': lambda: recommender.load_experiment_parameters(hub, params['experiment']),
                    'model_params': lambda: recommender.get_default_params('model', params['model']),
                    'sampler_params': lambda: recommender.get_default_params('sampler', params['sampler']),
                    'servo_params': lambda: recommender.get_default_params('servo', params['servo']),
-                   'error_params': lambda: recommender.load_experiment_parameters(hub, params['error']),
                    'models': lambda: recommender.list_classes('model'),
                    'samplers': lambda: recommender.list_classes('sampler'),
                    'servos': lambda: recommender.list_classes('servo')
                      }
         if target in targets:
             return targets[target]()
+
+        elif target == 'experiment_params':
+            model_name = None
+            if 'model' in params:
+                model_name = params['model']
+            sampler_name = None
+            if 'sampler' in params:
+                sampler_name = params['sampler']
+            experiment_name = params['experiment']
+
+            return recommender.load_all_experiment_parameters(hub, experiment_name, model_name, sampler_name)
+
+        elif target == 'error_params':
+            return recommender.load_all_error_parameters(hub, params['error'], params['servo'])
 
         elif target == 'history':
             hub = self.network.hubs[params['hub']]
@@ -109,7 +121,7 @@ class MainAPI():
         elif target == 'sequence step':
             s = hub.children['sequencer']
             return s.current_step
-            
+
         elif target == 'switches':
             return hub.switches
 
@@ -178,3 +190,13 @@ class MainAPI():
     def terminate(self, params):
         sampler = self.get('sampler', params)
         sampler.terminate()
+
+class ExperimentAPI():
+    def __init__(self, network):
+        ''' Args: network (str) '''
+        self.network = network
+        self.path = 'networks/%s/'%self.network
+
+    def list(self, hub):
+        ''' Args: hub (str) '''
+        hub = self.network.hubs[hub]

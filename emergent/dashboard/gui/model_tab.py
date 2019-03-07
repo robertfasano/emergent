@@ -68,11 +68,9 @@ class ModelLayout(QVBoxLayout, ProcessHandler):
 
         self.addLayout(self.horizontal_layout)
 
-        # self.sampler_box.currentTextChanged.connect(lambda: self.parent.update_algorithm_and_experiment(self, update_experiment=False))
-        # self.experiment_box.currentTextChanged.connect(lambda: self.parent.update_algorithm_and_experiment(self))
-        self.experiment_box.currentTextChanged.connect(lambda: self.parent.update_experiment(self))
-        self.sampler_box.currentTextChanged.connect(lambda: self.parent.update_sampler(self))
-        self.model_box.currentTextChanged.connect(lambda: self.parent.update_model(self))
+        for box in [self.experiment_box, self.sampler_box, self.model_box]:
+            box.currentTextChanged.connect(self.update_params)
+
 
         self.gotoLayout = QHBoxLayout()
         label = QLabel('End at')
@@ -127,3 +125,18 @@ class ModelLayout(QVBoxLayout, ProcessHandler):
             settings['experiment']['params']['cycles per sample'] = 1
 
         return settings
+
+    def update_params(self):
+        hub = self.parent.dashboard.tree_widget.get_selected_hub()
+        experiment_name = self.experiment_box.currentText()
+        model_name = self.model_box.currentText()
+        sampler_name = self.sampler_box.currentText()
+        if sampler_name == '':
+            return
+        params = {'hub': hub, 'sampler': sampler_name, 'model': model_name, 'experiment': experiment_name}
+
+        d = self.parent.dashboard.p2p.get('experiment_params', params=params)
+
+        self.sampler_table.set_parameters(d['sampler'][sampler_name])
+        self.experiment_table.set_parameters(d['experiment'])
+        self.model_table.set_parameters(d['model'][model_name])

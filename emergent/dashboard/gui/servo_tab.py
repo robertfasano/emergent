@@ -33,8 +33,9 @@ class ServoLayout(QVBoxLayout, ProcessHandler):
         self.error_table = ParameterTable()
         layout.addWidget(self.error_table, 1, 1)
 
-        self.servo_box.currentTextChanged.connect(lambda: self.parent.update_servo(self))
-        self.error_box.currentTextChanged.connect(lambda: self.parent.update_error(self))
+        for box in [self.servo_box, self.error_box]:
+            box.currentTextChanged.connect(self.update_params)
+
 
         optimizeButtonsLayout = QHBoxLayout()
         self.optimizer_button = QPushButton('Go!')
@@ -65,3 +66,14 @@ class ServoLayout(QVBoxLayout, ProcessHandler):
         settings['process']['type'] = 'servo'
 
         return settings
+
+    def update_params(self):
+        hub = self.parent.dashboard.tree_widget.get_selected_hub()
+        error_name = self.error_box.currentText()
+        servo_name = self.servo_box.currentText()
+        if servo_name == '':
+            return
+        params = {'hub': hub, 'error': error_name, 'servo': servo_name}
+        d = self.parent.dashboard.p2p.get('error_params', params=params)
+        self.error_table.set_parameters(d['error'])
+        self.servo_table.set_parameters(d['servo'][servo_name])

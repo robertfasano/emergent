@@ -18,7 +18,7 @@ class MeasureLayout(QVBoxLayout, ProcessHandler):
         self.experiment_box = QComboBox()
 
         self.addWidget(self.experiment_box)
-        self.experiment_box.currentTextChanged.connect(lambda: self.parent.update_experiment(self))
+        self.experiment_box.currentTextChanged.connect(self.update_params)
 
         ''' Experiment parameters '''
         self.experiment_table = ParameterTable()
@@ -92,3 +92,10 @@ class MeasureLayout(QVBoxLayout, ProcessHandler):
             self.runIterationsEdit.setText(text[val])
         except AttributeError:
             return
+
+    def update_params(self):
+        if self.experiment_box.currentText() == '':
+            return
+        hub = self.parent.dashboard.tree_widget.get_selected_hub()
+        d = self.parent.dashboard.p2p.get('experiment_params', params={'hub': hub, 'experiment': self.experiment_box.currentText()})
+        self.experiment_table.set_parameters(d['experiment'])

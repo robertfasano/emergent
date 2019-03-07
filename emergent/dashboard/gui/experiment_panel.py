@@ -60,7 +60,7 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         self.panel = self.tab_widget.currentWidget().layout()
 
 
-    def update_hub_panel(self, panel):
+    def update_choices(self, panel):
         ''' Updates the algorithm box with the methods available to the currently selected hub. '''
         hub = self.dashboard.tree_widget.currentItem().parent().parent().text(0)
 
@@ -82,6 +82,12 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
                 for item in self.dashboard.p2p.get('%ss'%x):
                     getattr(panel, '%s_box'%x).addItem(item)
 
+        if hasattr(panel, 'trigger_box'):
+            ''' update triggers '''
+            panel.trigger_box.clear()
+            panel.trigger_box.addItem('')
+            for t in self.dashboard.p2p.get('triggers', params={'hub': hub}):
+                panel.trigger_box.addItem(t)
 
 
     def update_hub(self):
@@ -91,66 +97,13 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         else:
             self.current_hub = hub
 
-        self.update_hub_panel(self.measure_panel)
-        self.update_experiment(self.measure_panel)
+        self.update_choices(self.measure_panel)
+        self.measure_panel.update_params()
+        self.update_choices(self.model_panel)
+        self.model_panel.update_params()
 
-        self.update_hub_panel(self.model_panel)
-        self.update_experiment(self.model_panel)
-        self.update_model(self.model_panel)
-        self.update_sampler(self.model_panel)
-
-        self.update_hub_panel(self.servo_panel)
-        self.update_error(self.servo_panel)
-        self.update_servo(self.servo_panel)
-
-    def update_experiment(self, panel):
-        if panel.experiment_box.currentText() == '':
-            return
-        hub = self.dashboard.tree_widget.get_selected_hub()
-        d = self.dashboard.p2p.get('experiment_params', params={'hub': hub, 'experiment': panel.experiment_box.currentText()})
-        panel.experiment_table.set_parameters(d)
-
-        if hasattr(panel, 'trigger_box'):
-            ''' update triggers '''
-            panel.trigger_box.clear()
-            panel.trigger_box.addItem('')
-            for t in self.dashboard.p2p.get('triggers', params={'hub': hub}):
-                panel.trigger_box.addItem(t)
-
-    def update_error(self, panel):
-        if panel.error_box.currentText() == '':
-            return
-        hub = self.dashboard.tree_widget.get_selected_hub()
-        d = self.dashboard.p2p.get('error_params', params={'hub': hub, 'error': panel.error_box.currentText()})
-        panel.error_table.set_parameters(d)
-
-        if hasattr(panel, 'trigger_box'):
-            ''' update triggers '''
-            panel.trigger_box.clear()
-            panel.trigger_box.addItem('')
-            for t in self.dashboard.p2p.get('triggers', params={'hub': hub}):
-                panel.trigger_box.addItem(t)
-
-    def update_model(self, panel):
-        if panel.model_box.currentText() == '':
-            return
-        hub = self.dashboard.tree_widget.get_selected_hub()
-        d = self.dashboard.p2p.get('model_params', params={'hub': hub, 'model': panel.model_box.currentText()})
-        panel.model_table.set_parameters(d)
-
-    def update_sampler(self, panel):
-        if panel.sampler_box.currentText() == '':
-            return
-        hub = self.dashboard.tree_widget.get_selected_hub()
-        d = self.dashboard.p2p.get('sampler_params', params={'hub': hub, 'sampler': panel.sampler_box.currentText()})
-        panel.sampler_table.set_parameters(d)
-
-    def update_servo(self, panel):
-        if panel.servo_box.currentText() == '':
-            return
-        hub = self.dashboard.tree_widget.get_selected_hub()
-        d = self.dashboard.p2p.get('servo_params', params={'hub': hub, 'servo': panel.servo_box.currentText()})
-        panel.servo_table.set_parameters(d)
+        self.update_choices(self.servo_panel)
+        self.servo_panel.update_params()
 
     def start_process(self, process='', threaded=True):
         ''' Load settings from the GUI and start a process. '''

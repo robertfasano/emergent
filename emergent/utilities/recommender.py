@@ -46,6 +46,18 @@ def get_default_params(module, name):
 
     return params_dict
 
+def get_default_experiment_params(hub, experiment_name):
+        experiment = getattr(hub, experiment_name)
+        args = inspect.signature(experiment).parameters
+        args = list(args.items())
+        d = {}
+        for a in args:
+            if a[0] != 'params':
+                continue
+            d = str(a[1]).split('=')[1]
+            d = json.loads(d.replace("'", '"'))
+        return d
+
 def get_class(module, name):
     if name == 'None':
         return None
@@ -116,6 +128,107 @@ def load_algorithm_parameters(hub, experiment_name, algorithm_name, module_type,
         json.dump(params, file)
 
     return params[key][algorithm_name]
+
+def load_all_error_parameters(hub, experiment_name, servo_name):
+    ''' Looks for algorithm parameters in the parameterfile for the experiment. If none exist,
+        get them from the default algorithm parameters.
+
+        Args:
+            hub (Hub): a node whose experiment we're about to run
+            experiment_name (str)
+            servo_name (str)
+    '''
+
+    ''' Look for relevant parameters in the json file in the network's params directory '''
+
+    ''' TO ADD: get default params only as an option'''
+    params_filename = hub.network.path['params'] + '%s.%s.txt'%(hub.name, experiment_name)
+
+    ''' Try to open the params file '''
+    try:
+        with open(params_filename, 'r') as file:
+            params = json.load(file)
+
+    except OSError:
+        ''' File doesn't yet exist; let's prepare a default file '''
+        params = {'error': {}}
+        params['servo'] = {'default': servo_name}
+        params['servo'][servo_name] = get_default_params('servo', servo_name)
+        params['error'] = get_default_experiment_params(hub, experiment_name)
+
+    ''' If the file exists, let's try to access each parameter we need '''
+    p = {'error': params['error'], 'servo': {}}
+
+    if servo_name not in params['servo']:
+        params['servo'][servo_name] = get_default_params('servo', servo_name)
+    p['servo'][servo_name] = params['servo'][servo_name]
+
+
+    ''' Save (possibly) updated params dict to file '''
+    with open(params_filename, 'w') as file:
+        json.dump(params, file)
+
+    return p
+
+def load_all_experiment_parameters(hub, experiment_name, model_name=None, sampler_name=None):
+    ''' Looks for algorithm parameters in the parameterfile for the experiment. If none exist,
+        get them from the default algorithm parameters.
+
+        Args:
+            hub (Hub): a node whose experiment we're about to run
+            experiment_name (str)
+            algorithm_name (str)
+            model_name (str)
+    '''
+
+    ''' Look for relevant parameters in the json file in the network's params directory '''
+
+    ''' TO ADD: get default params only as an option'''
+    params_filename = hub.network.path['params'] + '%s.%s.txt'%(hub.name, experiment_name)
+
+    ''' Try to open the params file '''
+    try:
+        with open(params_filename, 'r') as file:
+            params = json.load(file)
+
+    except OSError:
+        ''' File doesn't yet exist; let's prepare a default file '''
+        params = {'experiment': {}}
+        if sampler_name is not None:
+            params['sampler'] = {'default': sampler_name}
+            params['sampler'][sampler_name] = get_default_params('sampler', sampler_name)
+        if model_name is not None:
+            params['model'] = {'default': model_name}
+            params['model'][model_name] = get_default_params('model', model_name)
+
+        params['experiment'] = get_default_experiment_params(hub, experiment_name)
+
+    ''' If the file exists, let's try to access each parameter we need '''
+    p = {'experiment': params['experiment']}
+
+
+    if model_name is not None:
+        p['model'] = {}
+        if 'model' not in params:
+            params['model'] = {}
+        if model_name not in params['model']:
+            params['model'][model_name] = get_default_params('model', model_name)
+        p['model'][model_name] = params['model'][model_name]
+
+    if sampler_name is not None:
+        p['sampler'] = {}
+        if 'sampler' not in params:
+            params['sampler'] = {}
+        if sampler_name not in params['sampler']:
+            params['sampler'][sampler_name] = get_default_params('sampler', sampler_name)
+        p['sampler'][sampler_name] = params['sampler'][sampler_name]
+
+
+    ''' Save (possibly) updated params dict to file '''
+    with open(params_filename, 'w') as file:
+        json.dump(params, file)
+
+    return p
 
 def load_experiment_parameters(hub, experiment_name, default = False):
     ''' Looks for algorithm parameters in the parameterfile for the experiment. If none exist,
