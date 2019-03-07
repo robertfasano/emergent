@@ -18,7 +18,8 @@ class DashAPI():
 
     def set(self, target, value):
         if target == 'state':
-            self.dashboard.tree_widget.set_state(value)
+            # self.dashboard.tree_widget.set_state(value)
+            self.dashboard.actuate_signal.emit(value)
 
     def shutdown(self):
         print('Shutting down Dashboard.')
@@ -86,6 +87,17 @@ class MainAPI():
         elif target == 'sequencer':
             return hub.children['sequencer']
 
+        elif target == 'timesteps':
+            s = hub.children['sequencer']
+            steps = []
+            for s in s.steps:
+                step = {'name': s.name, 'duration': s.duration, 'state': s.state}
+                steps.append(step)
+            return steps
+
+        elif target == 'switches':
+            return hub.switches
+
     def option(self, params):
         if 'hub' in params:
             hub = self.network.hubs[params['hub']]
@@ -98,7 +110,7 @@ class MainAPI():
                     node = input
 
         node.options[params['method']]()
-                
+
     def run(self, settings):
         settings['hub'] = self.network.hubs[settings['hub']]
         settings['experiment']['instance'] = getattr(settings['hub'], settings['experiment']['name'])

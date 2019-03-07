@@ -5,4 +5,5 @@ from emergent.dashboard.gui.measure_tab import MeasureLayout
 from emergent.dashboard.gui.model_tab import ModelLayout
 from emergent.dashboard.gui.servo_tab import ServoLayout
 from emergent.dashboard.gui.experiment_panel import ExperimentLayout
+from emergent.dashboard.gui.sequencer_grid import GridWindow
 from emergent.dashboard.gui.main_window import Dashboard

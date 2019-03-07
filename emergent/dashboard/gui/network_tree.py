@@ -48,11 +48,13 @@ class NodeTree(QTreeWidget):
         settings = self.dashboard.p2p.get('settings')
         for hub in self.network:
             self.set_settings(hub, settings[hub])
-            
+
         self.setColumnWidth(0,200)
         for i in [1,2,3]:
             self.setColumnWidth(i,50)
 
+        self.dashboard.actuate_signal.connect(self.set_state)
+        
     def actuate(self, hub, state):
         hub_item = self.get_hub(hub)
         for thing_name in state:
@@ -219,7 +221,7 @@ class NodeTree(QTreeWidget):
             if col == 1:
                 state = {hub_name: {thing_name:{input_name: float(value)}}}
                 self.dashboard.p2p.set('state', state)
-
+                self.dashboard.actuate_signal.emit(state)
             elif col in [2,3]:
                 qty = {2: 'min', 3: 'max'}[col]
                 settings = {hub_name: {thing_name:{input_name: {qty: float(value)}}}}

@@ -4,11 +4,12 @@
 import os
 import psutil
 from PyQt5.QtGui import QIcon, QFontDatabase
-from PyQt5.QtWidgets import (QHBoxLayout, QLabel, QVBoxLayout,
+from PyQt5.QtWidgets import (QHBoxLayout, QLabel, QVBoxLayout, QPushButton,
                              QWidget, QMainWindow, QStatusBar, QMenuBar)
 from PyQt5.QtCore import QTimer
-from emergent.dashboard.gui import TaskPanel, NodeTree, ExperimentLayout
+from emergent.dashboard.gui import TaskPanel, NodeTree, ExperimentLayout, GridWindow
 from emergent.modules.api import DashAPI
+from emergent.utilities.signals import DictSignal
 
 class Dashboard(QMainWindow):
     def __init__(self, app, p2p):
@@ -30,6 +31,8 @@ class Dashboard(QMainWindow):
 
         self.resize(width, height)
 
+        self.actuate_signal = DictSignal()
+        
         ''' Create QTreeWidget '''
         self.tree_layout = QVBoxLayout()
         self.tree_widget = NodeTree(self)
@@ -45,3 +48,11 @@ class Dashboard(QMainWindow):
         ''' Create task panel '''
         self.task_panel = TaskPanel(self)
         self.experiment_layout.addLayout(self.task_panel)
+
+        button = QPushButton('Show grid')
+        button.clicked.connect(self.show_grid)
+        self.experiment_layout.addWidget(button)
+
+    def show_grid(self):
+        self.grid = GridWindow(self, 'hub')
+        self.grid.show()
