@@ -31,21 +31,8 @@ class MainAPI():
     def __init__(self, network):
         self.network = network
         self.manager = ProcessHandler()
-
-        self.sequencer = self.Sequencer(self, self.network)
-
-    class Sequencer():
-        def __init__(self, api, network):
-            self.api = api
-            self.network = network
-
-        def get_object(self, params):
-            return self.network.hubs[params['hub']].children['sequencer']
-
-        def set(self, target, value, params):
-            sequencer = self.get_object(params)
-            if target == 'sequence':
-                sequencer.set_sequence(value)
+        from emergent.modules.experiment_api import ExperimentAPI
+        self.experimentAPI = ExperimentAPI(self.network)
 
     def check(self, params):
         ''' Check whether the sampler with the given uuid is active. '''
@@ -87,10 +74,16 @@ class MainAPI():
             if 'sampler' in params:
                 sampler_name = params['sampler']
             experiment_name = params['experiment']
+            URI = 'params?hub=%s&experiment=%s'%(hub.name, experiment_name)
+            if 'sampler' in params:
+                URI += '&sampler=%s'%params['sampler']
+            if 'model' in params:
+                URI += '&model=%s'%params['model']
+            return self.experimentAPI.get(URI)
 
-            return recommender.load_all_experiment_parameters(hub, experiment_name, model_name, sampler_name)
-
+            # return recommender.load_all_experiment_parameters(hub, experiment_name, model_name, sampler_name)
         elif target == 'error_params':
+            print(params)
             return recommender.load_all_error_parameters(hub, params['error'], params['servo'])
 
         elif target == 'history':
@@ -190,13 +183,3 @@ class MainAPI():
     def terminate(self, params):
         sampler = self.get('sampler', params)
         sampler.terminate()
-
-class ExperimentAPI():
-    def __init__(self, network):
-        ''' Args: network (str) '''
-        self.network = network
-        self.path = 'networks/%s/'%self.network
-
-    def list(self, hub):
-        ''' Args: hub (str) '''
-        hub = self.network.hubs[hub]
