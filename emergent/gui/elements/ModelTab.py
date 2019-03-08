@@ -98,10 +98,10 @@ class ModelLayout(QVBoxLayout, ProcessHandler):
         self.addLayout(optimizeButtonsLayout)
 
     def get_settings_from_gui(self):
-        settings = {'experiment': {}, 'algorithm': {}, 'model': {}, 'process': {}}
+        settings = {'experiment': {}, 'sampler': {}, 'model': {}, 'process': {}}
         settings['state'] = self.parent.parent.tree_widget.get_selected_state()
         settings['experiment']['name'] = self.experiment_box.currentText()
-        settings['algorithm']['name'] = self.sampler_box.currentText()
+        settings['sampler']['name'] = self.sampler_box.currentText()
         try:
             settings['hub'] = self.parent.parent.tree_widget.get_selected_hub()
         except Exception as e:
@@ -111,8 +111,8 @@ class ModelLayout(QVBoxLayout, ProcessHandler):
                 log.warn('Decentralized processes not yet supported.')
             return
         settings['model']['name'] = self.model_box.currentText()
-        settings['algorithm']['params'] = self.algorithm_table.get_params()
-        settings['algorithm']['instance'] = recommender.get_class('sampler', settings['algorithm']['name'])
+        settings['sampler']['params'] = self.algorithm_table.get_params()
+        settings['sampler']['instance'] = recommender.get_class('sampler', settings['sampler']['name'])
 
         settings['experiment']['params'] = self.experiment_table.get_params()
         settings['model']['params'] = self.model_table.get_params()
