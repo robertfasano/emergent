@@ -54,13 +54,15 @@ class NodeTree(QTreeWidget):
             self.setColumnWidth(i,50)
 
         self.dashboard.actuate_signal.connect(self.set_state)
-        
+
     def actuate(self, hub, state):
         hub_item = self.get_hub(hub)
         for thing_name in state:
             thing = self.get_thing(hub, thing_name)
             for input in state[thing_name]:
-                self.get_input(hub, thing_name, input).state_signal.emit(state[thing_name][input])
+                value = state[thing_name][input]
+                if value is not None:
+                    self.get_input(hub, thing_name, input).state_signal.emit(state[thing_name][input])
 
     def set_range(self, hub, settings):
         hub_item = self.get_hub(hub)
@@ -68,8 +70,12 @@ class NodeTree(QTreeWidget):
             thing = self.get_thing(hub, thing_name)
             for input in settings[thing_name]:
                 leaf = self.get_input(hub, thing_name, input)
-                leaf.min_signal.emit(settings[thing_name][input]['min'])
-                leaf.max_signal.emit(settings[thing_name][input]['max'])
+                min = settings[thing_name][input]['min']
+                if min is not None:
+                    leaf.min_signal.emit(min)
+                max = settings[thing_name][input]['max']
+                if max is not None:
+                    leaf.max_signal.emit(max)
 
     def add_node(self, parent, name):
         leaf = QTreeWidgetItem([name])

@@ -26,7 +26,7 @@ import time
 import logging as log
 import datetime
 from emergent.modules import Sampler, ProcessHandler
-from emergent.utilities.containers import State
+from emergent.utilities.containers import State, DataDict
 from emergent.utilities import recommender
 from emergent.utilities.signals import DictSignal
 from emergent.utilities.buffers import StateBuffer, MacroBuffer
@@ -271,6 +271,10 @@ class Thing(Node):
         #     if input_name != input._name_:
         #         state[input._name_] = state.pop(input.name)
         # print(state)
+        state = state.copy()
+        for key in list(state.keys()):
+            if state[key] is None:
+                del state[key]
         translated_state = self._translate(state)
         self._actuate(translated_state)
         self.update(state)
@@ -332,8 +336,9 @@ class Hub(Node):
             return
         self.local = True
         super().__init__(name, parent)
-        self.state = State()
-        self.settings = {}
+        # self.state = State()
+        self.state = DataDict()
+        self.range = DataDict()
         self.samplers = {}
         self.node_type = 'hub'
         self.signal = DictSignal()
@@ -400,35 +405,49 @@ class Hub(Node):
         return
 
     def enable_watchdogs(self, enabled):
-        ''' Enable all attached watchdogs. '''
+        ''' Enable or disable all attached watchdogs. '''
         for w in self.watchdogs.values():
             w.enabled = enabled
+
+    # def load(self):
+    #     ''' Load input states from file. '''
+    #     try:
+    #         with open(self.network.path['state']+self.name+'.json', 'r') as file:
+    #             state = json.load(file)
+    #     except FileNotFoundError:
+    #         state = {}
+    #
+    #     for thing in self.children.values():
+    #         thing_children = list(thing.children.values())
+    #         for input in thing_children:
+    #             try:
+    #                 if 'display name' in state[thing.name][input.name]:
+    #                     display_name = state[thing.name][input.name]['display name']
+    #                     self.children[thing.name].children[input.name].display_name = display_name
+    #                     self.children[thing.name].children[display_name] = self.children[thing.name].children.pop(input.name)
+    #                     self.children[thing.name].state[display_name] = self.children[thing.name].state.pop(input.name)
+    #                 self.state[thing.name][input.display_name] = state[thing.name][input.name]['state']
+    #                 self.range[thing.name][input.display_name] = {}
+    #                 for setting in ['min', 'max']:
+    #                     self.range[thing.name][input.display_name][setting] = state[thing.name][input.name][setting]
+    #             except Exception as e:
+    #                 self.state[thing.name][input.display_name] = 0
+    #                 self.range[thing.name][input.display_name] = {'min': 0, 'max': 1}
+    #                 log.warning('Could not find csv for input %s; creating new settings.', input.display_name)
 
     def load(self):
         ''' Load input states from file. '''
         try:
             with open(self.network.path['state']+self.name+'.json', 'r') as file:
-                state = json.load(file)
+                state = DataDict(json.load(file))
         except FileNotFoundError:
             state = {}
+        self.state.put(state.find('state', label=False))
+        self.range.put(state.find('min'))
+        self.range.put(state.find('max'))
 
-        for thing in self.children.values():
-            thing_children = list(thing.children.values())
-            for input in thing_children:
-                try:
-                    if 'display name' in state[thing.name][input.name]:
-                        display_name = state[thing.name][input.name]['display name']
-                        self.children[thing.name].children[input.name].display_name = display_name
-                        self.children[thing.name].children[display_name] = self.children[thing.name].children.pop(input.name)
-                        self.children[thing.name].state[display_name] = self.children[thing.name].state.pop(input.name)
-                    self.state[thing.name][input.display_name] = state[thing.name][input.name]['state']
-                    self.settings[thing.name][input.display_name] = {}
-                    for setting in ['min', 'max']:
-                        self.settings[thing.name][input.display_name][setting] = state[thing.name][input.name][setting]
-                except Exception as e:
-                    self.state[thing.name][input.display_name] = 0
-                    self.settings[thing.name][input.display_name] = {'min': 0, 'max': 1}
-                    log.warning('Could not find csv for input %s; creating new settings.', input.display_name)
+
+
 
     def optimize(self, state, experiment_name, threaded=True, skip_lock_check=False):
         ''' Launch an optimization. '''
