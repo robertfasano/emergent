@@ -88,7 +88,7 @@ class Client():
     def get_settings(self, hub):
         ''' Queries the server for the remote network state. '''
         network = asyncio.run(self.send({'op': 'get_network'}))[0]
-        return network.hubs[hub].settings
+        return network.hubs[hub].range
 
     def get_params(self):
         ''' Queries the server for connection parameters. '''
@@ -144,8 +144,8 @@ class Server():
         thing = list(state[hub].keys())[0]
         input = list(state[hub][thing].keys())[0]
         d = state[hub][thing][input]
-        self.network.hubs[hub].settings[thing][input] = d
-        print(self.network.hubs[hub].settings)
+        self.network.hubs[hub].range[thing][input] = d
+        print(self.network.hubs[hub].range)
         await self.send({'op': 'update', 'params': 1}, writer)
 
     async def echo(self, message, writer):
@@ -287,14 +287,14 @@ class Network():
     def post_load(self):
         ''' Execute the post-load routine for all attached Hubs '''
         for hub in self.hubs.values():
-            hub.on_load()
+            hub._on_load()
 
     def save(self):
         ''' Saves the state of all attached Hubs. '''
         for hub in self.hubs.values():
             hub.save()
 
-    def set_settings(self, settings):
+    def set_range(self, settings):
         for hub_name in settings:
             hub = self.hubs[hub_name]
             for thing_name in settings[hub_name]:
@@ -302,14 +302,14 @@ class Network():
                     d = settings[hub_name][thing_name][input_name]
                     for qty in ['min', 'max']:
                         if qty in d:
-                            hub.settings[thing_name][input_name][qty] = d[qty]
+                            hub.range[thing_name][input_name][qty] = d[qty]
 
-    def settings(self):
-        ''' Obtains a macroscopic settings dict from aggregating the settings of all
+    def range(self):
+        ''' Obtains a macroscopic range dict from aggregating the settings of all
             attached Hubs. '''
         settings = {}
         for hub in self.hubs.values():
-            settings[hub.name] = hub.settings
+            settings[hub.name] = hub.range
 
         return settings
 

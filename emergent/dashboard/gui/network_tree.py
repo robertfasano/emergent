@@ -47,7 +47,7 @@ class NodeTree(QTreeWidget):
         self.set_state(self.network)
         settings = self.dashboard.p2p.get('settings')
         for hub in self.network:
-            self.set_settings(hub, settings[hub])
+            self.set_range(hub, settings[hub])
 
         self.setColumnWidth(0,200)
         for i in [1,2,3]:
@@ -62,7 +62,7 @@ class NodeTree(QTreeWidget):
             for input in state[thing_name]:
                 self.get_input(hub, thing_name, input).state_signal.emit(state[thing_name][input])
 
-    def set_settings(self, hub, settings):
+    def set_range(self, hub, settings):
         hub_item = self.get_hub(hub)
         for thing_name in settings:
             thing = self.get_thing(hub, thing_name)

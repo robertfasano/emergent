@@ -207,7 +207,7 @@ class Visualizer(QWidget):
         #             full_names.append(full_name)
         #             thing = full_name.split('.')[0]
         #             input = full_name.split('.')[1]
-        #             limits[full_name.replace('.', ': ')] =  hub.settings[thing][input]
+        #             limits[full_name.replace('.', ': ')] =  hub.range[thing][input]
         #         axis_combo_name = full_names[0] + '/' + full_names[1]
         #         p = points[:,a]
         #         fig2d[axis_combo_name] = plot_2D(p, costs, limits = limits)

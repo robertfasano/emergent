@@ -298,9 +298,9 @@ class NodeTree(QTreeWidget):
                 else:
                     self.network.clients[hub.addr].actuate({hub.name: state})
             elif col == 2:
-                hub.settings[thing][input]['min'] = float(value)
+                hub.range[thing][input]['min'] = float(value)
             elif col == 3:
-                hub.settings[thing][input]['max'] = float(value)
+                hub.range[thing][input]['max'] = float(value)
 
         except AttributeError as e:
             print(e)
@@ -349,11 +349,11 @@ class NodeWidget(QTreeWidgetItem):
             name = self.node.name
             thing = self.node.parent.name
             try:
-                self.setText(2, str(self.root.settings[thing][name]['min']))
+                self.setText(2, str(self.root.range[thing][name]['min']))
             except KeyError:
                 self.setText(2, '0')
             try:
-                self.setText(3,str(self.root.settings[thing][name]['max']))
+                self.setText(3,str(self.root.range[thing][name]['max']))
             except KeyError:
                 self.setText(3, '1')
 

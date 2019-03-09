@@ -52,7 +52,7 @@ class MainAPI():
                     input = thing.children[params['input']]
                     node = input
         targets = {'state': self.network.state,
-                   'settings': self.network.settings,
+                   'settings': self.network.range,
                    'experiments': lambda: introspection.list_experiments(hub),
                    'errors': lambda: introspection.list_errors(hub),
                    'triggers': lambda: introspection.list_triggers(hub),
@@ -174,7 +174,7 @@ class MainAPI():
             self.network.actuate(value, send_over_p2p = False)
 
         elif target == 'settings':
-            self.network.set_settings(value)
+            self.network.set_range(value)
 
         elif target == 'sequence':
             sequencer = self.get('sequencer', params)

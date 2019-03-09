@@ -228,7 +228,7 @@ class Sampler():
                 continue
             thing = col.split('.')[0]
             input = col.split('.')[1]
-            limits[col.replace('.', ': ')] = self.hub.settings[thing][input]
+            limits[col.replace('.', ': ')] = self.hub.range[thing][input]
 
         return limits
 
@@ -258,8 +258,8 @@ class Sampler():
         for thing in unnorm:
             norm[thing] = {}
             for i in unnorm[thing]:
-                min_val = self.hub.settings[thing][i]['min']
-                max_val = self.hub.settings[thing][i]['max']
+                min_val = self.hub.range[thing][i]['min']
+                max_val = self.hub.range[thing][i]['max']
                 norm[thing][i] = (unnorm[thing][i] - min_val)/(max_val-min_val)
 
         return norm
@@ -273,8 +273,8 @@ class Sampler():
         for thing in norm:
             unnorm[thing] = {}
             for i in norm[thing]:
-                min_val = self.hub.settings[thing][i]['min']
-                max_val = self.hub.settings[thing][i]['max']
+                min_val = self.hub.range[thing][i]['min']
+                max_val = self.hub.range[thing][i]['max']
                 unnorm[thing][i] = min_val + norm[thing][i] * (max_val-min_val)
         if return_array:
             return self.state2array(unnorm)

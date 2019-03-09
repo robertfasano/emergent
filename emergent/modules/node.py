@@ -93,8 +93,8 @@ class Input(Node):
         ''' Update Thing '''
         thing = self.parent
         hub = self.parent.parent
-        thing.rename_input(self, name)
-        hub.rename_input(self, name)
+        thing.__rename_input(self, name)
+        hub.__rename_input(self, name)
         self.display_name = name
         self.leaf.setText(0, name)
 
@@ -156,7 +156,7 @@ class Thing(Node):
         # self.state = State()
 
         self.parent.state[self.name] = {}
-        self.parent.settings[self.name] = {}
+        self.parent.range[self.name] = {}
 
         self.loaded = 0     # set to 1 after first state preparation
         self.node_type = 'thing'
@@ -202,7 +202,10 @@ class Thing(Node):
         input = Input(name, parent=self)
         self.children[name] = input
         self.state[name] = self.children[name].state
-
+        self.parent.state[self.name][name] = None
+        self.parent.range[self.name][name] = {}
+        for qty in ['min', 'max']:
+            self.parent.range[self.name][name][qty] = None
         self.create_signal.emit({'hub': self.parent, 'thing': self, 'input': name})
         #if self.loaded:
             # self.actuate({name:self.parent.state[self.name][name]})
@@ -215,7 +218,7 @@ class Thing(Node):
         del self.state[name]
         del self.parent.state[self.name][name]
 
-    def rename_input(self, node, name):
+    def __rename_input(self, node, name):
         self.state[name] = self.state.pop(node.display_name)
         self.children[name] = self.children.pop(node.display_name)
         self._rename_input(node, name)
@@ -372,7 +375,7 @@ class Hub(Node):
 
         self.buffer.add(state)
 
-    def check_lock(self, block=False):
+    def _check_lock(self, block=False):
         ''' Return True if none of the monitored signals are outside a threshold. '''
         if len(self.watchdogs) == 0:
             return
@@ -430,13 +433,13 @@ class Hub(Node):
     def optimize(self, state, experiment_name, threaded=True, skip_lock_check=False):
         ''' Launch an optimization. '''
         if threaded:
-            self.manager._run_thread(self.optimize_thread,
+            self.manager._run_thread(self._optimize_thread,
                                      args=(state, experiment_name, skip_lock_check),
                                      stoppable=False)
         else:
-            self.optimize_thread(state, experiment_name, skip_lock_check)
+            self._optimize_thread(state, experiment_name, skip_lock_check)
 
-    def optimize_thread(self, state, experiment_name, skip_lock_check=False):
+    def _optimize_thread(self, state, experiment_name, skip_lock_check=False):
         ''' Optimizes an experiment with the default settings from file '''
         experiment_params = recommender.load_experiment_parameters(self, experiment_name)
         algorithm = recommender.get_default_algorithm(self, experiment_name)
@@ -459,10 +462,10 @@ class Hub(Node):
         self.enable_watchdogs(True)
         sampler.active = False
 
-    def rename_input(self, node, name):
+    def __rename_input(self, node, name):
         thing = node.parent
         self.state[thing.name][name] = self.state[thing.name].pop(node.display_name)
-        self.settings[thing.name][name] = self.settings[thing.name].pop(node.display_name)
+        self.range[thing.name][name] = self.range[thing.name].pop(node.display_name)
 
     def save(self):
         ''' Save input states to file. '''
@@ -473,13 +476,13 @@ class Hub(Node):
                 node = self.children[thing].children[input]
                 state[thing][node.name] = {}
                 state[thing][node.name]['state'] = self.state[thing][input]
-                state[thing][node.name]['min'] = self.settings[thing][input]['min']
-                state[thing][node.name]['max'] = self.settings[thing][input]['max']
+                state[thing][node.name]['min'] = self.range[thing][input]['min']
+                state[thing][node.name]['max'] = self.range[thing][input]['max']
                 state[thing][node.name]['display name'] = self.children[thing].children[input].display_name
         with open(self.network.path['state']+self.name+'.json', 'w') as file:
             json.dump(state, file)
 
-    def on_load(self):
+    def _on_load(self):
         """Tasks to be carried out after all Things and Inputs are initialized."""
         for thing in self.children.values():
             thing._connected = thing._connect()
