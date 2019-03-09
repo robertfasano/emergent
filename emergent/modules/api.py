@@ -79,11 +79,10 @@ class MainAPI():
                 URI += '&sampler=%s'%params['sampler']
             if 'model' in params:
                 URI += '&model=%s'%params['model']
-            return self.experimentAPI.get(URI)
+            return self.experimentAPI.get(URI)[hub.name][experiment_name]
 
             # return recommender.load_all_experiment_parameters(hub, experiment_name, model_name, sampler_name)
         elif target == 'error_params':
-            print(params)
             return recommender.load_all_error_parameters(hub, params['error'], params['servo'])
 
         elif target == 'history':
