@@ -102,6 +102,7 @@ class Listener():
         ''' Start the server. '''
         self.loop = asyncio.new_event_loop()
         coro = asyncio.start_server(self.handle_command, self.addr, self.port, loop=self.loop)
+        self._connected = True
         self.loop.run_until_complete(coro)
         self.loop.run_forever()
 
@@ -125,6 +126,9 @@ class Listener():
     async def handle_command(self, reader, writer):
         ''' Intercepts and reacts to a message from the client. '''
         while True:
+            if not self._connected:
+                writer.close()
+                break
             data = await reader.read(self.read_size)
             try:
                 # message = json.loads(data.decode())
@@ -162,7 +166,7 @@ class Listener():
                 await self.send({'op': op, 'value': value}, writer)
 
             if op == 'goto':
-                ''' 'params' should contain a 'hub' to grab the sequencer from 
+                ''' 'params' should contain a 'hub' to grab the sequencer from
                      and a 'step' key that we want to go to '''
                 self.node.api.goto(params=message['params'])
                 await self.confirm(writer)
@@ -208,22 +212,34 @@ class P2PNode():
         ''' Sets up a Listener on the passed address and port. '''
         self.api = api
         self.name=name
-        self.listener = Listener(self, name, addr, port)
+        self.addr = addr
+        self.port = port
+        self.start()
         self._connected = 0
 
     def bind(self, addr = 'localhost', port = 29171):
         self.sender = Sender(self, self.name, addr, port)
         self._connected = self.sender._hold_connection()
 
+    def start(self):
+        self.listener = Listener(self, self.name, self.addr, self.port)
+
     def close(self):
-        loops = [self.listener.loop]
+        self.listener._connected = 0
+        nodes = [self.listener]
         if hasattr(self, 'sender'):
-            loops.append(self.sender.loop)
-        for loop in loops:
-            loop.call_soon_threadsafe(loop.stop)
-            while loop.is_running():
-                continue
-            loop.close()
+            nodes.append(self.sender)
+            print('Closing connection')
+            self.sender.writer.close()
+
+        # for node in nodes:
+        #     node.loop.call_soon_threadsafe(node.loop.stop)
+        #     while node.loop.is_running():
+        #         continue
+        #     node.loop.close()
+
+
+
 
     def get(self, target, params = {}):
         return self.send({'op': 'get', 'target': target, 'params': params})['value']
