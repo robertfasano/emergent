@@ -58,7 +58,10 @@ class ExperimentAPI():
         sampler = None
         if 'sampler' in params:
             sampler = params['sampler']
-        return {hub.name: {experiment: load_all_experiment_parameters(self, hub, experiment, model, sampler)}}
+
+        params = {hub.name: {experiment: load_all_experiment_parameters(self, hub, experiment, model, sampler)}}
+        self.save()
+        return params
 
     def endpoint(self):
         return ['params']
