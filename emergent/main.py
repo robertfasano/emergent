@@ -49,7 +49,7 @@ def launch():
     if args.addr:
         addr = args.addr
     else:
-        addr = get_address()
+        addr = 'localhost'
     port = 8000
 
 

@@ -27,12 +27,22 @@ except AttributeError:
 
 ''' Parse arguments and set verbosity for logging '''
 parser = argparse.ArgumentParser()
+parser.add_argument("--addr", help='EMERGENT session IP address')
+parser.add_argument("--port", help='EMERGENT session port')
 parser.add_argument("-v", "--verbose", help="Increase output verbosity", action="store_true")
 args = parser.parse_args()
 if args.verbose:
     log.basicConfig(level=log.DEBUG)
 else:
     log.basicConfig(level=log.INFO)
+if args.addr:
+    addr = args.addr
+else:
+    addr = 'localhost'
+if args.port:
+    port = args.port
+else:
+    port = 5000
 
 def launch():
     from emergent.protocols.p2p import P2PNode
@@ -52,7 +62,7 @@ def run_frontend(dashP2P):
         app = QApplication([" "])         # Create an instance of the application
     app.setStyle(QStyleFactory.create("Fusion"))
     global dash
-    dash = Dashboard(app, dashP2P)
+    dash = Dashboard(app, dashP2P, addr, port)
     dash.show()
     app.processEvents()
     app.exec()

@@ -10,10 +10,13 @@ from PyQt5.QtCore import QTimer
 from emergent.dashboard.gui import TaskPanel, NodeTree, ExperimentLayout, GridWindow
 from emergent.modules.api import DashAPI
 from emergent.utilities.signals import DictSignal
+import requests
 
 class Dashboard(QMainWindow):
-    def __init__(self, app, p2p):
+    def __init__(self, app, p2p, addr, port):
         QMainWindow.__init__(self)
+        self.addr = addr
+        self.port = port
         self.p2p = p2p
         self.p2p.api = DashAPI(self)
         self.app = app
@@ -52,6 +55,13 @@ class Dashboard(QMainWindow):
         button = QPushButton('Show grid')
         button.clicked.connect(self.show_grid)
         self.experiment_layout.addWidget(button)
+
+    def get(self, url):
+        return requests.get('http://%s:%s/'%(self.addr, self.port)+url).json()
+
+    def post(self, url, payload):
+        requests.post('http://%s:%s/'%(self.addr, self.port)+url, json=payload)
+        return requests.get('http://%s:%s/'%(self.addr, self.port)+url).json()
 
     def show_grid(self):
         self.grid = GridWindow(self, 'hub')

@@ -94,8 +94,9 @@ class MeasureLayout(QVBoxLayout, ProcessHandler):
             return
 
     def update_params(self):
-        if self.experiment_box.currentText() == '':
+        experiment = self.experiment_box.currentText()
+        if experiment == '':
             return
         hub = self.parent.dashboard.tree_widget.get_selected_hub()
-        d = self.parent.dashboard.p2p.get('experiment_params', params={'hub': hub, 'experiment': self.experiment_box.currentText()})
+        d = self.parent.dashboard.get('hubs/%s/experiments/%s'%(hub, experiment))
         self.experiment_table.set_parameters(d['experiment'])

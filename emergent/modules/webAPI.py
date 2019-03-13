@@ -51,14 +51,19 @@ def serve(network, addr):
         return "EMERGENT API"
 
     ''' Network endpoints '''
-    @app.route('/state')
+    @app.route('/state', methods=['GET', 'POST'])
     def state():
+        if request.method == 'POST':
+            state = request.get_json()
+            network.actuate(state, send_over_p2p=False)
         return json.dumps(network.state())
 
-    @app.route('/range')
+    @app.route('/range', methods=['GET', 'POST'])
     def range():
+        if request.method == 'POST':
+            range = request.get_json()
+            network.set_range(range)
         return json.dumps(network.range())
-
 
 
 
@@ -93,7 +98,7 @@ def serve(network, addr):
         hub = network.hubs[hub]
         if request.method == 'POST':
             state = request.get_json()
-            hub.actuate(state)
+            hub.actuate(state, send_over_p2p=False)
         return json.dumps(hub.state)
 
     @app.route('/hubs/<hub>/range', methods = ['GET', 'POST'])
@@ -104,6 +109,10 @@ def serve(network, addr):
             network.set_range({hub.name: range})
         return json.dumps(hub.range)
 
+    @app.route('/hubs/<hub>/options')
+    def hub_options(hub):
+        hub = network.hubs[hub]
+        return json.dumps(hub.options)
 
 
 
@@ -114,12 +123,28 @@ def serve(network, addr):
         return json.dumps(introspection.list_experiments(hub))
 
     @app.route('/hubs/<hub>/experiments/<experiment>')
-    def list_params(hub, experiment):
-        print(request.args)
+    def list_experiment_params(hub, experiment):
         sampler = request.args.get('sampler')
         model = request.args.get('model')
         hub = network.hubs['hub']
         params = load_all_experiment_parameters(hub, experiment, model, sampler)
         return json.dumps(params)
+
+    @app.route('/hubs/<hub>/errors/<error>')
+    def list_error_params(hub, error):
+        hub = network.hubs['hub']
+        servo = request.args.get('servo')
+        params = recommender.load_all_error_parameters(hub, error, servo)
+        return json.dumps(params)
+
+    @app.route('/hubs/<hub>/errors')
+    def list_errors(hub):
+        hub = network.hubs[hub]
+        return json.dumps(introspection.list_errors(hub))
+
+    @app.route('/hubs/<hub>/triggers')
+    def list_triggers(hub):
+        hub = network.hubs[hub]
+        return json.dumps(introspection.list_triggers(hub))
 
     app.run(host=addr, debug=False, threaded=True)

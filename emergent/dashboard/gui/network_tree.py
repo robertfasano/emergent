@@ -20,7 +20,6 @@ class NodeTree(QTreeWidget):
     def __init__(self, dashboard):
         super().__init__()
         self.dashboard = dashboard
-        self.network = self.dashboard.p2p.get('state')
         self.editorOpen = 0
         self.current_item = None
         self.last_item = None
@@ -44,10 +43,10 @@ class NodeTree(QTreeWidget):
         self.itemSelectionChanged.connect(self.close_editor)
 
         ''' Populate tree '''
-        self.set_state(self.network)
-        settings = self.dashboard.p2p.get('settings')
-        for hub in self.network:
-            self.set_range(hub, settings[hub])
+        self.set_state(self.dashboard.get('state'))
+        range = self.dashboard.get('range')
+        for hub in range:
+            self.set_range(hub, range[hub])
 
         self.setColumnWidth(0,200)
         for i in [1,2,3]:
@@ -226,16 +225,12 @@ class NodeTree(QTreeWidget):
 
             if col == 1:
                 state = {hub_name: {thing_name:{input_name: float(value)}}}
-                self.dashboard.p2p.set('state', state)
+                self.dashboard.post('state', state)
                 self.dashboard.actuate_signal.emit(state)
             elif col in [2,3]:
                 qty = {2: 'min', 3: 'max'}[col]
-                settings = {hub_name: {thing_name:{input_name: {qty: float(value)}}}}
-                self.dashboard.p2p.set('settings', settings)
-                # d = {'min': float(self.current_item.text(2)),
-                #      'max': float(self.current_item.text(3))}
-                # state = {hub: {thing: {input: d}}}
-                # self.dashboard.client.set_range(state)
+                range = {hub_name: {thing_name:{input_name: {qty: float(value)}}}}
+                self.dashboard.post('range', range)
 
         except AttributeError as e:
             print(e)
@@ -265,7 +260,7 @@ class NodeTree(QTreeWidget):
             hub = item.name
             params = {'hub': hub}
 
-        options = self.dashboard.p2p.get('options', params=params)
+        options = self.dashboard.get('hubs/%s/options'%hub)
         print('Options:', options)
 
         for option in options:

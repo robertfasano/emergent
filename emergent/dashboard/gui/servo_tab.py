@@ -73,7 +73,11 @@ class ServoLayout(QVBoxLayout, ProcessHandler):
         servo_name = self.servo_box.currentText()
         if error_name == '':
             return
-        params = {'hub': hub, 'error': error_name, 'servo': servo_name}
-        d = self.parent.dashboard.p2p.get('error_params', params=params)
+        if servo_name == '':
+            return
+        url = 'hubs/%s/errors/%s'%(hub, error_name)
+        url += '?servo=%s'%servo_name
+        d = self.parent.dashboard.get(url)
+
         self.error_table.set_parameters(d['error'])
         self.servo_table.set_parameters(d['servo'][servo_name])

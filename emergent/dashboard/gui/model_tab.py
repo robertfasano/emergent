@@ -133,10 +133,14 @@ class ModelLayout(QVBoxLayout, ProcessHandler):
         sampler_name = self.sampler_box.currentText()
         if sampler_name == '':
             return
-        params = {'hub': hub, 'sampler': sampler_name, 'model': model_name, 'experiment': experiment_name}
 
-        d = self.parent.dashboard.p2p.get('experiment_params', params=params)
+        url = 'hubs/%s/experiments/%s'%(hub, experiment_name)
+        url += '?sampler=%s'%sampler_name
+        if model_name != 'None':
+            url += '&model=%s'%model_name
+        d = self.parent.dashboard.get(url)
 
         self.sampler_table.set_parameters(d['sampler'][sampler_name])
         self.experiment_table.set_parameters(d['experiment'])
-        self.model_table.set_parameters(d['model'][model_name])
+        if 'model' in d:
+            self.model_table.set_parameters(d['model'][model_name])

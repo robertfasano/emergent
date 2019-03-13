@@ -66,27 +66,27 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
 
         if hasattr(panel, 'experiment_box'):
             panel.experiment_box.clear()
-            for item in self.dashboard.p2p.get('experiments', params={'hub': hub}):
+            for item in self.dashboard.get('hubs/%s/experiments'%hub):
                 panel.experiment_box.addItem(item)
 
         if hasattr(panel, 'error_box'):
             panel.error_box.clear()
-            for item in self.dashboard.p2p.get('errors', params={'hub': hub}):
+            for item in self.dashboard.get('hubs/%s/errors'%hub):
                 panel.error_box.addItem(item)
 
-        for x in ['model', 'sampler', 'algorithm', 'servo']:
+        for x in ['model', 'sampler', 'servo']:
             if hasattr(panel, '%s_box'%x):
                 getattr(panel, '%s_box'%x).clear()
                 if x == 'model':
                     panel.model_box.addItem('None')
-                for item in self.dashboard.p2p.get('%ss'%x):
+                for item in self.dashboard.get('%ss'%x):
                     getattr(panel, '%s_box'%x).addItem(item)
 
         if hasattr(panel, 'trigger_box'):
             ''' update triggers '''
             panel.trigger_box.clear()
             panel.trigger_box.addItem('')
-            for t in self.dashboard.p2p.get('triggers', params={'hub': hub}):
+            for t in self.dashboard.get('hubs/%s/triggers'%hub):
                 panel.trigger_box.addItem(t)
 
 
