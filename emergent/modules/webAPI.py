@@ -43,7 +43,7 @@ def load_all_experiment_parameters(hub, experiment_name, model_name = None, samp
 
     return p
 
-def serve(network):
+def serve(network, addr):
     app = Flask(__name__)
 
     @app.route("/")
@@ -122,4 +122,4 @@ def serve(network):
         params = load_all_experiment_parameters(hub, experiment, model, sampler)
         return json.dumps(params)
 
-    app.run(host=get_address(), debug=False, threaded=True)
+    app.run(host=addr, debug=False, threaded=True)

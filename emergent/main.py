@@ -75,7 +75,7 @@ def launch():
 
     from emergent.modules.webAPI import serve
     from threading import Thread
-    thread = Thread(target=serve, args = (network,))
+    thread = Thread(target=serve, args = (network, addr))
     thread.start()
 
     if args.gui:
