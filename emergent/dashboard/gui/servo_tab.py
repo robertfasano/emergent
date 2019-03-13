@@ -71,7 +71,7 @@ class ServoLayout(QVBoxLayout, ProcessHandler):
         hub = self.parent.dashboard.tree_widget.get_selected_hub()
         error_name = self.error_box.currentText()
         servo_name = self.servo_box.currentText()
-        if servo_name == '':
+        if error_name == '':
             return
         params = {'hub': hub, 'error': error_name, 'servo': servo_name}
         d = self.parent.dashboard.p2p.get('error_params', params=params)
