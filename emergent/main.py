@@ -73,6 +73,11 @@ def launch():
 
     # Server(network)
 
+    from emergent.modules.webAPI import serve
+    from threading import Thread
+    thread = Thread(target=serve, args = (network,))
+    thread.start()
+
     if args.gui:
         run_frontend()
     global sys_argv
