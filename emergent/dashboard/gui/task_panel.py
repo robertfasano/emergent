@@ -148,7 +148,6 @@ class Visualizer(QWidget):
             num_inputs = 0
         else:
             num_inputs = points.shape[1]
-        hub = self.sampler.hub
         cost_vs_param = None
         param_vs_time = None
         if num_inputs > 0:
