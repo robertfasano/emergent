@@ -441,7 +441,7 @@ class Hub(Node):
             with open(self.network.path['state']+self.name+'.json', 'r') as file:
                 state = DataDict(json.load(file))
         except FileNotFoundError:
-            state = {}
+            state = DataDict({})
         self.state.put(state.find('state', label=False))
         self.range.put(state.find('min'))
         self.range.put(state.find('max'))
