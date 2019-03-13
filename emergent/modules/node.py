@@ -107,14 +107,14 @@ class Input(Node):
         unpickled = []
         for item in ignore:
             if hasattr(self, item):
-                unpickled.append(getattr(self, item))
+                unpickled.append(item)
 
         for item in self.__dict__:
             obj = getattr(self, item)
             if hasattr(obj, 'picklable'):
                 if not obj.picklable:
                     continue
-            if self.__dict__[item] not in unpickled:
+            if item not in unpickled:
                 d[item] = self.__dict__[item]
         return d
 
@@ -183,14 +183,14 @@ class Thing(Node):
         unpickled = []
         for item in ignore:
             if hasattr(self, item):
-                unpickled.append(getattr(self, item))
+                unpickled.append(item)
 
         for item in self.__dict__:
             obj = getattr(self, item)
             if hasattr(obj, 'picklable'):
                 if not obj.picklable:
                     continue
-            if self.__dict__[item] not in unpickled:
+            if item not in unpickled:
                 d[item] = self.__dict__[item]
         return d
 
@@ -356,13 +356,13 @@ class Hub(Node):
         unpickled = []
         for item in ignore:
             if hasattr(self, item):
-                unpickled.append(getattr(self, item))
+                unpickled.append(item)
         for item in self.__dict__:
             obj = getattr(self, item)
             if hasattr(obj, 'picklable'):
                 if not obj.picklable:
                     continue
-            if self.__dict__[item] not in unpickled:
+            if item not in unpickled:
                 d[item] = self.__dict__[item]
         return d
 
