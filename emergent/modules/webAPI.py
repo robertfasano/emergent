@@ -5,6 +5,7 @@ import pandas as pd
 import json
 from emergent.utilities import recommender, introspection
 from emergent.utilities.containers import DataDict
+from emergent.utilities.networking import get_address
 
 def load_all_experiment_parameters(hub, experiment_name, model_name = None, sampler_name = None):
     ''' Looks for algorithm parameters in the parameterfile for the experiment. If none exist,
@@ -121,4 +122,4 @@ def serve(network):
         params = load_all_experiment_parameters(hub, experiment, model, sampler)
         return json.dumps(params)
 
-    app.run(debug=False)
+    app.run(host=get_address(), debug=False, threaded=True)
