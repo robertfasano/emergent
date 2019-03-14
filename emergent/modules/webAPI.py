@@ -120,6 +120,21 @@ def serve(network, addr):
         hub = network.hubs[hub]
         return json.dumps(hub.options)
 
+    @app.route('/hubs/<hub>/exec', methods=['POST'])
+    def hub_exec(hub):
+        ''' Runs a target function on the hub '''
+        hub = network.hubs[hub]
+        r = request.get_json()
+        func = getattr(hub, r['method'])
+        if 'args' in r:
+            if 'kwargs' in r:
+                func(*r['args'], **r['kwargs'])
+            func(*r['args'])
+        elif 'kwargs' in r:
+            func(**r['kwargs'])
+        else:
+            func()
+        return 'done'
 
 
     ''' Hub experiment endpoints '''
