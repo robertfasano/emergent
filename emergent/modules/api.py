@@ -3,6 +3,7 @@ from emergent.modules.parallel import ProcessHandler
 from emergent.modules import Sampler
 import datetime
 import uuid
+import requests
 
 class DashAPI():
     def __init__(self, dashboard):
@@ -28,11 +29,13 @@ class DashAPI():
 
 
 class MainAPI():
-    def __init__(self, network):
+    def __init__(self, network, addr, port):
         self.network = network
         self.manager = ProcessHandler()
         from emergent.modules.experiment_api import ExperimentAPI
         self.experimentAPI = ExperimentAPI(self.network)
+        self.addr = addr
+        self.port = port
 
     def check(self, params):
         ''' Check whether the sampler with the given uuid is active. '''
@@ -40,6 +43,13 @@ class MainAPI():
         for sampler in hub.samplers.values():
             if sampler.id == params['id']:
                 return sampler.active
+
+    def web_get(self, url):
+        return requests.get('http://%s:%s/'%(self.addr, self.port)+url).json()
+
+    def web_post(self, url, payload):
+        requests.post('http://%s:%s/'%(self.addr, self.port)+url, json=payload)
+        return requests.get('http://%s:%s/'%(self.addr, self.port)+url).json()
 
     def get(self, target, params = {}):
         if 'hub' in params:

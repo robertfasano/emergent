@@ -14,6 +14,9 @@ from emergent.utilities.signals import DictSignal
 import matplotlib.pyplot as plt
 import itertools
 import pickle
+import json
+import pandas as pd
+import numpy as np
 
 class ContextTable(QTableWidget):
     def __init__(self, parent):
@@ -125,12 +128,22 @@ class TaskPanel(QVBoxLayout):
     def on_double_click(self, row, col):
         id = self.table.item(row, 4).text()
         hub = self.table.item(row, 5).text()
-        sampler = self.dashboard.p2p.get('sampler', params={'id': id, 'hub': hub})
+        # sampler = self.dashboard.p2p.get('sampler', params={'id': id, 'hub': hub})
+        sampler = self.dashboard.get('hubs/%s/samplers/%s.pkl'%(hub, id))
+        sampler['history'] = pd.read_json(sampler['history'])
         self.visualizer = Visualizer(sampler, self)
 
 
 class Visualizer(QWidget):
     def __init__(self, sampler, parent):
+        ''' sampler: a JSON with the following fields:
+                experiment_name
+                t
+                points
+                costs
+                errors
+                limits
+        '''
         super().__init__()
         self.sampler = sampler
         self.parent = parent
@@ -139,9 +152,37 @@ class Visualizer(QWidget):
         self.pw = PlotWidget(self.sampler, cost_vs_param, param_vs_time, self)
         self.pw.show()
 
+    def df_to_arrays(self, history):
+        ''' Return a multidimensional array and corresponding points from the history df'''
+        arrays = []
+        state = {}
+        costs = history['cost'].values
+        errors = None
+        if 'error' in history.columns:
+            errors = history['error'].values
+            if np.isnan(errors).any():
+                errors = None
+        t = history.index.values
+        for col in history.columns:
+            if col not in ['cost', 'error']:
+                arrays.append(history[col].values)
+                thing = col.split('.')[0]
+                input = col.split('.')[1]
+                if thing not in state.keys():
+                    state[thing] = {}
+                state[thing][input] = 0
+        if len(arrays) > 0:
+            points = np.vstack(arrays).T.astype(float)
+        else:
+            points = None
+        costs = costs.astype(float)
+
+        return t, points, costs, errors
+
     def generate_figures(self):
         ''' Show cost vs time, parameters vs time, and parameters vs cost '''
-        t, points, costs, errors = self.sampler.get_history(include_database = False)
+        print(self.sampler['history'])
+        t, points, costs, errors = self.df_to_arrays(self.sampler['history'])
         costs *= -1
         t = t.copy()-t[0]
         if points is None:
@@ -157,31 +198,36 @@ class Visualizer(QWidget):
                 ax0 = ax[0]
             else:
                 ax0 = ax
-            ax0[0].set_ylabel(self.sampler.experiment.__name__)
+            ax0[0].set_ylabel(self.sampler['experiment'])
             cost_vs_param = {}
+
             for i in range(num_inputs):
                 p = points[:,i]
-                name =  self.sampler.history.columns[i].replace('.', ': ')
-                limits = {name: self.sampler.get_limits()[name]}
-                new_ax, fig = plot_1D(p, costs, limits=limits, cost_name = self.sampler.experiment.__name__, errors = errors)
-                cost_vs_param[self.sampler.history.columns[i]] = fig
-                ax0[i].set_xlabel(self.sampler.history.columns[i])
+                name =  self.sampler['history'].columns[i].replace('.', ': ')
+                thing = self.sampler['history'].columns[i].split('.')[0]
+                input = self.sampler['history'].columns[i].split('.')[1]
+                limits = {name: self.sampler['limits'][thing][input]}
+                new_ax, fig = plot_1D(p, costs, limits=limits, cost_name = self.sampler['experiment'], errors = errors)
+                cost_vs_param[self.sampler['history'].columns[i]] = fig
+                ax0[i].set_xlabel(self.sampler['history'].columns[i])
 
             ''' parameters vs time '''
             param_vs_time = {}
             for i in range(num_inputs):
                 p = points[:,i]
-                name =  self.sampler.history.columns[i].replace('.', ': ')
-                limits = self.sampler.get_limits()
-                p = limits[name]['min'] + p*(limits[name]['max']-limits[name]['min'])
+                name =  self.sampler['history'].columns[i].replace('.', ': ')
+                thing = self.sampler['history'].columns[i].split('.')[0]
+                input = self.sampler['history'].columns[i].split('.')[1]
+                limits = self.sampler['limits']
+                p = limits[thing][input]['min'] + p*(limits[thing][input]['max']-limits[thing][input]['min'])
 
                 if num_inputs == 1:
                     cax = ax[1]
                 else:
                     cax = ax[1][i]
-                new_ax, fig = plot_1D(t, p, cost_name = self.sampler.experiment.__name__, xlabel = 'Time (s)', ylabel = self.sampler.history.columns[i], errors = errors)
-                param_vs_time[self.sampler.history.columns[i]] = fig
-                cax.set_ylabel(self.sampler.history.columns[i])
+                new_ax, fig = plot_1D(t, p, cost_name = self.sampler['experiment'], xlabel = 'Time (s)', ylabel = self.sampler['history'].columns[i], errors = errors)
+                param_vs_time[self.sampler['history'].columns[i]] = fig
+                cax.set_ylabel(self.sampler['history'].columns[i])
                 cax.set_xlabel('Time (s)')
 
         return cost_vs_param, param_vs_time

@@ -1,8 +1,9 @@
-from flask import Flask, make_response, request
+from flask import Flask, make_response, request, send_file
 import numpy as np
 import pickle
 import pandas as pd
 import json
+import io
 from emergent.utilities import recommender, introspection
 from emergent.utilities.containers import DataDict
 from emergent.utilities.networking import get_address
@@ -146,5 +147,28 @@ def serve(network, addr):
     def list_triggers(hub):
         hub = network.hubs[hub]
         return json.dumps(introspection.list_triggers(hub))
+
+
+    ''' Hub sampler endpoints '''
+    @app.route('/hubs/<hub>/samplers')
+    def list_samplers(hub):
+        hub = network.hubs[hub]
+        return json.dumps(list(hub.samplers.keys()))
+
+    @app.route('/hubs/<hub>/samplers/<sampler>.pkl')
+    def get_sampler(hub, sampler):
+        hub = network.hubs[hub]
+
+        obj = None
+        for s in hub.samplers.values():
+            if s.id == sampler:
+                obj = s
+        if obj is None:
+            return
+
+        d = {'history': obj.history.to_json(), 'experiment': obj.experiment.__name__}
+        d['limits'] = hub.range
+        return json.dumps(d)
+        # return send_file(json.dumps(d), attachment_filename = 'temp.pkl', as_attachment = True)
 
     app.run(host=addr, debug=False, threaded=True)
