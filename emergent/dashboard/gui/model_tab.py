@@ -128,9 +128,15 @@ class ModelLayout(QVBoxLayout, ProcessHandler):
 
     def update_params(self):
         hub = self.parent.dashboard.tree_widget.get_selected_hub()
+        if hub is None:
+            return
         experiment_name = self.experiment_box.currentText()
         model_name = self.model_box.currentText()
         sampler_name = self.sampler_box.currentText()
+        if experiment_name == '':
+            return
+        if model_name == '':
+            return
         if sampler_name == '':
             return
 

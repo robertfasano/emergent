@@ -138,7 +138,10 @@ class NodeTree(QTreeWidget):
 
     def get_selected_hub(self):
         ''' Returns a hub node corresponding to the selected input node. '''
-        item = self.selectedItems()[0]
+        try:
+            item = self.selectedItems()[0]
+        except IndexError:
+            return
         hub_name = item.parent().parent().text(0)
 
         return hub_name
