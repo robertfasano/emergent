@@ -197,6 +197,13 @@ def serve(network, addr):
 
         return json.dumps(d)
 
+    @app.route('/hubs/<hub>/samplers/<sampler_id>/active')
+    def check_sampler_active(hub, sampler_id):
+        obj = get_sampler_by_id(hub, sampler_id)
+        if obj is None:
+            return
+        return json.dumps(int(obj.active))
+
     @app.route('/hubs/<hub>/samplers/<sampler_id>/model')
     def get_sampler_model(hub, sampler_id):
         obj = get_sampler_by_id(hub, sampler_id)

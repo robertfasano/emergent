@@ -46,8 +46,7 @@ class ContextTable(QTableWidget):
         self.menu.popup(QCursor.pos())
 
     def check(self):
-        message = {'op': 'check', 'params': {'hub': self.hub, 'id': self.id}}
-        active = self.parent.dashboard.p2p.send(message)['value']
+        active = self.parent.dashboard.get('hubs/%s/samplers/%s/active'%(self.hub, self.id))
         return active
 
     def terminate(self):
@@ -104,8 +103,7 @@ class TaskPanel(QVBoxLayout):
         for r in range(self.table.rowCount()):
             id = self.table.item(r, 4).text()
             hub = self.table.item(r, 5).text()
-            message = {'op': 'check', 'params': {'hub': hub, 'id': id}}
-            active = self.dashboard.p2p.send(message)['value']
+            active = bool(self.dashboard.get('hubs/%s/samplers/%s/active'%(hub, id)))
             if active:
                 active_rows.append(r)
             self.table.setItem(r, 3, QTableWidgetItem(str(active)))
