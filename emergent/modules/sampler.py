@@ -48,6 +48,7 @@ class Sampler():
         self.model = None
         if 'model' in settings:
             if settings['model']['instance'] is not None:
+                self.model_params = settings['model']['params']
                 self.model = settings['model']['instance']
                 self.model.prepare(self)
 

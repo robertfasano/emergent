@@ -16,6 +16,8 @@ from matplotlib.figure import Figure
 plt.ioff()
 from PyQt5.QtCore import QTimer, Qt
 from PyQt5.QtGui import QCursor, QPixmap
+import pandas as pd
+import pickle
 
 class Canvas(FigureCanvas):
     def __init__(self, fig, parent):
@@ -38,14 +40,15 @@ class Canvas(FigureCanvas):
     #     self.app.clipboard().setPixmap(pixmap)
 
 class PlotWidget(QWidget):
-    def __init__(self, sampler, cvp, pvt, parent=None):
+    def __init__(self, hub, sampler_id, cvp, pvt, parent=None):
         # super(PlotWidget, self).__init__(parent)
         super().__init__()
         # with open('gui/stylesheet.txt',"r") as file:
         #     self.setStyleSheet(file.read())
         self.setStyleSheet('color:"#000000"; font-weight: light; font-family: "Exo 2"; font-size: 14px; background-color: white')
         self.parent = parent
-        self.sampler = sampler
+        self.dashboard = self.parent.parent.dashboard
+        self.sampler_id = sampler_id
         self.canvas = []
         self.layout = QVBoxLayout(self)
         self.setWindowTitle('Visualizer')
@@ -55,7 +58,16 @@ class PlotWidget(QWidget):
 
         self.cvp = cvp
         self.pvt = pvt
-        self.hist_fig = self.sampler.plot_optimization()
+
+        history = self.dashboard.get('hubs/%s/samplers/%s/data'%(hub, sampler_id))['history']
+        history = pd.read_json(history)
+        params = self.dashboard.get('hubs/%s/samplers/%s/parameters'%(hub, sampler_id))
+        self.hist_fig = self.parent.plot_optimization(history, params['experiment']['name'])
+
+        if 'model' in params:
+            model = self.dashboard.get('hubs/%s/samplers/%s/model'%(hub, sampler_id), format='pickle')
+        if 'algorithm' in params:
+            algorithm = self.dashboard.get('hubs/%s/samplers/%s/algorithm'%(hub, sampler_id), format='pickle')
 
         ''' info tab '''
         self.info_tab = QWidget()
@@ -65,32 +77,36 @@ class PlotWidget(QWidget):
         self.layout = QGridLayout()
         self.info_tab.setLayout(self.vert_layout)
         self.vert_layout.addLayout(self.layout)
-        self.layout.addWidget(QLabel(self.sampler.experiment_name), 0, 1)
+        self.layout.addWidget(QLabel(params['experiment']['name']), 0, 1)
 
         self.layout.addWidget(QLabel('Inputs:'), 0, 0)
 
         tree = QTreeWidget()
-        hub = self.sampler.hub
-        top = QTreeWidgetItem([hub.name])
+        hub = params['hub']
+        top = QTreeWidgetItem([hub])
         tree.insertTopLevelItems(0, [top])
-        for thing in self.sampler.inputs:
+        for thing in params['inputs']:
             thing_item = QTreeWidgetItem([thing])
             top.addChild(thing_item)
-            for input in self.sampler.inputs[thing]:
+            for input in params['inputs']:
                 thing_item.addChild(QTreeWidgetItem([input]))
         tree.header().hide()
         tree.expandAll()
         self.layout.addWidget(tree, 1,0)
 
         cost_params = ParameterTable()
-        cost_params.set_parameters(self.sampler.experiment_params)
+        cost_params.set_parameters(params['experiment']['params'])
         self.layout.addWidget(cost_params, 1, 1)
 
-        self.layout.addWidget(QLabel(self.sampler.name), 0, 2)
-        params = ParameterTable()
-        if self.sampler.algorithm_params is not None:
-            params.set_parameters(self.sampler.algorithm_params)
-        self.layout.addWidget(params, 1, 2)
+        if 'algorithm' in params:
+            name = params['algorithm']['name']
+        else:
+            name = 'Measure'
+        self.layout.addWidget(QLabel(name), 0, 2)
+        algorithm_params = ParameterTable()
+        if 'algorithm' in params:
+            algorithm_params.set_parameters(params['algorithm']['params'])
+        self.layout.addWidget(algorithm_params, 1, 2)
 
 
         ''' optimization history '''
@@ -126,9 +142,9 @@ class PlotWidget(QWidget):
 
             self.choose_input()
 
-        if len(inputs) == 2 and self.sampler.algorithm is not None:
+        if len(inputs) == 2 and 'algorithm' in params:
             self.tab_algo = QWidget()
-            fig = self.sampler.algorithm.plot()
+            fig = algorithm.plot()
             if fig is not None:
                 self.tabs.addTab(self.tab_algo, '2D')
                 self.canvas_algorithm = Canvas(fig, self)
@@ -136,9 +152,9 @@ class PlotWidget(QWidget):
                 self.tab_algo_layout.addWidget(self.canvas_algorithm)
                 self.canvas_algorithm.draw()
 
-        if len(inputs) == 2 and self.sampler.model is not None:
+        if len(inputs) == 2 and 'model' in params:
             self.tab_model = QWidget()
-            fig = self.sampler.model.plot()
+            fig = model.plot()
             if fig is not None:
                 self.tabs.addTab(self.tab_model, 'Model')
                 self.canvas_model = Canvas(fig, self)

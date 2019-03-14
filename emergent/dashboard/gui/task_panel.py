@@ -53,7 +53,7 @@ class ContextTable(QTableWidget):
     def terminate(self):
         message = {'op': 'terminate', 'params': {'hub': self.hub, 'id': self.id}}
         self.parent.dashboard.p2p.send(message)
-        
+
 class TaskPanel(QVBoxLayout):
     def __init__(self, dashboard):
         super().__init__()
@@ -129,13 +129,11 @@ class TaskPanel(QVBoxLayout):
         id = self.table.item(row, 4).text()
         hub = self.table.item(row, 5).text()
         # sampler = self.dashboard.p2p.get('sampler', params={'id': id, 'hub': hub})
-        sampler = self.dashboard.get('hubs/%s/samplers/%s.pkl'%(hub, id))
-        sampler['history'] = pd.read_json(sampler['history'])
-        self.visualizer = Visualizer(sampler, self)
+        self.visualizer = Visualizer(hub, id, self)
 
 
 class Visualizer(QWidget):
-    def __init__(self, sampler, parent):
+    def __init__(self, hub, sampler_id, parent):
         ''' sampler: a JSON with the following fields:
                 experiment_name
                 t
@@ -145,11 +143,12 @@ class Visualizer(QWidget):
                 limits
         '''
         super().__init__()
-        self.sampler = sampler
+        self.sampler_id = sampler_id
         self.parent = parent
+        self.hub = hub
 
-        cost_vs_param, param_vs_time = self.generate_figures()
-        self.pw = PlotWidget(self.sampler, cost_vs_param, param_vs_time, self)
+        cost_vs_param, param_vs_time = self.generate_figures(hub)
+        self.pw = PlotWidget(hub, self.sampler_id, cost_vs_param, param_vs_time, self)
         self.pw.show()
 
     def df_to_arrays(self, history):
@@ -179,10 +178,13 @@ class Visualizer(QWidget):
 
         return t, points, costs, errors
 
-    def generate_figures(self):
+    def generate_figures(self, hub):
         ''' Show cost vs time, parameters vs time, and parameters vs cost '''
-        print(self.sampler['history'])
-        t, points, costs, errors = self.df_to_arrays(self.sampler['history'])
+        history = self.parent.dashboard.get('hubs/%s/samplers/%s/data'%(hub, self.sampler_id))['history']
+        history = pd.read_json(history)
+        params = self.parent.dashboard.get('hubs/%s/samplers/%s/parameters'%(hub, self.sampler_id))
+
+        t, points, costs, errors = self.df_to_arrays(history)
         costs *= -1
         t = t.copy()-t[0]
         if points is None:
@@ -198,36 +200,48 @@ class Visualizer(QWidget):
                 ax0 = ax[0]
             else:
                 ax0 = ax
-            ax0[0].set_ylabel(self.sampler['experiment'])
+            ax0[0].set_ylabel(params['experiment']['name'])
             cost_vs_param = {}
 
             for i in range(num_inputs):
                 p = points[:,i]
-                name =  self.sampler['history'].columns[i].replace('.', ': ')
-                thing = self.sampler['history'].columns[i].split('.')[0]
-                input = self.sampler['history'].columns[i].split('.')[1]
-                limits = {name: self.sampler['limits'][thing][input]}
-                new_ax, fig = plot_1D(p, costs, limits=limits, cost_name = self.sampler['experiment'], errors = errors)
-                cost_vs_param[self.sampler['history'].columns[i]] = fig
-                ax0[i].set_xlabel(self.sampler['history'].columns[i])
+                name =  history.columns[i].replace('.', ': ')
+                thing = history.columns[i].split('.')[0]
+                input = history.columns[i].split('.')[1]
+                limits = {name: params['limits'][thing][input]}
+                new_ax, fig = plot_1D(p, costs, limits=limits, cost_name = params['experiment']['name'], errors = errors)
+                cost_vs_param[history.columns[i]] = fig
+                ax0[i].set_xlabel(history.columns[i])
 
             ''' parameters vs time '''
             param_vs_time = {}
             for i in range(num_inputs):
                 p = points[:,i]
-                name =  self.sampler['history'].columns[i].replace('.', ': ')
-                thing = self.sampler['history'].columns[i].split('.')[0]
-                input = self.sampler['history'].columns[i].split('.')[1]
-                limits = self.sampler['limits']
+                name =  history.columns[i].replace('.', ': ')
+                thing = history.columns[i].split('.')[0]
+                input = history.columns[i].split('.')[1]
+                limits = params['limits']
                 p = limits[thing][input]['min'] + p*(limits[thing][input]['max']-limits[thing][input]['min'])
 
                 if num_inputs == 1:
                     cax = ax[1]
                 else:
                     cax = ax[1][i]
-                new_ax, fig = plot_1D(t, p, cost_name = self.sampler['experiment'], xlabel = 'Time (s)', ylabel = self.sampler['history'].columns[i], errors = errors)
-                param_vs_time[self.sampler['history'].columns[i]] = fig
-                cax.set_ylabel(self.sampler['history'].columns[i])
+                new_ax, fig = plot_1D(t, p, cost_name = params['experiment']['name'], xlabel = 'Time (s)', ylabel = history.columns[i], errors = errors)
+                param_vs_time[history.columns[i]] = fig
+                cax.set_ylabel(history.columns[i])
                 cax.set_xlabel('Time (s)')
 
         return cost_vs_param, param_vs_time
+
+    def plot_optimization(self, history, name):
+        ''' Plots an optimization time series stored in self.history. '''
+        t, points, costs, errors = self.df_to_arrays(history)
+        t = t.copy() - t[0]
+        ax, fig = plot_1D(t,
+                          -costs,
+                          errors=errors,
+                          xlabel='Time (s)',
+                          ylabel=name)
+
+        return fig

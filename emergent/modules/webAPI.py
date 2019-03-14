@@ -153,22 +153,74 @@ def serve(network, addr):
     @app.route('/hubs/<hub>/samplers')
     def list_samplers(hub):
         hub = network.hubs[hub]
-        return json.dumps(list(hub.samplers.keys()))
+        ids = []
+        for s in hub.samplers.values():
+            ids.append(s.id)
+        return json.dumps(ids)
 
-    @app.route('/hubs/<hub>/samplers/<sampler>.pkl')
-    def get_sampler(hub, sampler):
+    @app.route('/hubs/<hub>/samplers/<sampler_id>/data')
+    def get_sampler_data(hub, sampler_id):
         hub = network.hubs[hub]
 
         obj = None
         for s in hub.samplers.values():
-            if s.id == sampler:
+            if s.id == sampler_id:
                 obj = s
         if obj is None:
             return
 
-        d = {'history': obj.history.to_json(), 'experiment': obj.experiment.__name__}
-        d['limits'] = hub.range
+        d = {'history': obj.history.to_json()}
         return json.dumps(d)
-        # return send_file(json.dumps(d), attachment_filename = 'temp.pkl', as_attachment = True)
+
+    @app.route('/hubs/<hub>/samplers/<sampler_id>/parameters')
+    def get_sampler_parameters(hub, sampler_id):
+        hub = network.hubs[hub]
+
+        obj = None
+        for s in hub.samplers.values():
+            if s.id == sampler_id:
+                obj = s
+        if obj is None:
+            return
+
+        d = {}
+        d['experiment'] = {'name': obj.experiment.__name__, 'params': obj.experiment_params}
+        if obj.algorithm is not None:
+            d['algorithm'] = {'name': obj.algorithm.name, 'params': obj.algorithm_params}
+        if obj.model is not None:
+            d['model'] = {'name': obj.model.name, 'params': obj.model_params}
+        d['limits'] = hub.range
+        d['hub'] = hub.name
+        d['inputs'] = obj.inputs
+
+        return json.dumps(d)
+
+    @app.route('/hubs/<hub>/samplers/<sampler_id>/model')
+    def get_sampler_model(hub, sampler_id):
+        hub = network.hubs[hub]
+
+        obj = None
+        for s in hub.samplers.values():
+            if s.id == sampler_id:
+                obj = s
+        if obj is None:
+            return
+
+        if obj.model is not None:
+            return pickle.dumps(obj.model)
+
+    @app.route('/hubs/<hub>/samplers/<sampler_id>/algorithm')
+    def get_sampler_algorithm(hub, sampler_id):
+        hub = network.hubs[hub]
+
+        obj = None
+        for s in hub.samplers.values():
+            if s.id == sampler_id:
+                obj = s
+        if obj is None:
+            return
+
+        if obj.algorithm is not None:
+            return pickle.dumps(obj.algorithm)
 
     app.run(host=addr, debug=False, threaded=True)
