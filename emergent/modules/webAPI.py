@@ -4,6 +4,7 @@ import pickle
 import pandas as pd
 import json
 import io
+import matplotlib.pyplot as plt
 from emergent.utilities import recommender, introspection
 from emergent.utilities.containers import DataDict
 from emergent.utilities.networking import get_address
@@ -222,5 +223,21 @@ def serve(network, addr):
 
         if obj.algorithm is not None:
             return pickle.dumps(obj.algorithm)
+
+    @app.route('/hubs/<hub>/samplers/<sampler_id>/plot.jpg')
+    def plot_model(hub, sampler_id):
+        hub = network.hubs[hub]
+
+        obj = None
+        for s in hub.samplers.values():
+            if s.id == sampler_id:
+                obj = s
+                break
+        if obj is None:
+            return
+        fig = obj.model.plot()
+        buf = io.BytesIO()
+        plt.savefig(buf, format='jpg')
+        return send_file(buf, mimetype='image/jpeg', as_attachment=True, attachment_filename='testimg.jpg')
 
     app.run(host=addr, debug=False, threaded=True)
