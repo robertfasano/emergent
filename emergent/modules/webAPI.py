@@ -4,11 +4,15 @@ import pickle
 import pandas as pd
 import json
 import io
+import uuid
+import datetime
 import matplotlib.pyplot as plt
 from emergent.utilities import recommender, introspection
 from emergent.utilities.containers import DataDict
 from emergent.utilities.networking import get_address
+from emergent.modules import ProcessHandler
 
+manager = ProcessHandler()
 def load_all_experiment_parameters(hub, experiment_name, model_name = None, sampler_name = None):
     ''' Looks for algorithm parameters in the parameterfile for the experiment. If none exist,
         get them from the default algorithm parameters.
@@ -246,5 +250,45 @@ def serve(network, addr):
                           ylabel=obj.experiment.__name__)
         return send_plot(fig)
 
+
+
+
+    ''' Remote procedure call endpoints '''
+    @app.route('/run', methods=['POST'])
+    def run():
+        from emergent.modules.sampler import Sampler
+
+        settings = request.get_json()
+        settings['hub'] = network.hubs[settings['hub']]
+        settings['experiment']['instance'] = getattr(settings['hub'], settings['experiment']['name'])
+
+        for x in ['model', 'sampler', 'servo']:
+            if x in settings:
+                settings[x]['instance'] = recommender.get_class(x, settings[x]['name'])
+        sampler = Sampler('sampler', settings)
+        sampler.id = str(uuid.uuid1())
+        ''' Create task_panel task '''
+
+        params = {'start time': datetime.datetime.now().isoformat(),
+                  'experiment': settings['experiment']['name'],
+                  'id': sampler.id,
+                  'hub': sampler.hub.name}
+
+        if 'algorithm' in settings:
+            params['algorithm'] = settings['algorithm']['name']
+        message = {'op': 'event', 'params': params}
+        network.p2p.send(message)
+
+        if 'trigger' in settings['process']:
+            trigger = getattr(settings['hub'], settings['process']['trigger'])
+
+        ''' Run process '''
+        if settings['state'] == {} and settings['process']['type'] != 'run':
+            log.warning('Please select at least one Input node.')
+            return
+        func = sampler._solve
+        if settings['process']['type'] == 'run':
+            func = sampler._run
+        manager._run_thread(func, stoppable=False)
 
     app.run(host=addr, debug=False, threaded=True)

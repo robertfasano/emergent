@@ -109,5 +109,4 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         ''' Load settings from the GUI and start a process. '''
         panel = getattr(self, process+'_panel')
         settings = panel.get_settings_from_gui()
-        message = {'op': 'run', 'params': settings}
-        self.dashboard.p2p.send(message)
+        self.dashboard.post('run', settings)
