@@ -11,6 +11,7 @@ from emergent.dashboard.gui import TaskPanel, NodeTree, ExperimentLayout, GridWi
 from emergent.modules.api import DashAPI
 from emergent.utilities.signals import DictSignal
 import requests
+import pickle
 
 class Dashboard(QMainWindow):
     def __init__(self, app, p2p, addr, port):
@@ -35,7 +36,7 @@ class Dashboard(QMainWindow):
         self.resize(width, height)
 
         self.actuate_signal = DictSignal()
-        
+
         ''' Create QTreeWidget '''
         self.tree_layout = QVBoxLayout()
         self.tree_widget = NodeTree(self)
@@ -56,8 +57,14 @@ class Dashboard(QMainWindow):
         button.clicked.connect(self.show_grid)
         self.experiment_layout.addWidget(button)
 
-    def get(self, url):
-        return requests.get('http://%s:%s/'%(self.addr, self.port)+url).json()
+    def get(self, url, format = 'json'):
+        r = requests.get('http://%s:%s/'%(self.addr, self.port)+url)
+        if format == 'json':
+            return r.json()
+        elif format == 'raw':
+            return r.content
+        elif format == 'pickle':
+            return pickle.loads(r.content)
 
     def post(self, url, payload):
         requests.post('http://%s:%s/'%(self.addr, self.port)+url, json=payload)
