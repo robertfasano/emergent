@@ -38,7 +38,8 @@ else:
 if args.addr:
     addr = args.addr
 else:
-    addr = 'localhost'
+    # addr = 'localhost'
+    addr = get_address()
 if args.port:
     port = args.port
 else:

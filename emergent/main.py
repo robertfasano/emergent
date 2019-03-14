@@ -49,7 +49,8 @@ def launch():
     if args.addr:
         addr = args.addr
     else:
-        addr = 'localhost'
+        # addr = 'localhost'
+        addr = get_address()
     port = 8000
 
 
@@ -62,7 +63,7 @@ def launch():
     global mainP2P
     from emergent.protocols.p2p import P2PNode
     from emergent.modules.api import MainAPI
-    mainP2P = P2PNode('master', 'localhost', 27190, api = MainAPI(network))
+    mainP2P = P2PNode('master', 'localhost', 27190, api = MainAPI(network, addr, port))
     mainP2P.network = network
     network.p2p = mainP2P
     network.initialize()        # instantiate nodes
