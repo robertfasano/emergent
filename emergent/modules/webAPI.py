@@ -159,30 +159,27 @@ def serve(network, addr):
             ids.append(s.id)
         return json.dumps(ids)
 
+    def get_sampler_by_id(hub, sampler_id):
+            hub = network.hubs[hub]
+
+            for s in hub.samplers.values():
+                if s.id == sampler_id:
+                    return s
+
     @app.route('/hubs/<hub>/samplers/<sampler_id>/data')
     def get_sampler_data(hub, sampler_id):
-        hub = network.hubs[hub]
-
-        obj = None
-        for s in hub.samplers.values():
-            if s.id == sampler_id:
-                obj = s
+        obj = get_sampler_by_id(hub, sampler_id)
         if obj is None:
             return
-
         d = {'history': obj.history.to_json()}
         return json.dumps(d)
 
     @app.route('/hubs/<hub>/samplers/<sampler_id>/parameters')
     def get_sampler_parameters(hub, sampler_id):
-        hub = network.hubs[hub]
-
-        obj = None
-        for s in hub.samplers.values():
-            if s.id == sampler_id:
-                obj = s
+        obj = get_sampler_by_id(hub, sampler_id)
         if obj is None:
             return
+        hub = network.hubs['hub']
 
         d = {}
         d['experiment'] = {'name': obj.experiment.__name__, 'params': obj.experiment_params}
@@ -198,46 +195,56 @@ def serve(network, addr):
 
     @app.route('/hubs/<hub>/samplers/<sampler_id>/model')
     def get_sampler_model(hub, sampler_id):
-        hub = network.hubs[hub]
-
-        obj = None
-        for s in hub.samplers.values():
-            if s.id == sampler_id:
-                obj = s
+        obj = get_sampler_by_id(hub, sampler_id)
         if obj is None:
             return
-
         if obj.model is not None:
             return pickle.dumps(obj.model)
 
     @app.route('/hubs/<hub>/samplers/<sampler_id>/algorithm')
     def get_sampler_algorithm(hub, sampler_id):
-        hub = network.hubs[hub]
-
-        obj = None
-        for s in hub.samplers.values():
-            if s.id == sampler_id:
-                obj = s
+        obj = get_sampler_by_id(hub, sampler_id)
         if obj is None:
             return
 
         if obj.algorithm is not None:
             return pickle.dumps(obj.algorithm)
 
-    @app.route('/hubs/<hub>/samplers/<sampler_id>/plot.jpg')
-    def plot_model(hub, sampler_id):
-        hub = network.hubs[hub]
+    def send_plot(fig):
+        buf = io.BytesIO()
+        plt.savefig(buf, format='png')
+        buf.seek(0)
+        return send_file(buf, mimetype='image/png')
 
-        obj = None
-        for s in hub.samplers.values():
-            if s.id == sampler_id:
-                obj = s
-                break
+    @app.route('/hubs/<hub>/samplers/<sampler_id>/plot/model')
+    def plot_model(hub, sampler_id):
+        obj = get_sampler_by_id(hub, sampler_id)
         if obj is None:
             return
-        fig = obj.model.plot()
-        buf = io.BytesIO()
-        plt.savefig(buf, format='jpg')
-        return send_file(buf, mimetype='image/jpeg', as_attachment=True, attachment_filename='testimg.jpg')
+        return send_plot(obj.model.plot())
+
+    @app.route('/hubs/<hub>/samplers/<sampler_id>/plot/data')
+    def plot_data(hub, sampler_id):
+        obj = get_sampler_by_id(hub, sampler_id)
+        if obj is None:
+            return
+        return send_plot(obj.algorithm.plot())
+
+    @app.route('/hubs/<hub>/samplers/<sampler_id>/plot/history')
+    def plot_history(hub, sampler_id):
+        obj = get_sampler_by_id(hub, sampler_id)
+        if obj is None:
+            return
+
+        t, points, costs, errors = obj.get_history(include_database=False)
+        t = t.copy() - t[0]
+        from emergent.utilities.plotting import plot_1D
+        ax, fig = plot_1D(t,
+                          -costs,
+                          errors=errors,
+                          xlabel='Time (s)',
+                          ylabel=obj.experiment.__name__)
+        return send_plot(fig)
+
 
     app.run(host=addr, debug=False, threaded=True)
