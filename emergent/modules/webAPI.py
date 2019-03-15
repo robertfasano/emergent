@@ -313,4 +313,6 @@ def serve(network, addr):
             func = sampler._run
         manager._run_thread(func, stoppable=False)
 
+        return 'done'
+
     app.run(host=addr, debug=False, threaded=True)
