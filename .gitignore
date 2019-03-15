@@ -9,3 +9,5 @@ dist/*
 *.txt
 *.json
 *.sci
+tutorials/.ipynb_checkpoints
+emergent/networks/test
