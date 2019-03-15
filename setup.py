@@ -13,7 +13,7 @@ setup(
     install_requires=['pyqt5==5.9.2', 'pyserial', 'ipython', 'influxdb',
                       'pint', 'sip', 'matplotlib', 'pandas', 'scipy', 'psutil',
                       'sklearn', 'eventlet', 'flask-socketio', 'socketIO_client',
-                      'flask']
+                      'flask', 'jupyter']
 )
 
 packages = ['pyqt5', 'pyqt5-sip', 'pyqt5-tools']
