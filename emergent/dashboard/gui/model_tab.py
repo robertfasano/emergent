@@ -121,6 +121,11 @@ class ModelLayout(QVBoxLayout, ProcessHandler):
         settings['process']['callback'] = None
         settings['process']['type'] = 'model'
 
+        settings['process']['trigger'] = self.trigger_box.currentText()
+        
+        if 'cycles per sample' not in settings['experiment']['params']:
+            settings['experiment']['params']['cycles per sample'] = 1
+
         return settings
 
     def update_params(self):
@@ -143,6 +148,8 @@ class ModelLayout(QVBoxLayout, ProcessHandler):
             url += '&model=%s'%model_name
         d = self.parent.dashboard.get(url)
 
+        if 'cycles per sample' not in d['experiment']:
+            d['experiment']['cycles per sample'] = 1
         self.sampler_table.set_parameters(d['sampler'][sampler_name])
         self.experiment_table.set_parameters(d['experiment'])
         if 'model' in d:
