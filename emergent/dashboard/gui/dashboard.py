@@ -1,6 +1,8 @@
 ''' The MainWindow is the main window of EMERGENT, hosting panels imported from
     other modules in the emergent/gui/elements folder. '''
 
+from flask import Flask
+from flask_socketio import SocketIO, emit
 import os
 import psutil
 from PyQt5.QtGui import QIcon, QFontDatabase
@@ -8,18 +10,16 @@ from PyQt5.QtWidgets import (QHBoxLayout, QLabel, QVBoxLayout, QPushButton,
                              QWidget, QMainWindow, QStatusBar, QMenuBar)
 from PyQt5.QtCore import QTimer
 from emergent.dashboard.gui import TaskPanel, NodeTree, ExperimentLayout, GridWindow
-from emergent.modules.api import DashAPI
 from emergent.utilities.signals import DictSignal
 import requests
 import pickle
+import logging
 
 class Dashboard(QMainWindow):
-    def __init__(self, app, p2p, addr, port):
+    def __init__(self, app, addr, port):
         QMainWindow.__init__(self)
         self.addr = addr
         self.port = port
-        self.p2p = p2p
-        self.p2p.api = DashAPI(self)
         self.app = app
         ''' Set window style '''
         self.setWindowTitle('EMERGENT Dashboard')
@@ -57,6 +57,25 @@ class Dashboard(QMainWindow):
         button.clicked.connect(self.show_grid)
         self.experiment_layout.addWidget(button)
 
+        ''' Launch Flask socketIO server '''
+        logging.getLogger('socketio').setLevel(logging.ERROR)
+        logging.getLogger('engineio').setLevel(logging.ERROR)
+        app = Flask(__name__)
+        socketio = SocketIO(app, logger=False)
+
+        @socketio.on('actuate')
+        def actuate(state):
+            self.actuate_signal.emit(state)
+
+        @socketio.on('event')
+        def event(event):
+            self.task_panel.add_event(event)
+        print('Starting flask-socketio server')
+        from threading import Thread
+        thread = Thread(target=socketio.run, args=(app,), kwargs={'port': 8000})
+        thread.start()
+        self.post('handshake', {'port': 8000})
+
     def get(self, url, format = 'json'):
         r = requests.get('http://%s:%s/'%(self.addr, self.port)+url)
         if format == 'json':
@@ -68,7 +87,6 @@ class Dashboard(QMainWindow):
 
     def post(self, url, payload):
         requests.post('http://%s:%s/'%(self.addr, self.port)+url, json=payload)
-        return requests.get('http://%s:%s/'%(self.addr, self.port)+url).json()
 
     def show_grid(self):
         self.grid = GridWindow(self, 'hub')

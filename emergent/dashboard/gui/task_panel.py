@@ -50,7 +50,7 @@ class ContextTable(QTableWidget):
         return active
 
     def terminate(self):
-        self.parent.dashboard.post('hubs/%s/samplers/%s/active'%(self.hub, self.id), json={'status': 0})
+        self.parent.dashboard.post('hubs/%s/samplers/%s/active'%(self.hub, self.id), {'status': 0})
 
 class TaskPanel(QVBoxLayout):
     def __init__(self, dashboard):
@@ -125,7 +125,6 @@ class TaskPanel(QVBoxLayout):
     def on_double_click(self, row, col):
         id = self.table.item(row, 4).text()
         hub = self.table.item(row, 5).text()
-        # sampler = self.dashboard.p2p.get('sampler', params={'id': id, 'hub': hub})
         self.visualizer = Visualizer(hub, id, self)
 
 
