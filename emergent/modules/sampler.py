@@ -23,6 +23,7 @@ class Sampler():
             t = datetime.datetime.now().strftime('%Y%m%dT%H%M')
         self.state = settings['state']
         self.hub = settings['hub']
+        self.limits = self.hub.range.copy()
         self.trigger = None
         self.index = len(self.hub.samplers)
         self.hub.samplers[self.index] = self
@@ -229,7 +230,7 @@ class Sampler():
                 continue
             thing = col.split('.')[0]
             input = col.split('.')[1]
-            limits[col.replace('.', ': ')] = self.hub.range[thing][input]
+            limits[col.replace('.', ': ')] = self.limits[thing][input]
 
         return limits
 
@@ -259,8 +260,8 @@ class Sampler():
         for thing in unnorm:
             norm[thing] = {}
             for i in unnorm[thing]:
-                min_val = self.hub.range[thing][i]['min']
-                max_val = self.hub.range[thing][i]['max']
+                min_val = self.limits[thing][i]['min']
+                max_val = self.limits[thing][i]['max']
                 norm[thing][i] = (unnorm[thing][i] - min_val)/(max_val-min_val)
 
         return norm
@@ -274,8 +275,8 @@ class Sampler():
         for thing in norm:
             unnorm[thing] = {}
             for i in norm[thing]:
-                min_val = self.hub.range[thing][i]['min']
-                max_val = self.hub.range[thing][i]['max']
+                min_val = self.limits[thing][i]['min']
+                max_val = self.limits[thing][i]['max']
                 unnorm[thing][i] = min_val + norm[thing][i] * (max_val-min_val)
         if return_array:
             return self.state2array(unnorm)
