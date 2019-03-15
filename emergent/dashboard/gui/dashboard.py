@@ -36,7 +36,8 @@ class Dashboard(QMainWindow):
         self.resize(width, height)
 
         self.actuate_signal = DictSignal()
-
+        self.show_grid_signal = DictSignal()
+        self.show_grid_signal.connect(self.show_grid)
         ''' Create QTreeWidget '''
         self.tree_layout = QVBoxLayout()
         self.tree_widget = NodeTree(self)
@@ -53,10 +54,6 @@ class Dashboard(QMainWindow):
         self.task_panel = TaskPanel(self)
         self.experiment_layout.addLayout(self.task_panel)
 
-        button = QPushButton('Show grid')
-        button.clicked.connect(self.show_grid)
-        self.experiment_layout.addWidget(button)
-
         ''' Launch Flask socketIO server '''
         logging.getLogger('socketio').setLevel(logging.ERROR)
         logging.getLogger('engineio').setLevel(logging.ERROR)
@@ -66,6 +63,10 @@ class Dashboard(QMainWindow):
         @socketio.on('actuate')
         def actuate(state):
             self.actuate_signal.emit(state)
+
+        @socketio.on('sequencer')
+        def show_grid(d):
+            self.show_grid_signal.emit(d)
 
         @socketio.on('event')
         def event(event):
@@ -88,6 +89,7 @@ class Dashboard(QMainWindow):
     def post(self, url, payload):
         requests.post('http://%s:%s/'%(self.addr, self.port)+url, json=payload)
 
-    def show_grid(self):
-        self.grid = GridWindow(self, 'hub')
+    def show_grid(self, d):
+        hub = d['hub']
+        self.grid = GridWindow(self, hub)
         self.grid.show()

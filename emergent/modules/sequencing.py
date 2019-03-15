@@ -25,7 +25,7 @@ class Sequencer(Thing):
         self.channels = []
         if 'labjack' in params:
             self.labjack = params['labjack']
-        # self.options['Show grid'] = self.open_grid
+        self.options['Show grid'] = self.open_grid
         # self.options['Save'] = self.save
         # self.options['Load'] = self.load
 
@@ -172,9 +172,7 @@ class Sequencer(Thing):
         return stream
 
     def open_grid(self):
-        if not hasattr(self, 'grid'):
-            self.grid = GridWindow(self)
-        self.grid.show()
+        self.parent.network.socketIO.emit('sequencer', {'hub': self.parent.name})
 
     # def prepare(self):
     #     ''' Parse the sequence into the proper form to send to the LabJack.

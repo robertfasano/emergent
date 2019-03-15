@@ -247,6 +247,7 @@ class NodeTree(QTreeWidget):
         globalPos = self.mapToGlobal(pos)
         menu = QMenu()
         actions = {}
+        options = []
         if item.node == 'input':
             input = item.name
             thing = item.parent().name
@@ -257,14 +258,16 @@ class NodeTree(QTreeWidget):
             thing = item.name
             hub = item.parent().name
             params = {'thing': thing, 'hub': hub}
+            options = self.dashboard.get('hubs/%s/things/%s/options'%(hub, thing))
         elif item.node == 'hub':
             input = None
             thing = None
             hub = item.name
             params = {'hub': hub}
+            options = self.dashboard.get('hubs/%s/options'%hub)
 
-        options = self.dashboard.get('hubs/%s/options'%hub)
-        print('Options:', options)
+        if options == []:
+            return
 
         for option in options:
             actions[option] = QAction(option, self)
@@ -287,7 +290,7 @@ class NodeTree(QTreeWidget):
             url += '/inputs/%s'%params['input']
         url += '/exec'
         self.dashboard.post(url, {'method': 'exec_option', 'args': (option,)})
-        
+
 from emergent.utilities.signals import FloatSignal
 
 class HubWidget(QTreeWidgetItem):
