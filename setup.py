@@ -24,6 +24,7 @@ setup(
 ''' Prepare batch file and shortcut '''
 import sys, os
 if os.name == 'nt':
+    os.system('pip install pywin32')
     scripts_dir = sys.executable.split('python')[0]+'Scripts'
 
     with open('/emergent_master.cmd', 'w') as file:
