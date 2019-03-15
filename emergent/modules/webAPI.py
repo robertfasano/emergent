@@ -153,13 +153,13 @@ def serve(network, addr):
     def list_experiment_params(hub, experiment):
         sampler = request.args.get('sampler')
         model = request.args.get('model')
-        hub = network.hubs['hub']
+        hub = network.hubs[hub]
         params = load_all_experiment_parameters(hub, experiment, model, sampler)
         return json.dumps(params)
 
     @app.route('/hubs/<hub>/errors/<error>')
     def list_error_params(hub, error):
-        hub = network.hubs['hub']
+        hub = network.hubs[hub]
         servo = request.args.get('servo')
         params = recommender.load_all_error_parameters(hub, error, servo)
         return json.dumps(params)
@@ -204,7 +204,7 @@ def serve(network, addr):
         obj = get_sampler_by_id(hub, sampler_id)
         if obj is None:
             return
-        hub = network.hubs['hub']
+        hub = network.hubs[hub]
 
         d = {}
         d['experiment'] = {'name': obj.experiment.__name__, 'params': obj.experiment_params}
@@ -285,19 +285,19 @@ def serve(network, addr):
     ''' Hub sequencing endpoints '''
     @app.route('/hubs/<hub>/switches')
     def hub_switches(hub):
-        switches = network.hubs['hub'].switches
+        switches = network.hubs[hub].switches
         return json.dumps(list(switches.keys()))
 
     @app.route('/hubs/<hub>/sequencer/sequence', methods=['GET', 'POST'])
     def hub_sequence(hub):
-        s = network.hubs['hub'].children['sequencer']
+        s = network.hubs[hub].children['sequencer']
         if request.method == 'POST':
             s.steps = request.get_json()
         return json.dumps(s.steps)
 
     @app.route('/hubs/<hub>/sequencer/current_step', methods=['GET', 'POST'])
     def hub_sequencer_step(hub):
-        s = network.hubs['hub'].children['sequencer']
+        s = network.hubs[hub].children['sequencer']
         if request.method == 'POST':
             s.goto(request.get_json()['step'])
         return json.dumps(s.current_step)
