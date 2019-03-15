@@ -3,6 +3,7 @@ from emergent.modules.switch import Switch
 from emergent.modules import Thing
 import logging as log
 from emergent.drivers.labjack import LabJackDriver
+from labjack import ljm
 
 class LabJackSwitch(Switch):
     def __init__(self, name, params, invert = False):
