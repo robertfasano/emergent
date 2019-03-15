@@ -15,7 +15,7 @@ import argparse
 import importlib
 from PyQt5.QtWidgets import QApplication, QStyleFactory
 from emergent.gui.elements import MainWindow
-from emergent.modules.networking import Server, Network
+from emergent.modules.networking import Network
 from emergent.utilities.networking import get_address
 
 def launch():
@@ -63,10 +63,6 @@ def launch():
     network.initialize()        # instantiate nodes
     network.load()              # load previous state from file
     network.post_load()         # run post-load routine to prepare physical state
-    # network.manager._run_thread(network.try_connect, stoppable=False)
-    # network.keep_sync()     # sync network with all other EMERGENT sessions
-
-    # Server(network)
 
     from emergent.modules.webAPI import serve
     from threading import Thread
