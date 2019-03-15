@@ -212,11 +212,13 @@ def serve(network, addr):
 
         return json.dumps(d)
 
-    @app.route('/hubs/<hub>/samplers/<sampler_id>/active')
+    @app.route('/hubs/<hub>/samplers/<sampler_id>/active', methods=['GET', 'POST'])
     def check_sampler_active(hub, sampler_id):
         obj = get_sampler_by_id(hub, sampler_id)
         if obj is None:
             return
+        if request.method == 'POST':
+            obj.active = request.get_json()['status']
         return json.dumps(int(obj.active))
 
     @app.route('/hubs/<hub>/samplers/<sampler_id>/model')

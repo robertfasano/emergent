@@ -50,8 +50,7 @@ class ContextTable(QTableWidget):
         return active
 
     def terminate(self):
-        message = {'op': 'terminate', 'params': {'hub': self.hub, 'id': self.id}}
-        self.parent.dashboard.p2p.send(message)
+        self.parent.dashboard.post('hubs/%s/samplers/%s/active'%(self.hub, self.id), json={'status': 0})
 
 class TaskPanel(QVBoxLayout):
     def __init__(self, dashboard):
