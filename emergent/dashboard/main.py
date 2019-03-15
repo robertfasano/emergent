@@ -46,24 +46,18 @@ else:
     port = 5000
 
 def launch():
-    from emergent.protocols.p2p import P2PNode
-    global dashP2P
-    dashP2P = P2PNode('dashboard', 'localhost', 27191)
-    dashP2P.bind('localhost', 27190)
-    while not dashP2P._connected:
-        continue
-    run_frontend(dashP2P)
+    run_frontend()
 
 
 
-def run_frontend(dashP2P):
+def run_frontend():
     QApplication.setStyle(QStyleFactory.create("Fusion"))
     app = QApplication.instance()
     if app is None:
         app = QApplication([" "])         # Create an instance of the application
     app.setStyle(QStyleFactory.create("Fusion"))
     global dash
-    dash = Dashboard(app, dashP2P, addr, port)
+    dash = Dashboard(app, addr, port)
     dash.show()
     app.processEvents()
     app.exec()
