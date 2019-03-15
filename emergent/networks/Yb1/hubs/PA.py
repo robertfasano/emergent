@@ -30,7 +30,7 @@ class Photoassociation(Hub):
         return True
 
     @experiment
-    def experiment(self, state, params = {'ramp time': 0.1, 'ramp points': 10}):
+    def experiment(self, state, params = {}):
         f = state['synthesizer']['frequency']
         a = self.amplitude(f)
 
