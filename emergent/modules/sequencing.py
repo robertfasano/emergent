@@ -23,7 +23,8 @@ class Sequencer(Thing):
     def __init__(self, name, parent, params={'sequence': {}, 'labjack': None}):
         Thing.__init__(self, name, parent, params=params)
         self.channels = []
-        self.labjack = params['labjack']
+        if 'labjack' in params:
+            self.labjack = params['labjack']
         # self.options['Show grid'] = self.open_grid
         # self.options['Save'] = self.save
         # self.options['Load'] = self.load
