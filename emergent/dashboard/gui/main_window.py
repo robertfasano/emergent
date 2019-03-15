@@ -89,7 +89,6 @@ class Dashboard(QMainWindow):
 
     def post(self, url, payload):
         requests.post('http://%s:%s/'%(self.addr, self.port)+url, json=payload)
-        return requests.get('http://%s:%s/'%(self.addr, self.port)+url).json()
 
     def show_grid(self):
         self.grid = GridWindow(self, 'hub')
