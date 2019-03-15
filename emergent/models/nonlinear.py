@@ -33,7 +33,6 @@ class Nonlinear(Model):
         N = self.points.shape[1]
         p0 = tuple([0.5]*(2*N+1))
         self.popt, self.pcov = curve_fit(self.gaussian, self.points, self.costs, p0)
-        print(self.popt)
 
     def predict(self, X):
         return self.gaussian(X, *tuple(self.popt)), 0
