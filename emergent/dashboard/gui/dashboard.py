@@ -1,6 +1,8 @@
 ''' The MainWindow is the main window of EMERGENT, hosting panels imported from
     other modules in the emergent/gui/elements folder. '''
 
+from flask import Flask
+from flask_socketio import SocketIO, emit
 import os
 import psutil
 from PyQt5.QtGui import QIcon, QFontDatabase
@@ -56,9 +58,6 @@ class Dashboard(QMainWindow):
         self.experiment_layout.addWidget(button)
 
         ''' Launch Flask socketIO server '''
-        from flask import Flask
-        from flask_socketio import SocketIO, emit
-
         logging.getLogger('socketio').setLevel(logging.ERROR)
         logging.getLogger('engineio').setLevel(logging.ERROR)
         app = Flask(__name__)
