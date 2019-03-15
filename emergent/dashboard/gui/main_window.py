@@ -8,7 +8,6 @@ from PyQt5.QtWidgets import (QHBoxLayout, QLabel, QVBoxLayout, QPushButton,
                              QWidget, QMainWindow, QStatusBar, QMenuBar)
 from PyQt5.QtCore import QTimer
 from emergent.dashboard.gui import TaskPanel, NodeTree, ExperimentLayout, GridWindow
-from emergent.modules.api import DashAPI
 from emergent.utilities.signals import DictSignal
 import requests
 import pickle
