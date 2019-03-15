@@ -51,18 +51,18 @@ class Photoassociation(Hub):
     def amplitude(self, f):
         ''' In units of dBm '''
         if f < 60:
-            return -13
-        elif f < 120:
-            return -12
-        elif f < 200:
-            return -11
-        elif f < 360:
-            return -10
-        elif f < 400:
-            return -9
-        elif f < 480:
-            return -8
-        elif f < 640:
             return -7
+        elif f < 120:
+            return -5
+        elif f < 200:
+            return -3
+        elif f < 360:
+            return -2
+        elif f < 400:
+            return -1
+        elif f < 480:
+            return -0
+        elif f < 640:
+            return 1
         else:
-            return -6
+            return 2
