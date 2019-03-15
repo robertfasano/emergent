@@ -353,6 +353,12 @@ class Network():
         if hasattr(self, 'database'):
             self.database.write_network_state(self.state())
 
+    def start_flask_socket_server(self):
+        ''' Initialize Flask socket '''
+        print('Starting socketIO client.')
+        from socketIO_client import SocketIO, LoggingNamespace
+        self.socketIO = SocketIO('localhost', 8000, LoggingNamespace)
+
     def sync(self):
         ''' Queries each connected client for the state of its Network, then updates
             the NetworkPanel to show the current state of the entire network. '''

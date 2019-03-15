@@ -56,6 +56,12 @@ def serve(network, addr):
     def hello():
         return "EMERGENT API"
 
+    @app.route("/handshake", methods=['GET', 'POST'])
+    def handshake():
+        if request.method == 'POST':
+            network.start_flask_socket_server()
+        return 'connected'
+
     ''' Network endpoints '''
     @app.route('/state', methods=['GET', 'POST'])
     def state():
@@ -319,8 +325,8 @@ def serve(network, addr):
 
         if 'algorithm' in settings:
             params['algorithm'] = settings['algorithm']['name']
-        message = {'op': 'event', 'params': params}
-        network.p2p.send(message)
+        if hasattr(network, 'socketIO'):
+            network.socketIO.emit('event', params)
 
         if 'trigger' in settings['process']:
             trigger = getattr(settings['hub'], settings['process']['trigger'])

@@ -60,12 +60,6 @@ def launch():
     if args.database_addr:
         database_addr = args.database_addr
     network = Network(name=args.name, addr=addr, port=port, database_addr=database_addr)
-    global mainP2P
-    from emergent.protocols.p2p import P2PNode
-    from emergent.modules.api import MainAPI
-    mainP2P = P2PNode('master', 'localhost', 27190, api = MainAPI(network, addr, port))
-    mainP2P.network = network
-    network.p2p = mainP2P
     network.initialize()        # instantiate nodes
     network.load()              # load previous state from file
     network.post_load()         # run post-load routine to prepare physical state
@@ -98,9 +92,6 @@ def run_frontend():
 
 def restart():
     # ''' Send shutdown message to dashboard '''
-    mainP2P.send({'op': 'shutdown'})
-    mainP2P.close()
-
     import os
     string = 'ipython --gui qt5 -i main.py -- '
     string += sys_argv.name

@@ -12,14 +12,13 @@ from emergent.modules.api import DashAPI
 from emergent.utilities.signals import DictSignal
 import requests
 import pickle
+import logging
 
 class Dashboard(QMainWindow):
-    def __init__(self, app, p2p, addr, port):
+    def __init__(self, app, addr, port):
         QMainWindow.__init__(self)
         self.addr = addr
         self.port = port
-        self.p2p = p2p
-        self.p2p.api = DashAPI(self)
         self.app = app
         ''' Set window style '''
         self.setWindowTitle('EMERGENT Dashboard')
@@ -56,6 +55,28 @@ class Dashboard(QMainWindow):
         button = QPushButton('Show grid')
         button.clicked.connect(self.show_grid)
         self.experiment_layout.addWidget(button)
+
+        ''' Launch Flask socketIO server '''
+        from flask import Flask
+        from flask_socketio import SocketIO, emit
+
+        logging.getLogger('socketio').setLevel(logging.ERROR)
+        logging.getLogger('engineio').setLevel(logging.ERROR)
+        app = Flask(__name__)
+        socketio = SocketIO(app, logger=False)
+
+        @socketio.on('actuate')
+        def actuate(state):
+            self.actuate_signal.emit(state)
+
+        @socketio.on('event')
+        def event(event):
+            self.task_panel.add_event(event)
+        print('Starting flask-socketio server')
+        from threading import Thread
+        thread = Thread(target=socketio.run, args=(app,), kwargs={'port': 8000})
+        thread.start()
+        self.post('handshake', {'port': 8000})
 
     def get(self, url, format = 'json'):
         r = requests.get('http://%s:%s/'%(self.addr, self.port)+url)

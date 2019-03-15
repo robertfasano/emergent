@@ -125,7 +125,6 @@ class TaskPanel(QVBoxLayout):
     def on_double_click(self, row, col):
         id = self.table.item(row, 4).text()
         hub = self.table.item(row, 5).text()
-        # sampler = self.dashboard.p2p.get('sampler', params={'id': id, 'hub': hub})
         self.visualizer = Visualizer(hub, id, self)
 
 

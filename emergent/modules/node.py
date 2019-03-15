@@ -283,7 +283,8 @@ class Thing(Node):
         self.update(state)
         self.signal.emit(state)
         if send_over_p2p:
-            self.parent.network.p2p.set('state', {self.parent.name: {self.name: state}})
+            if hasattr(self.parent.network, 'socketIO'):
+                self.parent.network.socketIO.emit('actuate', {self.parent.name: {self.name: state}})
 
     def update(self, state):
         """Synchronously updates the state of the Input, Thing, and Hub.
