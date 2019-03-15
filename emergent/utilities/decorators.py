@@ -3,6 +3,11 @@ import numpy as np
 import time
 
 @decorator.decorator
+def thread(func, *args, **kwargs):
+    new_thread = Thread(target=func, args=args, kwargs=kwargs)
+    new_thread.start()
+    
+@decorator.decorator
 def experiment(func, hub, sampler, state):
     results = []
     params = sampler.experiment_params
