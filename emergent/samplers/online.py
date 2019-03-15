@@ -2,6 +2,7 @@ from emergent.utilities.containers import Parameter
 import numpy as np
 from emergent.utilities.plotting import plot_2D
 from emergent.samplers.sampling import Sampling
+import logging as log
 
 class Online(Sampling):
     def __init__(self, sampler = None):
@@ -31,6 +32,7 @@ class Online(Sampling):
 
     def _run(self, state):
         ''' Perform initial random sampling '''
+        log.info('Randomly sampling to pre-train model.')
         X, c = self.sampler.sample(state, 'random_sampling', self.params['Presampled points'].value)
         self.sampler.model.append(X, c)
         best_costs = []
@@ -39,7 +41,11 @@ class Online(Sampling):
                 self.points = self.sampler.model.points
                 self.costs = self.sampler.model.costs
                 return self.sampler.model.points[0:len(self.sampler.model.costs)], self.sampler.model.costs
+
+            log.info('Training model.')
             self.sampler.model.fit()
+
+            log.info('Sampling batch %i'%(i+1))
             a = i / (self.params['Iterations'].value-1)        # scale from explorer to optimizer through iterations
             for j in range(int(self.params['Batch size'].value)):
                 b = a * j / (self.params['Batch size'].value-1)        # scale from explorer to optimizer throughout batch
