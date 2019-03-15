@@ -69,8 +69,6 @@ class MeasureLayout(QVBoxLayout, ProcessHandler):
             return settings
 
         settings['experiment']['params'] = self.experiment_table.get_params()
-        if 'cycles per sample' not in settings['experiment']['params']:
-            settings['experiment']['params']['cycles per sample'] = 1
         settings['experiment']['params']['iterations'] = self.runIterationsEdit.text()
         if settings['experiment']['params']['iterations'] != 'Continuous':
             settings['experiment']['params']['iterations'] = int(settings['experiment']['params']['iterations'])

@@ -10,6 +10,8 @@ def experiment(func, hub, sampler, state):
         to reacquire lock with the Watchdog.react() method '''
     if not sampler.skip_lock_check:
         hub._check_lock()
+    if 'cycles per sample' not in params:
+        params['cycles per sample'] = 1
     for i in range(int(params['cycles per sample'])):
         if sampler.trigger is not None:
             sampler.trigger()

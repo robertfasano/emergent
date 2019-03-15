@@ -121,9 +121,6 @@ class ModelLayout(QVBoxLayout, ProcessHandler):
         settings['process']['callback'] = None
         settings['process']['type'] = 'model'
 
-        if 'cycles per sample' not in settings['experiment']['params']:
-            settings['experiment']['params']['cycles per sample'] = 1
-
         return settings
 
     def update_params(self):
