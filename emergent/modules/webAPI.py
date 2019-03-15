@@ -329,7 +329,7 @@ def serve(network, addr):
             network.socketIO.emit('event', params)
 
         if 'trigger' in settings['process']:
-            trigger = getattr(settings['hub'], settings['process']['trigger'])
+            sampler.trigger = getattr(settings['hub'], settings['process']['trigger'])
 
         ''' Run process '''
         if settings['state'] == {} and settings['process']['type'] != 'run':
