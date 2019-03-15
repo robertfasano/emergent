@@ -16,10 +16,10 @@ setup(
                       'flask']
 )
 
-# packages = ['pyqt5', 'pyqt5-sip', 'pyqt5-tools']
-# for pkg in packages:
-#     os.system('pip uninstall pkg')
-# os.system('pip install pyqt5==5.9.2')
+packages = ['pyqt5', 'pyqt5-sip', 'pyqt5-tools']
+for pkg in packages:
+    os.system('pip uninstall %s'%pkg)
+os.system('pip install pyqt5==5.9.2')
 
 ''' Prepare batch file and shortcut '''
 import sys, os
