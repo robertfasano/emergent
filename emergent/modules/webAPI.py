@@ -276,6 +276,25 @@ def serve(network, addr):
 
 
 
+    ''' Hub sequencing endpoints '''
+    @app.route('/hubs/<hub>/switches')
+    def hub_switches(hub):
+        switches = network.hubs['hub'].switches
+        return json.dumps(list(switches.keys()))
+
+    @app.route('/hubs/<hub>/sequencer/sequence', methods=['GET', 'POST'])
+    def hub_sequence(hub):
+        s = network.hubs['hub'].children['sequencer']
+        if request.method == 'POST':
+            s.steps = request.get_json()
+        return json.dumps(s.steps)
+
+    @app.route('/hubs/<hub>/sequencer/current_step', methods=['GET', 'POST'])
+    def hub_sequencer_step(hub):
+        s = network.hubs['hub'].children['sequencer']
+        if request.method == 'POST':
+            s.goto(request.get_json()['step'])
+        return json.dumps(s.current_step)
 
     ''' Remote procedure call endpoints '''
     @app.route('/run', methods=['POST'])

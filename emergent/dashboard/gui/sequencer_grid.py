@@ -37,17 +37,12 @@ class StateCheckbox(QCheckBox):
         self.stateChanged.connect(self.onChanged)
 
     def onChanged(self, state):
-        # self.timestep['state'][self.channel] = int(self.isChecked())
         sequence = self.grid.get_sequence()
-        print('Setting sequence to:', sequence)
         params = {'hub': self.hub}
-        self.dashboard.p2p.set('sequence', sequence, params = params)
-        current_step = self.dashboard.p2p.get('sequence step', params = {'hub': self.hub})
+        self.dashboard.post('hubs/%s/sequencer/sequence'%self.hub, sequence)
+        current_step = self.dashboard.get('hubs/%s/sequencer/current_step'%self.hub)
         if current_step == self.name:
-            self.dashboard.p2p.send({'op': 'goto', 'params': {'hub': self.hub, 'step': self.name}})
-        # if self.sequencer is not None:
-        #     if self.timestep['name'] == self.sequencer.current_step:
-        #         self.sequencer.goto(self.timestep['name'])
+            self.dashboard.post('hubs/%s/sequencer/current_step'%self.hub, {'step': self.name})
 
 class StepEdit(QLineEdit):
     def __init__(self, name, text, dashboard, hub):
@@ -62,7 +57,7 @@ class StepEdit(QLineEdit):
 
     def onReturn(self):
         state = {self.hub: {'sequencer':{self.name: float(self.text())}}}
-        self.dashboard.p2p.set('state', state)
+        self.dashboard.post('state', state)
         self.dashboard.actuate_signal.emit(state)
 
 class BoldLabel(QLabel):
@@ -96,14 +91,14 @@ class GridWindow(QWidget):
         self.widget.setLayout(self.grid_layout)
         self.layout.addWidget(self.widget)
 
-        self.switches = self.dashboard.p2p.get('switches', params={'hub': self.hub})
+        self.switches = self.dashboard.get('hubs/%s/switches'%self.hub)
         ''' Create switch labels '''
         row = 2
         for switch in self.switches:
             self.grid_layout.addWidget(QLabel(switch), row, 0)
             row += 1
 
-        timesteps = self.dashboard.p2p.get('sequence', params={'hub': self.hub})
+        timesteps = self.dashboard.get('hubs/%s/sequencer/sequence'%self.hub)
         self.draw(timesteps)
 
         self.dashboard.actuate_signal.connect(self.actuate)
@@ -116,7 +111,7 @@ class GridWindow(QWidget):
         for step in sequence:
             self.add_step(step, sequence[step], col)
             col += 1
-        # self.bold_active_step()
+        self.bold_active_step()
 
     def redraw(self, sequence):
         for step in self.labels:
@@ -160,13 +155,14 @@ class GridWindow(QWidget):
             self.grid_layout.removeWidget(widget)
             widget.deleteLater()
 
-    #
-    # def bold_active_step(self):
-    #     for step in self.sequencer.steps:
-    #         if step['name'] == self.sequencer.current_step:
-    #             self.labels[step['name']].setBold(True)
-    #         else:
-    #             self.labels[step['name']].setBold(False)
+    def bold_active_step(self):
+        steps = self.dashboard.get('hubs/%s/sequencer/sequence'%self.hub)
+        current_step = self.dashboard.get('hubs/%s/sequencer/current_step'%self.hub)
+        for step in steps:
+            if step == current_step:
+                self.labels[step].setBold(True)
+            else:
+                self.labels[step].setBold(False)
 
     def actuate(self, state):
         try:
