@@ -51,6 +51,9 @@ class Node():
         self.buffer = StateBuffer(self)
         self.macro_buffer = MacroBuffer(self)
 
+    def exec_option(self, option):
+        self.options[option]()
+
     def get_root(self):
         ''' Returns the root Hub of any branch. '''
         root = self

@@ -118,7 +118,7 @@ def serve(network, addr):
     @app.route('/hubs/<hub>/options')
     def hub_options(hub):
         hub = network.hubs[hub]
-        return json.dumps(hub.options)
+        return json.dumps(list(hub.options.keys()))
 
     @app.route('/hubs/<hub>/exec', methods=['POST'])
     def hub_exec(hub):

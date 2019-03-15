@@ -275,13 +275,19 @@ class NodeTree(QTreeWidget):
     def exec_option(self, params, option):
         ''' Takes a params dict containing a node specified by input, thing, hub
             and a key corresponding to the options dict on the node '''
-        print('Sending option exec:', params)
         d = {}
         for key in params:
             d[key] = params[key]
         d['method'] = option
-        self.dashboard.p2p.send({'op': 'option', 'params': d})
 
+        url = 'hubs/%s'%params['hub']
+        if 'thing' in params:
+            url += '/things/%s'%params['thing']
+        if 'input' in params:
+            url += '/inputs/%s'%params['input']
+        url += '/exec'
+        self.dashboard.post(url, {'method': 'exec_option', 'args': (option,)})
+        
 from emergent.utilities.signals import FloatSignal
 
 class HubWidget(QTreeWidgetItem):
