@@ -5,7 +5,7 @@ from emergent.networks.monitor import network as monitor
 from __main__ import *
 
 def initialize(network):
-    pa = Photoassociation(name = 'photoassociation', network = network)
+    pa = Photoassociation(name = 'photoassociation', network = network, addr='127.0.0.1')
     pa.labjack = LabJack(name = 'labjack', params = {'devid': '440010742'}, parent = pa)
     pa.labjack.add_input('TDAC6')
 
