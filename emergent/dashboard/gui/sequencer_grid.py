@@ -1,13 +1,8 @@
 
-from PyQt5.QtWidgets import (QApplication, QComboBox, QLabel, QVBoxLayout, QLineEdit, QLayout, QScrollArea,
-        QWidget, QCheckBox, QHBoxLayout, QTabWidget, QGridLayout, QMenu, QAction, QTreeWidget, QTreeWidgetItem, QSizePolicy)
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from emergent.gui.elements.ParameterTable import ParameterTable
-from matplotlib.figure import Figure
-plt.ioff()
-from PyQt5.QtCore import QTimer, Qt, QSize
-from PyQt5.QtGui import QCursor, QPixmap, QPainter
+from PyQt5.QtWidgets import (QApplication, QLabel, QLineEdit,
+        QWidget, QCheckBox, QHBoxLayout, QGridLayout, QSizePolicy)
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QPainter
 
 class VerticalLabel(QWidget):
     def __init__(self, text=None):
