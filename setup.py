@@ -10,7 +10,7 @@ setup(
     packages=find_packages(exclude=['docs']),
     license='MIT',
     long_description=open('README.md').read(),
-    install_requires=['pyqt5', 'pyqt5-sip', 'pyserial', 'ipython', 'influxdb',
+    install_requires=['pyqt5==5.9.2', 'pyserial', 'ipython', 'influxdb',
                       'pint', 'sip', 'matplotlib', 'pandas', 'scipy', 'psutil',
                       'sklearn', 'eventlet', 'flask-socketio', 'socketIO_client',
                       'flask']
@@ -24,16 +24,11 @@ setup(
 ''' Prepare batch file and shortcut '''
 import sys, os
 if os.name == 'nt':
-    scripts_dir = sys.executable.split('python')[0]+'Scripts/'
-    with open('emergent/run.cmd', 'w') as file:
-        file.write('@ECHO OFF\ncall %sactivate.bat\ncall python launcher.py'%scripts_dir)
+    scripts_dir = sys.executable.split('python')[0]+'Scripts'
 
-    import win32com.client
-    import os
-    ws = win32com.client.Dispatch("wscript.shell")
-    shortcut = ws.CreateShortcut('emergent/EMERGENT.lnk')
-    shortcut.TargetPath = 'C:/Windows/System32/cmd.exe'
-    shortcut.Arguments = '/k "%s/emergent/run.cmd"'%os.getcwd()
-    shortcut.IconLocation = '%s/emergent/gui/media/icon.ico'%os.getcwd()
-
-    shortcut.Save()
+    with open('/emergent_master.cmd', 'w') as file:
+        file.write('cd /emergent/emergent\ncall activate emergent\n%s\ipython3.exe -i /emergent/emergent/main.py -- %%1 --addr 127.0.0.1'%scripts_dir)
+    with open('/emergent_dashboard.cmd', 'w') as file:
+        file.write('cd /emergent/emergent\ncall activate emergent\n%s\ipython3.exe -i /emergent/emergent/dashboard/main.py -- --addr 127.0.0.1'%scripts_dir)
+    with open('/emergent_session.cmd', 'w') as file:
+        file.write('start "" "/emergent_master.cmd" %1\nstart "" "/emergent_dashboard.cmd"')
