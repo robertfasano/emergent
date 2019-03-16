@@ -9,7 +9,7 @@ import matplotlib.gridspec as gridspec
 plt.ioff()
 
 def plot_1D(points, costs, cost_name = 'Cost', normalized_cost = False, limits = None,
-            save = False, ax = None, xlabel = None, ylabel = None, errors = None):
+            save = False, ax = None, xlabel = None, ylabel = None, errors = None, yscale='linear'):
     passed_ax = ax
     fig = None
     if ax is None:
@@ -34,6 +34,7 @@ def plot_1D(points, costs, cost_name = 'Cost', normalized_cost = False, limits =
     if ylabel is not None:
         plt.ylabel(ylabel)
     plt.tight_layout(pad=4)
+    plt.yscale(yscale)
     return ax, fig
 
 def plot_2D(points, costs, normalized_cost = False, limits = None,
