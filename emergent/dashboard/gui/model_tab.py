@@ -121,7 +121,8 @@ class ModelLayout(QVBoxLayout, ProcessHandler):
         settings['process']['callback'] = None
         settings['process']['type'] = 'model'
 
-        settings['process']['trigger'] = self.trigger_box.currentText()
+        if self.trigger_box.currentText() != '':
+            settings['process']['trigger'] = self.trigger_box.currentText()
 
         if 'cycles per sample' not in settings['experiment']['params']:
             settings['experiment']['params']['cycles per sample'] = 1
