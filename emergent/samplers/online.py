@@ -29,12 +29,18 @@ class Online(Sampling):
                                             min = 1e-4,
                                             max = 1e-1,
                                             description = 'Relative tolerance required for convergence')
+        self.params['Mode'] = Parameter(name='Mode',
+                                           value = ['Optimizer', 'Explorer', 'Hybrid'],
+                                           description = 'Peak-seeking behavior.')
 
     def _run(self, state):
         ''' Perform initial random sampling '''
         log.info('Randomly sampling to pre-train model.')
         X, c = self.sampler.sample(state, 'random_sampling', self.params['Presampled points'].value)
         self.sampler.model.append(X, c)
+        if self.params['Mode'].value in ['Optimizer', 'Explorer']:
+            log.warning('Overriding batch size to 1 for selected mode.')
+            self.params['Batch size'].value = 1        
         best_costs = []
         for i in range(int(self.params['Iterations'].value)):
             if not self.sampler.callback():
@@ -48,7 +54,16 @@ class Online(Sampling):
             log.info('Sampling batch %i'%(i+1))
             a = i / (self.params['Iterations'].value-1)        # scale from explorer to optimizer through iterations
             for j in range(int(self.params['Batch size'].value)):
-                b = a * j / (self.params['Batch size'].value-1)        # scale from explorer to optimizer throughout batch
+                if self.params['Batch size'].value > 1:
+                    # b = a * j / (self.params['Batch size'].value-1)        # scale from explorer to optimizer throughout batch
+                    b = j / (self.params['Batch size'].value-1)        # scale from explorer to optimizer throughout batch
+
+                else:
+                    b = 1
+                if self.params['Mode'].value == 'Explorer':
+                    b = 0
+                elif self.params['Mode'].value == 'Optimizer':
+                    b = 1
                 new_point = self.sampler.model.next_sample(b=b)
                 new_cost = self.sampler._cost(new_point)
                 self.sampler.model.append(new_point, new_cost)
