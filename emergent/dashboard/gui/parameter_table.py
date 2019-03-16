@@ -30,6 +30,8 @@ class ParameterTable(QTableWidget):
             name = self.item(row, 0).text()
             if self.cellWidget(row, 1) is not None:
                 value = self.cellWidget(row, 1).currentText()
+                params[name] = value
+                continue
             else:
                 value = self.item(row, 1).text()
             if value == '[]':
@@ -57,8 +59,9 @@ class ParameterTable(QTableWidget):
         self.setItem(row, 0, name_item)
         self.setItem(row, 1, QTableWidgetItem(str(value)))
         try:
-            value = json.loads(value)
-            if type(value) == list:
+            if type(value) is not list:
+                value = json.loads(value.replace("'", '"'))
+            if type(value) is list:
                 box = QComboBox()
                 for item in value:
                     box.addItem(str(item))
