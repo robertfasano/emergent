@@ -69,7 +69,6 @@ class TaskPanel(QVBoxLayout):
 
         self.update_timer = QTimer(self)
         self.update_timer.timeout.connect(lambda: self.update_visible_rows(''))
-        self.update_timer.start(250)
 
         self.signal = DictSignal()
         self.signal.connect(self._add_event)
@@ -78,6 +77,7 @@ class TaskPanel(QVBoxLayout):
         self.signal.emit(event)
 
     def _add_event(self, event, status = ''):
+        self.update_timer.start(250)
         row = self.table.rowCount()
         self.table.insertRow(row)
         self.table.setItem(row, 0, QTableWidgetItem(event['start time']))
@@ -106,6 +106,8 @@ class TaskPanel(QVBoxLayout):
             if active:
                 active_rows.append(r)
             self.table.setItem(r, 3, QTableWidgetItem(str(active)))
+        if len(active_rows) == 0:
+            self.update_timer.stop()
         return active_rows
 
     def update_visible_rows(self, text):
