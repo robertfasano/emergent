@@ -7,7 +7,7 @@ from PyQt5.QtGui import QCursor
 from emergent.modules.parallel import ProcessHandler
 import logging as log
 import numpy as np
-from emergent.gui.elements.ParameterTable import ParameterTable
+from emergent.dashboard.gui.parameter_table import ParameterTable
 from emergent.utilities import recommender
 
 class ModelLayout(QVBoxLayout, ProcessHandler):
@@ -122,7 +122,7 @@ class ModelLayout(QVBoxLayout, ProcessHandler):
         settings['process']['type'] = 'model'
 
         settings['process']['trigger'] = self.trigger_box.currentText()
-        
+
         if 'cycles per sample' not in settings['experiment']['params']:
             settings['experiment']['params']['cycles per sample'] = 1
 

@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import (QComboBox, QLabel, QLineEdit, QPushButton, QVBoxLay
 from PyQt5.QtCore import *
 import logging as log
 import datetime
-from emergent.gui.elements.ParameterTable import ParameterTable
+from emergent.dashboard.gui.parameter_table import ParameterTable
 from emergent.modules.parallel import ProcessHandler
 
 class MeasureLayout(QVBoxLayout, ProcessHandler):
