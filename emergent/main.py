@@ -64,7 +64,7 @@ def launch():
     network.load()              # load previous state from file
     network.post_load()         # run post-load routine to prepare physical state
 
-    from emergent.modules.webAPI import serve
+    from emergent.API.API import serve 
     from threading import Thread
     thread = Thread(target=serve, args = (network, addr))
     thread.start()
