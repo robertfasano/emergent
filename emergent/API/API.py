@@ -14,41 +14,6 @@ from emergent.modules import ProcessHandler
 import importlib, inspect
 
 manager = ProcessHandler()
-def load_all_experiment_parameters(hub, experiment_name, model_name = None, sampler_name = None):
-    ''' Looks for algorithm parameters in the parameterfile for the experiment. If none exist,
-        get them from the default algorithm parameters.
-
-        Args:
-            hub (Hub): a node whose experiment we're about to run
-            experiment_name (str)
-            algorithm_name (str)
-            model_name (str)
-    '''
-
-    ''' Look for relevant parameters in the json file in the network's params directory '''
-
-    params_filename = hub.network.path['params'] + '%s.%s.txt'%(hub.name, experiment_name)
-    params = {'experiment': {}}
-    params['experiment'] = recommender.get_default_experiment_params(hub, experiment_name)
-    p = {'experiment': params['experiment']}
-
-    if model_name is not None:
-        p['model'] = {}
-        if 'model' not in params:
-            params['model'] = {}
-        if model_name not in params['model']:
-            params['model'][model_name] = recommender.get_default_params('model', model_name)
-        p['model'][model_name] = params['model'][model_name]
-
-    if sampler_name is not None:
-        p['sampler'] = {}
-        if 'sampler' not in params:
-            params['sampler'] = {}
-        if sampler_name not in params['sampler']:
-            params['sampler'][sampler_name] = recommender.get_default_params('sampler', sampler_name)
-        p['sampler'][sampler_name] = params['sampler'][sampler_name]
-
-    return p
 
 def serve(network, addr):
     app = Flask(__name__)
