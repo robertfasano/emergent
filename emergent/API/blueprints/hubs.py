@@ -9,12 +9,27 @@ def get_blueprint(network):
 
     @blueprint.route('/')
     def list_hubs():
-        return json.dumps(list(network.hubs.keys()))
+        hubs = list(network.hubs.keys())
+        links = []
+        html = ''
+        for hub in hubs:
+            new = '<a href=%s>hub</a>'%hub
+            links.append(new)
+            html += new
+        # return json.dumps(links)
+        return html
 
     @blueprint.route('/<hub>')
     def list_hub_endpoints(hub):
-        endpoints = ['experiments', 'state', 'range']
-        return json.dumps(endpoints)
+        endpoints = ['experiments', 'state', 'range', 'options']
+        links = []
+        html = ''
+        for endpoint in endpoints:
+            new = '<p><a href=%s/%s>%s</a></p>'%(hub, endpoint, endpoint)
+            links.append(new)
+            html += new
+        # return json.dumps(links)
+        return html
 
     @blueprint.route('/<hub>/state', methods = ['GET', 'POST'])
     def hub_state(hub):
