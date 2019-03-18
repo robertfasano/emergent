@@ -68,7 +68,7 @@ class Sampler():
     def __getstate__(self):
         d = {}
         d['experiment_name'] = self.experiment.__name__
-        for x in ['model', 'algorithm_params', 'experiment_params', 'history', 'state', 'name', 'inputs', 'start_time', 'hub', 'experiment', 'algorithm']:
+        for x in ['limits', 'model', 'algorithm_params', 'experiment_params', 'history', 'state', 'name', 'inputs', 'start_time', 'hub', 'experiment', 'algorithm']:
             d[x] = self.__dict__[x]
 
         return d
@@ -249,6 +249,11 @@ class Sampler():
         self.history = pd.DataFrame(columns=cols)
         bounds = np.array(list(itertools.repeat([0, 1], num_items)))
         state = self.state2array(state)
+
+        # ''' Sample initial point '''
+        # c = self._cost(state)
+        # if hasattr(self, 'model'):
+        #     self.model.append(state, c)
 
         return state, bounds
 
