@@ -306,7 +306,7 @@ class Hub(Node):
     ''' The Hub oversees connected Things, allowing the Inputs to be
         algorithmically tuned to optimize some target function. '''
 
-    def __init__(self, name, params={}, addr=None, network=None, parent=None):
+    def __init__(self, name, params={}, addr='127.0.0.1', network=None, parent=None):
         """Initializes a Hub.
 
         Args:
