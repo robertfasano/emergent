@@ -38,6 +38,15 @@ class Dashboard(QMainWindow):
         self.actuate_signal = DictSignal()
         self.show_grid_signal = DictSignal()
         self.show_grid_signal.connect(self.show_grid)
+
+        ''' Wait until connection is established '''
+        self._connected = False
+        while True:
+            try:
+                self.get('', format='raw')
+                break
+            except Exception:
+                continue
         ''' Create QTreeWidget '''
         self.tree_layout = QVBoxLayout()
         self.tree_widget = NodeTree(self)
