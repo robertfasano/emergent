@@ -2,5 +2,4 @@ test:
   script:
   - apt-get update -qy
   - apt-get install -y python-dev python-pip
-  - pip install -r requirements.txt
-  - python test.py
+  - python setup.py develop
