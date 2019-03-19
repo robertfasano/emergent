@@ -6,6 +6,8 @@ import numpy as np
 import pandas as pd
 from matplotlib.ticker import NullFormatter
 import matplotlib.gridspec as gridspec
+from mpl_toolkits import mplot3d
+
 plt.ioff()
 
 def plot_1D(points, costs, cost_name = 'Cost', normalized_cost = False, limits = None,
@@ -81,6 +83,7 @@ def plot_2D(points, costs, normalized_cost = False, limits = None,
     axy = plt.subplot(gs[0:8, 8:10])
     # ax0.scatter(points[:,0], points[:,1])
     plot = ax0.pcolormesh(ordinate_mesh, abscissa_mesh, cost_grid, cmap=color_map)
+
     # plt.colorbar(plot, ax = ax0)
 
     axx.plot(xi, zix, '.')
@@ -109,6 +112,44 @@ def plot_2D(points, costs, normalized_cost = False, limits = None,
         axx.set_xlabel(names[0])
         axy.set_ylabel(names[1])
         axy.yaxis.set_label_position("right")
+
+    plt.tight_layout(pad=0.5)
+    return fig
+
+
+
+
+def plot_surface(points, costs, normalized_cost = False, limits = None,
+            save = False, color_map='viridis_r', ax = None):
+    ''' Interpolates and plots a cost function sampled at an array of points. '''
+    costs = costs.copy()[::-1]
+    points = points.copy()[::-1]        # ignore last point where we return to max, since this messes up the interpolation
+    norm_points = points.copy()[::-1]
+    ordinate_index = 0
+    abscissa_index = 1
+    if limits is not None:
+        names = list(limits.keys())
+        for i in [0,1]:
+            points[:,i] = limits[names[i]]['min'] + points[:,i]*(limits[names[i]]['max']-limits[names[i]]['min'])
+    ordinate_mesh, abscissa_mesh = np.meshgrid(points[:,ordinate_index], points[:, abscissa_index])
+
+    cost_grid = griddata(points[:,[ordinate_index, abscissa_index]], costs, (ordinate_mesh,abscissa_mesh))
+
+
+
+    ''' Plot cross sections around the best point '''
+    fig = plt.figure(figsize=(10,8))
+    gs = gridspec.GridSpec(10, 10)
+
+    ax0 = plt.axes(projection='3d')
+
+    plot = ax0.plot_surface(ordinate_mesh, abscissa_mesh, cost_grid, rstride=1, cstride=1,
+                cmap='viridis', edgecolor='none')
+
+    nullfmt = NullFormatter()
+    ax0.xaxis.set_major_formatter(nullfmt)
+    ax0.yaxis.set_major_formatter(nullfmt)
+
 
     plt.tight_layout(pad=0.5)
     return fig
