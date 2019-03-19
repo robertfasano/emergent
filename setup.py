@@ -11,8 +11,8 @@ setup(
     license='MIT',
     long_description=open('README.md').read(),
     install_requires=['pyqt5==5.9.2', 'pyserial', 'ipython', 'influxdb',
-                      'pint', 'sip', 'matplotlib', 'pandas', 'scipy', 'psutil',
-                      'sklearn', 'eventlet', 'flask-socketio', 'socketIO_client',
+                      'pint', 'matplotlib', 'pandas', 'scipy', 'psutil',
+                      'scikit-learn', 'eventlet', 'flask-socketio', 'socketIO_client',
                       'flask', 'jupyter']
 )
 
