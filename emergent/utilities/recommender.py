@@ -36,9 +36,9 @@ def get_default_algorithm(hub, experiment_name):
 def get_default_params(module, name):
     if name == 'None':
         return {}
-    module_name = {'sampler': 'samplers', 'model': 'models',
-                   'algorithm': 'optimizers', 'servo': 'servos'}[module]
-    instance = getattr(importlib.__import__(module_name), name)()
+    module_name = {'sampler': 'emergent.samplers', 'model': 'emergent.models',
+                   'algorithm': 'optimizers', 'servo': 'emergent.servos'}[module]
+    instance = getattr(importlib.import_module(module_name), name)()
     params = instance.params
     params_dict = {}
     for p in params:
@@ -61,20 +61,21 @@ def get_default_experiment_params(hub, experiment_name):
 def get_class(module, name):
     if name == 'None':
         return None
-    module_name = {'sampler': 'samplers', 'model': 'models',
-                   'algorithm': 'optimizers', 'servo': 'servos'}[module]
-    instance = getattr(importlib.__import__(module_name), name)()
+    module_name = {'sampler': 'emergent.samplers', 'model': 'emergent.models',
+                   'algorithm': 'optimizers', 'servo': 'emergent.servos'}[module]
+    instance = getattr(importlib.import_module(module_name), name)()
     return instance
 
 def list_classes(module_type):
-    module_name = {'sampler': 'samplers', 'model': 'models',
-                   'algorithm': 'optimizers', 'servo': 'servos'}[module_type]
-    module = importlib.__import__(module_name)
+    module_name = {'sampler': 'emergent.samplers', 'model': 'emergent.models',
+                   'algorithm': 'optimizers', 'servo': 'emergent.servos'}[module_type]
+    module = importlib.import_module(module_name)
     names = []
     for a in dir(module):
         if '__' not in a:
             inst = getattr(module, a)
-            names.append(inst().name)
+            if inspect.isclass(inst):
+                names.append(inst().name)
     return names
 
 def load_algorithm_parameters(hub, experiment_name, algorithm_name, module_type, default = False):
