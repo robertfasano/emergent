@@ -49,9 +49,9 @@ def launch():
     if args.addr:
         addr = args.addr
     else:
-        # addr = 'localhost'
-        addr = get_address()
-    port = 8000
+        addr = '127.0.0.1'
+        # addr = get_address()
+    port = 5000
 
 
     if args.port:
