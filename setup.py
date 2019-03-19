@@ -33,3 +33,10 @@ if os.name == 'nt':
         file.write('cd /emergent/emergent\ncall activate emergent\n%s\ipython3.exe -i /emergent/emergent/dashboard/main.py -- --addr 127.0.0.1'%scripts_dir)
     with open('/emergent_session.cmd', 'w') as file:
         file.write('start "" "/emergent_master.cmd" %1\nstart "" "/emergent_dashboard.cmd"')
+elif os.name == 'darwin':
+    with open(os.path.expanduser('~/emergent_master.sh'), 'w') as file:
+        file.write('source activate emergent\nipython -i ~/emergent/emergent/main.py -- $1')
+    with open(os.path.expanduser('~/emergent_dashboard.sh'), 'w') as file:
+        file.write('cd ~/emergent/emergent\nsource activate emergent\npython ~/emergent/emergent/dashboard/main.py')
+    with open(os.path.expanduser('~/emergent_session.sh'), 'w') as file:
+        file.write('open -a Terminal.app ~/emergent_dashboard.sh\n~/emergent_master.sh $1')
