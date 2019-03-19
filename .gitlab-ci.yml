@@ -1,4 +1,4 @@
-image: continuumio/anaconda3/latest
+image: continuumio/anaconda3:latest
 
 before_script:
   - conda env create -n emergent python=3.7 --yes
