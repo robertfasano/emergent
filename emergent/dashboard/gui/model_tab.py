@@ -155,3 +155,5 @@ class ModelLayout(QVBoxLayout, ProcessHandler):
         self.experiment_table.set_parameters(d['experiment'])
         if 'model' in d:
             self.model_table.set_parameters(d['model'][model_name])
+        else:
+            self.model_table.set_parameters({})
