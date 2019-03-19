@@ -73,6 +73,8 @@ class TaskPanel(QVBoxLayout):
         self.signal = DictSignal()
         self.signal.connect(self._add_event)
 
+        self.load_master_tasks()
+        
     def add_event(self, event):
         self.signal.emit(event)
 
@@ -109,6 +111,11 @@ class TaskPanel(QVBoxLayout):
         if len(active_rows) == 0:
             self.update_timer.stop()
         return active_rows
+
+    def load_master_tasks(self):
+        tasks = self.dashboard.get('tasks')
+        for t in tasks:
+            self._add_event(self.dashboard.get('tasks/%s'%t))
 
     def update_visible_rows(self, text):
         text = self.show_box.currentText()

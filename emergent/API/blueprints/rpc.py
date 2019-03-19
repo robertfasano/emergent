@@ -1,4 +1,4 @@
-from flask import Blueprint, request
+from flask import Blueprint, request, url_for
 import json
 import datetime
 from emergent.utilities import recommender, introspection
@@ -31,8 +31,9 @@ def get_blueprint(network):
 
         if 'algorithm' in settings:
             params['algorithm'] = settings['algorithm']['name']
-        if hasattr(network, 'socketIO'):
-            network.socketIO.emit('event', params)
+
+        import requests
+        requests.post(network.url+url_for('tasks.task', id=sampler.id), json=params)
 
         if 'trigger' in settings['process']:
             sampler.trigger = getattr(settings['hub'], settings['process']['trigger'])

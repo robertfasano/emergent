@@ -37,6 +37,8 @@ class Network():
         self.connection_params = {'sync delay': 0.1, 'reconnect delay': 1}
         self.hubs = {}
         self.params = {}
+        self.tasks = {}
+        self.url = 'http://' + self.addr + ':' + str(self.port)
         self.manager = ProcessHandler()
 
     def __getstate__(self):
