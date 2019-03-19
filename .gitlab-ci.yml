@@ -1,7 +1,7 @@
 image: continuumio/anaconda3:latest
 
 before_script:
-  - conda env create -n emergent python=3.7 --yes
+  - conda env create -n emergent python=3.7
   - source activate emergent
 
 test:
