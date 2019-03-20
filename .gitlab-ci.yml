@@ -4,11 +4,11 @@ before_script:
   - conda create -n emergent python=3.7
   - source activate emergent
 
-# build:
-#   script:
-#   - apt-get update -qy
-#   - apt-get install -y python-dev python-pip
-#   - python setup.py develop
+build:
+  script:
+  - apt-get update -qy
+  - apt-get install -y python-dev python-pip
+  - python setup.py develop
 
 network_construction:
   script:
