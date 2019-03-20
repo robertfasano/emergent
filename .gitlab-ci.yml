@@ -13,8 +13,8 @@ build:
 network_construction:
   script:
     - cd emergent
-    - jupyter nbconvert --to notebook --execute "tutorials/Getting started.ipynb"
+    - jupyter nbconvert --to notebook --execute "../tutorials/Getting started.ipynb"
 
 API_test:
   script:
-    - jupyter nbconvert --to notebook --execute "tutorials/HTTP API.ipynb"
+    - jupyter nbconvert --to notebook --execute "../tutorials/HTTP API.ipynb"
