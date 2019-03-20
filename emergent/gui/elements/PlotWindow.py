@@ -2,8 +2,8 @@
     including:
 
     * Evaluated cost vs. time
-    * Cost vs. inputs
-    * Inputs vs. time
+    * Cost vs. knobs
+    * Knobs vs. time
     * Custom algorithm plots, such as a 2D interpolated grid for GridSearch or a fitted kernel model for GaussianProcessRegression
 '''
 
@@ -67,17 +67,17 @@ class PlotWidget(QWidget):
         self.vert_layout.addLayout(self.layout)
         self.layout.addWidget(QLabel(self.sampler.experiment_name), 0, 1)
 
-        self.layout.addWidget(QLabel('Inputs:'), 0, 0)
+        self.layout.addWidget(QLabel('Knobs:'), 0, 0)
 
         tree = QTreeWidget()
         hub = self.sampler.hub
         top = QTreeWidgetItem([hub.name])
         tree.insertTopLevelItems(0, [top])
-        for thing in self.sampler.inputs:
+        for thing in self.sampler.knobs:
             thing_item = QTreeWidgetItem([thing])
             top.addChild(thing_item)
-            for input in self.sampler.inputs[thing]:
-                thing_item.addChild(QTreeWidgetItem([input]))
+            for knob in self.sampler.knobs[thing]:
+                thing_item.addChild(QTreeWidgetItem([knob]))
         tree.header().hide()
         tree.expandAll()
         self.layout.addWidget(tree, 1,0)
@@ -99,21 +99,21 @@ class PlotWidget(QWidget):
         self.canvas_hist = None
 
         self.draw_hist_fig()
-        inputs = []
+        knobs = []
         if not (self.cvp is None and self.pvt is None):
             ''' 1D tab '''
             self.tab1 = QWidget()
             self.tabs.addTab(self.tab1,"1D")
             self.tab1_layout = QVBoxLayout()
 
-            self.tab1_input_layout = QHBoxLayout()
-            self.input_box = QComboBox()
-            self.tab1_input_layout.addWidget(self.input_box)
-            for input in list(cvp.keys()):
-                inputs.append(input)
-                self.input_box.addItem(input)
-            self.input_box.currentTextChanged.connect(self.choose_input)
-            self.tab1_layout.addLayout(self.tab1_input_layout)
+            self.tab1_knob_layout = QHBoxLayout()
+            self.knob_box = QComboBox()
+            self.tab1_knob_layout.addWidget(self.knob_box)
+            for knob in list(cvp.keys()):
+                knobs.append(knob)
+                self.knob_box.addItem(knob)
+            self.knob_box.currentTextChanged.connect(self.choose_knob)
+            self.tab1_layout.addLayout(self.tab1_knob_layout)
 
             self.tab1_plot_layout = QHBoxLayout()
             self.tab1_layout.addLayout(self.tab1_plot_layout)
@@ -124,9 +124,9 @@ class PlotWidget(QWidget):
             self.canvas2d = None
             self.canvas = [self.canvas1]
 
-            self.choose_input()
+            self.choose_knob()
 
-        if len(inputs) == 2 and self.sampler.algorithm is not None:
+        if len(knobs) == 2 and self.sampler.algorithm is not None:
             self.tab_algo = QWidget()
             fig = self.sampler.algorithm.plot()
             if fig is not None:
@@ -136,7 +136,7 @@ class PlotWidget(QWidget):
                 self.tab_algo_layout.addWidget(self.canvas_algorithm)
                 self.canvas_algorithm.draw()
 
-        if len(inputs) == 2 and self.sampler.model is not None:
+        if len(knobs) == 2 and self.sampler.model is not None:
             self.tab_model = QWidget()
             fig = self.sampler.model.plot()
             if fig is not None:
@@ -151,16 +151,16 @@ class PlotWidget(QWidget):
         # self.update_timer.timeout.connect(self.update_figs)
         # self.update_timer.start(1000)
 
-    def choose_input(self):
+    def choose_knob(self):
         if self.canvas1 is not None:
             self.tab1_plot_layout.removeWidget(self.canvas1)
             self.canvas1.deleteLater()
         if self.canvas2 is not None:
             self.tab1_plot_layout.removeWidget(self.canvas2)
             self.canvas2.deleteLater()
-        input = self.input_box.currentText()
-        self.canvas1 = Canvas(self.cvp[input], self)
-        self.canvas2 = Canvas(self.pvt[input], self)
+        knob = self.knob_box.currentText()
+        self.canvas1 = Canvas(self.cvp[knob], self)
+        self.canvas2 = Canvas(self.pvt[knob], self)
 
         self.tab1_plot_layout.addWidget(self.canvas1)
         self.tab1_plot_layout.addWidget(self.canvas2)
@@ -169,7 +169,7 @@ class PlotWidget(QWidget):
         self.canvas2.draw()
 
 
-    # def choose_input_pair(self):
+    # def choose_knob_pair(self):
     #     if self.canvas2d is not None:
     #         self.tab2d_layout.removeWidget(self.canvas2d)
     #         self.canvas2d.deleteLater()
@@ -195,7 +195,7 @@ class PlotWidget(QWidget):
 
     def update_figs(self):
         self.hist_fig, self.cvp, self.pvt = self.container.generate_figures()
-        self.choose_input()
+        self.choose_knob()
         self.draw_hist_fig()
         if self.sampler.active and self.isVisible():
             return

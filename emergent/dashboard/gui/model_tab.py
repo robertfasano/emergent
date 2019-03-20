@@ -107,7 +107,7 @@ class ModelLayout(QVBoxLayout, ProcessHandler):
             settings['hub'] = self.parent.dashboard.tree_widget.get_selected_hub()
         except Exception as e:
             if e == IndexError:
-                log.warn('Select inputs before starting optimization!')
+                log.warn('Select knobs before starting optimization!')
             elif e == KeyError:
                 log.warn('Decentralized processes not yet supported.')
             return

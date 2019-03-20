@@ -109,11 +109,11 @@ class Network():
         for hub_name in settings:
             hub = self.hubs[hub_name]
             for thing_name in settings[hub_name]:
-                for input_name in settings[hub_name][thing_name]:
-                    d = settings[hub_name][thing_name][input_name]
+                for knob_name in settings[hub_name][thing_name]:
+                    d = settings[hub_name][thing_name][knob_name]
                     for qty in ['min', 'max']:
                         if qty in d:
-                            hub.range[thing_name][input_name][qty] = d[qty]
+                            hub.range[thing_name][knob_name][qty] = d[qty]
 
     def range(self):
         ''' Obtains a macroscopic range dict from aggregating the settings of all

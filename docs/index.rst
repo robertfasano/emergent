@@ -11,7 +11,7 @@ EMERGENT
 Overview
 -------------------
 What is an experiment? Broadly speaking, an experiment is a process which seeks
-to map out the relationship between a set of inputs and some measurable signal.
+to map out the relationship between a set of knobs and some measurable signal.
 Surprisingly many state-of-the-art experiments in modern science rely on grad students
 turning knobs, often following some informal algorithm gleaned from their own experience.
 I say this is surprising for two reasons. First, it is usually very simple to gain
@@ -25,7 +25,7 @@ so simple to control a large experiment for a host of reasons:
 
 * As the number of input variables increases, more and more sophisticated algorithms are needed to explore the parameter space.
 * Controlling many devices from a centralized program quickly leads to tangled, unsalvageable code if scalability is not considered.
-* Many experiments have coupled inputs, where the optimum position of one knob depends on another.
+* Many experiments have coupled degrees of freedom, where the optimum position of one knob depends on another.
 
 We wrote EMERGENT to attempt to solve these problems.
 
@@ -37,7 +37,7 @@ writing code as possible.
 Introduction
 ---------------
 What is an experiment? Broadly speaking, an experiment is a process which seeks
-to map out the relationship between a set of inputs and some measurable signal.
+to map out the relationship between a set of knobs and some measurable signal.
 Sometimes this relationship can be very simple, such as a linear dependence between
 a knob position and a voltage. However, many experimental outcomes depend on the
 simultaneous states of many, possibly coupled and/or nonlinear, degrees of freedom,

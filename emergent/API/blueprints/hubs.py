@@ -186,7 +186,7 @@ def get_blueprint(network):
             d['model'] = {'name': obj.model.name, 'params': obj.model_params}
         d['limits'] = hub.range
         d['hub'] = hub.name
-        d['inputs'] = obj.inputs
+        d['knobs'] = obj.knobs
 
         return json.dumps(d)
 

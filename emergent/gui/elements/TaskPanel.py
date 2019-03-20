@@ -154,22 +154,22 @@ class Visualizer(QWidget):
         costs *= -1
         t = t.copy()-t[0]
         if points is None:
-            num_inputs = 0
+            num_knobs = 0
         else:
-            num_inputs = points.shape[1]
+            num_knobs = points.shape[1]
         hub = self.sampler.hub
         cost_vs_param = None
         param_vs_time = None
-        if num_inputs > 0:
+        if num_knobs > 0:
             ''' costs vs parameters '''
-            fig, ax = plt.subplots(2,num_inputs, figsize=(10, 8))
-            if num_inputs > 1:
+            fig, ax = plt.subplots(2,num_knobs, figsize=(10, 8))
+            if num_knobs > 1:
                 ax0 = ax[0]
             else:
                 ax0 = ax
             ax0[0].set_ylabel(self.sampler.experiment.__name__)
             cost_vs_param = {}
-            for i in range(num_inputs):
+            for i in range(num_knobs):
                 p = points[:,i]
                 name =  self.sampler.history.columns[i].replace('.', ': ')
                 limits = {name: self.sampler.get_limits()[name]}
@@ -179,13 +179,13 @@ class Visualizer(QWidget):
 
             ''' parameters vs time '''
             param_vs_time = {}
-            for i in range(num_inputs):
+            for i in range(num_knobs):
                 p = points[:,i]
                 name =  self.sampler.history.columns[i].replace('.', ': ')
                 limits = self.sampler.get_limits()
                 p = limits[name]['min'] + p*(limits[name]['max']-limits[name]['min'])
 
-                if num_inputs == 1:
+                if num_knobs == 1:
                     cax = ax[1]
                 else:
                     cax = ax[1][i]
@@ -196,7 +196,7 @@ class Visualizer(QWidget):
 
         ''' 2d plots '''
 
-        # axis_combos = list(itertools.combinations(range(num_inputs),2))
+        # axis_combos = list(itertools.combinations(range(num_knobs),2))
         # fig2d = {}
         # if self.process_type == 'optimize':
         #     for a in axis_combos:
@@ -206,8 +206,8 @@ class Visualizer(QWidget):
         #             full_name =  self.sampler.history.columns[ax]
         #             full_names.append(full_name)
         #             thing = full_name.split('.')[0]
-        #             input = full_name.split('.')[1]
-        #             limits[full_name.replace('.', ': ')] =  hub.range[thing][input]
+        #             knob = full_name.split('.')[1]
+        #             limits[full_name.replace('.', ': ')] =  hub.range[thing][knob]
         #         axis_combo_name = full_names[0] + '/' + full_names[1]
         #         p = points[:,a]
         #         fig2d[axis_combo_name] = plot_2D(p, costs, limits = limits)

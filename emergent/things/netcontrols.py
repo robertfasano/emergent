@@ -6,7 +6,7 @@ class NetControls(Thing, ProcessHandler):
     def __init__(self, name, params = {'port': 'COM11'}, parent = None):
         Thing.__init__(self, name = name, parent = parent, params = params)
         ProcessHandler.__init__(self)
-        self.add_input('Z')
+        self.add_knob('Z')
         self.children['Z'].tooltip = 'Feedthrough position in mm'
 
     def _connect(self):

@@ -288,9 +288,9 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
 
         ''' Run process '''
         if settings['state'] == {} and process != 'run':
-            log.warning('Please select at least one Input node.')
+            log.warning('Please select at least one Knob.')
             return
-            
+
         func = sampler._solve
         if process == 'run':
             func = sampler._run

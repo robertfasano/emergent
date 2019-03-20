@@ -7,7 +7,7 @@ from __main__ import *
 def initialize(network):
     pa = Photoassociation(name = 'photoassociation', network = network, addr='127.0.0.1')
     pa.labjack = LabJack(name = 'labjack', params = {'devid': '440010742'}, parent = pa)
-    pa.labjack.add_input('TDAC6')
+    pa.labjack.add_knob('TDAC6')
 
     synth = E4430B('synthesizer', parent = pa)
 

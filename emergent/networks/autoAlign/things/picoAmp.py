@@ -16,8 +16,8 @@ class PicoAmp(Thing):
         self.addr = {'A': '000', 'B': '001', 'C': '010', 'D': '011', 'ALL': '111'}
         self.labjack = self.params['labjack']
         assert self.params['type'] in ['digital', 'analog']
-        self.add_input('X')
-        self.add_input('Y')
+        self.add_knob('X')
+        self.add_knob('Y')
 
         # self._connect()
 

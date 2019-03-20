@@ -5,7 +5,7 @@ class PZT(Thing):
     def __init__(self, params, name = 'PZT', parent = None):
         super().__init__(name=name, parent = parent)
         self.labjack = LabJack(params=params)
-        self.add_input('voltage')
+        self.add_knob('voltage')
         self.options['Toggle lock'] = self.toggle_lock
         self.lock(0)
 

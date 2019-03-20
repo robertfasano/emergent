@@ -173,10 +173,10 @@ class Visualizer(QWidget):
             if col not in ['cost', 'error']:
                 arrays.append(history[col].values)
                 thing = col.split('.')[0]
-                input = col.split('.')[1]
+                knob = col.split('.')[1]
                 if thing not in state.keys():
                     state[thing] = {}
-                state[thing][input] = 0
+                state[thing][knob] = 0
         if len(arrays) > 0:
             points = np.vstack(arrays).T.astype(float)
         else:
@@ -195,42 +195,42 @@ class Visualizer(QWidget):
         costs *= -1
         t = t.copy()-t[0]
         if points is None:
-            num_inputs = 0
+            num_knobs = 0
         else:
-            num_inputs = points.shape[1]
+            num_knobs = points.shape[1]
         cost_vs_param = None
         param_vs_time = None
-        if num_inputs > 0:
+        if num_knobs > 0:
             ''' costs vs parameters '''
-            fig, ax = plt.subplots(2,num_inputs, figsize=(10, 8))
-            if num_inputs > 1:
+            fig, ax = plt.subplots(2,num_knobs, figsize=(10, 8))
+            if num_knobs > 1:
                 ax0 = ax[0]
             else:
                 ax0 = ax
             ax0[0].set_ylabel(params['experiment']['name'])
             cost_vs_param = {}
 
-            for i in range(num_inputs):
+            for i in range(num_knobs):
                 p = points[:,i]
                 name =  history.columns[i].replace('.', ': ')
                 thing = history.columns[i].split('.')[0]
-                input = history.columns[i].split('.')[1]
-                limits = {name: params['limits'][thing][input]}
+                knob = history.columns[i].split('.')[1]
+                limits = {name: params['limits'][thing][knob]}
                 new_ax, fig = plot_1D(p, costs, limits=limits, cost_name = params['experiment']['name'], errors = errors)
                 cost_vs_param[history.columns[i]] = fig
                 ax0[i].set_xlabel(history.columns[i])
 
             ''' parameters vs time '''
             param_vs_time = {}
-            for i in range(num_inputs):
+            for i in range(num_knobs):
                 p = points[:,i]
                 name =  history.columns[i].replace('.', ': ')
                 thing = history.columns[i].split('.')[0]
-                input = history.columns[i].split('.')[1]
+                knob = history.columns[i].split('.')[1]
                 limits = params['limits']
-                p = limits[thing][input]['min'] + p*(limits[thing][input]['max']-limits[thing][input]['min'])
+                p = limits[thing][knob]['min'] + p*(limits[thing][knob]['max']-limits[thing][knob]['min'])
 
-                if num_inputs == 1:
+                if num_knobs == 1:
                     cax = ax[1]
                 else:
                     cax = ax[1][i]

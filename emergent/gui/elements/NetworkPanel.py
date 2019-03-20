@@ -119,9 +119,9 @@ class NodeTree(QTreeWidget):
         ''' Populate tree '''
         self.generate(self.network)
 
-        ''' Ensure that only Inputs are selectable '''
+        ''' Ensure that only Knobs are selectable '''
         for item in self.get_all_items():
-            if item.node.node_type != 'input':
+            if item.node.node_type != 'knob':
                 item.setFlags(Qt.ItemIsEnabled)
 
         ''' Prepare initial GUI state '''
@@ -135,7 +135,7 @@ class NodeTree(QTreeWidget):
 
         ''' Add undo/redo buttons '''
         for item in self.get_all_items():
-            if item.node.node_type != 'input':
+            if item.node.node_type != 'knob':
                 item.add_buffer_buttons()
 
     def actuate(self, hub, state):
@@ -143,8 +143,8 @@ class NodeTree(QTreeWidget):
         for thing_name in state:
             thing = self.get_thing(hub, thing_name)
             translated_state = thing.node._translate(state[thing_name])
-            for input in state[thing_name]:
-                self.get_input(hub, thing_name, input).updateStateText(state[thing_name][input])
+            for knob in state[thing_name]:
+                self.get_knob(hub, thing_name, knob).updateStateText(state[thing_name][knob])
 
     def add_node(self, parent, node):
         leaf = NodeWidget(node)
@@ -171,7 +171,7 @@ class NodeTree(QTreeWidget):
         ''' Deselects items who are not siblings with the current item. '''
         item = self.currentItem()
         for i in self.get_all_items():
-            if i.node.node_type == 'input':
+            if i.node.node_type == 'knob':
                 if i.parent().parent() is not item.parent().parent():
                     i.setSelected(0)
 
@@ -193,8 +193,8 @@ class NodeTree(QTreeWidget):
             self.insertTopLevelItems(self.topLevelItemCount(), [root])
             for thing in hub.children.values():
                 branch = self.add_node(root, thing)
-                for input in thing.children.values():
-                    leaf = self.add_node(branch, input)
+                for knob in thing.children.values():
+                    leaf = self.add_node(branch, knob)
             self.actuate(hub.name, hub.state)       # update tree to current hub state
             self.expand('hub')
             self.expand('thing')
@@ -211,8 +211,8 @@ class NodeTree(QTreeWidget):
     #         for thing in network[hub]:
     #             branch = NodeWidget(thing)
     #             root.addChild(branch)
-    #             for input in network[hub][thing]:
-    #                 leaf = NodeWidget(input)
+    #             for knob in network[hub][thing]:
+    #                 leaf = NodeWidget(knob)
     #                 branch.addChild(leaf)
     #         self.actuate(hub, network[hub])       # update tree to current hub state
     #         self.expand('hub')
@@ -238,15 +238,15 @@ class NodeTree(QTreeWidget):
             if hub_item.child(i).text(0) == thing:
                 return hub_item.child(i)
 
-    def get_input(self, hub, thing, input):
+    def get_knob(self, hub, thing, knob):
         hub_item = self.get_hub(hub)
         thing_item = self.get_thing(hub, thing)
         for i in range(thing_item.childCount()):
-            if thing_item.child(i).text(0) == input:
+            if thing_item.child(i).text(0) == knob:
                 return thing_item.child(i)
 
     def get_selected_hub(self):
-        ''' Returns a hub node corresponding to the selected input node. '''
+        ''' Returns a hub node corresponding to the selected knob node. '''
         item = self.selectedItems()[0]
         hub_name = item.parent().parent().text(0)
         hub = self.network.hubs[hub_name]
@@ -254,15 +254,15 @@ class NodeTree(QTreeWidget):
         return hub
 
     def get_selected_state(self):
-        ''' Build a substate from all currently selected inputs. '''
+        ''' Build a substate from all currently selected knobs. '''
         items = self.selectedItems()
         state = State()
         for i in items:
-            input = i.node
-            thing = input.parent
+            knob = i.node
+            thing = knob.parent
             if thing.name not in state:
                 state[thing.name] = {}
-            state[thing.name][input.display_name] = input.state
+            state[thing.name][knob.display_name] = knob.state
 
         return state
 
@@ -282,25 +282,25 @@ class NodeTree(QTreeWidget):
             self.current_item = self.currentItem()
             self.closePersistentEditor(self.last_item, col)
             self.editorOpen = 0
-            input = self.last_item.text(0)
+            knob = self.last_item.text(0)
             thing = self.last_item.parent().text(0)
-            key = thing + '.' + input
+            key = thing + '.' + knob
             value = self.current_item.text(col)
 
             hub_name = self.current_item.parent().parent().text(0)
             hub = self.current_item.node.parent.parent
-            input = self.current_item.node.display_name
+            knob = self.current_item.node.display_name
             thing = self.current_item.node.parent.name
             if col == 1:
-                state = {thing:{input: float(value)}}
+                state = {thing:{knob: float(value)}}
                 if hub.addr == self.network.addr:
                     hub.actuate(state)
                 else:
                     self.network.clients[hub.addr].actuate({hub.name: state})
             elif col == 2:
-                hub.range[thing][input]['min'] = float(value)
+                hub.range[thing][knob]['min'] = float(value)
             elif col == 3:
-                hub.range[thing][input]['max'] = float(value)
+                hub.range[thing][knob]['max'] = float(value)
 
         except AttributeError as e:
             print(e)
@@ -345,7 +345,7 @@ class NodeWidget(QTreeWidgetItem):
             if hasattr(self.node, 'remove_signal'):
                 self.node.remove_signal.connect(self.onRemoveSignal)
 
-        elif self.node.node_type == 'input':
+        elif self.node.node_type == 'knob':
             name = self.node.name
             thing = self.node.parent.name
             try:
@@ -399,12 +399,12 @@ class NodeWidget(QTreeWidgetItem):
 
     def onCreateSignal(self, d):
         if self.node == d['thing']:
-            child_item = NodeWidget(d['thing'].children[d['input']])
+            child_item = NodeWidget(d['thing'].children[d['knob']])
             self.addChild(child_item)
 
     def onRemoveSignal(self, d):
         if self.node == d['thing']:
-            child_item = self.node.children[d['input']].leaf
+            child_item = self.node.children[d['knob']].leaf
             self.removeChild(child_item)
 
     def move(self, n):

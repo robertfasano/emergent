@@ -39,7 +39,7 @@ def get_blueprint(network):
             sampler.trigger = getattr(settings['hub'], settings['process']['trigger'])
         ''' Run process '''
         if settings['state'] == {} and settings['process']['type'] != 'run':
-            log.warning('Please select at least one Input node.')
+            log.warning('Please select at least one Knob.')
             return
         func = sampler._solve
         if settings['process']['type'] == 'run':

@@ -30,7 +30,7 @@ class LabJack(Thing, LabJackDriver):
             # for channels in [self.input_channels, self.digital_channels, self.output_channels]:
             for channels in [self.output_channels]:
                 for ch in channels:
-                    self.add_input(ch)
+                    self.add_knob(ch)
 
     def _connect(self):
         if self._connected:
