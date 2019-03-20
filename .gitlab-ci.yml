@@ -19,12 +19,7 @@ network_construction:
   stage: network_construction
   script:
     - cd emergent
-    - ls
-    - ls networks
-    - python utilities/new.py test
-    - ls networks
-    - ls networks/test
-    # - jupyter nbconvert --to notebook --execute "../tutorials/Getting started.ipynb"
+    - jupyter nbconvert --to python --execute "../tutorials/Getting started.ipynb"
 
 # API_test:
 #   script:
