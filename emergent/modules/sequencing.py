@@ -8,7 +8,6 @@ import pandas as pd
 import numpy as np
 import json
 from emergent.modules import Thing
-from emergent.gui.elements import GridWindow
 
 class Sequence():
     ''' A container for a sequence of one or more Timesteps. '''

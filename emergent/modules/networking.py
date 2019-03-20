@@ -3,7 +3,6 @@ import importlib
 from emergent.utilities.networking import get_address
 from emergent.modules import ProcessHandler
 from emergent.protocols.tick import TICKClient
-from emergent.gui.elements import ThingCreator
 
 class Network():
     ''' This class implements a container for multiple Hubs on a PC, as well as methods
@@ -79,10 +78,6 @@ class Network():
                 self.params[hub] = {}
             for thing in params[hub]:
                 self.params[hub][thing] = params[hub][thing]
-
-    def add_thing(self):
-        self.thing_creator = ThingCreator(self)
-        self.thing_creator.show()
 
     def initialize(self):
         ''' Import the network.py file for the user-specified network and runs
