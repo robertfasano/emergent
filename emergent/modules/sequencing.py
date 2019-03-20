@@ -181,22 +181,22 @@ class Sequencer(Thing):
     def open_grid(self):
         self.parent.network.socketIO.emit('sequencer', {'hub': self.parent.name})
 
-    # def prepare(self):
-    #     ''' Parse the sequence into the proper form to send to the LabJack.
-    #         Returns:
-    #             numpy.ndarray: an array of bitmasks corresponding to the overall
-    #                            state at each timestep. '''
-    #
-    #     ''' Get channel numbers and prepare digital stream '''
-    #     channel_numbers = []
-    #     for channel in self.channels:
-    #         channel_numbers.append(self.parent.switches[channel].channel)
-    #     self.labjack.prepare_digital_stream(channel_numbers)
-    #     self.labjack.prepare_stream_out(trigger=0)
-    #     stream = self.form_stream()
-    #     bitmask = self.labjack.array_to_bitmask(stream.values, channel_numbers)
-    #     sequence, scan_rate = self.labjack.resample(np.atleast_2d(bitmask).T, self.cycle_time)
-    #     self.labjack.stream_out(['FIO_STATE'], sequence, scan_rate, loop=0)
+    def prepare(self):
+        ''' Parse the sequence into the proper form to send to the LabJack.
+            Returns:
+                numpy.ndarray: an array of bitmasks corresponding to the overall
+                               state at each timestep. '''
+
+        ''' Get channel numbers and prepare digital stream '''
+        channel_numbers = []
+        for channel in self.channels:
+            channel_numbers.append(self.parent.switches[channel].channel)
+        self.labjack.prepare_digital_stream(channel_numbers)
+        self.labjack.prepare_stream_out(trigger=0)
+        stream = self.form_stream()
+        bitmask = self.labjack.array_to_bitmask(stream.values, channel_numbers)
+        sequence, scan_rate = self.labjack.resample(np.atleast_2d(bitmask).T, self.cycle_time)
+        self.labjack.stream_out(['FIO_STATE'], sequence, scan_rate, loop=0)
 
     # def prepare_io(self):
     #     ''' Parse the sequence into the proper form to send to the LabJack.
