@@ -1,5 +1,8 @@
-image: continuumio/anaconda3:latest
+# image: continuumio/anaconda3:latest
 
+stages:
+  - write_test
+  - read_test
 # before_script:
 #   - conda create -n emergent python=3.7
 #   - source activate emergent
@@ -21,10 +24,12 @@ image: continuumio/anaconda3:latest
 #     - jupyter nbconvert --to notebook --execute "../tutorials/HTTP API.ipynb"
 
 write_test:
+  stage: write_test
   script:
-    - cd emergent
+    - cd emergent/emergent
     - python ..tests/write_file.py
 
 read_test:
+  stage: read_test
   script:
     - python tests/read_file.py
