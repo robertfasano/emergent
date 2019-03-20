@@ -21,6 +21,7 @@
     to/from file, for monitoring important variables through the Watchdog framework,
     and for optimizing itself by interfacing with other modules.
 '''
+from abc import abstractmethod
 import json
 import time
 import logging as log
@@ -230,6 +231,7 @@ class Thing(Node):
         ''' Reimplement if any class-specific tasks need to be done when renaming
             children '''
 
+    @abstractmethod
     def _actuate(self, state):
         """Private placeholder for the thing-specific driver.
 
@@ -247,6 +249,7 @@ class Thing(Node):
         """
         return
 
+    @abstractmethod
     def _connect(self):
         """Private placeholder for the thing-specific initiation method. """
         return 1
