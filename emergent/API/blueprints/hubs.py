@@ -144,7 +144,9 @@ def get_blueprint(network):
         hub = network.hubs[hub]
         ids = []
         for s in hub.samplers.values():
-            ids.blueprintend(s.id)
+            ids.append(s.id)
+        return json.dumps(ids)
+
     @blueprint.route('/<hub>/samplers/active')
     def list_active_samplers(hub):
         hub = network.hubs[hub]
