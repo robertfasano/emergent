@@ -1,4 +1,4 @@
-# image: continuumio/anaconda3:latest
+image: continuumio/anaconda3:latest
 
 stages:
   - write_test
@@ -26,7 +26,9 @@ stages:
 write_test:
   stage: write_test
   script:
-    - cd emergent/emergent
+    - ls
+    - cd emergent
+    - ls
     - python ..tests/write_file.py
 
 read_test:
