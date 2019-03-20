@@ -22,6 +22,13 @@ def get_blueprint(network):
                 settings[x]['instance'] = recommender.get_class(x, settings[x]['name'])
         sampler = Sampler('sampler', settings)
         sampler.id = str(uuid.uuid1())
+
+        ''' Load previously trained model if specified '''
+        if 'model' in settings:
+            if 'Weights' in settings['model']['params']:
+                filename = network.path['data'] + '/' + settings['model']['params']['Weights'].split('.')[0]
+                sampler.model._import(filename)
+
         ''' Create task_panel task '''
 
         params = {'start time': datetime.datetime.now().isoformat(),

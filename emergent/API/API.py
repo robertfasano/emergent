@@ -48,5 +48,13 @@ def serve(network, addr):
             network.set_range(range)
         return json.dumps(network.range())
 
+    @app.route('/models/<model>/weights')
+    def list_weights(model):
+        model = recommender.get_class('model', model)
+        files = []
+        import os
+        files = [x for x in os.listdir(os.getcwd()+'/'+network.path['data']) if model.extension in x]
+
+        return json.dumps(files)
 
     app.run(host=addr, debug=False, threaded=True)
