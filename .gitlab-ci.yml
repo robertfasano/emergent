@@ -4,8 +4,14 @@ before_script:
   - conda create -n emergent python=3.7
   - source activate emergent
 
-test:
+build:
   script:
   - apt-get update -qy
   - apt-get install -y python-dev python-pip
   - python setup.py develop
+
+network_construction:
+  jupyter nbconvert --to notebook --execute "tutorials/Getting started.ipynb"
+
+API_test:
+  jupyter nbconvert --to notebook --execute "tutorials/HTTP API.ipynb"
