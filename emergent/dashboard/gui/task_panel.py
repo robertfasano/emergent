@@ -107,7 +107,8 @@ class TaskPanel(QVBoxLayout):
             hub = self.table.item(r, 5).text()
             if hub not in active_ids:
                 active_ids[hub] = self.dashboard.get('hubs/%s/samplers/active'%hub)
-            if id in active_ids[hub]:
+            active = id in active_ids[hub]
+            if active:
                 active_rows.append(r)
             self.table.setItem(r, 3, QTableWidgetItem(str(active)))
         if len(active_rows) == 0:
