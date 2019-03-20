@@ -104,7 +104,7 @@ class GridWindow(QWidget):
         self.checkboxes = {}
         col = 1
         for step in sequence:
-            self.add_step(step, sequence[step], col)
+            self.add_step(step, col)
             col += 1
         self.bold_active_step()
 
@@ -116,17 +116,19 @@ class GridWindow(QWidget):
         self.resize(self.minimumSize())
 
     def get_sequence(self):
-        sequence = {}
-        for step in self.labels:
-            sequence[step] = {}
-            sequence[step]['duration'] = self.step_edits[step].text()
-            sequence[step]['state'] = {}
+        sequence = []
+        for name in self.labels:
+            new_step = {}
+            new_step['duration'] = self.step_edits[name].text()
+            new_step['name'] = name
+            new_step['state'] = {}
             for switch in self.switches:
-                sequence[step]['state'][switch] = self.checkboxes[step][switch].isChecked()
-
+                new_step['state'][switch] = int(self.checkboxes[name][switch].isChecked())
+            sequence.append(new_step)
         return sequence
 
-    def add_step(self, name, step, col):
+    def add_step(self, step, col):
+        name = step['name']
         ''' Add label and edit '''
         self.labels[name] = BoldLabel(name)
         self.grid_layout.addWidget(self.labels[name], 0, col)
@@ -154,10 +156,10 @@ class GridWindow(QWidget):
         steps = self.dashboard.get('hubs/%s/sequencer/sequence'%self.hub)
         current_step = self.dashboard.get('hubs/%s/sequencer/current_step'%self.hub)
         for step in steps:
-            if step == current_step:
-                self.labels[step].setBold(True)
+            if step['name'] == current_step:
+                self.labels[step['name']].setBold(True)
             else:
-                self.labels[step].setBold(False)
+                self.labels[step['name']].setBold(False)
 
     def actuate(self, state):
         try:

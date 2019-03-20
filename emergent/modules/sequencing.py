@@ -34,12 +34,13 @@ class Sequencer(Thing):
         move_up_option = lambda s: lambda: self.move(s, -1)
 
         for step in params['sequence']:
-            self.add_input(step)
-            self.children[step].options = {'Go to %s'%step: (goto_option(step))}
-            self.children[step].options['Move up'] = move_up_option(step)
-            self.children[step].options['Move down'] = move_down_option(step)
+            name = step['name']
+            self.add_input(name)
+            self.children[name].options = {'Go to %s'%name: (goto_option(name))}
+            # self.children[name].options['Move up'] = move_up_option(name)
+            # self.children[name].options['Move down'] = move_down_option(name)
 
-            for channel in params['sequence'][step]['state']:
+            for channel in step['state']:
                 if channel not in self.channels:
                     self.channels.append(channel)
 
@@ -49,18 +50,24 @@ class Sequencer(Thing):
 
     def _actuate(self, state):
         for step in state:
-            self.steps[step]['duration'] = state[step]
+            s = self.get_step_by_name(step)
+            s['duration'] = state[step]
+
+    def get_step_by_name(self, name):
+        for step in self.steps:
+            if step['name'] == name:
+                return step
 
     def get_time(self, step):
         ''' Returns the time when the specified integer step starts '''
         now = 0
         for step in self.steps:
-            now += self.state[step]
+            now += self.state[step['name']]
         return now
 
     def goto(self, step_name):
         ''' Go to a step specified by a string name. '''
-        step = self.steps[step_name]
+        step = self.get_step_by_name(step_name)
 
         for channel in step['state']:
             state = step['state'][channel]
@@ -69,18 +76,18 @@ class Sequencer(Thing):
         if hasattr(self, 'grid'):
             self.grid.bold_active_step()
 
-    def get_step(self, step):
-        ''' Returns a Timestep object corresponding to the passed integer (place)
-            or string (name). '''
-        if isinstance(step, int):
-            return self.steps[step]
-        elif isinstance(step, str):
-            for s in self.steps:
-                if s.name == step:
-                    return s
-        else:
-            log.warning('Invalid timestep specified.')
-            return -1
+    # def get_step(self, step):
+    #     ''' Returns a Timestep object corresponding to the passed integer (place)
+    #         or string (name). '''
+    #     if isinstance(step, int):
+    #         return self.steps[step]
+    #     elif isinstance(step, str):
+    #         for s in self.steps:
+    #             if s.name == step:
+    #                 return s
+    #     else:
+    #         log.warning('Invalid timestep specified.')
+    #         return -1
 
     # def add_step(self, name, duration = 0):
     #     ''' Creates a new step with default TTL off state. '''
@@ -153,14 +160,14 @@ class Sequencer(Thing):
         ''' Prepare a dataframe representing the streamed switch states '''
         self.cycle_time = 0
         for s in self.steps:
-            self.cycle_time += self.state[s.name]/1000
+            self.cycle_time += self.state[s['name']]/1000
         stream_steps = int(self.cycle_time/dt)
 
         t = np.linspace(0, self.cycle_time, stream_steps)
         stream = pd.DataFrame(index=t, columns=self.channels)
         now = 0
         for step in self.steps:
-            duration = self.state[step]/1000
+            duration = self.state[step['name']]/1000
             timeslice = stream.index[(stream.index >= now) & (stream.index <= now + duration)]
             for channel in step['state']:
                 state = step['state'][channel]         # add invert
