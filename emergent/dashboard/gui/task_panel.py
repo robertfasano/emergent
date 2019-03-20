@@ -101,11 +101,13 @@ class TaskPanel(QVBoxLayout):
 
     def check_active_rows(self):
         active_rows = []
+        active_ids = {}
         for r in range(self.table.rowCount()):
             id = self.table.item(r, 4).text()
             hub = self.table.item(r, 5).text()
-            active = bool(self.dashboard.get('hubs/%s/samplers/%s/active'%(hub, id)))
-            if active:
+            if hub not in active_ids:
+                active_ids[hub] = self.dashboard.get('hubs/%s/samplers/active'%hub)
+            if id in active_ids[hub]:
                 active_rows.append(r)
             self.table.setItem(r, 3, QTableWidgetItem(str(active)))
         if len(active_rows) == 0:
