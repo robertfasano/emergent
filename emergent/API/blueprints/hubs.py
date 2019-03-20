@@ -144,7 +144,16 @@ def get_blueprint(network):
         hub = network.hubs[hub]
         ids = []
         for s in hub.samplers.values():
-            ids.blueprintend(s.id)
+            ids.append(s.id)
+        return json.dumps(ids)
+
+    @blueprint.route('/<hub>/samplers/active')
+    def list_active_samplers(hub):
+        hub = network.hubs[hub]
+        ids = []
+        for s in hub.samplers.values():
+            if s.active:
+                ids.append(s.id)
         return json.dumps(ids)
 
     def get_sampler_by_id(hub, sampler_id):
@@ -177,7 +186,7 @@ def get_blueprint(network):
             d['model'] = {'name': obj.model.name, 'params': obj.model_params}
         d['limits'] = hub.range
         d['hub'] = hub.name
-        d['inputs'] = obj.inputs
+        d['knobs'] = obj.knobs
 
         return json.dumps(d)
 

@@ -69,7 +69,7 @@ class BoldLabel(QLabel):
 class GridWindow(QWidget):
     def __init__(self, dashboard, hub):
         super(GridWindow, self).__init__(None)
-        with open('gui/stylesheet.txt', "r") as file:
+        with open('dashboard/gui/stylesheet.txt', "r") as file:
             self.setStyleSheet(file.read())
         self.setWindowTitle('Timing grid')
         self.setObjectName('timingGrid')

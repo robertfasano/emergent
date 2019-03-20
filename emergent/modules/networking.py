@@ -3,7 +3,6 @@ import importlib
 from emergent.utilities.networking import get_address
 from emergent.modules import ProcessHandler
 from emergent.protocols.tick import TICKClient
-from emergent.gui.elements import ThingCreator
 
 class Network():
     ''' This class implements a container for multiple Hubs on a PC, as well as methods
@@ -80,10 +79,6 @@ class Network():
             for thing in params[hub]:
                 self.params[hub][thing] = params[hub][thing]
 
-    def add_thing(self):
-        self.thing_creator = ThingCreator(self)
-        self.thing_creator.show()
-
     def initialize(self):
         ''' Import the network.py file for the user-specified network and runs
             its initialize() method to instantiate all defined nodes. '''
@@ -109,11 +104,11 @@ class Network():
         for hub_name in settings:
             hub = self.hubs[hub_name]
             for thing_name in settings[hub_name]:
-                for input_name in settings[hub_name][thing_name]:
-                    d = settings[hub_name][thing_name][input_name]
+                for knob_name in settings[hub_name][thing_name]:
+                    d = settings[hub_name][thing_name][knob_name]
                     for qty in ['min', 'max']:
                         if qty in d:
-                            hub.range[thing_name][input_name][qty] = d[qty]
+                            hub.range[thing_name][knob_name][qty] = d[qty]
 
     def range(self):
         ''' Obtains a macroscopic range dict from aggregating the settings of all

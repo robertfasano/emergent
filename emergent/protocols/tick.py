@@ -19,9 +19,9 @@ class TICKClient():
         for hub in state:
             data = {}
             for dev in state[hub]:
-                for input in state[hub][dev]:
-                    full_name = dev+': '+input
-                    data[full_name] = state[hub][dev][input]
+                for knob in state[hub][dev]:
+                    full_name = dev+': '+knob
+                    data[full_name] = state[hub][dev][knob]
             self.write(data, measurement = hub)
 
 

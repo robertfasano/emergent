@@ -45,8 +45,8 @@ class Agilis(Thing, ProcessHandler):
             ProcessHandler.__init__(self)
             self.zero = {}
             for mirror in self.mirrors:
-                for input in ['X%i'%mirror, 'Y%i'%mirror]:
-                    self.add_input(input)
+                for knob in ['X%i'%mirror, 'Y%i'%mirror]:
+                    self.add_knob(knob)
         self.port = port
         self._connected = 0
         if connect:
@@ -76,14 +76,14 @@ class Agilis(Thing, ProcessHandler):
         if self.range == {}:
             return
         indices = {'X1':0, 'Y1':1, 'X2':2, 'Y2':3}
-        for input in state:
-            index = indices[input]
-            mirror = int(input[1])
-            axis = {'X':1,'Y':2}[input[0]]
-            if self.state[input] is None:
-                self.state[input] = state[input]
-            step = state[input] - self.state[input]
-            unnorm_step = step/2 * (1+self.range[input]/self.step_size)
+        for knob in state:
+            index = indices[knob]
+            mirror = int(knob[1])
+            axis = {'X':1,'Y':2}[knob[0]]
+            if self.state[knob] is None:
+                self.state[knob] = state[knob]
+            step = state[knob] - self.state[knob]
+            unnorm_step = step/2 * (1+self.range[knob]/self.step_size)
             if step != 0:
                 self.relative_move(mirror, axis, unnorm_step)
                 print('step:', step, 'unnorm_step:', unnorm_step)
@@ -128,10 +128,10 @@ class Agilis(Thing, ProcessHandler):
                     print(e)
                     print(self.command('TE?'))
         target_parent_state = {self.name:{}}
-        for input in self.state:
-            self.state[input] = 0
-            self.parent.state[self.name][input] = 0
-            target_parent_state[self.name][input] = 0
+        for knob in self.state:
+            self.state[knob] = 0
+            self.parent.state[self.name][knob] = 0
+            target_parent_state[self.name][knob] = 0
         self.parent.actuate(target_parent_state)
 
     def command(self, cmd, reply = True):
@@ -217,39 +217,39 @@ class Agilis(Thing, ProcessHandler):
                 print('Decreasing step')
 
             elif command == 'j':
-                input = 'X1'
+                knob = 'X1'
                 sign = 1
                 # self.relative_move(1, 1, step = step)
             elif command == 'l':
                 # self.relative_move(1, 1, step = -step)
-                input = 'X1'
+                knob = 'X1'
                 sign = -1
             elif command == 'k':
-                input = 'Y1'
+                knob = 'Y1'
                 sign = -1
                 # self.relative_move(1, 2, step = -step)
             elif command == 'i':
-                input = 'Y1'
+                knob = 'Y1'
                 sign = 1
                 # self.relative_move(1, 2, step = step)
             elif command == 'd':
-                input = 'X2'
+                knob = 'X2'
                 sign = -1
                 # self.relative_move(2, 1, step = -step)
             elif command == 'a':
-                input = 'X2'
+                knob = 'X2'
                 sign = 1
                 # self.relative_move(2, 1, step = step)
             elif command == 's':
-                input = 'Y2'
+                knob = 'Y2'
                 sign = -1
                 # self.relative_move(2, 2, step = -step)
             elif command == 'w':
-                input = 'Y2'
+                knob = 'Y2'
                 sign = 1
                 # self.relative_move(2, 2, step = step)
             if sign is not None:
-                self.parent.actuate({self.name:{input:self.state[input]+sign*step}})
+                self.parent.actuate({self.name:{knob:self.state[knob]+sign*step}})
 
     def zero(self):
         for mirror in [1,2]:

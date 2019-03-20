@@ -8,10 +8,10 @@ class Novatech(Thing):
     def __init__(self, name, params = {'port': None}, parent = None):
         super().__init__(name='novatech', params = params, parent = parent)
         # self._connected = self._connect()
-        self.add_input('slowing')
-        self.add_input('trapping')
-        for input in ['slowing', 'trapping']:
-            self.children[input].tooltip = input.capitalize() + ' frequency in MHz'
+        self.add_knob('slowing')
+        self.add_knob('trapping')
+        for knob in ['slowing', 'trapping']:
+            self.children[knob].tooltip = knob.capitalize() + ' frequency in MHz'
         self.frequency = {}
         self.amplitude = {}
 

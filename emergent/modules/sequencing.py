@@ -1,14 +1,13 @@
 ''' This module allows definition and generation of TTL patterns. It also offers
     convenient options to control the TTL state through the GUI - every timestep
-    added to the Sequencer appears as an input whose duration can be altered, and
-    a specific state can be set by right-clicking on the input. '''
+    added to the Sequencer appears as a knob whose duration can be altered, and
+    a specific state can be set by right-clicking on the knob. '''
 import time
 import logging as log
 import pandas as pd
 import numpy as np
 import json
 from emergent.modules import Thing
-from emergent.gui.elements import GridWindow
 
 class Sequence():
     ''' A container for a sequence of one or more Timesteps. '''
@@ -34,11 +33,10 @@ class Sequencer(Thing):
         move_up_option = lambda s: lambda: self.move(s, -1)
 
         for step in params['sequence']:
-            name = step['name']
-            self.add_input(name)
-            self.children[name].options = {'Go to %s'%name: (goto_option(name))}
-            # self.children[name].options['Move up'] = move_up_option(name)
-            # self.children[name].options['Move down'] = move_down_option(name)
+            self.add_knob(step)
+            self.children[step].options = {'Go to %s'%step: (goto_option(step))}
+            self.children[step].options['Move up'] = move_up_option(step)
+            self.children[step].options['Move down'] = move_down_option(step)
 
             for channel in step['state']:
                 if channel not in self.channels:
@@ -100,7 +98,7 @@ class Sequencer(Thing):
     #     goto_option = lambda s: lambda: self.goto(s)
     #     move_down_option = lambda s: lambda: self.move(s, 1)
     #     move_up_option = lambda s: lambda: self.move(s, -1)
-    #     self.add_input(step)
+    #     self.add_knob(step)
     #     self.children[step].options = {'Go to %s'%step: (goto_option(step))}
     #     self.children[step].options['Move up'] = move_up_option(step)
     #     self.children[step].options['Move down'] = move_down_option(step)
@@ -121,14 +119,14 @@ class Sequencer(Thing):
     #             break
     #         i += 1
     #
-    #     ''' Remove from inputs '''
-    #     self.remove_input(name)
+    #     ''' Remove from knobs '''
+    #     self.remove_knob(name)
     #
     #     ''' Redraw grid '''
     #     if hasattr(self, 'grid'):
     #         self.grid.redraw()
 
-    # def _rename_input(self, node, name):
+    # def _rename_knob(self, node, name):
     #     for step in self.steps:
     #         if step == node.name:
     #             step = name
@@ -148,8 +146,8 @@ class Sequencer(Thing):
     #     self.steps.insert(i+n, self.steps.pop(i))
     #
     #     ''' Move in NetworkPanel '''
-    #     input_node = self.children[step]
-    #     input_node.leaf.move(n)
+    #     knob_node = self.children[step]
+    #     knob_node.leaf.move(n)
     #
     #     ''' Redraw grid '''
     #     if hasattr(self, 'grid'):
@@ -257,13 +255,13 @@ class Sequencer(Thing):
     #         sequence = json.load(file)
     #
     #     self.steps = []
-    #     inputs = list(self.children.keys())
+    #     knobs = list(self.children.keys())
     #     state = {}
-    #     for input in inputs:
-    #         self.remove_input(input)
+    #     for knob in knobs:
+    #         self.remove_knob(knob)
     #     for step in sequence:
     #         s = Timestep(step, duration = sequence[step]['duration'], state = sequence[step]['state'])
     #         self.steps.append(s)
-    #         self.add_input(step)
+    #         self.add_knob(step)
     #         state[step] = s.duration
     #     self.parent.actuate({'sequencer': state})

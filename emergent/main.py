@@ -14,7 +14,6 @@ import logging as log
 import argparse
 import importlib
 from PyQt5.QtWidgets import QApplication, QStyleFactory
-from emergent.gui.elements import MainWindow
 from emergent.modules.networking import Network
 from emergent.utilities.networking import get_address
 
@@ -36,7 +35,6 @@ def launch():
     parser.add_argument("--addr", help='EMERGENT session IP address')
     parser.add_argument("--port", help='EMERGENT session networking port', type=int)
     parser.add_argument("--database_addr", help='Remote InfluxDB address')
-    parser.add_argument("--gui", help='1 to use native GUI; 0 to use remote server', action='store_true')
 
     parser.add_argument("-v", "--verbose", help="Increase output verbosity", action="store_true")
     args = parser.parse_args()
@@ -64,27 +62,14 @@ def launch():
     network.load()              # load previous state from file
     network.post_load()         # run post-load routine to prepare physical state
 
-    from emergent.API.API import serve 
+    from emergent.API.API import serve
     from threading import Thread
     thread = Thread(target=serve, args = (network, addr))
     thread.start()
 
-    if args.gui:
-        run_frontend()
     global sys_argv
     sys_argv = args
 
-def run_frontend():
-    QApplication.setStyle(QStyleFactory.create("Fusion"))
-    app = QApplication.instance()
-    if app is None:
-        app = QApplication([" "])         # Create an instance of the application
-    app.setStyle(QStyleFactory.create("Fusion"))
-
-    main = MainWindow(app, network)
-    main.show()
-    app.processEvents()
-    app.exec()
 
 def restart():
     # ''' Send shutdown message to dashboard '''

@@ -8,8 +8,8 @@ class E4430B(Thing):
     def __init__(self, name, params = {}, parent = None):
         super().__init__(name=name, params = params, parent = parent)
         self._connected = self._connect()
-        self.add_input('frequency')
-        self.add_input('amplitude')
+        self.add_knob('frequency')
+        self.add_knob('amplitude')
 
     def _connect(self):
         import visa
