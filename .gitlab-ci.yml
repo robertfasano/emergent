@@ -22,4 +22,9 @@ image: continuumio/anaconda3:latest
 
 write_test:
   script:
-    - python tests/write_file.py
+    - cd emergent
+    - python ..tests/write_file.py
+
+read_test:
+  script:
+    - python tests/read_file.py
