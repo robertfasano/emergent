@@ -24,7 +24,7 @@ class AutoAlign(Hub):
         return self.labjack.AIn(0, num=num)
 
     @experiment
-    def measure_power(self, state, params = {'steps':20}):
+    def measure_power(self, state, params = {}):
         ''' Moves to the target alignment and measures the transmitted power. '''
         self.actuate(state)
         cost = -self.readADC()
