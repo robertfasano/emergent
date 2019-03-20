@@ -1,37 +1,32 @@
 image: continuumio/anaconda3:latest
 
 stages:
-  - write_test
-  - read_test
+  - build
+  - network_construction
+
 # before_script:
 #   - conda create -n emergent python=3.7
 #   - source activate emergent
 
-# build:
-#   script:
-#   - apt-get update -qy
-#   - apt-get install -y python-dev python-pip
-#   - python setup.py develop
-#
-# network_construction:
-#   script:
-#     - cd emergent
-#     - jupyter nbconvert --to notebook --execute "../tutorials/Getting started.ipynb"
-#
+build:
+  stage: build
+  script:
+  - apt-get update -qy
+  - apt-get install -y python-dev python-pip
+  - python setup.py develop
+
+network_construction:
+  stage: network_construction
+  script:
+    - cd emergent
+    - ls
+    - ls networks
+    - python utilities/new.py test
+    - ls networks
+    - ls networks/test
+    # - jupyter nbconvert --to notebook --execute "../tutorials/Getting started.ipynb"
+
 # API_test:
 #   script:
 #     - cd emergent
 #     - jupyter nbconvert --to notebook --execute "../tutorials/HTTP API.ipynb"
-
-write_test:
-  stage: write_test
-  script:
-    - ls
-    - cd emergent
-    - ls
-    - python ..tests/write_file.py
-
-read_test:
-  stage: read_test
-  script:
-    - python tests/read_file.py
