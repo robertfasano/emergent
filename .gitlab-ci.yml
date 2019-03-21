@@ -12,7 +12,7 @@ build:
   script:
   - apt-get update -qy
   - apt-get install -y python-dev python-pip
-  - sudo apt-get install libgl1-mesa-glx
+  - sudo apt-get install libgl1-mesa-glx -y
   - python setup.py develop
   - ls
   - cd tutorials
