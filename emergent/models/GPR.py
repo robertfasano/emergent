@@ -25,7 +25,7 @@ class GaussianProcess(Model):
                                             description = 'Amplitude of modeled white noise process')
         kernel = C(self.params['Amplitude'].value, (1e-3, 1e3)) * RBF(self.params['Length scale'].value, (1e-2, 1e2)) + WhiteKernel(self.params['Noise'].value)
         self.model = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=10)
-
+        self.extension = '.gp'
 
     def fit(self):
         self.model.fit(self.points, self.costs)

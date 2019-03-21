@@ -14,7 +14,7 @@ class Model():
                                             max = 0.25,
                                             description = 'Allowed search range relative to last best point')
         self.imported = False
-
+        self.extension = None
     def append(self, point, cost):
         self.points = np.append(np.atleast_2d(self.points), np.atleast_2d(point), axis=0)
         self.costs = np.append(self.costs, cost)

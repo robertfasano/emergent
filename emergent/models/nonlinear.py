@@ -13,7 +13,8 @@ from scipy.optimize import curve_fit
 class Nonlinear(Model):
     def __init__(self):
         super().__init__('Nonlinear')
-
+        self.extension = None
+        
     def gaussian(self, X, *args):
         ''' Args:
                 X: an N-element array representing a generally multidimensional point
