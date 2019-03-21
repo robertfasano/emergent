@@ -12,13 +12,14 @@ build:
   script:
   - apt-get update -qy
   - apt-get install -y python-dev python-pip
-  - apt-get install libgl1-mesa-glx -y
-  - apt-get install libx11-xcb1 -y
+  # - apt-get install libgl1-mesa-glx -y
+  # - apt-get install libx11-xcb1 -y
   - python setup.py develop
-  - ls
-  - cd tutorials
-  - jupyter nbconvert --to notebook --execute "Getting started.ipynb"
-  - jupyter nbconvert --to notebook --execute "HTTP API.ipynb"
+  # - cd tutorials
+  # - jupyter nbconvert --to notebook --execute "Getting started.ipynb"
+  # - jupyter nbconvert --to notebook --execute "HTTP API.ipynb"
+  - cd tests
+  - python test_tutorials.py
 
 # network_construction:
 #   stage: network_construction
