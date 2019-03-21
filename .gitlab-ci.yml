@@ -18,6 +18,7 @@ build:
   - ls
   - cd tutorials
   - jupyter nbconvert --to notebook --execute "Getting started.ipynb"
+  - jupyter nbconvert --to notebook --execute "HTTP API.ipynb"
 
 # network_construction:
 #   stage: network_construction
