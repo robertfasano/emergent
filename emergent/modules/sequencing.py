@@ -33,10 +33,8 @@ class Sequencer(Thing):
         move_up_option = lambda s: lambda: self.move(s, -1)
 
         for step in params['sequence']:
-            self.add_knob(step)
-            self.children[step].options = {'Go to %s'%step: (goto_option(step))}
-            self.children[step].options['Move up'] = move_up_option(step)
-            self.children[step].options['Move down'] = move_down_option(step)
+            self.add_knob(step['name'])
+            self.children[step['name']].options = {'Go to %s'%step['name']: (goto_option(step['name']))}
 
             for channel in step['state']:
                 if channel not in self.channels:
