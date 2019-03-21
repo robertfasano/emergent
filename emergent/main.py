@@ -13,7 +13,6 @@ import os
 import logging as log
 import argparse
 import importlib
-from PyQt5.QtWidgets import QApplication, QStyleFactory
 from emergent.modules.networking import Network
 from emergent.utilities.networking import get_address
 
