@@ -9,7 +9,7 @@ class LabJackSwitch(Switch):
     def __init__(self, name, params, invert = False):
         self.labjack = params['labjack']
         self.channel = params['channel']
-        super().__init__(name, params, invert = invert)
+        super().__init__(name, params, invert = invert, channel = self.channel)
 
     def _set(self, state):
         ''' Overload with device-specific switching command, e.g. LabJack as shown '''

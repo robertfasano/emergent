@@ -11,7 +11,7 @@ from PyQt5.QtWidgets import (QComboBox, QLabel, QVBoxLayout,
         QWidget, QHBoxLayout, QTabWidget, QGridLayout, QMenu, QAction, QTreeWidget, QTreeWidgetItem)
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from emergent.gui.elements.ParameterTable import ParameterTable
+from emergent.dashboard.gui.parameter_table import ParameterTable
 from matplotlib.figure import Figure
 plt.ioff()
 from PyQt5.QtCore import QTimer, Qt
@@ -43,7 +43,7 @@ class PlotWidget(QWidget):
     def __init__(self, hub, sampler_id, cvp, pvt, parent=None):
         # super(PlotWidget, self).__init__(parent)
         super().__init__()
-        # with open('gui/stylesheet.txt',"r") as file:
+        # with open('dashboard/gui/stylesheet.txt',"r") as file:
         #     self.setStyleSheet(file.read())
         self.setStyleSheet('color:"#000000"; font-weight: light; font-family: "Exo 2"; font-size: 14px; background-color: white')
         self.parent = parent

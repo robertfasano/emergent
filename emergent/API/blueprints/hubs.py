@@ -260,6 +260,18 @@ def get_blueprint(network):
         switches = network.hubs[hub].switches
         return json.dumps(list(switches.keys()))
 
+    @blueprint.route('/<hub>/switches/ttl')
+    def hub_switch_ttl(hub):
+        s = {}
+        switches = network.hubs[hub].switches
+        for switch in switches:
+            if hasattr(switches[switch], 'channel'):
+                channel = switches[switch].channel
+                s[channel] = {}
+                for key in ['name', 'invert']:
+                    s[channel][key] = getattr(switches[switch], key)
+        return json.dumps(s)
+
     @blueprint.route('/<hub>/sequencer/sequence', methods=['GET', 'POST'])
     def hub_sequence(hub):
         s = network.hubs[hub].children['sequencer']

@@ -23,11 +23,11 @@ class Dashboard(QMainWindow):
         self.app = app
         ''' Set window style '''
         self.setWindowTitle('EMERGENT Dashboard')
-        QFontDatabase.addApplicationFont('gui/media/Exo2-Light.ttf')
-        with open('gui/stylesheet.txt', "r") as file:
+        QFontDatabase.addApplicationFont('dashboard/gui/media/Exo2-Light.ttf')
+        with open('dashboard/gui/stylesheet.txt', "r") as file:
             self.setStyleSheet(file.read())
         self.central_widget = QWidget()
-        self.setWindowIcon(QIcon('../gui/media/icon.png'))
+        self.setWindowIcon(QIcon('../dashboard/gui/media/icon.png'))
         self.setCentralWidget(self.central_widget)
         layout = QHBoxLayout(self.central_widget)
         height = 720

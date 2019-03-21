@@ -49,7 +49,7 @@ def get_blueprint(network):
             log.warning('Please select at least one Knob.')
             return
         func = sampler._solve
-        if settings['process']['type'] == 'run':
+        if settings['process']['type'] == 'measure':
             func = sampler._run
         network.manager._run_thread(func, stoppable=False)
 
