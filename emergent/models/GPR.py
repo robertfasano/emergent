@@ -4,6 +4,7 @@ import numpy as np
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C, WhiteKernel
 from emergent.models.model import Model
+import pickle
 
 class GaussianProcess(Model):
     def __init__(self):
@@ -32,3 +33,13 @@ class GaussianProcess(Model):
 
     def predict(self, X):
         return self.model.predict(np.atleast_2d(X), return_std = True)
+
+    def _export(self):
+        filename = self.sampler.hub.network.path['data'] + 'weights' + self.extension
+        with open(filename, 'wb') as file:
+            pickle.dump(self.model, file)
+
+    def _import(self):
+        filename = self.sampler.hub.network.path['data'] + 'weights' + self.extension
+        with open(filename, 'rb') as file:
+            self.model = pickle.load(file)
