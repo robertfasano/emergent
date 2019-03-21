@@ -17,7 +17,8 @@ build:
   - python setup.py develop
   - ls
   - cd tutorials
-  - jupyter nbconvert --to python --execute "Getting started.ipynb"
+  - jupyter nbconvert --to python "Getting started.ipynb"
+  - python "Getting started.py"
 
 # network_construction:
 #   stage: network_construction
