@@ -4,12 +4,11 @@ stages:
   - build
   - network_construction
 
-before_script:
-  - conda create -n emergent python=3.7
-  - source activate emergent
-
 build:
   stage: build
+  before_script:
+    - conda create -n emergent python=3.7
+    - source activate emergent
   script:
   - apt-get update -qy
   - apt-get install -y python-dev python-pip
@@ -18,7 +17,8 @@ build:
 network_construction:
   stage: network_construction
   script:
-    - jupyter nbconvert --to python --execute "tutorials/Getting started.ipynb"
+    - cd tutorials
+    - jupyter nbconvert --to python --execute "Getting started.ipynb"
 
 # API_test:
 #   script:
