@@ -2,7 +2,7 @@ image: continuumio/anaconda3:latest
 
 stages:
   - build
-  - network_construction
+  # - network_construction
 
 build:
   stage: build
@@ -13,12 +13,16 @@ build:
   - apt-get update -qy
   - apt-get install -y python-dev python-pip
   - python setup.py develop
+  - ls
+  - cd tutorials
+  - jupyter nbconvert --to python --execute "Getting started.ipynb"
 
-network_construction:
-  stage: network_construction
-  script:
-    - cd tutorials
-    - jupyter nbconvert --to python --execute "Getting started.ipynb"
+# network_construction:
+#   stage: network_construction
+#   script:
+#     - ls
+#     - cd tutorials
+#     - jupyter nbconvert --to python --execute "Getting started.ipynb"
 
 # API_test:
 #   script:
