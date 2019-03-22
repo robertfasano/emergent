@@ -139,3 +139,9 @@ class Network():
         print('Starting socketIO client.')
         from socketIO_client import SocketIO, LoggingNamespace
         self.socketIO = SocketIO('localhost', 8000, LoggingNamespace)
+
+    def start_artiq_client(self):
+        ''' Initialize Flask socket '''
+        print('Starting ARTIQ socketIO client.')
+        from socketIO_client import SocketIO, LoggingNamespace
+        self.artiq_client = SocketIO('localhost', 54031, LoggingNamespace)
