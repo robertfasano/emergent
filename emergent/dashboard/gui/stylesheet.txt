@@ -31,6 +31,7 @@ QTreeWidget::item {
 
 QMainWindow{border-image: url("dashboard/gui/media/background.jpg") 0 0 0 0 stretch stretch;}
 
+QWidget#timingGrid {background-color: white}
 
 QCheckBox::indicator:unchecked {
     image: url("dashboard/gui/media/unchecked.png");

@@ -9,7 +9,8 @@ from PyQt5.QtGui import QIcon, QFontDatabase
 from PyQt5.QtWidgets import (QHBoxLayout, QLabel, QVBoxLayout, QPushButton,
                              QWidget, QMainWindow, QStatusBar, QMenuBar)
 from PyQt5.QtCore import QTimer
-from emergent.dashboard.gui import TaskPanel, NodeTree, ExperimentLayout, GridWindow
+from emergent.dashboard.gui import TaskPanel, NodeTree, ExperimentLayout#, GridWindow
+from emergent.artiq.sequencer_grid import GridWindow
 from emergent.utilities.signals import DictSignal
 import requests
 import pickle
