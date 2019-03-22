@@ -68,7 +68,7 @@ class Sampler():
     def __getstate__(self):
         d = {}
         d['experiment_name'] = self.experiment.__name__
-        for x in ['limits', 'model', 'algorithm_params', 'experiment_params', 'history', 'state', 'name', 'inputs', 'start_time', 'hub', 'experiment', 'algorithm']:
+        for x in ['limits', 'model', 'algorithm_params', 'experiment_params', 'history', 'state', 'name', 'knobs', 'start_time', 'hub', 'experiment', 'algorithm']:
             d[x] = self.__dict__[x]
 
         return d
@@ -118,8 +118,8 @@ class Sampler():
         i = 0
         for thing in self.state:
             state[thing] = {}
-            for input in self.state[thing]:
-                state[thing][input] = arr[i]
+            for knob in self.state[thing]:
+                state[thing][knob] = arr[i]
                 i += 1
         return state
 
@@ -127,8 +127,8 @@ class Sampler():
         ''' Converts a state dict into a numpy array. '''
         arr = np.array([])
         for thing in state:
-            for input in state[thing]:
-                arr = np.append(arr, state[thing][input])
+            for knob in state[thing]:
+                arr = np.append(arr, state[thing][knob])
         return arr
 
     def get_history(self, include_database=False):
@@ -146,10 +146,10 @@ class Sampler():
             if col not in ['cost', 'error']:
                 arrays.append(self.history[col].values)
                 thing = col.split('.')[0]
-                input = col.split('.')[1]
+                knob = col.split('.')[1]
                 if thing not in state.keys():
                     state[thing] = {}
-                state[thing][input] = 0
+                state[thing][knob] = 0
         if len(arrays) > 0:
             points = np.vstack(arrays).T.astype(float)
         else:
@@ -164,16 +164,16 @@ class Sampler():
         ''' Prepare a state dict of all variables which are held constant during optimization '''
         constant_state = self.hub.state.copy()
         for thing in state.keys():
-            for input in state[thing]:
-                del constant_state[thing][input]
+            for knob in state[thing]:
+                del constant_state[thing][knob]
 
         ''' Search the database for entries matching these constant values '''
         database = self.hub.dataframe['cost'][cost.__name__]
         subdf = database
         for thing in constant_state.keys():
-            for input in constant_state[thing]:
-                subdf = subdf[np.isclose(subdf[thing+': '+input],
-                                         constant_state[thing][input],
+            for knob in constant_state[thing]:
+                subdf = subdf[np.isclose(subdf[thing+': '+knob],
+                                         constant_state[thing][knob],
                                          atol=1e-12)]
 
         ''' Form points, costs arrays '''
@@ -181,8 +181,8 @@ class Sampler():
             old_state = {}
             for thing in state.keys():
                 old_state[thing] = {}
-                for input in state[thing]:
-                    old_state[thing][input] = subdf.iloc[i][thing+': '+input]
+                for knob in state[thing]:
+                    old_state[thing][knob] = subdf.iloc[i][thing+': '+knob]
                     points = np.append(points,
                                        np.atleast_2d(self.state2array(self.normalize(old_state))),
                                        axis=0)
@@ -209,8 +209,8 @@ class Sampler():
         self.history.loc[t, 'error'] = error
         self.result = c
         for thing in target:
-            for input in target[thing]:
-                self.history.loc[t, thing+'.'+input] = norm_target[thing][input]
+            for knob in target[thing]:
+                self.history.loc[t, thing+'.'+knob] = norm_target[thing][knob]
         return c
 
     def estimate_gradient(self, arr, step_size):
@@ -223,27 +223,27 @@ class Sampler():
         return gradient
 
     def get_limits(self):
-        ''' Get the limits of all inputs in self.history from the Hub. '''
+        ''' Get the limits of all knobs in self.history from the Hub. '''
         limits = {}
         for col in self.history.columns:
             if col in ['cost', 'error']:
                 continue
             thing = col.split('.')[0]
-            input = col.split('.')[1]
-            limits[col.replace('.', ': ')] = self.limits[thing][input]
+            knob = col.split('.')[1]
+            limits[col.replace('.', ': ')] = self.limits[thing][knob]
 
         return limits
 
     def prepare(self, state):
         num_items = 0
         cols = []
-        self.inputs = {}
+        self.knobs = {}
         for thing in state:
-            self.inputs[thing] = []
-            for input in state[thing]:
-                cols.append(thing+'.'+input)
+            self.knobs[thing] = []
+            for knob in state[thing]:
+                cols.append(thing+'.'+knob)
                 num_items += 1
-                self.inputs[thing].append(input)
+                self.knobs[thing].append(knob)
         state = self.normalize(state)
         cols.append('cost')
         self.history = pd.DataFrame(columns=cols)
@@ -258,7 +258,7 @@ class Sampler():
         return state, bounds
 
     def normalize(self, unnorm):
-        ''' Normalizes a state or substate based on min/max values of the Inputs,
+        ''' Normalizes a state or substate based on min/max values of the Knobs,
             saved in the parent Hub. '''
         norm = {}
 

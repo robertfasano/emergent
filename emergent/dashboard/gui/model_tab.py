@@ -107,7 +107,7 @@ class ModelLayout(QVBoxLayout, ProcessHandler):
             settings['hub'] = self.parent.dashboard.tree_widget.get_selected_hub()
         except Exception as e:
             if e == IndexError:
-                log.warn('Select inputs before starting optimization!')
+                log.warn('Select knobs before starting optimization!')
             elif e == KeyError:
                 log.warn('Decentralized processes not yet supported.')
             return
@@ -153,7 +153,12 @@ class ModelLayout(QVBoxLayout, ProcessHandler):
             d['experiment']['cycles per sample'] = 1
         self.sampler_table.set_parameters(d['sampler'][sampler_name])
         self.experiment_table.set_parameters(d['experiment'])
+
+
         if 'model' in d:
+            weights = self.parent.dashboard.get('models/%s/weights'%model_name)
+            if weights != []:
+                d['model'][model_name]['Weights'] = weights
             self.model_table.set_parameters(d['model'][model_name])
         else:
             self.model_table.set_parameters({})

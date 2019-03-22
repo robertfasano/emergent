@@ -4,11 +4,12 @@ class Switch():
     ''' A generic switch with on/off states and methods to set or toggle the
         state. The user should overload the _set method when inheriting this
         class in order to switch an actual device. '''
-    def __init__(self, name, params, invert=False):
+    def __init__(self, name, params, invert=False, channel=None):
         self.name = name
         self.params = params
         self.state = None
         self.invert = invert
+        self.channel = channel
 
         self.set(0)
 

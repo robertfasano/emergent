@@ -42,9 +42,9 @@ class CurrentDriver(Thing, ProcessHandler):
 
         self.probe_coefficient = 2000/49.9
 
-        self.add_input('gradient')
+        self.add_knob('gradient')
         self.children['gradient'].tooltip = 'Field gradient in G/cm'
-        self.add_input('zero')
+        self.add_knob('zero')
         self.children['zero'].tooltip = 'Quadrupole zero offset in mm'
 
         # self._connected = self._connect()

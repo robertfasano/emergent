@@ -35,19 +35,20 @@ class MOT(Hub):
         self.switches['slowing shutter'] = LabJackSwitch('slowing shutter', {'labjack': self.TTL, 'channel': 7})
         self.switches['slowing rf'] = LabJackSwitch('slowing rf', {'labjack': self.TTL, 'channel': 1}, invert = True)
 
+        steps = [{'name': 'loading', 'state': {'trap rf': 1, 'trap servo': 1, 'trap shutter': 1, 'SHG rf': 1, 'SHG shutter': 1, 'slowing shutter': 1, 'slowing rf': 1}},
+                 {'name': 'delay', 'state': {'trap rf': 1, 'trap servo': 1, 'trap shutter': 1, 'SHG rf': 0, 'SHG shutter': 1, 'slowing shutter': 0, 'slowing rf': 0}},
+                 {'name': 'probe', 'state': {'trap rf': 0, 'trap servo': 0, 'trap shutter': 0, 'SHG rf': 1, 'SHG shutter': 1, 'slowing shutter': 0, 'slowing rf': 0}},
+                 {'name': 'rf off', 'state': {'trap rf': 0, 'trap servo': 0, 'trap shutter': 0, 'SHG rf': 0, 'SHG shutter': 0, 'slowing shutter': 0, 'slowing rf': 0}},
+                 {'name': 'rf on', 'state': {'trap rf': 1, 'trap servo': 0, 'trap shutter': 0, 'SHG rf': 1, 'SHG shutter': 0, 'slowing shutter': 0, 'slowing rf': 1}}]
+        print('MOT: Preparing initial state.')
 
-        loading = Timestep('loading', duration = 1, state = {'trap rf': 1, 'trap servo': 1, 'trap shutter': 1, 'SHG rf': 1, 'SHG shutter': 1, 'slowing shutter': 1, 'slowing rf': 1})
-        probe_delay = Timestep('delay', duration = 3e-3, state = {'trap rf': 1, 'trap servo': 1, 'trap shutter': 1, 'SHG rf': 0, 'SHG shutter': 1, 'slowing shutter': 0, 'slowing rf': 0})
-        probe = Timestep('probe', duration = 10e-3, state = {'trap rf': 0, 'trap servo': 0, 'trap shutter': 0, 'SHG rf': 1, 'SHG shutter': 1, 'slowing shutter': 0, 'slowing rf': 0})
-        rf_off = Timestep('rf off', duration = 10e-3, state = {'trap rf': 0, 'trap servo': 0, 'trap shutter': 0, 'SHG rf': 0, 'SHG shutter': 0, 'slowing shutter': 0, 'slowing rf': 0})
-        rf_on = Timestep('rf on', duration = 1e-3, state = {'trap rf': 1, 'trap servo': 0, 'trap shutter': 0, 'SHG rf': 1, 'SHG shutter': 0, 'slowing shutter': 0, 'slowing rf': 1})
-
-        self.sequencer = Sequencer('sequencer', parent = self, params = {'labjack': self.TTL, 'steps': [loading, probe_delay, probe, rf_off, rf_on]})
-        self.sequencer.goto(0)
+        self.sequencer = Sequencer('sequencer', parent = self, params = {'labjack': self.TTL, 'sequence': steps})
+        self.sequencer.goto('loading')
 
         self.options['Load'] = self.ready
 
         self.result_buffer = []
+
     def atom_number(self, signal, background):
         ''' Experimental variables '''
         probe_power = 4.05e-3

@@ -17,7 +17,7 @@ class SolsTiS(Thing):
         '''
 
         super().__init__(name=name, parent = parent)
-        self.add_input('etalon setpoint')
+        self.add_knob('etalon setpoint')
         self.params = params
         self.options['Toggle lock'] =  self.toggle_lock
         self.options['Acquire lock'] = self.acquire_etalon_lock

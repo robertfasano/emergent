@@ -1,6 +1,8 @@
 from distutils.core import setup
 from setuptools import find_packages
 import os
+import json
+
 setup(
     name='EMERGENT',
     version='0.1dev',
@@ -40,3 +42,8 @@ elif os.name == 'darwin':
         file.write('cd ~/emergent/emergent\nsource activate emergent\npython ~/emergent/emergent/dashboard/main.py')
     with open(os.path.expanduser('~/emergent_session.sh'), 'w') as file:
         file.write('open -a Terminal.app ~/emergent_dashboard.sh\n~/emergent_master.sh $1')
+
+with open('config.json', 'w') as file:
+    filepath = os.path.realpath(__file__)
+    root = os.path.abspath(os.path.join(filepath, '..'))
+    json.dump({'path': root+'/emergent'}, file)

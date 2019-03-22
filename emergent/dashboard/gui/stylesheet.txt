@@ -29,14 +29,14 @@ QTreeWidget::item {
   padding: 1px 0;
 }
 
-QMainWindow{border-image: url("gui/media/background.jpg") 0 0 0 0 stretch stretch;}
+QMainWindow{border-image: url("dashboard/gui/media/background.jpg") 0 0 0 0 stretch stretch;}
 
 
 QCheckBox::indicator:unchecked {
-    image: url("gui/media/unchecked.png");
+    image: url("dashboard/gui/media/unchecked.png");
 }
 
 
 QCheckBox::indicator:checked {
-    image: url("gui/media/checked.png");
+    image: url("dashboard/gui/media/checked.png");
 }

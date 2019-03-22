@@ -19,12 +19,12 @@ class Watchdog():
         * Sounding an audio alarm
         * Returning control to the Hub but flagging any saved data as unlocked
     '''
-    def __init__(self, parent, experiment, threshold, input_state=None, name='watchdog', channel=None, units = ''):
+    def __init__(self, parent, experiment, threshold, knob_state=None, name='watchdog', channel=None, units = ''):
         ''' Args:
                 parent (Hub): the hub to which to attach this monitor
                 experiment (function): an EMERGENT experiment to check the monitored variable
                 threshold (float): numerical value for logical comparison
-                input_state (State): inputs to actuate when reoptimizing
+                knob_state (State): knobs to actuate when reoptimizing
                 name (str): how the watchdog should be labeled in the Monitor panel
                 channel (?): specifies a channel to monitor in experiment_params
         '''
@@ -32,9 +32,9 @@ class Watchdog():
         self.channel = channel
         self.experiment = experiment        # experiment to run to check lock state
         self.threshold = threshold
-        self.input_state = input_state
-        if self.input_state is None:
-            self.input_state = parent.state
+        self.knob_state = knob_state
+        if self.knob_state is None:
+            self.knob_state = parent.state
         self.name = name
         self.value = 0
         self.threshold_type = 'lower'
@@ -54,7 +54,7 @@ class Watchdog():
         ''' Set up sampler object '''
         experiment_params = recommender.load_experiment_parameters(self.parent, experiment.__name__)
         experiment_params['channel'] = self.channel
-        settings = {'state': self.input_state, 'hub': self.parent}
+        settings = {'state': self.knob_state, 'hub': self.parent}
         settings['experiment'] = {'instance': self.experiment, 'params': experiment_params}
         self.sampler = Sampler('Watchdog', settings)
         self.sampler.skip_lock_check = True

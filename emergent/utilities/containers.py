@@ -3,8 +3,8 @@
 
     * Substates including only specified indices can be obtained through State.get()
     * State.copy() returns a detached clone of the original State (rather than creating a reference as with a dict)
-    * Multiple inputs can be updated with one call to the State.update() method
-    * The ordering in which objects are added to the State is preserved, so that State instances can be converted to and from numpy arrays without scrambling the inputs.
+    * Multiple knobs can be updated with one call to the State.update() method
+    * The ordering in which objects are added to the State is preserved, so that State instances can be converted to and from numpy arrays without scrambling the knobs.
 '''
 from copy import deepcopy
 from collections import OrderedDict, Mapping
@@ -105,9 +105,9 @@ class State(OrderedDict):
             for thing in keys:
                 print(thing)
                 state[thing] = {}
-                for input in keys[thing]:
-                    print(input)
-                    state[thing][input] = self[thing][input]
+                for knob in keys[thing]:
+                    print(knob)
+                    state[thing][knob] = self[thing][knob]
         return state
 
     def update(self, state):
@@ -115,8 +115,8 @@ class State(OrderedDict):
         new_state = self.copy()
         for thing in state:
             if type(state[thing]) is dict:        # then this is a (nested) hub state
-                for input in state[thing]:
-                    new_state[thing][input] = state[thing][input]
+                for knob in state[thing]:
+                    new_state[thing][knob] = state[thing][knob]
             else:                               # this is a thing state
                 new_state[thing] = state[thing]
         return new_state

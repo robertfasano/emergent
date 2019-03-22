@@ -2,7 +2,7 @@ import numpy as np
 from scipy.optimize import minimize
 from emergent.utilities.plotting import plot_2D
 from emergent.utilities.containers import Parameter
-
+from scipy.stats import norm
 
 class Model():
     def __init__(self, name=None):
@@ -13,7 +13,8 @@ class Model():
                                             min = 0.01,
                                             max = 0.25,
                                             description = 'Allowed search range relative to last best point')
-
+        self.imported = False
+        self.extension = None
     def append(self, point, cost):
         self.points = np.append(np.atleast_2d(self.points), np.atleast_2d(point), axis=0)
         self.costs = np.append(self.costs, cost)
@@ -22,8 +23,8 @@ class Model():
         ''' Computes an effective cost, featuring
             some tradeoff between optimization and learning. '''
         mu, sigma = self.predict(X)
-       # return (b*mu+np.sqrt(1-b**2)*sigma)
-        return b*mu-(1-b)*sigma
+        return b*mu-np.sqrt(1-b**2)*sigma
+        # return b*mu-(1-b)*sigma
 
     def fit(self):
         ''' Override for a given model with the specific fitting method used. '''
@@ -70,6 +71,7 @@ class Model():
         self.sampler = sampler
         self.points, self.bounds = self.sampler.prepare(sampler.state)
         self.costs = np.array([self.sampler._cost(self.points)])
+        self.points = np.atleast_2d(self.points)
 
     def set_params(self, params):
         for p in params:

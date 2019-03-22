@@ -22,6 +22,13 @@ def get_blueprint(network):
                 settings[x]['instance'] = recommender.get_class(x, settings[x]['name'])
         sampler = Sampler('sampler', settings)
         sampler.id = str(uuid.uuid1())
+
+        ''' Load previously trained model if specified '''
+        if 'model' in settings:
+            if 'Weights' in settings['model']['params']:
+                filename = network.path['data'] + '/' + settings['model']['params']['Weights'].split('.')[0]
+                sampler.model._import(filename)
+
         ''' Create task_panel task '''
 
         params = {'start time': datetime.datetime.now().isoformat(),
@@ -39,10 +46,10 @@ def get_blueprint(network):
             sampler.trigger = getattr(settings['hub'], settings['process']['trigger'])
         ''' Run process '''
         if settings['state'] == {} and settings['process']['type'] != 'run':
-            log.warning('Please select at least one Input node.')
+            log.warning('Please select at least one Knob.')
             return
         func = sampler._solve
-        if settings['process']['type'] == 'run':
+        if settings['process']['type'] == 'measure':
             func = sampler._run
         network.manager._run_thread(func, stoppable=False)
 

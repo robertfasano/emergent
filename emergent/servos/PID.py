@@ -39,11 +39,11 @@ class PID():
         assert len(things) == 1
         thing = things[0]
 
-        inputs = list(state[thing].keys())
-        assert len(inputs) == 1
-        input = inputs[0]
-        input_node = self.sampler.hub.children[thing].children[input]
-        input_node.error_history = pd.Series()
+        knobs = list(state[thing].keys())
+        assert len(knobs) == 1
+        knob = knobs[0]
+        knob_node = self.sampler.hub.children[thing].children[knob]
+        knob_node.error_history = pd.Series()
         last_error = error(state, self.sampler.experiment_params)
         last_time = time.time()
         integral = 0
@@ -53,8 +53,8 @@ class PID():
             t = time.time()
             self.sampler.history.loc[t,'cost']=e
             for thing in state:
-                for input in state[thing]:
-                    self.sampler.history.loc[t,thing+'.'+input] = state[thing][input]
+                for knob in state[thing]:
+                    self.sampler.history.loc[t,thing+'.'+knob] = state[thing][knob]
             # print('State:', state, 'Error:', e)
             delta_t = t - last_time
             delta_e = e - last_error
@@ -68,7 +68,7 @@ class PID():
 
             target = proportional + integral + derivative
             # print('Correction:', target)
-            state[thing][input] -= self.sampler.algorithm_params['Sign']*target  # gets passed into error in the next loop
+            state[thing][knob] -= self.sampler.algorithm_params['Sign']*target  # gets passed into error in the next loop
 
     def set_params(self, params):
         for p in params:

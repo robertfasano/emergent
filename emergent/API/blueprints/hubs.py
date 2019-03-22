@@ -186,7 +186,7 @@ def get_blueprint(network):
             d['model'] = {'name': obj.model.name, 'params': obj.model_params}
         d['limits'] = hub.range
         d['hub'] = hub.name
-        d['inputs'] = obj.inputs
+        d['knobs'] = obj.knobs
 
         return json.dumps(d)
 
@@ -259,6 +259,18 @@ def get_blueprint(network):
     def hub_switches(hub):
         switches = network.hubs[hub].switches
         return json.dumps(list(switches.keys()))
+
+    @blueprint.route('/<hub>/switches/ttl')
+    def hub_switch_ttl(hub):
+        s = {}
+        switches = network.hubs[hub].switches
+        for switch in switches:
+            if hasattr(switches[switch], 'channel'):
+                channel = switches[switch].channel
+                s[channel] = {}
+                for key in ['name', 'invert']:
+                    s[channel][key] = getattr(switches[switch], key)
+        return json.dumps(s)
 
     @blueprint.route('/<hub>/sequencer/sequence', methods=['GET', 'POST'])
     def hub_sequence(hub):
