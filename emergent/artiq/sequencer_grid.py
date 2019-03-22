@@ -77,8 +77,13 @@ class GridWindow(QWidget):
         label.setBold(True)
         self.grid_layout.addWidget(label, 2, 0)
         row = 3
+
+
         for ttl in self.ttls:
-            self.grid_layout.addWidget(QLabel(str(ttl)+': '+self.ttls[ttl]), row, 0)
+            label = str(ttl)
+            if type(self.ttls) is dict:
+                label += ': %s'%str(self.ttls[ttl])
+            self.grid_layout.addWidget(QLabel(label), row, 0)
             row += 1
 
         ''' Create ADC labels '''
@@ -88,7 +93,10 @@ class GridWindow(QWidget):
         self.grid_layout.addWidget(label, row, 0)
         row += 1
         for adc in self.adcs:
-            self.grid_layout.addWidget(QLabel(str(adc)+': '+self.adcs[adc]), row, 0)
+            label = str(adc)
+            if type(self.adcs) is dict:
+                label += ': %s'%str(self.adcs[adc])
+            self.grid_layout.addWidget(QLabel(label), row, 0)
             row += 1
 
         # ''' Create DAC labels '''

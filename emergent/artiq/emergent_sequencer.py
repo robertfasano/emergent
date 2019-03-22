@@ -29,13 +29,21 @@ class Sequencer(Thing):
         move_down_option = lambda s: lambda: self.move(s, 1)
         move_up_option = lambda s: lambda: self.move(s, -1)
 
+        self.ttl = []
+        self.adc = []
         for step in params['sequence']:
             self.add_knob(step['name'])
             self.children[step['name']].options = {'Go to %s'%step['name']: (goto_option(step['name']))}
 
-            for channel in step['TTL']:
-                if channel not in self.channels:
-                    self.channels.append(channel)
+            # for channel in step['TTL']:
+            #     if channel not in self.channels:
+            #         self.channels.append(channel)
+            for ch in step['TTL']:
+                if ch not in self.ttl:
+                    self.ttl.append(ch)
+            for ch in step['ADC']:
+                if ch not in self.adc:
+                    self.adc.append(ch)
 
         self.steps = params['sequence']
         self.cycle_time = 0
