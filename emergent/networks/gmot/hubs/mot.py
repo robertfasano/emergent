@@ -8,7 +8,8 @@ from emergent.modules.parallel import ProcessHandler
 from emergent.things.labjack import LabJack, LabJackSwitch
 import matplotlib.pyplot as plt
 from emergent.utilities.testing import Timer
-from emergent.modules.sequencing import Timestep, Sequencer
+# from emergent.modules.sequencing import Sequencer
+from emergent.artiq.emergent_sequencer import Sequencer
 
 class MOT(Hub):
     def __init__(self, name, parent = None, network = None):
@@ -40,10 +41,36 @@ class MOT(Hub):
                  {'name': 'probe', 'state': {'trap rf': 0, 'trap servo': 0, 'trap shutter': 0, 'SHG rf': 1, 'SHG shutter': 1, 'slowing shutter': 0, 'slowing rf': 0}},
                  {'name': 'rf off', 'state': {'trap rf': 0, 'trap servo': 0, 'trap shutter': 0, 'SHG rf': 0, 'SHG shutter': 0, 'slowing shutter': 0, 'slowing rf': 0}},
                  {'name': 'rf on', 'state': {'trap rf': 1, 'trap servo': 0, 'trap shutter': 0, 'SHG rf': 1, 'SHG shutter': 0, 'slowing shutter': 0, 'slowing rf': 1}}]
+
+        loading_step = {'name': 'load',
+            'duration': 1.5,
+            'TTL': [1, 2, 3, 4, 5, 6, 7],
+            'ADC': [0],
+            'DAC': {},
+            'DDS': {}
+           }
+        delay_step = {'name': 'delay',
+           'duration': 20e-3,
+           'TTL': [2, 3, 4],
+           'ADC': [0],
+           'DAC': {},
+           'DDS': {}
+          }
+        probe_step = {'name': 'probe',
+           'duration': 15e-3,
+           'TTL': [5, 6],
+           'ADC': [0],
+           'DAC': {},
+           'DDS': {}
+          }
+
+        steps = [loading_step, delay_step, probe_step]
         print('MOT: Preparing initial state.')
 
         self.sequencer = Sequencer('sequencer', parent = self, params = {'labjack': self.TTL, 'sequence': steps})
-        self.sequencer.goto('loading')
+        self.sequencer.ttl = {1: 'slowing rf', 2: 'trap rf', 3: 'trap shutter', 4: 'trap servo', 5: 'SHG rf', 6: 'SHG shutter', 7: 'slowing shutter'}
+        self.sequencer.adc = {0: 'PMT'}
+        self.sequencer.goto('load')
 
         self.options['Load'] = self.ready
 
