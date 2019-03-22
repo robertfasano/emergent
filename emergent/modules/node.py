@@ -449,9 +449,9 @@ class Hub(Node):
                 state = DataDict(json.load(file))
         except FileNotFoundError:
             state = DataDict({})
-        self.state.put(state.find('state', label=False))
-        self.range.put(state.find('min'))
-        self.range.put(state.find('max'))
+        self.state.patch(state.find('state', label=False))
+        self.range.patch(state.find('min'))
+        self.range.patch(state.find('max'))
 
 
 
