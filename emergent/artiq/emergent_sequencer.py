@@ -66,13 +66,21 @@ class Sequencer(Thing):
             now += self.state[step['name']]
         return now
 
+    def get_switch_by_channel(self, ch):
+        for switch in self.parent.switches.values():
+            if switch.channel == ch:
+                return switch
+
     def goto(self, step_name):
         ''' Go to a step specified by a string name. '''
         step = self.get_step_by_name(step_name)
+        for ch in self.ttl:
+            switch = self.get_switch_by_channel(ch)
+            if str(ch) in step['TTL']:
+                switch.set(1)
+            else:
+                switch.set(0)
 
-        for channel in step['TTL']:
-            state = step['TTL'][channel]
-            self.parent.switches[channel].set(state)
         self.current_step = step_name
         if hasattr(self, 'grid'):
             self.grid.bold_active_step()
