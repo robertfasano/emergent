@@ -7,8 +7,6 @@ from flask import Flask
 from flask_socketio import SocketIO, emit
 import logging
 
-HUB = 'hub'
-LIVE = True
 
 def prepare_sample_sets(times) -> TList(TList):
     x = []
@@ -156,6 +154,8 @@ class Sequencer(EnvExperiment):
 
         self.data = []
 
+
+    ''' Acquired data handling '''
     @rpc(flags={"async"})
     def store_adc_reads(self, data):
         # data = list(map(list, zip(*data)))
@@ -165,14 +165,18 @@ class Sequencer(EnvExperiment):
     def post_adc_data(self):
         post_samples(self.adc_reads)
 
+    def reset_adc_reads(self):
+        self.adc_reads = []
+
+
+    ''' Start management '''
     def process_submitted(self) -> TBool:
         return bool(self._submit_emergent)
 
     def reset_process(self):
         self._submit_emergent = 0
 
-    def reset_adc_reads(self):
-        self.adc_reads = []
+
 
     @kernel
     def initialize_kernel(self):
@@ -192,11 +196,6 @@ class Sequencer(EnvExperiment):
 
         ttl_channels = [0, 1, 2, 3, 4, 5, 6, 7]
         adc_channels = [0, 1, 2, 3, 4, 5, 6, 7]
-        # if not LIVE:
-        #     times = get_timesteps()
-        #     table = get_ttls(ttl_channels)
-        #     self.set_ttl_table(ttls, ttl_channels, times, table)
-
 
 
         while True:
@@ -208,43 +207,34 @@ class Sequencer(EnvExperiment):
 
             print('Starting experiment')
 
-            if LIVE:
-                ''' Get and prepare TTL state '''
-                times = get_timesteps()
-                ttl_table = get_ttls(ttl_channels)
-                #
-                # ''' Get ADC reads '''
-                adc_table = get_adcs(adc_channels)
+            ''' Get and prepare TTL state '''
+            times = get_timesteps()
+            ttl_table = get_ttls(ttl_channels)
+            #
+            # ''' Get ADC reads '''
+            adc_table = get_adcs(adc_channels)
 
-                sample_sets = prepare_sample_sets(times)
-                def set_results(x, i):
-                    print('read')
-                    nonlocal sample_sets
-                    sample_sets[i] = x
-                # print(table)
-                # print(times)
-                # print(adc_table)
+            sample_sets = prepare_sample_sets(times)
+            def set_results(x, i):
+                nonlocal sample_sets
+                sample_sets[i] = x
 
 
-                # self.data = prepare_data_array(times, adc_table)
+            self.set_ttl_table(ttls, ttl_channels, times, ttl_table)
 
-                self.set_ttl_table(ttls, ttl_channels, times, ttl_table)
+            # self.core.break_realtime()
+            # self.slack()
+            # with parallel:
+                # self.TTL_playback()
 
-                # self.core.break_realtime()
-                # self.slack()
-                # with parallel:
-                    # self.TTL_playback()
+            self.execute(times, ttl_table, adc_table, set_results)
+            # self.execute_adc_pattern(self.sampler0, adc_channels, times, adc_table, set_results)
+            print(sample_sets)
+                # self.perform_adc_reads(adc_times, adc_channels)
+            self.core.wait_until_mu(now_mu())       # wait until hardware cursor reaches time cursor. Important!!
+            # self.post_adc_data()
 
-                self.execute(times, ttl_table, adc_table, set_results)
-                # self.execute_adc_pattern(self.sampler0, adc_channels, times, adc_table, set_results)
-                print(sample_sets)
-                    # self.perform_adc_reads(adc_times, adc_channels)
-                # self.core.wait_until_mu(now_mu())       # wait until hardware cursor reaches time cursor. Important!!
-                # self.post_adc_data()
 
-            else:
-                self.TTL_playback()
-                self.core.wait_until_mu(now_mu())
 
     @kernel(flags={"fast-math"})
     def execute(self, times, ttl_table, adc_table, set_results):
