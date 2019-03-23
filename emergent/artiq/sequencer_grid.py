@@ -168,7 +168,7 @@ class GridWindow(QWidget):
         self.checkboxes[name] = {}
         for switch in self.ttls:
             state = 0
-            if int(switch) in step['TTL']:
+            if int(switch) in step['TTL'] or str(switch) in step['TTL']:
                 state = 1
             box = StateCheckbox(name, step, state, self.dashboard, self.hub, self)
             self.grid_layout.addWidget(box, row, col)
@@ -180,7 +180,7 @@ class GridWindow(QWidget):
         row += 1
         for adc in self.adcs:
             state = 0
-            if int(adc) in step['ADC']:
+            if int(adc) in step['ADC'] or str(adc) in step['ADC']:
                 state = 1
             box = StateCheckbox(name, step, state, self.dashboard, self.hub, self)
             self.grid_layout.addWidget(box, row, col)

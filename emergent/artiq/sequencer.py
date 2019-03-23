@@ -10,7 +10,24 @@ import logging
 HUB = 'hub'
 LIVE = True
 
+def prepare_sample_sets(times) -> TList(TList):
+    x = []
+    for t in times:
+        x.append([])
+    return x
 
+def prepare_data_array(times, adc_table) -> TList(TList(TInt32)):
+    ''' Determine total sampling time and prepare data array '''
+    total_time = 0.0
+    col = 0
+    data = []
+    for time in times:
+        if 1 in adc_table[col]:
+            total_time += time
+            samples = int(1.5e6*time) - int(1.5e6*time)%8
+            data.append([0]*samples)
+        col += 1
+    return data
 
 def get_time() -> TFloat:
     return time.time()
@@ -23,7 +40,7 @@ def get_read_times() -> TList(TList(TFloat)):
         times.append([float(r['start']), float(r['end']), float(r['step'])])
     return times
 
-def get_read_channels() -> TList(TList(TInt32)):
+def get_adcs() -> TList(TList(TInt32)):
     ''' Returns a list of lists like [[0], [1,2]] '''
     reads = requests.get('http://127.0.0.1:5000/artiq/run').json()['adc']
     channel_sets = []
@@ -40,6 +57,42 @@ def post_samples(samples):
 
 def get_pid() -> TStr:
     return requests.get('http://127.0.0.1:5000/artiq/run').json()['pid']
+
+def get_ttls(ttl_channels) -> TList(TList(TInt32)):
+    ''' Queries the EMERGENT API and receives a sequence of the format
+            [{'name': 'step1', 'TTL': [0,1], 'ADC': [0]}]
+        Prepares a TTL table from this sequence. '''
+    sequence = requests.get('http://127.0.0.1:5000/artiq/run').json()['sequence']
+    state = []
+    for step in sequence:
+        step_state = []
+        for ch in ttl_channels:
+            if ch in step['TTL'] or str(ch) in step['TTL']:
+                step_state.append(1)
+            else:
+                step_state.append(0)
+        state.append(step_state)
+    state = list(map(list, zip(*state)))            # transpose
+
+    return state
+
+def get_adcs(adc_channels) -> TList(TList(TInt32)):
+    ''' Queries the EMERGENT API and receives a sequence of the format
+            [{'name': 'step1', 'TTL': [0,1], 'ADC': [0]}]
+        Prepares an ADC table from this sequence. '''
+    sequence = requests.get('http://127.0.0.1:5000/artiq/run').json()['sequence']
+    state = []
+    for step in sequence:
+        step_state = []
+        for ch in adc_channels:
+            if ch in step['ADC'] or str(ch) in step['ADC']:
+                step_state.append(1)
+            else:
+                step_state.append(0)
+        state.append(step_state)
+    # state = list(map(list, zip(*state)))            # transpose
+
+    return state
 
 
 def get_ttl_states(ttl_channels) -> TList(TList(TInt32)):
@@ -58,7 +111,7 @@ def get_ttl_states(ttl_channels) -> TList(TList(TInt32)):
     state = list(map(list, zip(*state)))            # transpose
     return state
 
-def get_ttl_times() -> TList(TFloat):
+def get_timesteps() -> TList(TFloat):
     run = requests.get('http://127.0.0.1:5000/artiq/run').json()
     sequence = run['sequence']
 
@@ -86,14 +139,14 @@ class Sequencer(EnvExperiment):
         logging.getLogger('engineio').setLevel(logging.ERROR)
         app = Flask(__name__)
         self.socketio = SocketIO(app, logger=False, port=54031)
-
-
+        #
+        #
         self._submit_emergent = 0
         @self.socketio.on('submit')
         def submit():
             print('Received submit')
             self._submit_emergent = 1
-
+        #
         ''' post handshake to start connection '''
         from threading import Thread
         thread = Thread(target=self.socketio.run, args=(app,), kwargs={'port': 54031})
@@ -101,9 +154,11 @@ class Sequencer(EnvExperiment):
         print('Starting socket connection')
         requests.post('http://127.0.0.1:5000/artiq/handshake', json={'port': 54031})
 
+        self.data = []
 
+    @rpc(flags={"async"})
     def store_adc_reads(self, data):
-        data = list(map(list, zip(*data)))
+        # data = list(map(list, zip(*data)))
 
         self.adc_reads.append(data)
 
@@ -120,85 +175,129 @@ class Sequencer(EnvExperiment):
         self.adc_reads = []
 
     @kernel
-    def run(self):
+    def initialize_kernel(self):
         self.core.reset()
+        self.core.break_realtime()
         self.sampler0.init()
+        self.core.break_realtime()
+        delay(100*us)
 
+    @kernel
+    def slack(self):
+        print(now_mu()-self.core.get_rtio_counter_mu())
+
+    def run(self):
+        self.initialize_kernel()
         ttls = self._ttls
 
-        ttl_channels = [4, 5]
+        ttl_channels = [0, 1, 2, 3, 4, 5, 6, 7]
+        adc_channels = [0, 1, 2, 3, 4, 5, 6, 7]
+        # if not LIVE:
+        #     times = get_timesteps()
+        #     table = get_ttls(ttl_channels)
+        #     self.set_ttl_table(ttls, ttl_channels, times, table)
 
-        if not LIVE:
-            times = get_ttl_times()
-            table = get_ttl_states(ttl_channels)
-            self.set_ttl_table(ttls, ttl_channels, times, table)
+
 
         while True:
             ''' Check if EMERGENT has submitted a process '''
             if not self.process_submitted():
                 continue
             self.reset_process()
-            self.reset_adc_reads()
+            # self.reset_adc_reads()
 
             print('Starting experiment')
-            pid = get_pid()
-            n_samples = 3
-            time_between_samples = 15*us
-            ''' Read ADC '''
 
             if LIVE:
                 ''' Get and prepare TTL state '''
-                times = get_ttl_times()
-                table = get_ttl_states(ttl_channels)
-                self.set_ttl_table(ttls, ttl_channels, times, table)
+                times = get_timesteps()
+                ttl_table = get_ttls(ttl_channels)
+                #
+                # ''' Get ADC reads '''
+                adc_table = get_adcs(adc_channels)
 
-                ''' Get ADC reads '''
-                adc_times = get_read_times()
-                adc_channels = get_read_channels()
+                sample_sets = prepare_sample_sets(times)
+                def set_results(x, i):
+                    print('read')
+                    nonlocal sample_sets
+                    sample_sets[i] = x
+                # print(table)
+                # print(times)
+                # print(adc_table)
 
-                self.core.break_realtime()
-                with parallel:
+
+                # self.data = prepare_data_array(times, adc_table)
+
+                self.set_ttl_table(ttls, ttl_channels, times, ttl_table)
+
+                # self.core.break_realtime()
+                # self.slack()
+                # with parallel:
                     # self.TTL_playback()
-                    # self.get_raw_samples(n_samples, time_between_samples, pid)
-                    self.perform_adc_reads(adc_times, adc_channels)
-                self.core.wait_until_mu(now_mu())       # wait until hardware cursor reaches time cursor. Important!!
-                self.post_adc_data()
+
+                self.execute(times, ttl_table, adc_table, set_results)
+                # self.execute_adc_pattern(self.sampler0, adc_channels, times, adc_table, set_results)
+                print(sample_sets)
+                    # self.perform_adc_reads(adc_times, adc_channels)
+                # self.core.wait_until_mu(now_mu())       # wait until hardware cursor reaches time cursor. Important!!
+                # self.post_adc_data()
 
             else:
                 self.TTL_playback()
                 self.core.wait_until_mu(now_mu())
 
-    @kernel
-    def perform_adc_reads(self, adc_times, adc_channels):
-        for i in range(len(adc_times)):
-            lst = adc_times[i]
-            start = lst[0]
-            end = lst[1]
-            step = lst[2]
-            n_samples = int((end-start)/step)
-            delay(start*s)
-            self.get_raw_samples(n_samples, step, adc_channels[i])
+    @kernel(flags={"fast-math"})
+    def execute(self, times, ttl_table, adc_table, set_results):
+        self.core.break_realtime()
+        with parallel:
+            # self.execute_adc_pattern(self.sampler0, set_results, times, adc_table)
+            self.execute_adc_pattern_test(self.sampler0, set_results, times, adc_table)
 
+            self.TTL_playback()
 
     @kernel
-    def get_raw_samples(self, n_samples, time_between_samples, channels):
+    def execute_adc_pattern_test(self, sampler, rpc, times, adc_table):
+        dt = 30*ms
+        n = int(dt*1.5e6)-int(dt*1.5e6)%8
+        # raw_samples = [[0]*8 for i in range(n)]
+        raw_samples = [0]*(8*n)
+        delay(100*ms)
+        for i in range(n):
+            with parallel:
+                sampler.sample_mu(raw_samples[i])
+                delay(200*us)
+        rpc(raw_samples, 0)
 
-        raw_samples = [[0.0]*8 for i in range(n_samples)]
-        i=0
-        with sequential:
-            self.ttl6.on()
-            for i in range(n_samples):
-                with parallel:
-                    self.sampler0.sample(raw_samples[i])
-                    delay(time_between_samples*s)
 
-        self.ttl6.off()
+    @kernel(flags={"fast-math"})
+    def get_dt(self, time, n):
+        if n == 1:
+            return time-100*us           # need to compensate for calculation time!!
+        else:
+            return time/(n-1)-100/n*us
 
-        # filter by channels
-        for i in range(len(raw_samples)):
-            raw_samples[i] = [raw_samples[i][j] for j in channels]
-        # raw_samples = self.core.sampler.adc_mu_to_volt(raw_samples)
-        self.store_adc_reads(raw_samples)
+    @kernel(flags={"fast-math"})
+    def execute_adc_pattern(self, sampler, rpc, times, table):
+        # self.get_samples(sampler, rpc)
+        n = 15
+        col = 0
+        for time in times:
+            delay(100*us)            # compensate for calculation time
+            dt = self.get_dt(time, n)
+
+            with parallel:
+                if 1 in table[col]:
+                    self.get_samples(sampler, rpc, col)
+            col += 1
+
+    @kernel(flags={"fast-math"})
+    def get_samples(self, sampler, rpc, col, n, dt):
+        data = [[0]*8 for i in range(n)]
+        for i in range(n):
+            with parallel:
+                sampler.sample_mu(data[i])
+                delay(dt)
+        rpc(data, col)
 
     @kernel
     def set_ttl_table_craig(self, ttls, channels, times, table):
