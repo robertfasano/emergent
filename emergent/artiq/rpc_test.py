@@ -1,14 +1,20 @@
 from artiq.experiment import *
+import numpy as np
 
 class Transfer(EnvExperiment):
     def build(self):
         self.setattr_device("core")
 
     def run(self):
-        bytes = 10**6
-        print(self.transfer_bytes(bytes), "B/s")
-        print(self.transfer_integers(int(bytes/32), "B/s")
-        print(self.transfer_floats(int(bytes/64), "B/s")
+        # bytes = 10**6
+        bytes = np.logspace(0, 7, 100)
+        print(repr(bytes))
+        speed = []
+        for b in bytes:
+            speed.append(self.transfer_bytes(int(b)))
+        # print(self.transfer_integers(int(bytes/4)), "B/s")
+        # print(self.transfer_floats(int(bytes/8)), "B/s")
+        print(speed)
 
     def get_bytes(self, n) -> TBytes:
         return b"\x00"*n
