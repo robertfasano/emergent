@@ -92,7 +92,7 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
 
     def update_hub(self):
         hub = self.dashboard.tree_widget.get_selected_hub()
-        if hub == self.current_hub:
+        if hub == self.current_hub or hub is None:
             return
         else:
             self.current_hub = hub
