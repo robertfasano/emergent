@@ -48,6 +48,11 @@ class NodeTree(QTreeWidget):
         for hub in range:
             self.set_range(hub, range[hub])
 
+        ''' Ensure that only Knobs are selectable '''
+        for item in self.get_all_items():
+            if item.node != 'knob':
+                item.setFlags(Qt.ItemIsEnabled)
+
         self.setColumnWidth(0,200)
         for i in [1,2,3]:
             self.setColumnWidth(i,50)
