@@ -2,6 +2,7 @@ from emergent.networks.gmot.hubs import MOT
 from emergent.things import LabJack, NetControls, Novatech
 from emergent.networks.gmot.things import CurrentDriver, IntensityServo
 from emergent.networks.autoAlign import network as autoAlign
+from emergent.networks.autoAlign4 import network as autoAlign4
 from emergent.modules.node import Thing
 from emergent.networks.monitor import network as monitor
 
@@ -13,8 +14,14 @@ def initialize(network):
     slowing_params = {'autoAlign': {'name': 'slowing',
                             'params': {'MEMS':
                                         {'params': {'devid': '470017899'}}}}}
+    slowing_params = {'autoAlign': {'name': 'slowing',
+                            'params': {'MEMS': {'params': {'devid': '470017899', 'type': 'digital'}},
+                                       'MEMS2': {'params': {'devid': '470018943', 'type': 'analog'}}
+
+                                        }}}
+
     autoAlign.initialize(network, cooling_params)
-    autoAlign.initialize(network, slowing_params)
+    autoAlign4.initialize(network, slowing_params)
 
 
     ''' Define MOT hub '''
