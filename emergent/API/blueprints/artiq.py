@@ -36,8 +36,11 @@ def get_blueprint(network):
             network.artiq_link = {}
         if request.method == 'POST':
             d = request.get_json()
-            for key in d:
-                network.artiq_link[key] = d[key]
+            if d == {}:
+                network.artiq_link = {}
+            else:
+                for key in d:
+                    network.artiq_link[key] = d[key]
             return ''
         elif request.method == 'GET':
             return json.dumps(network.artiq_link)

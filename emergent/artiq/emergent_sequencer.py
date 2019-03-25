@@ -77,7 +77,7 @@ class Sequencer(Thing):
         sequence = [self.get_step_by_name(step_name)]
         submit = {'sequence': sequence}
         requests.post('http://localhost:5000/artiq/run', json=submit)
-        self.parent.network.artiq_client.emit('hold')
+        self.parent.network.artiq_client.emit('hold', sequence)
 
         self.current_step = step_name
         if hasattr(self, 'grid'):

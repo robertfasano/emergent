@@ -7,38 +7,19 @@ import logging
 import pandas as pd
 from artiq.coredevice.sampler import adc_mu_to_volt
 
-
 def prepare_data_sets(times, n_samples) -> TList(TList(TInt32)):
     return [[[0]*8]*n_samples[i] for i in range(len(times))]
 
-def get_read_times() -> TList(TList(TFloat)):
-    ''' Returns a list of lists like [[tstart, tend, dt]] '''
-    reads = requests.get('http://127.0.0.1:5000/artiq/run').json()['adc']
-    times = []
-    for r in reads:
-        times.append([float(r['start']), float(r['end']), float(r['step'])])
-    return times
-
-def get_adcs() -> TList(TList(TInt32)):
-    ''' Returns a list of lists like [[0], [1,2]] '''
-    reads = requests.get('http://127.0.0.1:5000/artiq/run').json()['adc']
-    channel_sets = []
-    for r in reads:
-        channel_sets.append(r['channels'])
-    return channel_sets
-
 def post_results(samples):
     print('sending data')
-    # for i in range(len(samples)):
-    #     for j in range(len(samples[i])):
-    #         samples[i][j] = [int(x) for x in samples[i][j]]
     requests.post('http://127.0.0.1:5000/artiq/run', json={'result': samples.to_json()})
 
-def get_ttls(ttl_channels) -> TList(TList(TInt32)):
+def get_ttls(ttl_channels, sequence=None) -> TList(TList(TInt32)):
     ''' Queries the EMERGENT API and receives a sequence of the format
             [{'name': 'step1', 'TTL': [0,1], 'ADC': [0]}]
         Prepares a TTL table from this sequence. '''
-    sequence = requests.get('http://127.0.0.1:5000/artiq/run').json()['sequence']
+    if sequence is None:
+        sequence = requests.get('http://127.0.0.1:5000/artiq/run').json()['sequence']
     state = []
     for step in sequence:
         step_state = []
@@ -52,11 +33,12 @@ def get_ttls(ttl_channels) -> TList(TList(TInt32)):
 
     return state
 
-def get_adcs(adc_channels) -> TList(TList(TInt32)):
+def get_adcs(adc_channels, sequence=None) -> TList(TList(TInt32)):
     ''' Queries the EMERGENT API and receives a sequence of the format
             [{'name': 'step1', 'TTL': [0,1], 'ADC': [0]}]
         Prepares an ADC table from this sequence. '''
-    sequence = requests.get('http://127.0.0.1:5000/artiq/run').json()['sequence']
+    if sequence is None:
+        sequence = requests.get('http://127.0.0.1:5000/artiq/run').json()['sequence']
     state = []
     for step in sequence:
         step_state = []
@@ -70,25 +52,10 @@ def get_adcs(adc_channels) -> TList(TList(TInt32)):
 
     return state
 
-
-def get_ttl_states(ttl_channels) -> TList(TList(TInt32)):
-    ttl_channels.sort()
-    run = requests.get('http://127.0.0.1:5000/artiq/run').json()
-    sequence = run['sequence']
-    switches = requests.get('http://127.0.0.1:5000/hubs/%s/switches/ttl'%HUB).json()
-    state = []
-    for step in sequence:
-        step_state = []
-        for ch in ttl_channels:
-            switch_name = switches[str(ch)]['name']
-            step_state.append(step['state'][switch_name])
-        state.append(step_state)
-    state = list(map(list, zip(*state)))            # transpose
-    return state
-
-def get_timesteps() -> TList(TFloat):
-    run = requests.get('http://127.0.0.1:5000/artiq/run').json()
-    sequence = run['sequence']
+def get_timesteps(sequence=None) -> TList(TFloat):
+    if sequence is None:
+        run = requests.get('http://127.0.0.1:5000/artiq/run').json()
+        sequence = run['sequence']
 
     times = []
     for step in sequence:
@@ -115,15 +82,30 @@ class Sequencer(EnvExperiment):
         app = Flask(__name__)
         self.socketio = SocketIO(app, logger=False, port=54031)
 
+        self.times = []
+        self.ttl_table = [[]]
+        self.adc_table = [[]]
+        self.ttl_channels = [0,1,2,3,4,5,6,7]
+        self.adc_channels = [0,1,2,3,4,5,6,7]
+
         self._submit_emergent = 0
         self.do_adc = 0
         @self.socketio.on('submit')
-        def submit():
+        def submit(sequence):
+            print('Received', sequence)
+            self.ttl_table = get_ttls(self.ttl_channels, sequence)
+            self.adc_table = get_adcs(self.adc_channels, sequence)
+            self.times = get_timesteps(sequence)
+
             self._submit_emergent = 1
             self.do_adc = 1
 
         @self.socketio.on('hold')
-        def submit():
+        def hold(sequence, ):
+            self.ttl_table = get_ttls(self.ttl_channels, sequence)
+            self.adc_table = get_adcs(self.adc_channels, sequence)
+            self.times = get_timesteps(sequence)
+
             self._submit_emergent = 1
 
         ''' post handshake to start connection '''
@@ -155,10 +137,6 @@ class Sequencer(EnvExperiment):
 
     def run(self):
         self.initialize_kernel()
-        ttls = self._ttls
-
-        ttl_channels = [0, 1, 2, 3, 4, 5, 6, 7]
-        adc_channels = [0, 1, 2, 3, 4, 5, 6, 7]
 
         while True:
             ''' Check if EMERGENT has submitted a process '''
@@ -168,26 +146,24 @@ class Sequencer(EnvExperiment):
             print('Starting experiment')
 
             ''' Get and prepare sequence '''
-            times = get_timesteps()
-            ttl_table = get_ttls(ttl_channels)
-            self.set_ttl_table(ttls, ttl_channels, times, ttl_table)
+            # times = get_timesteps()
+            self.set_ttl_table(self._ttls, self.ttl_channels, self.times, self.ttl_table)
 
-            adc_table = get_adcs(adc_channels)
             adc_delay = 1*ms
             N_samples = []
-            for time in times:
+            for time in self.times:
                 N_samples.append(int(time/adc_delay))
 
             self.data = [[[0]]]
             if self.do_adc == 1:
-                self.data = prepare_data_sets(times, N_samples)
+                self.data = prepare_data_sets(self.times, N_samples)
 
-            self.execute(times, ttls, ttl_channels, ttl_table, adc_table, adc_delay,  N_samples)
+            self.execute(self._ttls, adc_delay,  N_samples)
 
             if self.do_adc == 1:
                 df = pd.DataFrame(columns=range(8))
                 total_time = 0
-                for i in range(len(times)):
+                for i in range(len(self.times)):
                     t0 = total_time
                     for j in range(len(self.data[i])):
                         d = np.atleast_2d(self.data[i][j])
@@ -195,7 +171,7 @@ class Sequencer(EnvExperiment):
                         t0 += adc_delay
                         df = df.append(subdf)
 
-                    total_time += times[i]
+                    total_time += self.times[i]
                 df = adc_mu_to_volt(df)
                 print('converted')
                 post_results(df)
@@ -203,20 +179,20 @@ class Sequencer(EnvExperiment):
             self.reset_process()
 
     @kernel
-    def execute(self, times, ttls, ttl_channels, ttl_table, adc_table, adc_delay, N_samples):
+    def execute(self, ttls, adc_delay, N_samples):
         self.core.break_realtime()
         delay(50*ms)            # adjust as needed to avoid RTIO underflows
 
         col = 0
-        for time in times:
+        for time in self.times:
             start_mu = now_mu()
             with parallel:
                 ''' TTL '''
                 with sequential:
                     row=0
-                    for ch in ttl_channels:
+                    for ch in self.ttl_channels:
                         at_mu(start_mu)
-                        if ttl_table[row][col]==1:
+                        if self.ttl_table[row][col]==1:
                             # ttls[ch].pulse(time)
                             ttls[ch].on()
                             delay(time)
@@ -228,36 +204,19 @@ class Sequencer(EnvExperiment):
                 ''' ADC '''
                 if self.do_adc == 1:
                     with sequential:
-                        if 1 in adc_table[col]:
+                        if 1 in self.adc_table[col]:
                             self.get_samples(col, N_samples[col], adc_delay)
                         else:
                             delay(time)
             col += 1
 
     @kernel
-    def adc(self, times, table, adc_delay, N_samples):
-        delay(1*ms)
-        step_number = 0
-        for time in times:
-            n_samples = N_samples[step_number]
-            if 1 in table[step_number]:
-                self.get_samples(step_number, n_samples, adc_delay)
-            else:
-                delay(time)
-                print('delay')
-            step_number += 1
-        # return self.slack()
-
-    @kernel
     def get_samples(self, step_number, n, dt):
-        # print('get step', step_number, 'then wait', dt, 'for', n)
         for i in range(n):
             with parallel:
                 with sequential:
                     self.sampler0.sample_mu(self.data[step_number][i])
                 delay(dt)
-            # print(self.data[0])
-
 
     @kernel
     def execute_ttl_pattern(self, ttls, channels, times, table):
@@ -269,7 +228,6 @@ class Sequencer(EnvExperiment):
                 for ch in channels:
                     at_mu(start_mu)
                     if table[row][col]==1:
-                        # ttls[ch].pulse(time)
                         ttls[ch].on()
                         delay(time)
                     else:
@@ -286,4 +244,3 @@ class Sequencer(EnvExperiment):
     @kernel
     def TTL_playback(self, table):
         self.core_dma.playback_handle(table)
-        # self.core_dma.erase("table")
