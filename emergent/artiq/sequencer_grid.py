@@ -119,6 +119,7 @@ class GridWindow(QWidget):
         self.draw(timesteps)
 
         self.dashboard.actuate_signal.connect(self.actuate)
+        self.dashboard.timestep_signal.connect(self.bold_active_step)
 
     def draw(self, sequence):
         self.labels = {}
@@ -195,9 +196,12 @@ class GridWindow(QWidget):
             self.grid_layout.removeWidget(widget)
             widget.deleteLater()
 
-    def bold_active_step(self):
+    def bold_active_step(self, current_step=None):
         steps = self.dashboard.get('hubs/%s/sequencer/sequence'%self.hub)
-        current_step = self.dashboard.get('hubs/%s/sequencer/current_step'%self.hub)
+        if current_step is None:
+            current_step = self.dashboard.get('hubs/%s/sequencer/current_step'%self.hub)
+        else:
+            current_step = current_step['name']
         for step in steps:
             if step['name'] == current_step:
                 self.labels[step['name']].setBold(True)

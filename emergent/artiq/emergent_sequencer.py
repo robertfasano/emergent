@@ -80,9 +80,8 @@ class Sequencer(Thing):
         self.parent.network.artiq_client.emit('hold', sequence)
 
         self.current_step = step_name
-        if hasattr(self, 'grid'):
-            self.grid.bold_active_step()
-
+        self.parent.network.socketIO.emit('timestep', step_name)
+        
     # def get_step(self, step):
     #     ''' Returns a Timestep object corresponding to the passed integer (place)
     #         or string (name). '''

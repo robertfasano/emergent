@@ -36,6 +36,7 @@ class Dashboard(QMainWindow):
 
         self.resize(width, height)
 
+        self.timestep_signal = DictSignal()
         self.actuate_signal = DictSignal()
         self.show_grid_signal = DictSignal()
         self.show_grid_signal.connect(self.show_grid)
@@ -73,6 +74,10 @@ class Dashboard(QMainWindow):
         @socketio.on('actuate')
         def actuate(state):
             self.actuate_signal.emit(state)
+
+        @socketio.on('timestep')
+        def update_timestep(step_name):
+            self.timestep_signal.emit({'name': step_name})
 
         @socketio.on('sequencer')
         def show_grid(d):
