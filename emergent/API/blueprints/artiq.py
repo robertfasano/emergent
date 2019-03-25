@@ -35,7 +35,9 @@ def get_blueprint(network):
         if not hasattr(network, 'artiq_link'):
             network.artiq_link = {}
         if request.method == 'POST':
-            network.artiq_link = request.get_json()
+            d = request.get_json()
+            for key in d:
+                network.artiq_link[key] = d[key]
             return ''
         elif request.method == 'GET':
             return json.dumps(network.artiq_link)
