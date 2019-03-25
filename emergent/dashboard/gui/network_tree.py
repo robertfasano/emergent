@@ -258,6 +258,7 @@ class NodeTree(QTreeWidget):
             thing = item.parent().name
             hub = item.parent().parent().name
             params = {'knob': knob, 'thing': thing, 'hub': hub}
+            options = self.dashboard.get('hubs/%s/things/%s/knobs/%s/options'%(hub, thing, knob))
         elif item.node == 'thing':
             knob = None
             thing = item.name
