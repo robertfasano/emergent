@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import (QApplication, QLabel, QLineEdit,
         QWidget, QCheckBox, QHBoxLayout, QGridLayout, QSizePolicy)
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPainter
+from emergent.modules.units import Units
 
 class StateCheckbox(QCheckBox):
     def __init__(self, name, timestep, state, dashboard, hub, grid):
@@ -34,9 +35,18 @@ class StepEdit(QLineEdit):
         self.returnPressed.connect(self.onReturn)
         self.setMaximumWidth(75)
         self.setFixedWidth(75)
-
+        self.unit_parser = Units()
+        
     def onReturn(self):
-        state = {'sequencer':{self.name: float(self.text())}}
+        text = self.text()
+        ''' Unit comprehension '''
+        if ' ' in text:
+            value = text.split(' ')[0]
+            unit = text.split(' ')[1]
+            value = float(value)*self.unit_parser.get_scaling(unit)
+        else:
+            value = float(text)
+        state = {'sequencer':{self.name: value}}
         self.dashboard.post('hubs/%s/state'%self.hub, state)
         self.dashboard.actuate_signal.emit({self.hub: state})
 

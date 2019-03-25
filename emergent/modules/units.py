@@ -3,7 +3,7 @@ import pint
 class Units():
     def __init__(self):
         self.units = pint.UnitRegistry()
-        self.unit_list = ['V', 'Hz']
+        self.unit_list = ['V', 'Hz', 's']
 
     def parse(self, string):
         ''' Converts a dimensional string into a scaled float'''
@@ -25,7 +25,7 @@ class Units():
                 return u
 
     def get_scaling(self, unit):
-        ''' Gets the scaling factor between a passed unit and its base unit. 
+        ''' Gets the scaling factor between a passed unit and its base unit.
             For example, calling this function on 'mV' returns 1e-3. '''
         base_unit = self.get_base_unit(unit)
         return (1*getattr(self.units, unit)).m_as(base_unit)
