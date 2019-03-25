@@ -10,12 +10,6 @@ import json
 from emergent.modules import Thing
 import requests
 
-class Sequence():
-    ''' A container for a sequence of one or more Timesteps. '''
-    def __init__(self, name, steps):
-        self.name = name
-        self.steps = steps
-
 class Sequencer(Thing):
     def __init__(self, name, parent, params={'sequence': {}}):
         Thing.__init__(self, name, parent, params=params)
@@ -23,12 +17,8 @@ class Sequencer(Thing):
         if 'labjack' in params:
             self.labjack = params['labjack']
         self.options['Show grid'] = self.open_grid
-        # self.options['Save'] = self.save
-        # self.options['Load'] = self.load
 
         goto_option = lambda s: lambda: self.goto(s)
-        move_down_option = lambda s: lambda: self.move(s, 1)
-        move_up_option = lambda s: lambda: self.move(s, -1)
 
         self.ttl = []
         self.adc = []
@@ -37,9 +27,6 @@ class Sequencer(Thing):
             self.add_knob(step['name'])
             self.children[step['name']].options = {'Go to %s'%step['name']: (goto_option(step['name']))}
 
-            # for channel in step['TTL']:
-            #     if channel not in self.channels:
-            #         self.channels.append(channel)
             for ch in step['TTL']:
                 if ch not in self.ttl:
                     self.ttl.append(ch)
@@ -85,88 +72,6 @@ class Sequencer(Thing):
 
         self.current_step = step_name
         self.parent.network.socketIO.emit('timestep', step_name)
-
-    # def get_step(self, step):
-    #     ''' Returns a Timestep object corresponding to the passed integer (place)
-    #         or string (name). '''
-    #     if isinstance(step, int):
-    #         return self.steps[step]
-    #     elif isinstance(step, str):
-    #         for s in self.steps:
-    #             if s.name == step:
-    #                 return s
-    #     else:
-    #         log.warning('Invalid timestep specified.')
-    #         return -1
-
-    # def add_step(self, name, duration = 0):
-    #     ''' Creates a new step with default TTL off state. '''
-    #     state = {}
-    #     for switch in self.parent.switches:
-    #         state[switch] = 0
-    #     step = Timestep(name, duration, state)
-    #     self.steps.append(step)
-    #
-    #     goto_option = lambda s: lambda: self.goto(s)
-    #     move_down_option = lambda s: lambda: self.move(s, 1)
-    #     move_up_option = lambda s: lambda: self.move(s, -1)
-    #     self.add_knob(step)
-    #     self.children[step].options = {'Go to %s'%step: (goto_option(step))}
-    #     self.children[step].options['Move up'] = move_up_option(step)
-    #     self.children[step].options['Move down'] = move_down_option(step)
-    #     self.parent.actuate({'sequencer': {step: 0}})
-    #
-    #     ''' Redraw grid '''
-    #     if hasattr(self, 'grid'):
-    #         self.grid.redraw()
-
-    # def remove_step(self, name):
-    #     ''' Removes a step '''
-    #
-    #     ''' Remove from class list '''
-    #     i = 0
-    #     for step in self.steps:
-    #         if step == name:
-    #             del self.steps[i]
-    #             break
-    #         i += 1
-    #
-    #     ''' Remove from knobs '''
-    #     self.remove_knob(name)
-    #
-    #     ''' Redraw grid '''
-    #     if hasattr(self, 'grid'):
-    #         self.grid.redraw()
-
-    # def _rename_knob(self, node, name):
-    #     for step in self.steps:
-    #         if step == node.name:
-    #             step = name
-    #     if hasattr(self, 'grid'):
-    #         self.grid.redraw()
-
-    # def move(self, step, n):
-    #     ''' Moves the passed step (integer or string) n places to the left (negative n)
-    #         or right (positive n). '''
-    #     step = self.get_step(step)
-    #     ''' get integer place '''
-    #     i = 0
-    #     for s in self.steps:
-    #         if s.name == step:
-    #             break
-    #         i += 1
-    #     self.steps.insert(i+n, self.steps.pop(i))
-    #
-    #     ''' Move in NetworkPanel '''
-    #     knob_node = self.children[step]
-    #     knob_node.leaf.move(n)
-    #
-    #     ''' Redraw grid '''
-    #     if hasattr(self, 'grid'):
-    #         self.grid.redraw()
-
-
-
 
     def open_grid(self):
         self.parent.network.socketIO.emit('sequencer', {'hub': self.parent.name})
