@@ -465,3 +465,6 @@ class LabJackDriver():
                 stream[int(t/period*samples)::, j] = V
 
         return stream, scanRate
+
+if __name__ == '__main__':
+    lj = LabJackDriver(params={'devid': '470016970'})
