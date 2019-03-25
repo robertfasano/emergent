@@ -116,9 +116,14 @@ class Sequencer(EnvExperiment):
         self.socketio = SocketIO(app, logger=False, port=54031)
 
         self._submit_emergent = 0
+        self.do_adc = 0
         @self.socketio.on('submit')
         def submit():
-            print('Received submit')
+            self._submit_emergent = 1
+            self.do_adc = 1
+
+        @self.socketio.on('hold')
+        def submit():
             self._submit_emergent = 1
 
         ''' post handshake to start connection '''
@@ -134,6 +139,7 @@ class Sequencer(EnvExperiment):
 
     def reset_process(self):
         self._submit_emergent = 0
+        self.do_adc = 0
 
     @kernel
     def initialize_kernel(self):
@@ -158,7 +164,6 @@ class Sequencer(EnvExperiment):
             ''' Check if EMERGENT has submitted a process '''
             if not self.process_submitted():
                 continue
-            self.reset_process()
 
             print('Starting experiment')
 
@@ -172,27 +177,30 @@ class Sequencer(EnvExperiment):
             N_samples = []
             for time in times:
                 N_samples.append(int(time/adc_delay))
-            self.data = prepare_data_sets(times, N_samples)
-            print('times:', times)
-            print('ttl_table:', ttl_table)
-            print('adc_table:', adc_table)
+
+            self.data = [[[0]]]
+            if self.do_adc == 1:
+                self.data = prepare_data_sets(times, N_samples)
+
             self.execute(times, ttls, ttl_channels, ttl_table, adc_table, adc_delay,  N_samples)
-            # self.core.wait_until_mu(now_mu())       # wait until hardware cursor reaches time cursor. Important!!
 
-            df = pd.DataFrame(columns=range(8))
-            total_time = 0
-            for i in range(len(times)):
-                t0 = total_time
-                for j in range(len(self.data[i])):
-                    d = np.atleast_2d(self.data[i][j])
-                    subdf = pd.DataFrame(d, index=[t0], columns = range(8))
-                    t0 += adc_delay
-                    df = df.append(subdf)
+            if self.do_adc == 1:
+                df = pd.DataFrame(columns=range(8))
+                total_time = 0
+                for i in range(len(times)):
+                    t0 = total_time
+                    for j in range(len(self.data[i])):
+                        d = np.atleast_2d(self.data[i][j])
+                        subdf = pd.DataFrame(d, index=[t0], columns = range(8))
+                        t0 += adc_delay
+                        df = df.append(subdf)
 
-                total_time += times[i]
-            df = adc_mu_to_volt(df)
-            print('converted')
-            post_results(df)
+                    total_time += times[i]
+                df = adc_mu_to_volt(df)
+                print('converted')
+                post_results(df)
+
+            self.reset_process()
 
     @kernel
     def execute(self, times, ttls, ttl_channels, ttl_table, adc_table, adc_delay, N_samples):
@@ -218,11 +226,12 @@ class Sequencer(EnvExperiment):
                         row = row + 1
 
                 ''' ADC '''
-                with sequential:
-                    if 1 in adc_table[col]:
-                        self.get_samples(col, N_samples[col], adc_delay)
-                    else:
-                        delay(time)
+                if self.do_adc == 1:
+                    with sequential:
+                        if 1 in adc_table[col]:
+                            self.get_samples(col, N_samples[col], adc_delay)
+                        else:
+                            delay(time)
             col += 1
 
     @kernel

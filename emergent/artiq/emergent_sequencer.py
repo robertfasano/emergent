@@ -8,6 +8,7 @@ import pandas as pd
 import numpy as np
 import json
 from emergent.modules import Thing
+import requests
 
 class Sequence():
     ''' A container for a sequence of one or more Timesteps. '''
@@ -73,13 +74,10 @@ class Sequencer(Thing):
 
     def goto(self, step_name):
         ''' Go to a step specified by a string name. '''
-        step = self.get_step_by_name(step_name)
-        for ch in self.ttl:
-            switch = self.get_switch_by_channel(ch)
-            if str(ch) in step['TTL']:
-                switch.set(1)
-            else:
-                switch.set(0)
+        sequence = [self.get_step_by_name(step_name)]
+        submit = {'sequence': sequence}
+        requests.post('http://localhost:5000/artiq/run', json=submit)
+        self.parent.network.artiq_client.emit('hold')
 
         self.current_step = step_name
         if hasattr(self, 'grid'):
