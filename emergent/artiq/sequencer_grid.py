@@ -25,6 +25,29 @@ class StateCheckbox(QCheckBox):
         if current_step == self.name:
             self.dashboard.post('hubs/%s/sequencer/current_step'%self.hub, {'step': self.name})
 
+class DACEdit(QLineEdit):
+    def __init__(self, name, text, dashboard, hub, grid):
+        super().__init__(text)
+        self.picklable = False
+        self.dashboard = dashboard
+        self.grid = grid
+        self.hub = hub
+        self.name = name
+        self.returnPressed.connect(self.onReturn)
+        self.setMaximumWidth(75)
+        self.setFixedWidth(75)
+        self.unit_parser = Units()
+
+    def onReturn(self):
+        sequence = self.grid.get_sequence()
+        params = {'hub': self.hub}
+        self.dashboard.post('hubs/%s/sequencer/sequence'%self.hub, sequence)
+        current_step = self.dashboard.get('hubs/%s/sequencer/current_step'%self.hub)
+        if current_step == self.name:
+            self.dashboard.post('hubs/%s/sequencer/current_step'%self.hub, {'step': self.name})
+
+
+
 class StepEdit(QLineEdit):
     def __init__(self, name, text, dashboard, hub):
         super().__init__(text)
@@ -36,7 +59,7 @@ class StepEdit(QLineEdit):
         self.setMaximumWidth(75)
         self.setFixedWidth(75)
         self.unit_parser = Units()
-        
+
     def onReturn(self):
         text = self.text()
         ''' Unit comprehension '''
@@ -109,13 +132,13 @@ class GridWindow(QWidget):
             self.grid_layout.addWidget(QLabel(label), row, 0)
             row += 1
 
-        # ''' Create DAC labels '''
-        # self.dacs = self.dashboard.get('hubs/%s/sequencer/dac'%hub)
-        # self.grid_layout.addWidget(QLabel('DAC'), row, 0)
-        # row += 1
-        # for dac in self.dacs:
-        #     self.grid_layout.addWidget(QLabel(str(dac)), row, 0)
-        #     row += 1
+        ''' Create DAC labels '''
+        self.dacs = self.dashboard.get('hubs/%s/sequencer/dac'%hub)
+        self.grid_layout.addWidget(QLabel('DAC'), row, 0)
+        row += 1
+        for dac in self.dacs:
+            self.grid_layout.addWidget(QLabel(str(dac)), row, 0)
+            row += 1
         #
         # ''' Create DDS labels '''
         # self.dds = self.dashboard.get('hubs/%s/sequencer/dds'%hub)
@@ -136,6 +159,7 @@ class GridWindow(QWidget):
         self.step_edits = {}
         self.checkboxes = {}
         self.adc_checkboxes = {}
+        self.dac_edits = {}
         col = 1
         for step in sequence:
             self.add_step(step, col)
@@ -157,12 +181,15 @@ class GridWindow(QWidget):
             new_step['name'] = name
             new_step['TTL'] = []
             new_step['ADC'] = []
+            new_step['DAC'] = {}
             for ttl in self.ttls:
                 if self.checkboxes[name][ttl].isChecked():
                     new_step['TTL'].append(ttl)
             for adc in self.adcs:
                 if self.adc_checkboxes[name][adc].isChecked():
                     new_step['ADC'].append(adc)
+            for dac in self.dacs:
+                new_step['DAC'][int(dac)] = float(self.dac_edits[name][dac].text())
             sequence.append(new_step)
         return sequence
 
@@ -196,6 +223,21 @@ class GridWindow(QWidget):
             box = StateCheckbox(name, step, state, self.dashboard, self.hub, self)
             self.grid_layout.addWidget(box, row, col)
             self.adc_checkboxes[name][adc] = box
+            row += 1
+
+        ''' Add DAC edits '''
+        self.dac_edits[name] = {}
+        row += 1
+        for dac in self.dacs:
+            if int(dac) in step['DAC']:
+                value = step['DAC'][int(dac)]
+            elif str(dac) in step['DAC']:
+                value = step['DAC'][str(dac)]
+            else:
+                value = 0
+            edit = DACEdit(str(dac), str(value), self.dashboard, self.hub, self)
+            self.grid_layout.addWidget(edit, row, col)
+            self.dac_edits[name][dac] = edit
             row += 1
 
     def remove_step(self, step):

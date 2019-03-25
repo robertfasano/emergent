@@ -32,6 +32,7 @@ class Sequencer(Thing):
 
         self.ttl = []
         self.adc = []
+        self.dac = []
         for step in params['sequence']:
             self.add_knob(step['name'])
             self.children[step['name']].options = {'Go to %s'%step['name']: (goto_option(step['name']))}
@@ -45,6 +46,9 @@ class Sequencer(Thing):
             for ch in step['ADC']:
                 if ch not in self.adc:
                     self.adc.append(ch)
+            for ch in step['DAC']:
+                if ch not in self.dac:
+                    self.dac.append(ch)
 
         self.steps = params['sequence']
         self.cycle_time = 0
@@ -81,7 +85,7 @@ class Sequencer(Thing):
 
         self.current_step = step_name
         self.parent.network.socketIO.emit('timestep', step_name)
-        
+
     # def get_step(self, step):
     #     ''' Returns a Timestep object corresponding to the passed integer (place)
     #         or string (name). '''

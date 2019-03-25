@@ -33,6 +33,29 @@ def get_ttls(ttl_channels, sequence=None) -> TList(TList(TInt32)):
 
     return state
 
+def get_dacs(dac_channels, sequence=None) -> TList(TList(TFloat)):
+    ''' Queries the EMERGENT API and receives a sequence of the format
+            [{'name': 'step1', 'TTL': [0,1], 'ADC': [0]}]
+        Prepares a TTL table from this sequence. '''
+    if sequence is None:
+        sequence = requests.get('http://127.0.0.1:5000/artiq/run').json()['sequence']
+    state = []
+    for step in sequence:
+        step_state = []
+        for ch in dac_channels:
+            index = None
+            if ch in step['DAC']:
+                value = float(step['DAC'][ch])
+            elif str(ch) in step['DAC']:
+                value = float(step['DAC'][str(ch)])
+            else:
+                value = 0.0
+            step_state.append(value)
+        state.append(step_state)
+    state = list(map(list, zip(*state)))            # transpose
+
+    return state
+
 def get_adcs(adc_channels, sequence=None) -> TList(TList(TInt32)):
     ''' Queries the EMERGENT API and receives a sequence of the format
             [{'name': 'step1', 'TTL': [0,1], 'ADC': [0]}]
@@ -87,6 +110,7 @@ class Sequencer(EnvExperiment):
         self.adc_table = [[]]
         self.ttl_channels = [0,1,2,3,4,5,6,7]
         self.adc_channels = [0,1,2,3,4,5,6,7]
+        self.dac_channels = [0]
 
         self._submit_emergent = 0
         self.do_adc = 0
@@ -95,6 +119,7 @@ class Sequencer(EnvExperiment):
             print('Received', sequence)
             self.ttl_table = get_ttls(self.ttl_channels, sequence)
             self.adc_table = get_adcs(self.adc_channels, sequence)
+            self.dac_table = get_dacs(self.dac_channels, sequence)
             self.times = get_timesteps(sequence)
 
             self._submit_emergent = 1
@@ -104,6 +129,7 @@ class Sequencer(EnvExperiment):
         def hold(sequence):
             self.ttl_table = get_ttls(self.ttl_channels, sequence)
             self.adc_table = get_adcs(self.adc_channels, sequence)
+            self.dac_table = get_dacs(self.dac_channels, sequence)
             self.times = get_timesteps(sequence)
 
             self._submit_emergent = 1
@@ -128,6 +154,8 @@ class Sequencer(EnvExperiment):
         self.core.reset()
         self.core.break_realtime()
         self.sampler0.init()
+        self.core.break_realtime()
+        self.zotino0.init()
         self.core.break_realtime()
         delay(1*ms)
 
@@ -157,7 +185,7 @@ class Sequencer(EnvExperiment):
             self.data = [[[0]]]
             if self.do_adc == 1:
                 self.data = prepare_data_sets(self.times, N_samples)
-
+            print('dac table:', self.dac_table)
             self.execute(self._ttls, adc_delay,  N_samples)
 
             if self.do_adc == 1:
@@ -200,6 +228,21 @@ class Sequencer(EnvExperiment):
                             ttls[ch].off()
                             delay(time)
                         row = row + 1
+
+
+
+                ''' DAC '''
+                with sequential:
+                    row = 0
+                    for ch in self.dac_channels:
+                        at_mu(start_mu)
+                        V = self.dac_table[row][col]
+                        self.zotino0.write_dac(ch, V)
+                        self.zotino0.load()
+                        row += 1
+                    delay(time)
+
+
 
                 ''' ADC '''
                 if self.do_adc == 1:
