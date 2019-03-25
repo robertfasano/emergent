@@ -101,7 +101,7 @@ class Sequencer(EnvExperiment):
             self.do_adc = 1
 
         @self.socketio.on('hold')
-        def hold(sequence, ):
+        def hold(sequence):
             self.ttl_table = get_ttls(self.ttl_channels, sequence)
             self.adc_table = get_adcs(self.adc_channels, sequence)
             self.times = get_timesteps(sequence)
