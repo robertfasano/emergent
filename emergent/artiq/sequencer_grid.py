@@ -36,9 +36,9 @@ class StepEdit(QLineEdit):
         self.setFixedWidth(75)
 
     def onReturn(self):
-        state = {self.hub: {'sequencer':{self.name: float(self.text())}}}
-        self.dashboard.post('TTL', state)
-        self.dashboard.actuate_signal.emit(state)
+        state = {'sequencer':{self.name: float(self.text())}}
+        self.dashboard.post('hubs/%s/state'%self.hub, state)
+        self.dashboard.actuate_signal.emit({self.hub: state})
 
 class BoldLabel(QLabel):
     def __init__(self, name):
