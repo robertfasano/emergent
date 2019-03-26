@@ -58,7 +58,11 @@ class NodeTree(QTreeWidget):
             self.setColumnWidth(i,50)
 
         self.dashboard.actuate_signal.connect(self.set_state)
+        self.dashboard.sequence_update_signal.connect(self.refresh)
 
+    def refresh(self):
+        self.set_state(self.dashboard.get('state'))
+        
     def actuate(self, hub, state):
         hub_item = self.get_hub(hub)
         for thing_name in state:
