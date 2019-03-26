@@ -1,9 +1,52 @@
 
-from PyQt5.QtWidgets import (QApplication, QLabel, QLineEdit,
+from PyQt5.QtWidgets import (QApplication, QLabel, QLineEdit, QMenu, QAction,
         QWidget, QCheckBox, QHBoxLayout, QGridLayout, QSizePolicy)
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPainter
 from emergent.modules.units import Units
+
+class ttlLabel(QLabel):
+    def __init__(self, name, channel, grid):
+        super().__init__(name)
+        self.name = name
+        self.channel = channel
+        self.grid = grid
+        self.customContextMenuRequested.connect(self.openMenu)
+        self.setContextMenuPolicy(Qt.CustomContextMenu)
+
+    def openMenu(self, pos):
+        globalPos = self.mapToGlobal(pos)
+        menu = QMenu()
+        options = {'Set all high': self.set_all_high,
+                   'Set all low': self.set_all_low}
+        actions = {}
+
+        for option in options:
+            actions[option] = QAction(option, self)
+            actions[option].triggered.connect(options[option])
+            menu.addAction(actions[option])
+        selectedItem = menu.exec_(globalPos)
+
+    def set_all_high(self):
+        steps = self.grid.get_sequence()
+        for step in steps:
+            if self.channel not in step['TTL']:
+                step['TTL'].append(self.channel)
+
+        self.grid.dashboard.post('hubs/%s/sequencer/sequence'%self.grid.hub, steps)
+        current_step = self.grid.dashboard.get('hubs/%s/sequencer/current_step'%self.grid.hub)
+        self.grid.dashboard.post('hubs/%s/sequencer/current_step'%self.grid.hub, {'step': current_step})
+        self.grid.redraw(steps)
+
+    def set_all_low(self):
+        steps = self.grid.get_sequence()
+        for step in steps:
+            step['TTL'] = [x for x in step['TTL'] if x != self.channel]
+
+        self.grid.dashboard.post('hubs/%s/sequencer/sequence'%self.grid.hub, steps)
+        current_step = self.grid.dashboard.get('hubs/%s/sequencer/current_step'%self.grid.hub)
+        self.grid.dashboard.post('hubs/%s/sequencer/current_step'%self.grid.hub, {'step': current_step})
+        self.grid.redraw(steps)
 
 class StateCheckbox(QCheckBox):
     def __init__(self, name, timestep, state, dashboard, hub, grid):
@@ -113,10 +156,10 @@ class GridWindow(QWidget):
 
 
         for ttl in self.ttls:
-            label = str(ttl)
+            name = str(ttl)
             if type(self.ttls) is dict:
-                label += ': %s'%str(self.ttls[ttl])
-            self.grid_layout.addWidget(QLabel(label), row, 0)
+                name += ': %s'%str(self.ttls[ttl])
+            self.grid_layout.addWidget(ttlLabel(name, channel=ttl, grid=self), row, 0)
             row += 1
 
         ''' Create ADC labels '''
@@ -134,7 +177,9 @@ class GridWindow(QWidget):
 
         ''' Create DAC labels '''
         self.dacs = self.dashboard.get('hubs/%s/sequencer/dac'%hub)
-        self.grid_layout.addWidget(QLabel('DAC'), row, 0)
+        label = BoldLabel('DAC')
+        label.setBold(True)
+        self.grid_layout.addWidget(label, row, 0)
         row += 1
         for dac in self.dacs:
             self.grid_layout.addWidget(QLabel(str(dac)), row, 0)
@@ -242,7 +287,7 @@ class GridWindow(QWidget):
 
     def remove_step(self, step):
         remove = [self.labels[step], self.step_edits[step]]
-        for switch in self.switches:
+        for switch in self.ttls:
             remove.append(self.checkboxes[step][switch])
         for widget in remove:
             self.grid_layout.removeWidget(widget)
