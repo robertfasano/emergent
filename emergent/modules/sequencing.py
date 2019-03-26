@@ -21,7 +21,6 @@ class Sequencer(Thing):
 
     def __init__(self, name, parent, params={'sequence': {}, 'labjack': None}):
         Thing.__init__(self, name, parent, params=params)
-        self.channels = []
         if 'labjack' in params:
             self.labjack = params['labjack']
         self.options['Show grid'] = self.open_grid
@@ -32,13 +31,22 @@ class Sequencer(Thing):
         move_down_option = lambda s: lambda: self.move(s, 1)
         move_up_option = lambda s: lambda: self.move(s, -1)
 
+        self.ttl = []
+        self.adc = []
+        self.dac = []
         for step in params['sequence']:
             self.add_knob(step['name'])
             self.children[step['name']].options = {'Go to %s'%step['name']: (goto_option(step['name']))}
 
-            for channel in step['state']:
-                if channel not in self.channels:
-                    self.channels.append(channel)
+            for ch in step['TTL']:
+                if ch not in self.ttl:
+                    self.ttl.append(ch)
+            for ch in step['ADC']:
+                if ch not in self.adc:
+                    self.adc.append(ch)
+            for ch in step['DAC']:
+                if ch not in self.dac:
+                    self.dac.append(ch)
 
         self.steps = params['sequence']
         self.cycle_time = 0
@@ -48,6 +56,11 @@ class Sequencer(Thing):
         for step in state:
             s = self.get_step_by_name(step)
             s['duration'] = state[step]
+
+    def get_switch_by_channel(self, ch):
+        for switch in self.parent.switches.values():
+            if switch.channel == ch:
+                return switch
 
     def get_step_by_name(self, name):
         for step in self.steps:
@@ -64,10 +77,12 @@ class Sequencer(Thing):
     def goto(self, step_name):
         ''' Go to a step specified by a string name. '''
         step = self.get_step_by_name(step_name)
+        for switch in self.parent.switches.values():
+            if switch.channel in step['TTL']:
+                switch.set(1)
+            else:
+                switch.set(0)
 
-        for channel in step['state']:
-            state = step['state'][channel]
-            self.parent.switches[channel].set(state)
         self.current_step = step_name
         if hasattr(self, 'grid'):
             self.grid.bold_active_step()
@@ -160,13 +175,13 @@ class Sequencer(Thing):
         stream_steps = int(self.cycle_time/dt)
 
         t = np.linspace(0, self.cycle_time, stream_steps)
-        stream = pd.DataFrame(index=t, columns=self.channels)
+        stream = pd.DataFrame(index=t, columns=self.ttl)
         now = 0
         for step in self.steps:
             duration = self.state[step['name']]/1000
             timeslice = stream.index[(stream.index >= now) & (stream.index <= now + duration)]
-            for channel in step['state']:
-                state = step['state'][channel]         # add invert
+            for channel in step['TTL']:
+                state = step['TTL'][channel]         # add invert
                 if self.parent.switches[channel].invert:
                     state = 1-state
                 stream.loc[timeslice, channel] = state          # use the physical state, not the virtual, possibly inverted, state
@@ -185,7 +200,7 @@ class Sequencer(Thing):
 
         ''' Get channel numbers and prepare digital stream '''
         channel_numbers = []
-        for channel in self.channels:
+        for channel in self.ttl:
             channel_numbers.append(self.parent.switches[channel].channel)
         self.labjack.prepare_digital_stream(channel_numbers)
         self.labjack.prepare_stream_out(trigger=0)
@@ -202,7 +217,7 @@ class Sequencer(Thing):
     #
     #     ''' Get channel numbers and prepare digital stream '''
     #     channel_numbers = []
-    #     for channel in self.channels:
+    #     for channel in self.ttl:
     #         channel_numbers.append(self.parent.switches[channel].channel)
     #     self.labjack.prepare_digital_stream(channel_numbers)
     #     self.labjack.prepare_stream_out(trigger=0)
