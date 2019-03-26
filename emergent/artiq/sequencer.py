@@ -52,7 +52,6 @@ def get_dacs(dac_channels, sequence=None) -> TList(TList(TFloat)):
                 value = 0.0
             step_state.append(value)
         state.append(step_state)
-    state = list(map(list, zip(*state)))            # transpose
 
     return state
 
@@ -71,7 +70,6 @@ def get_adcs(adc_channels, sequence=None) -> TList(TList(TInt32)):
             else:
                 step_state.append(0)
         state.append(step_state)
-    # state = list(map(list, zip(*state)))            # transpose
 
     return state
 
@@ -108,15 +106,33 @@ class Sequencer(EnvExperiment):
         self.times = []
         self.ttl_table = [[]]
         self.adc_table = [[]]
-        self.ttl_channels = [0,1,2,3,4,5,6,7]
-        self.adc_channels = [0,1,2,3,4,5,6,7]
-        self.dac_channels = [0]
 
         self._submit_emergent = 0
         self.do_adc = 0
         @self.socketio.on('submit')
         def submit(sequence):
             print('Received', sequence)
+            self.ttl_channels = []
+            for step in sequence:
+                for ch in step['TTL']:
+                    if int(ch) not in self.ttl_channels:
+                        self.ttl_channels.append(int(ch))
+            self.ttl_channels.sort()
+
+            self.adc_channels = []
+            for step in sequence:
+                for ch in step['ADC']:
+                    if int(ch) not in self.adc_channels:
+                        self.adc_channels.append(int(ch))
+            self.adc_channels.sort()
+
+            self.dac_channels = []
+            for step in sequence:
+                for ch in step['DAC']:
+                    if int(ch) not in self.dac_channels:
+                        self.dac_channels.append(int(ch))
+            self.dac_channels.sort()
+
             self.ttl_table = get_ttls(self.ttl_channels, sequence)
             self.adc_table = get_adcs(self.adc_channels, sequence)
             self.dac_table = get_dacs(self.dac_channels, sequence)
@@ -174,7 +190,6 @@ class Sequencer(EnvExperiment):
             print('Starting experiment')
 
             ''' Get and prepare sequence '''
-            # times = get_timesteps()
             self.set_ttl_table(self._ttls, self.ttl_channels, self.times, self.ttl_table)
 
             adc_delay = 1*ms
@@ -217,6 +232,16 @@ class Sequencer(EnvExperiment):
         for time in self.times:
             start_mu = now_mu()
             with parallel:
+
+                ''' DAC '''
+                with sequential:
+                    row = 0
+                    with parallel:
+                        at_mu(start_mu)
+                        voltages = self.dac_table[col]
+                        self.zotino0.set_dac(voltages, self.dac_channels)
+                        delay(time)
+
                 ''' TTL '''
                 with sequential:
                     row=0
@@ -230,21 +255,6 @@ class Sequencer(EnvExperiment):
                             ttls[ch].off()
                             delay(time)
                         row = row + 1
-
-
-
-                ''' DAC '''
-                with sequential:
-                    row = 0
-                    for ch in self.dac_channels:
-                        at_mu(start_mu)
-                        V = self.dac_table[row][col]
-                        self.zotino0.write_dac(ch, V)
-                        self.zotino0.load()
-                        row += 1
-                    delay(time)
-
-
 
                 ''' ADC '''
                 if self.do_adc == 1:
