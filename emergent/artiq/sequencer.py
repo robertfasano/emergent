@@ -200,6 +200,8 @@ class Sequencer(EnvExperiment):
                         df = df.append(subdf)
 
                     total_time += self.times[i]
+                df = df[(df.T != 0).any()]
+                df = df[self.adc_channels]
                 df = adc_mu_to_volt(df)
                 print('converted')
                 post_results(df)
