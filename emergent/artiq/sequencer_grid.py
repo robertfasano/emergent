@@ -212,8 +212,11 @@ class GridWindow(QWidget):
         self.dac_edits = {}
         col = 1
         for step in sequence:
-            self.add_step(step, col)
+            row = self.add_step(step, col)
             col += 1
+        total_cycle_time = str(self.get_cycle_time()*1000)
+        self.grid_layout.addWidget(QLabel('Cycle time:'), row, 0)
+        self.grid_layout.addWidget(QLabel('%s ms'%total_cycle_time), row, 1)
         self.bold_active_step()
 
     def redraw(self, sequence):
@@ -223,6 +226,11 @@ class GridWindow(QWidget):
         QApplication.processEvents()        # determine new minimumSize
         self.resize(self.minimumSize())
 
+    def get_cycle_time(self):
+        T = 0
+        for edit in self.step_edits.values():
+            T += float(edit.text())
+        return T
     def get_sequence(self):
         sequence = []
         for name in self.labels:
@@ -289,6 +297,7 @@ class GridWindow(QWidget):
             self.grid_layout.addWidget(edit, row, col)
             self.dac_edits[name][dac] = edit
             row += 1
+        return row
 
     def remove_step(self, step):
         remove = [self.labels[step], self.step_edits[step]]
