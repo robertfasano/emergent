@@ -78,7 +78,7 @@ class Sequencer(Thing):
         ''' Go to a step specified by a string name. '''
         step = self.get_step_by_name(step_name)
         for switch in self.parent.switches.values():
-            if switch.channel in step['TTL']:
+            if int(switch.channel) in step['TTL'] or str(switch.channel) in step['TTL']:
                 switch.set(1)
             else:
                 switch.set(0)
