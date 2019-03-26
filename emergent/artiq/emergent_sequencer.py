@@ -74,3 +74,16 @@ class Sequencer(Thing):
 
     def open_grid(self):
         self.parent.network.socketIO.emit('sequencer', {'hub': self.parent.name})
+
+    def load(self):
+        ''' Load a sequence from file '''
+        path = self.parent.network.path['state']
+        with open(path+'sequence.json', 'r') as file:
+            self.steps = json.load(file)
+        self.parent.network.socketIO.emit('sequence update')
+
+    def save(self):
+        ''' Save the current sequence to file '''
+        path = self.parent.network.path['state']
+        with open(path+'sequence.json', 'w') as file:
+            json.dump(self.steps, file)
