@@ -66,9 +66,8 @@ class Sequencer(Thing):
     def goto(self, step_name):
         ''' Go to a step specified by a string name. '''
         sequence = [self.get_step_by_name(step_name)]
-        submit = {'sequence': sequence}
-        requests.post('http://localhost:5000/artiq/run', json=submit)
-        self.parent.network.artiq_client.emit('hold', sequence)
+        if hasattr(self.parent.network, 'artiq_client'):
+            self.parent.network.artiq_client.emit('hold', sequence)
 
         self.current_step = step_name
         self.parent.network.socketIO.emit('timestep', step_name)
