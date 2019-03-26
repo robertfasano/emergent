@@ -1,1 +1,1 @@
-from emergent.API.blueprints import list, hubs, things, rpc, tasks, artiq, knobs
+from emergent.API.blueprints import list, hubs, things, rpc, tasks, artiq, knobs, sequencer
