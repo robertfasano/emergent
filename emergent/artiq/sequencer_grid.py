@@ -198,6 +198,11 @@ class GridWindow(QWidget):
 
         self.dashboard.actuate_signal.connect(self.actuate)
         self.dashboard.timestep_signal.connect(self.bold_active_step)
+        self.dashboard.sequence_update_signal.connect(self.refresh)
+
+    def refresh(self):
+        timesteps = self.dashboard.get('hubs/%s/sequencer/sequence'%self.hub)
+        self.redraw(timesteps)
 
     def draw(self, sequence):
         self.labels = {}
