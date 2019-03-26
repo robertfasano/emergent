@@ -72,6 +72,23 @@ class Sequencer(Thing):
         self.current_step = step_name
         self.parent.network.emit('timestep', step_name)
 
+    def move(self, step, n):
+        ''' Moves the passed step (integer or string) n places to the left (negative n)
+            or right (positive n). '''
+        i = 0
+        for s in self.steps:
+            if s['name'] == step:
+                break
+            i += 1
+        self.steps.insert(i+n, self.steps.pop(i))
+        self.parent.network.emit('sequence update')
+
+        # ''' Move in NetworkPanel '''
+        # knob_node = self.children[step]
+        # knob_node.leaf.move(n)
+
+
+
     def open_grid(self):
         self.parent.network.emit('sequencer', {'hub': self.parent.name})
 
