@@ -75,7 +75,7 @@ class PicoAmp(Thing):
             self.command(cmdPlus)
             self.command(cmdMinus)
         else:
-            V /= 40
+            V /= 16
             V = np.clip(float(V),-5,5)
             channel = {'X':0, 'Y':1}[axis]
             self.labjack.AOut(channel, V, TDAC=True)
