@@ -70,17 +70,17 @@ class Sequencer(Thing):
             self.parent.network.artiq_client.emit('hold', sequence)
 
         self.current_step = step_name
-        self.parent.network.socketIO.emit('timestep', step_name)
+        self.parent.network.emit('timestep', step_name)
 
     def open_grid(self):
-        self.parent.network.socketIO.emit('sequencer', {'hub': self.parent.name})
+        self.parent.network.emit('sequencer', {'hub': self.parent.name})
 
     def load(self):
         ''' Load a sequence from file '''
         path = self.parent.network.path['state']
         with open(path+'sequence.json', 'r') as file:
             self.steps = json.load(file)
-        self.parent.network.socketIO.emit('sequence update')
+        self.parent.network.emit('sequence update')
 
     def save(self):
         ''' Save the current sequence to file '''

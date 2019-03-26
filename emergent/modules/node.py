@@ -286,8 +286,7 @@ class Thing(Node):
         self.update(state)
         self.signal.emit(state)
         if send_over_p2p:
-            if hasattr(self.parent.network, 'socketIO'):
-                self.parent.network.socketIO.emit('actuate', {self.parent.name: {self.name: state}})
+            self.parent.network.emit('actuate', {self.parent.name: {self.name: state}})
 
     def update(self, state):
         """Synchronously updates the state of the Knob, Thing, and Hub.

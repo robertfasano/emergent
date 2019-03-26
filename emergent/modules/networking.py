@@ -140,6 +140,21 @@ class Network():
         from socketIO_client import SocketIO, LoggingNamespace
         self.socketIO = SocketIO('localhost', 8000, LoggingNamespace)
 
+    def emit(self, signal, arg):
+        ''' Emit a signal over the SocketIO protocol. Using this method ensures
+            that only allowed signals are emitted. '''
+        signals = ['event',             # declare a new event in the TaskPanel; args: event dict
+                   'timestep',          # update the current sequencer timestep; args: name
+                   'sequencer',         # show sequencing grid
+                   'sequence update',   # inform the GUI that the sequence has been updated
+                   'actuate'           # broadcast a new state to the GUI; args: state dict (including hubs)
+                    ]
+        assert signal in signals
+        if hasattr(self, 'socketIO'):
+            self.socketIO.emit(signal, arg)
+        else:
+            log.info('Could not emit "%s": no socketIO client running.'%signal)
+
     def start_artiq_client(self):
         ''' Initialize Flask socket '''
         print('Starting ARTIQ socketIO client.')

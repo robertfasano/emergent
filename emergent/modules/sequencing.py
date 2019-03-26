@@ -190,7 +190,7 @@ class Sequencer(Thing):
         return stream
 
     def open_grid(self):
-        self.parent.network.socketIO.emit('sequencer', {'hub': self.parent.name})
+        self.parent.network.emit('sequencer', {'hub': self.parent.name})
 
     def prepare(self):
         ''' Parse the sequence into the proper form to send to the LabJack.

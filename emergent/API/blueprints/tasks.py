@@ -17,8 +17,7 @@ def get_blueprint(network):
             network.tasks[id] = {}
             for x in ['start time', 'experiment', 'hub', 'id']:
                 network.tasks[id][x] = params[x]
-            if hasattr(network, 'socketIO'):
-                network.socketIO.emit('event', params)
+            network.emit('event', params)
         return json.dumps(network.tasks[id])
 
     return blueprint
