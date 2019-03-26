@@ -335,3 +335,15 @@ class KnobWidget(QTreeWidgetItem):
 
     def updateMaxText(self, state):
         self.setText(3, str('%.2f'%state))
+
+    def move(self, n):
+        ''' Moves the widget n steps up (negative n) or down (positive n)
+            in the tree '''
+        current_index = self.parent().indexOfChild(self)
+        if current_index == 0 and n < 0:
+            return
+        if current_index == self.parent().childCount()-1 and n > 0:
+            return
+        parent = self.parent()
+        parent.takeChild(current_index)
+        parent.insertChild(current_index+n, self)
