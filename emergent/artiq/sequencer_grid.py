@@ -387,3 +387,29 @@ class GridWindow(QWidget):
         knob = self.dashboard.tree_widget.get_knob('hub', 'sequencer', step)
         knob.move(n)
         self.dashboard.post('hubs/%s/sequencer/sequence'%self.hub, steps)
+
+    def swap(self, row1, col1, row2, col2):
+        ''' Swaps two widgets '''
+        widget1 = self.grid_layout.itemAtPosition(row1, col1)
+        widget2 = self.grid_layout.itemAtPosition(row2, col2)
+        index1 = self.grid_layout.indexOf(widget1)
+        index2 = self.grid_layout.indexOf(widget2)
+        self.grid_layout.takeAt(index1)
+        self.grid_layout.takeAt(index2)
+        self.grid_layout.addWidget(widget1, row2, col2)
+        self.grid_layout.addWidget(widget2, row1, col1)
+
+    def swap_columns(self, col1, col2):
+        num_rows = self.grid_layout.rowCount - 1 #ignore last row with total time display
+        for row in range(num_rows):
+            self.swap(row, row, col1, col2)
+
+    def swap_timesteps(self, name1, name2):
+        widget1 = self.labels[name1]
+        index1 = self.grid_layout.indexOf(widget1)
+        row1, col1, = self.grid_layout.getItemPosition(index1)
+        widget2 = self.labels[name2]
+        index2 = self.grid_layout.indexOf(widget2)
+        row2, col2, = self.grid_layout.getItemPosition(index2)
+
+        self.swap_columns(col1, col2)
