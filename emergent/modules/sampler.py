@@ -200,7 +200,28 @@ class Sampler():
             target = self.unnormalize(norm_target)
         else:
             target = norm_target
-        c, error = self.experiment(self, target)
+        if not self.skip_lock_check:
+            self.hub._check_lock()
+
+        results = []
+        if 'cycles per sample' not in self.experiment_params:
+            params['cycles per sample'] = 1
+        for i in range(int(self.experiment_params['cycles per sample'])):
+            if self.trigger is not None:
+                self.trigger()
+            c = self.experiment(target, self.experiment_params)
+            results.append(c)
+
+        c = np.mean(results)
+        error = None
+        if len(results) > 1:
+            error = np.std(results)/np.sqrt(len(results))
+
+
+
+
+
+
 
         ''' Update history '''
         t = time.time()

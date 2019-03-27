@@ -6,29 +6,10 @@ import time
 def thread(func, *args, **kwargs):
     new_thread = Thread(target=func, args=args, kwargs=kwargs)
     new_thread.start()
-    
+
 @decorator.decorator
-def experiment(func, hub, sampler, state):
-    results = []
-    params = sampler.experiment_params
-    ''' Check that all Watchdogs report lock state. If any fail, they will attempt
-        to reacquire lock with the Watchdog.react() method '''
-    if not sampler.skip_lock_check:
-        hub._check_lock()
-    if 'cycles per sample' not in params:
-        params['cycles per sample'] = 1
-    for i in range(int(params['cycles per sample'])):
-        if sampler.trigger is not None:
-            sampler.trigger()
-        c = func(hub, state, params)
-        results.append(c)
-
-    c = np.mean(results)
-    error = None
-    if len(results) > 1:
-        error = np.std(results)/np.sqrt(len(results))
-
-    return c, error
+def experiment(func, hub, state, params):
+    return func(hub, state, params)
 
 @decorator.decorator
 def error(func, *args, **kwargs):
