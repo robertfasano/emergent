@@ -203,6 +203,7 @@ class Thing(Node):
         self.parent.range[self.name][name] = {}
         for qty in ['min', 'max']:
             self.parent.range[self.name][name][qty] = None
+        self.parent.network.emit('actuate', {self.parent.name: self.parent.state})
         #if self.loaded:
             # self.actuate({name:self.parent.state[self.name][name]})
             #log.warning('Knobs changed but not actuated; physical state not synced with virtual state. Run parent.actuate(parent.state) to resolve, where parent is the name of the parent hub node.')

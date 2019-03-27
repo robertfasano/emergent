@@ -72,6 +72,16 @@ class Sequencer(Thing):
         self.current_step = step_name
         self.parent.network.emit('timestep', step_name)
 
+    def add_step(self, name):
+        step = {'name': name,
+                'duration': 0,
+                'TTL': [],
+                'ADC': [],
+                'DAC': {},
+                'DDS': {}}
+        self.steps.append(step)
+        self.add_knob(name)
+
     def move(self, step, n):
         ''' Moves the passed step (integer or string) n places to the left (negative n)
             or right (positive n). '''

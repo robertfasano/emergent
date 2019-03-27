@@ -62,13 +62,16 @@ class NodeTree(QTreeWidget):
 
     def refresh(self):
         self.set_state(self.dashboard.get('state'))
-        
+
     def actuate(self, hub, state):
         hub_item = self.get_hub(hub)
         for thing_name in state:
             thing = self.get_thing(hub, thing_name)
             for knob in state[thing_name]:
                 value = state[thing_name][knob]
+                if self.get_knob(hub, thing_name, knob) is None:
+                    leaf = KnobWidget(knob)
+                    thing.addChild(leaf)
                 if value is not None:
                     self.get_knob(hub, thing_name, knob).state_signal.emit(state[thing_name][knob])
 
