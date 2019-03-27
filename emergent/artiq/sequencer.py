@@ -112,41 +112,14 @@ class Sequencer(EnvExperiment):
         @self.socketio.on('submit')
         def submit(sequence):
             print('Received', sequence)
-            self.ttl_channels = []
-            for step in sequence:
-                for ch in step['TTL']:
-                    if int(ch) not in self.ttl_channels:
-                        self.ttl_channels.append(int(ch))
-            self.ttl_channels.sort()
-
-            self.adc_channels = []
-            for step in sequence:
-                for ch in step['ADC']:
-                    if int(ch) not in self.adc_channels:
-                        self.adc_channels.append(int(ch))
-            self.adc_channels.sort()
-
-            self.dac_channels = []
-            for step in sequence:
-                for ch in step['DAC']:
-                    if int(ch) not in self.dac_channels:
-                        self.dac_channels.append(int(ch))
-            self.dac_channels.sort()
-
-            self.ttl_table = get_ttls(self.ttl_channels, sequence)
-            self.adc_table = get_adcs(self.adc_channels, sequence)
-            self.dac_table = get_dacs(self.dac_channels, sequence)
-            self.times = get_timesteps(sequence)
+            self.prepare_attributes(sequence)
 
             self._submit_emergent = 1
             self.do_adc = 1
 
         @self.socketio.on('hold')
         def hold(sequence):
-            self.ttl_table = get_ttls(self.ttl_channels, sequence)
-            self.adc_table = get_adcs(self.adc_channels, sequence)
-            self.dac_table = get_dacs(self.dac_channels, sequence)
-            self.times = get_timesteps(sequence)
+            self.prepare_attributes(sequence)
 
             self._submit_emergent = 1
 
@@ -157,6 +130,36 @@ class Sequencer(EnvExperiment):
         print('Starting socket connection')
         requests.post('http://127.0.0.1:5000/artiq/handshake', json={'port': 54031})
 
+    def prepare_attributes(self, sequence):
+        self.ttl_channels = []
+        # for step in sequence:
+        #     for ch in step['TTL']:
+        #         if int(ch) not in self.ttl_channels:
+        #             self.ttl_channels.append(int(ch))
+        # self.ttl_channels.sort()
+        self.ttl_channels = [0, 1, 2, 3, 4, 5, 6, 7]            # need to specify ALL channels so we make sure
+                                                                # to update even low channels
+
+        self.adc_channels = []
+        for step in sequence:
+            for ch in step['ADC']:
+                if int(ch) not in self.adc_channels:
+                    self.adc_channels.append(int(ch))
+        self.adc_channels.sort()
+
+        self.dac_channels = []
+        for step in sequence:
+            for ch in step['DAC']:
+                if int(ch) not in self.dac_channels:
+                    self.dac_channels.append(int(ch))
+        self.dac_channels.sort()
+
+        self.ttl_table = get_ttls(self.ttl_channels, sequence)
+        self.adc_table = get_adcs(self.adc_channels, sequence)
+        self.dac_table = get_dacs(self.dac_channels, sequence)
+        self.times = get_timesteps(sequence)
+
+        print(sequence, self.ttl_table, self.adc_table, self.dac_table)
     ''' Start management '''
     def process_submitted(self) -> TBool:
         return bool(self._submit_emergent)
@@ -200,7 +203,6 @@ class Sequencer(EnvExperiment):
             self.data = [[[0]]]
             if self.do_adc == 1:
                 self.data = prepare_data_sets(self.times, N_samples)
-            print('dac table:', self.dac_table)
             self.execute(self._ttls, adc_delay,  N_samples)
 
             if self.do_adc == 1:
