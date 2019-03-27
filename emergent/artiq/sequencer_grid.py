@@ -321,11 +321,11 @@ class GridWindow(QWidget):
         row += 1
         for dac in self.dacs:
             if int(dac) in step['DAC']:
-                value = step['DAC'][int(dac)]
+                value = float(step['DAC'][int(dac)])
             elif str(dac) in step['DAC']:
-                value = step['DAC'][str(dac)]
+                value = float(step['DAC'][str(dac)])
             else:
-                value = 0
+                value = 0.0
             edit = DACEdit(str(dac), str(value), self.dashboard, self.hub, self)
             self.grid_layout.addWidget(edit, row, col)
             self.dac_edits[name][dac] = edit
