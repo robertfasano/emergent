@@ -217,9 +217,11 @@ class GridWindow(QWidget):
 
     def delete(self):
         name = self.sequence_selector.currentText()
+        if name == 'default':
+            return
         self.dashboard.post('hubs/%s/sequencer/delete'%self.hub, {'name': name})
         self.sequence_selector.removeItem(self.sequence_selector.currentIndex())
-        
+
     def store(self):
         name = self.store_edit.text()
         self.dashboard.post('hubs/%s/sequencer/store'%self.hub, {'name': name})

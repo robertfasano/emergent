@@ -160,6 +160,8 @@ class Sequencer(Thing):
 
     def delete(self, name):
         ''' Remove a sequence by name from self.sequences and delete its associated file '''
+        if name == 'default':
+            return
         del self.sequences[name]
         path = self.parent.network.path['sequences']
         os.remove(path+'%s.json'%name)
