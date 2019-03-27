@@ -80,7 +80,7 @@ class Sequencer(Thing):
             self.parent.network.artiq_client.emit('hold', sequence)
 
         self.current_step = step_name
-        self.parent.network.emit('timestep', step_name)
+        self.parent.network.emit('timestep', {'name': step_name})
 
     def add_step(self, name, position = -1):
         step = {'name': name,
