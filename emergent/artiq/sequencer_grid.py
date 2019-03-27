@@ -334,8 +334,12 @@ class GridWindow(QWidget):
 
     def remove_step(self, step):
         remove = [self.labels[step], self.step_edits[step]]
-        for switch in self.ttls:
-            remove.append(self.checkboxes[step][switch])
+        for ttl in self.ttls:
+            remove.append(self.checkboxes[step][ttl])
+        for adc in self.adcs:
+            remove.append(self.adc_checkboxes[step][adc])
+        for dac in self.dacs:
+            remove.append(self.dac_edits[step][dac])
         for widget in remove:
             self.grid_layout.removeWidget(widget)
             widget.deleteLater()
