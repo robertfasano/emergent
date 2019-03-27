@@ -65,6 +65,7 @@ def launch():
     from threading import Thread
     thread = Thread(target=serve, args = (network, addr))
     thread.start()
+    log.getLogger('werkzeug').setLevel(log.ERROR)
 
     global sys_argv
     sys_argv = args
