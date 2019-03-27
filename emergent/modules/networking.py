@@ -147,7 +147,8 @@ class Network():
                    'timestep',          # update the current sequencer timestep; args: name
                    'sequencer',         # show sequencing grid
                    'sequence update',   # inform the GUI that the sequence has been updated
-                   'actuate'           # broadcast a new state to the GUI; args: state dict (including hubs)
+                   'actuate',           # broadcast a new state to the GUI; args: state dict (including hubs)
+                   'sequence reorder'   # rearrange elements of a sequence
                     ]
         assert signal in signals
         if hasattr(self, 'socketIO'):

@@ -89,6 +89,12 @@ class Dashboard(QMainWindow):
         def update_sequence():
             self.sequence_update_signal.emit({})
 
+        @socketio.on('sequence reorder')
+        def update_sequence_order(d):
+            print('reordering sequence')
+            knob = self.tree_widget.get_knob('hub', 'sequencer', d['name'])
+            knob.move(d['n'])
+
         @socketio.on('event')
         def event(event):
             self.task_panel.add_event(event)

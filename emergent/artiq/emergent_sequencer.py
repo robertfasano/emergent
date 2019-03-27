@@ -90,14 +90,12 @@ class Sequencer(Thing):
             if s['name'] == step:
                 break
             i += 1
+        if (i+n)<0 or (i+n) > len(self.steps)-1:
+            return
+
         self.steps.insert(i+n, self.steps.pop(i))
         self.parent.network.emit('sequence update')
-
-        # ''' Move in NetworkPanel '''
-        # knob_node = self.children[step]
-        # knob_node.leaf.move(n)
-
-
+        self.parent.network.emit('sequence reorder', {'name': step, 'n': n})
 
     def open_grid(self):
         self.parent.network.emit('sequencer', {'hub': self.parent.name})
