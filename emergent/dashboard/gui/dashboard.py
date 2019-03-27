@@ -91,7 +91,6 @@ class Dashboard(QMainWindow):
 
         @socketio.on('sequence reorder')
         def update_sequence_order(d):
-            print('reordering sequence')
             knob = self.tree_widget.get_knob('hub', 'sequencer', d['name'])
             knob.move(d['n'])
 
