@@ -38,13 +38,23 @@ class Sequencer(Thing):
                     self.dac.append(ch)
 
         self.steps = params['sequence']
+        self.sequences = {'default': self.steps}
         self.cycle_time = 0
         self.current_step = None
+        self.current_sequence = 'default'
 
     def _actuate(self, state):
         for step in state:
             s = self.get_step_by_name(step)
             s['duration'] = state[step]
+
+    def activate(self, name):
+        self.steps = self.sequences[name]
+        self.parent.network.emit('sequence update')
+        self.current_sequence = name
+
+    def store(self, name):
+        self.sequences[name] = self.steps
 
     def get_step_by_name(self, name):
         for step in self.steps:

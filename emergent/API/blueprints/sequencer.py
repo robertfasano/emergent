@@ -13,6 +13,7 @@ def get_blueprint(network):
         s = network.hubs[hub].children['sequencer']
         if request.method == 'POST':
             s.steps = request.get_json()
+            s.sequences[s.current_sequence] = s.steps
         return json.dumps(s.steps)
 
     @blueprint.route('/ttl')
