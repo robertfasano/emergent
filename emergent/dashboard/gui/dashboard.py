@@ -103,6 +103,11 @@ class Dashboard(QMainWindow):
         thread.start()
         self.post('handshake', {'port': 8000})
 
+        @socketio.on('test')
+        def test(*args, **kwargs):
+            self.grid.swap_timesteps('load', 'probe')
+
+
     def get(self, url, format = 'json'):
         r = requests.get('http://%s:%s/'%(self.addr, self.port)+url)
         if format == 'json':
