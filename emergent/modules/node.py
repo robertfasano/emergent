@@ -29,7 +29,6 @@ import datetime
 from emergent.modules import Sampler, ProcessHandler
 from emergent.utilities.containers import State, DataDict
 from emergent.utilities import recommender
-from emergent.utilities.signals import DictSignal
 from emergent.utilities.buffers import StateBuffer, MacroBuffer
 from emergent.utilities.networking import get_address, get_local_addresses
 from emergent.utilities.commandline import get_hub
@@ -164,12 +163,6 @@ class Thing(Node):
 
         self.loaded = 0     # set to 1 after first state preparation
         self.node_type = 'thing'
-
-        ''' Add signals for knob creation and removal '''
-        self.signal = DictSignal()
-        self.create_signal = DictSignal()
-        self.remove_signal = DictSignal()
-
         self.ignored = []       # objects to ignore during pickling
 
         ''' Add knobs passed in params dict '''
@@ -210,14 +203,12 @@ class Thing(Node):
         self.parent.range[self.name][name] = {}
         for qty in ['min', 'max']:
             self.parent.range[self.name][name][qty] = None
-        self.create_signal.emit({'hub': self.parent, 'thing': self, 'knob': name})
         #if self.loaded:
             # self.actuate({name:self.parent.state[self.name][name]})
             #log.warning('Knobs changed but not actuated; physical state not synced with virtual state. Run parent.actuate(parent.state) to resolve, where parent is the name of the parent hub node.')
 
     def remove_knob(self, name):
         ''' Detaches the Knob node with the specified name. '''
-        self.remove_signal.emit({'hub': self.parent, 'thing': self, 'knob': name})
         del self.children[name]
         del self.state[name]
         del self.parent.state[self.name][name]
@@ -284,7 +275,7 @@ class Thing(Node):
         translated_state = self._translate(state)
         self._actuate(translated_state)
         self.update(state)
-        self.signal.emit(state)
+
         if send_over_p2p:
             self.parent.network.emit('actuate', {self.parent.name: {self.name: state}})
 
@@ -347,8 +338,6 @@ class Hub(Node):
         self.range = DataDict()
         self.samplers = {}
         self.node_type = 'hub'
-        self.signal = DictSignal()
-        self.process_signal = DictSignal()
         self.ignored = []
         ''' Establish switch interface '''
         self.switches = {}
@@ -382,7 +371,7 @@ class Hub(Node):
         thing_states = {}
         for thing in state:
             self.children[thing].actuate(state[thing], send_over_p2p)
-        self.signal.emit(state)
+
 
         self.buffer.add(state)
 
