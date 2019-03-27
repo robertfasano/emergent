@@ -104,7 +104,6 @@ class Sampler():
         ''' Saves the sampled data to file and updates the buffer '''
         self.history.to_csv(self.hub.network.path['data']+filename+'.csv')
         self.hub.macro_buffer.add(self.hub.state)
-        self.hub.process_signal.emit(self.hub.state)
         self.save(filename)
 
     def terminate(self):
