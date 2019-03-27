@@ -3,6 +3,7 @@ import json
 from emergent.utilities import recommender, introspection
 import pickle
 import uuid
+import logging as log
 
 url_prefix = '/artiq'
 
@@ -13,7 +14,7 @@ def get_blueprint(network):
     @blueprint.route("/handshake", methods=['GET', 'POST'])
     def handshake():
         if request.method == 'POST':
-            print('Connecting to ARTIQ master.')
+            log.info('Connecting to ARTIQ master.')
             network.start_artiq_client()
         return 'connected'
 

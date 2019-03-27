@@ -137,7 +137,7 @@ class Network():
 
     def start_flask_socket_server(self):
         ''' Initialize Flask socket '''
-        print('Starting socketIO client.')
+        log.info('Starting socketIO client.')
         from socketIO_client import SocketIO, LoggingNamespace
         self.socketIO = SocketIO('localhost', 8000, LoggingNamespace)
 
@@ -159,10 +159,9 @@ class Network():
             else:
                 self.socketIO.emit(signal)
         else:
-            log.info('Could not emit "%s": no socketIO client running.'%signal)
+            log.debug('Could not emit "%s": no socketIO client running.'%signal)
 
     def start_artiq_client(self):
         ''' Initialize Flask socket '''
-        print('Starting ARTIQ socketIO client.')
         from socketIO_client import SocketIO, LoggingNamespace
         self.artiq_client = SocketIO('localhost', 54031, LoggingNamespace)
