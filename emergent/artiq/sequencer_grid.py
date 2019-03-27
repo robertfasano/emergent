@@ -383,7 +383,6 @@ class GridWindow(QWidget):
             if s == step:
                 break
             i += 1
-
         if (i+n)<0 or (i+n) > len(steps)-1:
             return
 
@@ -395,6 +394,14 @@ class GridWindow(QWidget):
                 steps.insert(i_n+1, steps.pop(i_n))
                 self.order.insert(i_n+1, self.order.pop(i_n))
                 i_n += 1
+
+        if n < 0:
+            for n0 in range(-n):
+                name_to_left = self.order[i_n-1]
+                self.swap_timesteps(step, name_to_left)
+                steps.insert(i_n-1, steps.pop(i_n))
+                self.order.insert(i_n-1, self.order.pop(i_n))
+                i_n -= 1
 
         knob = self.dashboard.tree_widget.get_knob('hub', 'sequencer', step)
         knob.move(n)
