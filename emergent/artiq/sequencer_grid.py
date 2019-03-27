@@ -214,9 +214,10 @@ class GridWindow(QWidget):
         for step in sequence:
             row = self.add_step(step, col)
             col += 1
-        total_cycle_time = str(self.get_cycle_time()*1000)
+        total_cycle_time = self.get_cycle_time()*1000
+        self.total_time_label = QLabel('%.1f ms'%total_cycle_time)
         self.grid_layout.addWidget(QLabel('Cycle time:'), row, 0)
-        self.grid_layout.addWidget(QLabel('%s ms'%total_cycle_time), row, 1)
+        self.grid_layout.addWidget(self.total_time_label, row, 1)
         self.bold_active_step()
 
     def redraw(self, sequence):
@@ -231,6 +232,7 @@ class GridWindow(QWidget):
         for edit in self.step_edits.values():
             T += float(edit.text())
         return T
+
     def get_sequence(self):
         sequence = []
         for name in self.labels:
@@ -327,3 +329,6 @@ class GridWindow(QWidget):
         for step_name in self.step_edits:
             if step_name in state:
                 self.step_edits[step_name].setText(str(state[step_name]))
+
+        total_cycle_time = self.get_cycle_time()*1000
+        self.total_time_label.setText('%.1f ms'%total_cycle_time)
