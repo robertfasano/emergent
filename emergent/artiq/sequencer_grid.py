@@ -116,6 +116,36 @@ class StepEdit(QLineEdit):
         self.dashboard.post('hubs/%s/state'%self.hub, state)
         self.dashboard.actuate_signal.emit({self.hub: state})
 
+class StepLabel(BoldLabel):
+    def __init__(self, name):
+        super().__init__(name)
+
+        self.customContextMenuRequested.connect(self.openMenu)
+        self.setContextMenuPolicy(Qt.CustomContextMenu)
+
+    def openMenu(self, pos):
+        globalPos = self.mapToGlobal(pos)
+        menu = QMenu()
+        move_menu.addMenu('Move')
+        menu.addMenu('Insert')
+
+        move_options = {'Left': self.move_left,
+                   'Right: self.move_right }
+        actions = {}
+
+        for option in options:
+            actions[option] = QAction(option, self)
+            actions[option].triggered.connect(options[option])
+            move_menu.addAction(actions[option])
+        selectedItem = menu.exec_(globalPos)
+
+    def move_left(self):
+        print('move left')
+        self.grid.move(self.name, -1)
+
+    def move_right(self):
+        self.grid.move(self.name, 1)
+
 class BoldLabel(QLabel):
     def __init__(self, name):
         super().__init__(name)
@@ -200,9 +230,10 @@ class GridWindow(QWidget):
         self.dashboard.timestep_signal.connect(self.bold_active_step)
         self.dashboard.sequence_update_signal.connect(self.refresh)
 
-    def refresh(self):
-        timesteps = self.dashboard.get('hubs/%s/sequencer/sequence'%self.hub)
-        self.redraw(timesteps)
+    def refresh(self, sequence=None):
+        if sequence is None:
+            sequence = self.dashboard.get('hubs/%s/sequencer/sequence'%self.hub)
+        self.redraw(sequence)
 
     def draw(self, sequence):
         self.labels = {}
@@ -334,3 +365,23 @@ class GridWindow(QWidget):
 
         total_cycle_time = self.get_cycle_time()*1000
         self.total_time_label.setText('%.1f ms'%total_cycle_time)
+
+    def move(self, step, n):
+        ''' Moves the passed step (integer or string) n places to the left (negative n)
+            or right (positive n). '''
+        # steps = self.dashboard.get('hubs/%s/sequencer/sequence'%self.hub)
+        steps = self.get_sequence()
+        i = 0
+        for s in steps:
+            if s['name'] == step:
+                break
+            i += 1
+        if (i+n)<0 or (i+n) > len(steps)-1:
+            return
+
+        steps.insert(i+n, steps.pop(i))
+
+        self.refresh(steps)
+        knob = self.dashboard.tree_widget.get_knob('hub', 'sequencer', d['name'])
+        knob.move(n)
+        self.dashboard.post('hubs/%s/sequencer/sequence'%self.hub, steps)
