@@ -223,6 +223,8 @@ class GridWindow(QWidget):
     def redraw(self, sequence):
         for step in self.labels:
             self.remove_step(step)
+        self.grid_layout.removeWidget(self.total_time_label)
+        self.total_time_label.deleteLater()
         self.draw(sequence)
         QApplication.processEvents()        # determine new minimumSize
         self.resize(self.minimumSize())
