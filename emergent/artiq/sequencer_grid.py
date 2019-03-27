@@ -4,6 +4,7 @@ from PyQt5.QtWidgets import (QApplication, QLabel, QLineEdit, QMenu, QAction,
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPainter
 from emergent.modules.units import Units
+import time
 
 class ttlLabel(QLabel):
     def __init__(self, name, channel, grid):
@@ -390,26 +391,32 @@ class GridWindow(QWidget):
 
     def swap(self, row1, col1, row2, col2):
         ''' Swaps two widgets '''
-        widget1 = self.grid_layout.itemAtPosition(row1, col1)
-        widget2 = self.grid_layout.itemAtPosition(row2, col2)
-        index1 = self.grid_layout.indexOf(widget1)
-        index2 = self.grid_layout.indexOf(widget2)
-        self.grid_layout.takeAt(index1)
-        self.grid_layout.takeAt(index2)
+        widget1 = self.grid_layout.itemAtPosition(row1, col1).widget()
+        widget2 = self.grid_layout.itemAtPosition(row2, col2).widget()
+        self.grid_layout.removeWidget(widget1)
+        self.grid_layout.removeWidget(widget2)
         self.grid_layout.addWidget(widget1, row2, col2)
         self.grid_layout.addWidget(widget2, row1, col1)
 
     def swap_columns(self, col1, col2):
-        num_rows = self.grid_layout.rowCount - 1 #ignore last row with total time display
-        for row in range(num_rows):
-            self.swap(row, row, col1, col2)
+        header_rows = [0, 1]        # headers
+        ttl_rows = list(range(header_rows[-1]+2, header_rows[-1]+2+len(self.ttls)))
+        header_rows.extend(ttl_rows)
+        adc_rows = list(range(ttl_rows[-1]+2, ttl_rows[-1]+2+len(self.adcs)))
+        header_rows.extend(adc_rows)
+        dac_rows = list(range(adc_rows[-1]+2, adc_rows[-1]+2+len(self.dacs)))
+        header_rows.extend(dac_rows)
+
+        for row in header_rows:
+            self.swap(row, col1, row, col2)
+            time.sleep(1e-6)            # need a short pause here or Qt will crash
 
     def swap_timesteps(self, name1, name2):
         widget1 = self.labels[name1]
         index1 = self.grid_layout.indexOf(widget1)
-        row1, col1, = self.grid_layout.getItemPosition(index1)
+        row1, col1, rowspan, colspan = self.grid_layout.getItemPosition(index1)
         widget2 = self.labels[name2]
         index2 = self.grid_layout.indexOf(widget2)
-        row2, col2, = self.grid_layout.getItemPosition(index2)
+        row2, col2, rowspan, colspan = self.grid_layout.getItemPosition(index2)
 
         self.swap_columns(col1, col2)
