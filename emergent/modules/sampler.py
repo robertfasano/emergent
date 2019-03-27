@@ -205,7 +205,7 @@ class Sampler():
 
         results = []
         if 'cycles per sample' not in self.experiment_params:
-            params['cycles per sample'] = 1
+            self.experiment_params['cycles per sample'] = 1
         for i in range(int(self.experiment_params['cycles per sample'])):
             if self.trigger is not None:
                 self.trigger()
