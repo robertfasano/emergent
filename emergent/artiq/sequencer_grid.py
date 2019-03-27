@@ -5,6 +5,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPainter
 from emergent.modules.units import Units
 import time
+import numpy as np
 
 class ttlLabel(QLabel):
     def __init__(self, name, channel, grid):
@@ -387,21 +388,13 @@ class GridWindow(QWidget):
             return
 
         i_n = i
-        if n > 0:
-            for n0 in range(n):
-                name_to_right = self.order[i_n+1]
-                self.swap_timesteps(step, name_to_right)
-                steps.insert(i_n+1, steps.pop(i_n))
-                self.order.insert(i_n+1, self.order.pop(i_n))
-                i_n += 1
-
-        if n < 0:
-            for n0 in range(-n):
-                name_to_left = self.order[i_n-1]
-                self.swap_timesteps(step, name_to_left)
-                steps.insert(i_n-1, steps.pop(i_n))
-                self.order.insert(i_n-1, self.order.pop(i_n))
-                i_n -= 1
+        for n0 in range(np.abs(n)):
+            d_i = np.sign(n)
+            adjacent_step = self.order[i_n+d_i]
+            self.swap_timesteps(step, adjacent_step)
+            steps.insert(i_n+d_i, steps.pop(i_n))
+            self.order.insert(i_n+d_i, self.order.pop(i_n))
+            i_n += d_i
 
         knob = self.dashboard.tree_widget.get_knob('hub', 'sequencer', step)
         knob.move(n)
