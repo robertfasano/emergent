@@ -210,12 +210,15 @@ class Sequencer(EnvExperiment):
                 total_time = 0
                 for i in range(len(self.times)):
                     t0 = total_time
-                    for j in range(len(self.data[i])):
-                        d = np.atleast_2d(self.data[i][j])
-                        subdf = pd.DataFrame(d, index=[t0], columns = range(8))
-                        t0 += adc_delay
-                        df = df.append(subdf)
-
+                    index = np.linspace(0, (len(self.data[i])-1)*adc_delay, len(self.data[i]))
+                    index += total_time
+                    subdf = pd.DataFrame(np.array(self.data[i]), index=index)
+                    # for j in range(len(self.data[i])):
+                    #     d = np.atleast_2d(self.data[i][j])
+                    #     subdf = pd.DataFrame(d, index=[t0], columns = range(8))
+                    #     t0 += adc_delay
+                    #     df = df.append(subdf)
+                    df = df.append(subdf)
                     total_time += self.times[i]
                 df = df[(df.T != 0).any()]
                 df = df[self.adc_channels]
