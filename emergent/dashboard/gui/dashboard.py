@@ -38,7 +38,7 @@ class Dashboard(QMainWindow):
 
         self.timestep_signal = DictSignal()
         self.sequence_update_signal = DictSignal()
-
+        self.test_signal = DictSignal()
         self.actuate_signal = DictSignal()
         self.show_grid_signal = DictSignal()
         self.show_grid_signal.connect(self.show_grid)
@@ -105,7 +105,8 @@ class Dashboard(QMainWindow):
 
         @socketio.on('test')
         def test(*args, **kwargs):
-            self.grid.swap_timesteps('load', 'probe')
+            self.test_signal.emit({})
+
 
 
     def get(self, url, format = 'json'):

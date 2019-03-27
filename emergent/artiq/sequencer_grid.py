@@ -167,6 +167,8 @@ class GridWindow(QWidget):
         self.dashboard = dashboard
         self.hub = hub
         self.picklable = False
+        self.dashboard.test_signal.connect(lambda: self.move('load', 2))
+        # self.dashboard.test_signal.connect(lambda: self.swap_timesteps('load', 'probe'))
 
         self.layout = QHBoxLayout()
         self.setLayout(self.layout)
