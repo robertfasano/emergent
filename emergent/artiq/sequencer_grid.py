@@ -237,6 +237,7 @@ class GridWindow(QWidget):
         self.redraw(sequence)
 
     def draw(self, sequence):
+        self.order = []
         self.labels = {}
         self.step_edits = {}
         self.checkboxes = {}
@@ -269,7 +270,7 @@ class GridWindow(QWidget):
 
     def get_sequence(self):
         sequence = []
-        for name in self.labels:
+        for name in self.order:
             new_step = {}
             new_step['duration'] = self.step_edits[name].text()
             new_step['name'] = name
@@ -290,6 +291,7 @@ class GridWindow(QWidget):
     def add_step(self, step, col):
         name = step['name']
         ''' Add label and edit '''
+        self.order.append(name)
         self.labels[name] = StepLabel(name, self)
         self.grid_layout.addWidget(self.labels[name], 0, col)
         self.step_edits[name] = StepEdit(name, str(step['duration']), self.dashboard, self.hub)
@@ -377,16 +379,23 @@ class GridWindow(QWidget):
         # steps = self.dashboard.get('hubs/%s/sequencer/sequence'%self.hub)
         steps = self.get_sequence()
         i = 0
-        for s in steps:
-            if s['name'] == step:
+        for s in self.order:
+            if s == step:
                 break
             i += 1
+
         if (i+n)<0 or (i+n) > len(steps)-1:
             return
 
-        steps.insert(i+n, steps.pop(i))
+        i_n = i
+        if n > 0:
+            for n0 in range(n):
+                name_to_right = self.order[i_n+1]
+                self.swap_timesteps(step, name_to_right)
+                steps.insert(i_n+1, steps.pop(i_n))
+                self.order.insert(i_n+1, self.order.pop(i_n))
+                i_n += 1
 
-        self.refresh(steps)
         knob = self.dashboard.tree_widget.get_knob('hub', 'sequencer', step)
         knob.move(n)
         self.dashboard.post('hubs/%s/sequencer/sequence'%self.hub, steps)
