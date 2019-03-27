@@ -14,6 +14,7 @@ def get_blueprint(network):
         if request.method == 'POST':
             s.steps = request.get_json()
             s.sequences[s.current_sequence] = s.steps
+            s.save(s.current_sequence)
         return json.dumps(s.steps)
 
     @blueprint.route('/ttl')
@@ -43,5 +44,31 @@ def get_blueprint(network):
             s.goto(request.get_json()['step'])
         return json.dumps(s.current_step)
 
+    @blueprint.route('/sequences', methods=['GET', 'POST'])
+    def hub_sequencers(hub):
+        s = network.hubs[hub].children['sequencer']
+
+        return json.dumps(s.sequences)
+
+    @blueprint.route('/activate', methods=['POST'])
+    def activate_sequence(hub):
+        s = network.hubs[hub].children['sequencer']
+        s.activate(request.get_json()['sequence'])
+
+        return ''
+
+    @blueprint.route('/store', methods=['POST'])
+    def store_sequence(hub):
+        s = network.hubs[hub].children['sequencer']
+        s.store(request.get_json()['name'])
+
+        return ''
+
+    @blueprint.route('/delete', methods=['POST'])
+    def delete_sequence(hub):
+        s = network.hubs[hub].children['sequencer']
+        s.delete(request.get_json()['name'])
+
+        return ''
 
     return blueprint

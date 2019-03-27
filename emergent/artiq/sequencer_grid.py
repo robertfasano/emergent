@@ -1,11 +1,12 @@
 
-from PyQt5.QtWidgets import (QApplication, QLabel, QLineEdit, QMenu, QAction,
-        QWidget, QCheckBox, QHBoxLayout, QGridLayout, QSizePolicy)
+from PyQt5.QtWidgets import (QApplication, QLabel, QLineEdit, QMenu, QAction, QPushButton,
+        QWidget, QCheckBox, QHBoxLayout, QVBoxLayout, QGridLayout, QSizePolicy, QComboBox)
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPainter
 from emergent.modules.units import Units
 import time
 import numpy as np
+from emergent.artiq.sequencer_table import SequencerTable
 
 class ttlLabel(QLabel):
     def __init__(self, name, channel, grid):
@@ -157,6 +158,8 @@ class StepLabel(BoldLabel):
     def move_right(self):
         self.grid.move(self.name, 1)
 
+
+
 class GridWindow(QWidget):
     def __init__(self, dashboard, hub):
         super(GridWindow, self).__init__(None)
@@ -168,19 +171,76 @@ class GridWindow(QWidget):
         self.dashboard = dashboard
         self.hub = hub
         self.picklable = False
-        self.dashboard.test_signal.connect(lambda: self.move('load', 2))
+        self.dashboard.test_signal.connect(lambda: self.insert_step('test', 0))
         # self.dashboard.test_signal.connect(lambda: self.swap_timesteps('load', 'probe'))
 
-        self.layout = QHBoxLayout()
+        self.layout = QVBoxLayout()
         self.setLayout(self.layout)
+
+        self.selector_layout = QHBoxLayout()
+        self.sequence_selector = QComboBox()
+        for item in self.dashboard.get('hubs/%s/sequencer/sequences'%self.hub):
+            self.sequence_selector.addItem(item)
+        self.sequence_selector.currentTextChanged.connect(self.activate)
+        self.selector_layout.addWidget(self.sequence_selector)
+        self.delete_button = QPushButton('Delete')
+        self.delete_button.clicked.connect(self.delete)
+        self.selector_layout.addWidget(self.delete_button)
+        self.layout.addLayout(self.selector_layout)
+
+
+        self.store_layout = QHBoxLayout()
+        self.store_edit = QLineEdit('Enter name here')
+        self.store_layout.addWidget(self.store_edit)
+        self.store_button = QPushButton('Store')
+        self.store_button.clicked.connect(self.store)
+        self.store_layout.addWidget(self.store_button)
+        self.layout.addLayout(self.store_layout)
 
         self.widget = QWidget()
         self.grid_layout = QGridLayout()
         self.widget.setLayout(self.grid_layout)
         self.layout.addWidget(self.widget)
 
+
+        # self.add_table()
+        self.add_labels()
+        timesteps = self.dashboard.get('hubs/%s/sequencer/sequence'%self.hub)
+        self.draw(timesteps)
+
+        self.dashboard.actuate_signal.connect(self.actuate)
+        self.dashboard.timestep_signal.connect(self.bold_active_step)
+        self.dashboard.sequence_update_signal.connect(self.refresh)
+
+    def activate(self, sequence):
+        self.dashboard.post('hubs/%s/sequencer/activate'%self.hub, {'sequence': sequence})
+
+    def delete(self):
+        name = self.sequence_selector.currentText()
+        self.dashboard.post('hubs/%s/sequencer/delete'%self.hub, {'name': name})
+        self.sequence_selector.removeItem(self.sequence_selector.currentIndex())
+        
+    def store(self):
+        name = self.store_edit.text()
+        self.dashboard.post('hubs/%s/sequencer/store'%self.hub, {'name': name})
+        self.sequence_selector.addItem(name)
+        self.sequence_selector.setCurrentIndex(self.sequence_selector.count()-1)
+
+    def add_table(self):
+        self.ttls = self.dashboard.get('hubs/%s/sequencer/ttl'%self.hub)
+        self.table = SequencerTable()
+        timesteps = self.dashboard.get('hubs/%s/sequencer/sequence'%self.hub)
+        self.table.set_channels(self.ttls)
+        for step in timesteps:
+            self.table.add_timestep(self.ttls, step)
+        self.grid_layout.addWidget(self.table, 0, 0)
+        self.table.adjustSize()
+        self.widget.adjustSize()
+        self.adjustSize()
+
+    def add_labels(self):
         ''' Create TTL labels '''
-        self.ttls = self.dashboard.get('hubs/%s/sequencer/ttl'%hub)
+        self.ttls = self.dashboard.get('hubs/%s/sequencer/ttl'%self.hub)
         label = BoldLabel('TTL')
         label.setBold(True)
         self.grid_layout.addWidget(label, 2, 0)
@@ -195,7 +255,7 @@ class GridWindow(QWidget):
             row += 1
 
         ''' Create ADC labels '''
-        self.adcs = self.dashboard.get('hubs/%s/sequencer/adc'%hub)
+        self.adcs = self.dashboard.get('hubs/%s/sequencer/adc'%self.hub)
         label = BoldLabel('ADC')
         label.setBold(True)
         self.grid_layout.addWidget(label, row, 0)
@@ -208,7 +268,7 @@ class GridWindow(QWidget):
             row += 1
 
         ''' Create DAC labels '''
-        self.dacs = self.dashboard.get('hubs/%s/sequencer/dac'%hub)
+        self.dacs = self.dashboard.get('hubs/%s/sequencer/dac'%self.hub)
         label = BoldLabel('DAC')
         label.setBold(True)
         self.grid_layout.addWidget(label, row, 0)
@@ -218,23 +278,16 @@ class GridWindow(QWidget):
             row += 1
         #
         # ''' Create DDS labels '''
-        # self.dds = self.dashboard.get('hubs/%s/sequencer/dds'%hub)
+        # self.dds = self.dashboard.get('hubs/%s/sequencer/dds'%self.hub)
         # self.grid_layout.addWidget(QLabel('DDS'), row, 0)
         # row += 1
         # for dds in self.dds:
         #     self.grid_layout.addWidget(QLabel(str(dds)), row, 0)
         #     row += 1
 
-        timesteps = self.dashboard.get('hubs/%s/sequencer/sequence'%self.hub)
-        self.draw(timesteps)
-
-        self.dashboard.actuate_signal.connect(self.actuate)
-        self.dashboard.timestep_signal.connect(self.bold_active_step)
-        self.dashboard.sequence_update_signal.connect(self.refresh)
-
     def refresh(self, sequence=None):
-        if sequence is None:
-            sequence = self.dashboard.get('hubs/%s/sequencer/sequence'%self.hub)
+        # if sequence is None:
+        sequence = self.dashboard.get('hubs/%s/sequencer/sequence'%self.hub)
         self.redraw(sequence)
 
     def draw(self, sequence):
@@ -245,6 +298,7 @@ class GridWindow(QWidget):
         self.adc_checkboxes = {}
         self.dac_edits = {}
         col = 1
+        row = 0
         for step in sequence:
             row = self.add_step(step, col)
             col += 1
@@ -373,6 +427,25 @@ class GridWindow(QWidget):
 
         total_cycle_time = self.get_cycle_time()*1000
         self.total_time_label.setText('%.1f ms'%total_cycle_time)
+
+    def insert_step(self, name, position = -1):
+        step = {'name': name,
+                'duration': 0,
+                'TTL': [],
+                'ADC': [],
+                'DAC': {},
+                'DDS': {}}
+        if step in self.order:
+            log.warn('Step already exists!')
+            return
+        steps = self.get_sequence()
+        steps.insert(position, step)
+        self.redraw(steps)
+
+        self.dashboard.post('hubs/%s/sequencer/sequence'%self.hub, steps)
+
+        ''' add knob '''
+        self.dashboard.post('hubs/%s/things/sequencer/exec'%self.hub, {'method': 'add_knob', 'args': (name,)})
 
     def move(self, step, n):
         ''' Moves the passed step (integer or string) n places to the left (negative n)

@@ -9,6 +9,7 @@ import numpy as np
 import json
 from emergent.modules import Thing
 import requests
+import os
 
 class Sequencer(Thing):
     def __init__(self, name, parent, params={'sequence': {}}):
@@ -43,18 +44,17 @@ class Sequencer(Thing):
         self.current_step = None
         self.current_sequence = 'default'
 
+
+        ''' Load saved sequences '''
+        saved_sequences = self.get_saved_sequences()
+        for name in saved_sequences:
+            self.load(name)
+        self.activate('default')
+
     def _actuate(self, state):
         for step in state:
             s = self.get_step_by_name(step)
             s['duration'] = state[step]
-
-    def activate(self, name):
-        self.steps = self.sequences[name]
-        self.parent.network.emit('sequence update')
-        self.current_sequence = name
-
-    def store(self, name):
-        self.sequences[name] = self.steps
 
     def get_step_by_name(self, name):
         for step in self.steps:
@@ -119,15 +119,47 @@ class Sequencer(Thing):
     def open_grid(self):
         self.parent.network.emit('sequencer', {'hub': self.parent.name})
 
-    def load(self):
-        ''' Load a sequence from file '''
-        path = self.parent.network.path['state']
-        with open(path+'sequence.json', 'r') as file:
-            self.steps = json.load(file)
-        self.parent.network.emit('sequence update')
+    def get_saved_sequences(self):
+        path = self.parent.network.path['sequences']
+        if not os.path.exists(path):
+            os.makedirs(path)
 
-    def save(self):
+        return [x.split('.json')[0] for x in os.listdir(path) if 'json' in x]
+
+    def load(self, name):
+        ''' Load a sequence from file '''
+        if name == 'default':
+            return
+        path = self.parent.network.path['sequences']
+        with open(path+'%s.json'%name, 'r') as file:
+            self.steps = json.load(file)
+        self.store(name)
+        # self.parent.network.emit('sequence update')
+
+    def save(self, name, steps=None):
         ''' Save the current sequence to file '''
-        path = self.parent.network.path['state']
-        with open(path+'sequence.json', 'w') as file:
+        if name == 'default':
+            return
+        if steps is None:
+            steps = self.steps
+        path = self.parent.network.path['sequences']
+        with open(path+'%s.json'%name, 'w') as file:
             json.dump(self.steps, file)
+
+    def activate(self, name):
+        self.steps = self.sequences[name]
+        self.parent.network.emit('sequence update')
+        self.current_sequence = name
+
+    def store(self, name, steps=None):
+        if steps is None:
+            steps = self.steps
+        self.sequences[name] = steps
+        self.current_sequence = name
+        self.save(name, steps)
+
+    def delete(self, name):
+        ''' Remove a sequence by name from self.sequences and delete its associated file '''
+        del self.sequences[name]
+        path = self.parent.network.path['sequences']
+        os.remove(path+'%s.json'%name)

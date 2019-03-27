@@ -32,6 +32,7 @@ class Network():
         self.path['data'] = self.path['network']+'/data/'
         self.path['state'] = self.path['network']+'/state/'
         self.path['params'] = self.path['network']+'/params/'
+        self.path['sequences'] = self.path['network']+'/sequences/'
         self.tree = None
         self.connection_params = {'sync delay': 0.1, 'reconnect delay': 1}
         self.hubs = {}
