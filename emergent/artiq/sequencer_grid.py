@@ -116,36 +116,6 @@ class StepEdit(QLineEdit):
         self.dashboard.post('hubs/%s/state'%self.hub, state)
         self.dashboard.actuate_signal.emit({self.hub: state})
 
-class StepLabel(BoldLabel):
-    def __init__(self, name):
-        super().__init__(name)
-
-        self.customContextMenuRequested.connect(self.openMenu)
-        self.setContextMenuPolicy(Qt.CustomContextMenu)
-
-    def openMenu(self, pos):
-        globalPos = self.mapToGlobal(pos)
-        menu = QMenu()
-        move_menu.addMenu('Move')
-        menu.addMenu('Insert')
-
-        move_options = {'Left': self.move_left,
-                   'Right: self.move_right }
-        actions = {}
-
-        for option in options:
-            actions[option] = QAction(option, self)
-            actions[option].triggered.connect(options[option])
-            move_menu.addAction(actions[option])
-        selectedItem = menu.exec_(globalPos)
-
-    def move_left(self):
-        print('move left')
-        self.grid.move(self.name, -1)
-
-    def move_right(self):
-        self.grid.move(self.name, 1)
-
 class BoldLabel(QLabel):
     def __init__(self, name):
         super().__init__(name)
@@ -156,6 +126,34 @@ class BoldLabel(QLabel):
             self.setText('<b>'+self.name+'</b>')
         else:
             self.setText(self.name)
+
+class StepLabel(BoldLabel):
+    def __init__(self, name, grid):
+        super().__init__(name)
+        self.grid = grid
+        self.customContextMenuRequested.connect(self.openMenu)
+        self.setContextMenuPolicy(Qt.CustomContextMenu)
+
+    def openMenu(self, pos):
+        globalPos = self.mapToGlobal(pos)
+        menu = QMenu()
+        move_menu = menu.addMenu('Move')
+
+        move_options = {'Left': self.move_left,
+                   'Right': self.move_right }
+        actions = {}
+
+        for option in move_options:
+            actions[option] = QAction(option, self)
+            actions[option].triggered.connect(move_options[option])
+            move_menu.addAction(actions[option])
+        selectedItem = menu.exec_(globalPos)
+
+    def move_left(self):
+        self.grid.move(self.name, -1)
+
+    def move_right(self):
+        self.grid.move(self.name, 1)
 
 class GridWindow(QWidget):
     def __init__(self, dashboard, hub):
@@ -289,7 +287,7 @@ class GridWindow(QWidget):
     def add_step(self, step, col):
         name = step['name']
         ''' Add label and edit '''
-        self.labels[name] = BoldLabel(name)
+        self.labels[name] = StepLabel(name, self)
         self.grid_layout.addWidget(self.labels[name], 0, col)
         self.step_edits[name] = StepEdit(name, str(step['duration']), self.dashboard, self.hub)
         self.grid_layout.addWidget(self.step_edits[name], 1, col)
@@ -382,6 +380,6 @@ class GridWindow(QWidget):
         steps.insert(i+n, steps.pop(i))
 
         self.refresh(steps)
-        knob = self.dashboard.tree_widget.get_knob('hub', 'sequencer', d['name'])
+        knob = self.dashboard.tree_widget.get_knob('hub', 'sequencer', step)
         knob.move(n)
         self.dashboard.post('hubs/%s/sequencer/sequence'%self.hub, steps)
