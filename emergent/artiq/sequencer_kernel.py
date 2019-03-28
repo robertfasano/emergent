@@ -97,7 +97,7 @@ class Sequencer(EnvExperiment):
         self.setattr_device("core_dma")
 
         self._ttls = []
-        for i in range(8):
+        for i in range(16):
             self.setattr_device("ttl%i"%i)
             dev = getattr(self, "ttl%i"%i)
             self._ttls.append(dev)
@@ -111,7 +111,8 @@ class Sequencer(EnvExperiment):
         self.socketio = SocketIO(app, logger=False, port=54031)
 
         self.times = []
-        self.ttl_channels = [0]
+        self.ttl_channels = list(range(16))
+
         self.adc_channels = [0]
         self.dac_channels = [0]
         self.ttl_table = [[0]]
@@ -130,6 +131,7 @@ class Sequencer(EnvExperiment):
 
         @self.socketio.on('hold')
         def hold(sequence):
+            print('Received', sequence)
             self.prepare_attributes(sequence)
 
             self._submit_emergent = 1
@@ -142,14 +144,12 @@ class Sequencer(EnvExperiment):
         requests.post('http://127.0.0.1:5000/artiq/handshake', json={'port': 54031})
 
     def prepare_attributes(self, sequence):
-        self.ttl_channels = []
+        # self.ttl_channels = list(8, range(16))
         # for step in sequence:
         #     for ch in step['TTL']:
         #         if int(ch) not in self.ttl_channels:
         #             self.ttl_channels.append(int(ch))
         # self.ttl_channels.sort()
-        self.ttl_channels = [0, 1, 2, 3, 4, 5, 6, 7]            # need to specify ALL channels so we make sure
-                                                                # to update even low channels
 
         self.adc_channels = []
         for step in sequence:
@@ -165,12 +165,12 @@ class Sequencer(EnvExperiment):
                     self.dac_channels.append(int(ch))
         self.dac_channels.sort()
 
-        self.ttl_table = get_ttls(self.ttl_channels, sequence)
+        self.ttl_table = get_ttls(list(range(16)), sequence)
         self.adc_table = get_adcs(self.adc_channels, sequence)
         self.dac_table = get_dacs(self.dac_channels, sequence)
         self.times = get_timesteps(sequence)
 
-        print(sequence, self.ttl_table, self.adc_table, self.dac_table)
+
 
     def get_times(self) -> TList(TFloat):
         return self.times
@@ -231,10 +231,12 @@ class Sequencer(EnvExperiment):
     @kernel
     def run(self):
         self.initialize_kernel()
-
+        # for ttl in self._ttls:
+        #     ttl.output()
         while True:
             ''' Check if EMERGENT has submitted a process '''
             if not self.process_submitted():
+                self.core.break_realtime()
                 continue
             print('Preparing for run.')
             with parallel:
@@ -243,7 +245,8 @@ class Sequencer(EnvExperiment):
                     self.ttl_table = self.get_ttl_table()
                     self.adc_table = self.get_adc_table()
                     self.dac_table = self.get_dac_table()
-                    self.set_ttl_table(self._ttls, self.ttl_channels, self.times, self.ttl_table)
+                    print(self.ttl_table, self.adc_table, self.dac_table)
+                    # self.set_ttl_table(self._ttls, self.ttl_channels, self.times, self.ttl_table)
                     adc_delay = 1*ms
                     N_samples = self.get_N_samples(adc_delay)
                     #
@@ -285,18 +288,27 @@ class Sequencer(EnvExperiment):
 
                 ''' TTL '''
                 with sequential:
-                    row=0
-                    for ch in self.ttl_channels:
+                    channels2 = self.ttl_channels[0:8]
+                    for ch in channels2:
                         at_mu(start_mu)
-                        if self.ttl_table[row][col]==1:
-                            # ttls[ch].pulse(time)
+                        if self.ttl_table[ch][col]==1:
                             ttls[ch].on()
                             delay(time)
                         else:
+
                             ttls[ch].off()
                             delay(time)
-                        row = row + 1
 
+                    channels1 = self.ttl_channels[8:16]
+                    for ch in channels1:
+                        at_mu(start_mu+25)
+                        if self.ttl_table[ch][col]==1:
+                            ttls[ch].on()
+                            delay(time)
+                        else:
+
+                            ttls[ch].off()
+                            delay(time)
                 ''' ADC '''
                 # if self.do_adc == 1:
                 with sequential:
