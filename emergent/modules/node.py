@@ -31,7 +31,6 @@ from emergent.utilities.containers import State, DataDict
 from emergent.utilities import recommender
 from emergent.utilities.buffers import StateBuffer, MacroBuffer
 from emergent.utilities.networking import get_address, get_local_addresses
-from emergent.utilities.commandline import get_hub
 
 class Node():
     ''' The Node class is the core building block of the EMERGENT network,
