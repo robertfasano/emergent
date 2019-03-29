@@ -49,7 +49,7 @@ class Online(Sampling):
             from emergent.samplers.random import Random
             X, c = Random(sampler=self.sampler,
                           params={'Steps': self.params['Presampled points'].value}
-                          ).run()
+                          )._run(state)
             self.sampler.model.append(X, c)
 
             log.info('Training model.')
