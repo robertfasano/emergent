@@ -210,7 +210,7 @@ class Sampler():
         # if hasattr(self, 'model'):
         #     self.model.append(state, c)
 
-        return points, costs
+        return self.points, self.costs
 
     def save(self, filename):
         ''' Byte-serialize the sampler and all attached picklable objects and
