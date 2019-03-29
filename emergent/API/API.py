@@ -6,7 +6,7 @@ import importlib, inspect
 
 manager = ProcessHandler()
 
-def serve(network, addr):
+def serve(network, addr, port):
     app = Flask(__name__)
 
     blueprints=importlib.import_module('emergent.API.blueprints')
@@ -48,4 +48,4 @@ def serve(network, addr):
 
         return json.dumps(files)
 
-    app.run(host=addr, debug=False, threaded=True)
+    app.run(host=addr, port=port, debug=False, threaded=True)
