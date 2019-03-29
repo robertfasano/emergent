@@ -12,12 +12,11 @@ import numpy as np
 import datetime
 import logging as log
 import uuid
-from emergent.utilities.plotting import plot_1D
+from emergent.utilities import recommender
 
 class Sampler():
     ''' General methods '''
     def __init__(self, name, settings, t=None):
-
         ''' Initialize the sampler and link to the parent Hub. '''
         self.name = name
         self.id = str(uuid.uuid1())
@@ -31,11 +30,9 @@ class Sampler():
         if 'trigger' in settings['process']:
             self.trigger = getattr(self.hub, settings['process']['trigger'])
 
-        self.index = len(self.hub.samplers)
-        self.hub.samplers[self.index] = self
+        self.hub.samplers[len(self.hub.samplers)] = self
 
         self.experiment = getattr(self.hub, settings['experiment']['name'])
-        self.experiment_name = self.experiment.__name__
         self.experiment_params = settings['experiment']['params']
 
         self.algorithm = None
@@ -55,19 +52,14 @@ class Sampler():
 
         self.model = None
         if 'model' in settings:
-            if settings['model']['instance'] is not None:
-                self.model_params = settings['model']['params']
-                self.model = recommender.get_class('model', settings['model']['name'])
-                self.model.prepare(self)
+            self.model_params = settings['model']['params']
+            self.model = recommender.get_class('model', settings['model']['name'])
+            self.model.prepare(self)
             if 'Weights' in settings['model']['params']:
                 filename = self.hub.network.path['data'] + '/' + settings['model']['params']['Weights'].split('.')[0]
                 self.model._import(filename)
 
-
-        self.actuate = self.hub.actuate
         self.active = True        # a boolean allowing early termination through the callback method
-        self.progress = 0
-        self.result = None
         self.start_time = t
         self.hub.macro_buffer.add(self.hub.state)   # save initial state to buffer
         self.prepare(self.state)
@@ -90,7 +82,7 @@ class Sampler():
             if type(self.experiment_params['iterations']) is int:
                 if count >= self.experiment_params['iterations']:
                     break
-        self.log(self.start_time.replace(':','') + ' - ' + self.experiment.__name__)
+        self.save(self.start_time.replace(':','') + ' - ' + self.experiment.__name__)
         self.active = False
 
     def _solve(self):
@@ -99,7 +91,7 @@ class Sampler():
         points, costs = self.algorithm.run(self.state)
         self.hub.enable_watchdogs(True)
         log.info('Optimization complete!')
-        self.log(self.start_time.replace(':','') + ' - ' + self.experiment.__name__ + ' - ' + self.algorithm.name)
+        self.save(self.start_time.replace(':','') + ' - ' + self.experiment.__name__ + ' - ' + self.algorithm.name)
         self.active = False
 
         return points, costs
@@ -108,12 +100,6 @@ class Sampler():
         ''' Check if the sampler is active. This is used to terminate processes
             early by setting the active flag to False, through the GUI or otherwise. '''
         return self.active
-
-    def log(self, filename):
-        ''' Saves the sampled data to file and updates the buffer '''
-        self.history.to_csv(self.hub.network.path['data']+filename+'.csv')
-        self.hub.macro_buffer.add(self.hub.state)
-        self.save(filename)
 
     def terminate(self):
         ''' Set a flag to terminate a process early through the callback check. '''
@@ -195,30 +181,14 @@ class Sampler():
         if len(results) > 1:
             error = np.std(results)/np.sqrt(len(results))
 
-
-
-
-
-
-
         ''' Update history '''
         t = time.time()
         self.history.loc[t, 'cost'] = c
         self.history.loc[t, 'error'] = error
-        self.result = c
         for thing in target:
             for knob in target[thing]:
                 self.history.loc[t, thing+'.'+knob] = norm_target[thing][knob]
         return c
-
-    def estimate_gradient(self, arr, step_size):
-        gradient = np.array([])
-        for i in range(len(arr)):
-            step = np.zeros(len(arr))
-            step[i] = step_size
-            g_i = (self._cost(arr+step/2)-self._cost(arr-step/2))/step_size
-            gradient = np.append(gradient, g_i)
-        return gradient
 
     def get_limits(self):
         ''' Get the limits of all knobs in self.history from the Hub. '''
@@ -256,8 +226,7 @@ class Sampler():
         return state, bounds
 
     def normalize(self, unnorm):
-        ''' Normalizes a state or substate based on min/max values of the Knobs,
-            saved in the parent Hub. '''
+        ''' Normalizes a state or substate based on the bounds passed in at initialization. '''
         norm = {}
 
         for thing in unnorm:
@@ -269,7 +238,7 @@ class Sampler():
 
         return norm
 
-    def unnormalize(self, norm, return_array=False):
+    def unnormalize(self, norm):
         ''' Converts normalized (0-1) state to physical state based on specified
             max and min parameter values. '''
         if isinstance(norm, np.ndarray):
@@ -281,55 +250,16 @@ class Sampler():
                 min_val = self.limits[thing][i]['min']
                 max_val = self.limits[thing][i]['max']
                 unnorm[thing][i] = min_val + norm[thing][i] * (max_val-min_val)
-        if return_array:
-            return self.state2array(unnorm)
+
         return unnorm
 
     def save(self, filename):
         ''' Byte-serialize the sampler and all attached picklable objects and
             save to file. '''
+        self.history.to_csv(self.hub.network.path['data']+filename+'.csv')
+        self.hub.macro_buffer.add(self.hub.state)
         try:
             with open(self.hub.network.path['data']+'%s.sci'%filename, 'wb') as file:
                 pickle.dump(self, file)
         except Exception as e:
             log.warning('Could not pickle Sampler state:', e)
-
-    ''' Visualization methods '''
-    def plot_optimization(self):
-        ''' Plots an optimization time series stored in self.history. '''
-        t, points, costs, errors = self.get_history()
-        t = t.copy() - t[0]
-        ax, fig = plot_1D(t,
-                          -costs,
-                          errors=errors,
-                          xlabel='Time (s)',
-                          ylabel=self.experiment.__name__)
-
-        return fig
-
-    ''' Sampling methods '''
-    def sample(self, state, method='random_sampling', points=1, bounds=None):
-        ''' Returns a list of points sampled with the specified method, as well as
-            the cost function evaluated at these points. '''
-        if bounds is None:
-            bounds = np.array(list(itertools.repeat([0, 1], len(state.keys()))))
-        func = getattr(self, method)
-        points, cost = func(state, int(points), bounds)
-
-        return points, cost
-
-    # def random_sampling(self,state, points, bounds, callback = None):
-    #     ''' Performs a random sampling of the cost function at N points within
-    #         the specified bounds. '''
-    #     if callback is None:
-    #         callback = self.callback
-    #     dof = sum(len(state[x]) for x in state)
-    #     points = np.random.uniform(size=(int(points),dof))
-    #     costs = []
-    #     for point in points:
-    #         if not callback():
-    #             return points[0:len(costs)], costs
-    #         c = self._cost(point)
-    #         costs.append(c)
-    #
-    #     return points, costs
