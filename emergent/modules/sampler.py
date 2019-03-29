@@ -64,7 +64,7 @@ class Sampler():
         self.start_time = t
         self.hub.macro_buffer.add(self.hub.state)   # save initial state to buffer
         self.prepare(self.state)
-        if 'model' in settings:
+        if self.model is not None:
             self.model.prepare(self)
 
 
