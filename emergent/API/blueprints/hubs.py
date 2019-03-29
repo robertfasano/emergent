@@ -1,7 +1,9 @@
-from flask import Blueprint, request
+from flask import Blueprint, request, send_file
 import json
 from emergent.utilities import recommender, introspection
 import pickle
+import io
+import matplotlib.pyplot as plt
 
 url_prefix = '/hubs'
 
