@@ -1,6 +1,7 @@
 import decorator
 import numpy as np
 import time
+from threading import Thread
 
 @decorator.decorator
 def thread(func, *args, **kwargs):
