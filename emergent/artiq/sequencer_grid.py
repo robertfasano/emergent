@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import (QApplication, QLabel, QLineEdit, QMenu, QAction, QP
         QWidget, QCheckBox, QHBoxLayout, QVBoxLayout, QGridLayout, QSizePolicy, QComboBox)
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPainter
-from emergent.modules.units import Units
+from emergent.utilities.units import Units
 import time
 import numpy as np
 from emergent.artiq.sequencer_table import SequencerTable

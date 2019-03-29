@@ -4,7 +4,7 @@ import logging as log
 from emergent.utilities.signals import DictSignal
 from emergent.modules import Sampler
 from emergent.utilities import recommender
-from emergent.modules.units import Units
+from emergent.utilities.units import Units
 
 class Watchdog():
     ''' The Watchdog class implements an object-oriented monitoring and reaction framework.
