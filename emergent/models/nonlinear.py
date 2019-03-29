@@ -14,7 +14,7 @@ class Nonlinear(Model):
     def __init__(self):
         super().__init__('Nonlinear')
         self.extension = None
-        
+
     def gaussian(self, X, *args):
         ''' Args:
                 X: an N-element array representing a generally multidimensional point
@@ -30,10 +30,14 @@ class Nonlinear(Model):
             result *= np.exp(-(X[:,i]-X0[i])**2/sigma[i]**2)
         return result
 
-    def fit(self):
-        N = self.points.shape[1]
+    def fit(self, points=None, costs=None):
+        if points is None:
+            points = self.points
+        if costs is None:
+            costs = self.costs
+        N = points.shape[1]
         p0 = tuple([0.5]*(2*N+1))
-        self.popt, self.pcov = curve_fit(self.gaussian, self.points, self.costs, p0)
+        self.popt, self.pcov = curve_fit(self.gaussian, points, costs, p0)
 
     def predict(self, X):
         return self.gaussian(X, *tuple(self.popt)), 0
