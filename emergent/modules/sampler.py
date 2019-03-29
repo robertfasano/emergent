@@ -193,7 +193,7 @@ class Sampler():
         for thing in state:
             self.knobs[thing] = []
             for knob in state[thing]:
-                cols.append(thing+'.'+knob)
+                cols.append(thing+':'+knob)
                 num_items += 1
                 self.knobs[thing].append(knob)
         state = self.scaler.normalize(state)

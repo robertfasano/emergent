@@ -74,7 +74,7 @@ class TaskPanel(QVBoxLayout):
         self.signal.connect(self._add_event)
 
         self.load_master_tasks()
-        
+
     def add_event(self, event):
         self.signal.emit(event)
 
@@ -173,8 +173,8 @@ class Visualizer(QWidget):
         for col in history.columns:
             if col not in ['cost', 'error']:
                 arrays.append(history[col].values)
-                thing = col.split('.')[0]
-                knob = col.split('.')[1]
+                thing = col.split(':')[0]
+                knob = col.split(':')[1]
                 if thing not in state.keys():
                     state[thing] = {}
                 state[thing][knob] = 0
@@ -213,9 +213,9 @@ class Visualizer(QWidget):
 
             for i in range(num_knobs):
                 p = points[:,i]
-                name =  history.columns[i].replace('.', ': ')
-                thing = history.columns[i].split('.')[0]
-                knob = history.columns[i].split('.')[1]
+                name =  history.columns[i]
+                thing = history.columns[i].split(':')[0]
+                knob = history.columns[i].split(':')[1]
                 limits = {name: params['limits'][thing][knob]}
                 new_ax, fig = plot_1D(p, costs, limits=limits, cost_name = params['experiment']['name'], errors = errors)
                 cost_vs_param[history.columns[i]] = fig
@@ -225,9 +225,9 @@ class Visualizer(QWidget):
             param_vs_time = {}
             for i in range(num_knobs):
                 p = points[:,i]
-                name =  history.columns[i].replace('.', ': ')
-                thing = history.columns[i].split('.')[0]
-                knob = history.columns[i].split('.')[1]
+                name =  history.columns[i]
+                thing = history.columns[i].split(':')[0]
+                knob = history.columns[i].split(':')[1]
                 limits = params['limits']
                 p = limits[thing][knob]['min'] + p*(limits[thing][knob]['max']-limits[thing][knob]['min'])
 
