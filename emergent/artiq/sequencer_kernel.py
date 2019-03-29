@@ -231,8 +231,8 @@ class Sequencer(EnvExperiment):
     @kernel
     def run(self):
         self.initialize_kernel()
-        # for ttl in self._ttls:
-        #     ttl.output()
+        for ttl in self._ttls:
+            ttl.output()
         while True:
             ''' Check if EMERGENT has submitted a process '''
             if not self.process_submitted():
