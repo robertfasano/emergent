@@ -26,8 +26,6 @@ def prepare_sampler(settings, network):
             filename = network.path['data'] + '/' + settings['model']['params']['Weights'].split('.')[0]
             sampler.model._import(filename)
 
-    if 'algorithm' in settings:
-        params['algorithm'] = settings['algorithm']['name']
 
     if 'trigger' in settings['process']:
         sampler.trigger = getattr(settings['hub'], settings['process']['trigger'])
@@ -41,11 +39,14 @@ def get_blueprint(network):
     def run():
         settings = request.get_json()
         sampler = prepare_sampler(settings, network)
+
         ''' Create task_panel task '''
         params = {'start time': datetime.datetime.now().isoformat(),
                   'experiment': settings['experiment']['name'],
                   'id': sampler.id,
                   'hub': sampler.hub.name}
+        if 'algorithm' in settings:
+            params['algorithm'] = settings['algorithm']['name']
         requests.post(network.url+url_for('tasks.task', id=sampler.id), json=params)
 
 
