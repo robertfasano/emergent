@@ -130,7 +130,7 @@ class Sampler():
                 arr = np.append(arr, state[thing][knob])
         return arr
 
-    def get_history(self, include_database=False):
+    def get_history(self):
         ''' Return a multidimensional array and corresponding points from the history df'''
         arrays = []
         state = {}
@@ -155,38 +155,7 @@ class Sampler():
             points = None
         costs = costs.astype(float)
 
-        if include_database:
-            points, costs = self.search_database(points, costs, state, self.experiment)
         return t, points, costs, errors
-
-    def search_database(self, points, costs, state, cost):
-        ''' Prepare a state dict of all variables which are held constant during optimization '''
-        constant_state = self.hub.state.copy()
-        for thing in state.keys():
-            for knob in state[thing]:
-                del constant_state[thing][knob]
-
-        ''' Search the database for entries matching these constant values '''
-        database = self.hub.dataframe['cost'][cost.__name__]
-        subdf = database
-        for thing in constant_state.keys():
-            for knob in constant_state[thing]:
-                subdf = subdf[np.isclose(subdf[thing+': '+knob],
-                                         constant_state[thing][knob],
-                                         atol=1e-12)]
-
-        ''' Form points, costs arrays '''
-        for i in range(len(subdf)):
-            old_state = {}
-            for thing in state.keys():
-                old_state[thing] = {}
-                for knob in state[thing]:
-                    old_state[thing][knob] = subdf.iloc[i][thing+': '+knob]
-                    points = np.append(points,
-                                       np.atleast_2d(self.state2array(self.normalize(old_state))),
-                                       axis=0)
-                    costs = np.append(costs, subdf.iloc[i][cost.__name__])
-        return points, costs
 
     ''' Logistics functions '''
     def _cost(self, state, norm=True):

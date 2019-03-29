@@ -242,7 +242,7 @@ def get_blueprint(network):
         if obj is None:
             return
 
-        t, points, costs, errors = obj.get_history(include_database=False)
+        t, points, costs, errors = obj.get_history()
         t = t.copy() - t[0]
         from emergent.utilities.plotting import plot_1D
         ax, fig = plot_1D(t,
