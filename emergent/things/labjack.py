@@ -5,16 +5,6 @@ import logging as log
 from emergent.drivers.labjack import LabJackDriver
 from labjack import ljm
 
-class LabJackSwitch(Switch):
-    def __init__(self, name, params, invert = False):
-        self.labjack = params['labjack']
-        self.channel = params['channel']
-        super().__init__(name, params, invert = invert, channel = self.channel)
-
-    def _set(self, state):
-        ''' Overload with device-specific switching command, e.g. LabJack as shown '''
-        self.labjack.DOut(self.channel, state)
-
 class LabJack(Thing, LabJackDriver):
     def __init__(self, name = 'LabJack', parent = None, params = {'device': 'ANY', 'connection': 'ANY', 'devid': 'ANY', 'arange': 10}):
         LabJackDriver.__init__(self, params)
