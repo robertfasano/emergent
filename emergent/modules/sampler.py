@@ -56,7 +56,6 @@ class Sampler():
         if 'model' in settings:
             self.model_params = settings['model']['params']
             self.model = recommender.get_class('model', settings['model']['name'])
-            self.model.prepare(self)
             if 'Weights' in settings['model']['params']:
                 filename = self.hub.network.path['data'] + '/' + settings['model']['params']['Weights'].split('.')[0]
                 self.model._import(filename)
@@ -65,6 +64,9 @@ class Sampler():
         self.start_time = t
         self.hub.macro_buffer.add(self.hub.state)   # save initial state to buffer
         self.prepare(self.state)
+        if 'model' in settings:
+            self.model.prepare(self)
+
 
     def __getstate__(self):
         d = {}
@@ -200,12 +202,15 @@ class Sampler():
         bounds = np.array(list(itertools.repeat([0, 1], num_items)))
         state = self.scaler.state2array(state)
 
+        self.points = np.atleast_2d([state])
+        self.costs = np.array([self._cost(state)])
+
         # ''' Sample initial point '''
         # c = self._cost(state)
         # if hasattr(self, 'model'):
         #     self.model.append(state, c)
 
-        return state, bounds
+        return points, costs
 
     def save(self, filename):
         ''' Byte-serialize the sampler and all attached picklable objects and

@@ -24,11 +24,11 @@ class Grid(Sampling):
     def _run(self, state):
         ''' Performs a uniformly-spaced sampling of the cost function in the
             space spanned by the passed-in state dict. '''
-        arr, bounds = self.sampler.prepare(state)
-        dim = len(arr)
+        arr, costs = self.sampler.prepare(state)
+        dim = len(arr[0])
         grid = []
         for n in range(dim):
-            space = np.linspace(bounds[n][0], bounds[n][1], int(self.params['Steps'].value))
+            space = np.linspace(0, 1, int(self.params['Steps'].value))
             grid.append(space)
         grid = np.array(grid)
         self.points = np.transpose(np.meshgrid(*[grid[n] for n in range(dim)])).reshape(-1, dim)

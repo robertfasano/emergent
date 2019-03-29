@@ -40,14 +40,14 @@ class Model():
         best_x = None
         best_acquisition_value = 999
         best_point = self.points[np.argmin(self.costs)]
-        leash = self.params['Leash'].value * (self.bounds[0][1] - self.bounds[0][0])
+        leash = self.params['Leash'].value
 
         ''' Form random vector within allowed range of last best point '''
         x0 = np.zeros((X.shape[1], restarts))
         leashed_bounds = []
         for i in range(X.shape[1]):
-            xmin = np.max([best_point[i] - leash, self.bounds[i][0]])
-            xmax = np.min([best_point[i] + leash, self.bounds[i][1]])
+            xmin = np.max([best_point[i] - leash, 0])
+            xmax = np.min([best_point[i] + leash, 1])
             leashed_bounds.append([xmin, xmax])
             x0[i] =  np.random.uniform(xmin, xmax, restarts)
         x0 = x0.T
@@ -69,9 +69,8 @@ class Model():
 
     def prepare(self, sampler):
         self.sampler = sampler
-        self.points, self.bounds = self.sampler.prepare(sampler.state)
-        self.costs = np.array([self.sampler._cost(self.points)])
-        self.points = np.atleast_2d(self.points)
+        self.points = self.sampler.points
+        self.costs = self.sampler.costs
 
     def set_params(self, params):
         for p in params:
@@ -82,13 +81,10 @@ class Model():
         grid = []
         N = self.points.shape[1]
         for n in range(N):
-            space = np.linspace(self.bounds[n][0], self.bounds[n][1], 30)
+            space = np.linspace(0, 1, 30)
             grid.append(space)
         grid = np.array(grid)
         predict_points = np.transpose(np.meshgrid(*[grid[n] for n in range(N)])).reshape(-1,N)
-        predict_costs = np.array([])
-        # for point in predict_points:
-            # predict_costs = np.append(predict_costs, -self.gp.predict(np.atleast_2d(point)))
         predict_costs, predict_uncertainties = self.predict(predict_points)
         predict_costs *= -1
 
