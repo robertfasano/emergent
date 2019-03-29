@@ -45,7 +45,11 @@ class Online(Sampling):
             log.warning('Overriding presampling selection with loaded model.')
         else:
             log.info('Randomly sampling to pre-train model.')
-            X, c = self.sampler.sample(state, 'random_sampling', self.params['Presampled points'].value)
+            # X, c = self.sampler.sample(state, 'random_sampling', self.params['Presampled points'].value)
+            from emergent.samplers.random import Random
+            X, c = Random(sampler=self.sampler,
+                          params={'Steps': self.params['Presampled points'].value}
+                          ).run()
             self.sampler.model.append(X, c)
 
             log.info('Training model.')
