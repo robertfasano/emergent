@@ -23,7 +23,7 @@ class Sampler():
             t = datetime.datetime.now().strftime('%Y%m%dT%H%M')
         self.state = settings['state']
         self.hub = settings['hub']
-        self.limits = self.hub.range.copy()
+        self.limits = settings['range']
         self.trigger = None
         self.index = len(self.hub.samplers)
         self.hub.samplers[self.index] = self
