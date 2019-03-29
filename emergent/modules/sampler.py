@@ -62,9 +62,6 @@ class Sampler():
         self.hub.macro_buffer.add(self.hub.state)   # save initial state to buffer
         self.prepare(self.state)
 
-
-
-
     def __getstate__(self):
         d = {}
         d['experiment_name'] = self.experiment.__name__
@@ -311,45 +308,18 @@ class Sampler():
 
         return points, cost
 
-    def grid_sampling(self, state, points, sweeps=1, callback=None):
-        ''' Performs a uniformly-spaced sampling of the cost function in the
-            space spanned by the passed-in state dict. '''
-        if callback is None:
-            callback = self.callback
-        arr, bounds = self.prepare(state)
-        dim = len(arr)
-        grid = []
-        for n in range(dim):
-            space = np.linspace(bounds[n][0], bounds[n][1], int(points))
-            grid.append(space)
-        grid = np.array(grid)
-        points = np.transpose(np.meshgrid(*[grid[n] for n in range(dim)])).reshape(-1, dim)
-
-        ''' Actuate search '''
-        costs = np.array([])
-        for i in range(int(sweeps)):
-            for point in points:
-                if not callback():
-                    return points[0:len(costs)], costs
-                c = self._cost(point)
-
-                costs = np.append(costs, c)
-                self.progress = len(costs) / len(points) / sweeps
-
-        return points, costs
-
-    def random_sampling(self,state, points, bounds, callback = None):
-        ''' Performs a random sampling of the cost function at N points within
-            the specified bounds. '''
-        if callback is None:
-            callback = self.callback
-        dof = sum(len(state[x]) for x in state)
-        points = np.random.uniform(size=(int(points),dof))
-        costs = []
-        for point in points:
-            if not callback():
-                return points[0:len(costs)], costs
-            c = self._cost(point)
-            costs.append(c)
-
-        return points, costs
+    # def random_sampling(self,state, points, bounds, callback = None):
+    #     ''' Performs a random sampling of the cost function at N points within
+    #         the specified bounds. '''
+    #     if callback is None:
+    #         callback = self.callback
+    #     dof = sum(len(state[x]) for x in state)
+    #     points = np.random.uniform(size=(int(points),dof))
+    #     costs = []
+    #     for point in points:
+    #         if not callback():
+    #             return points[0:len(costs)], costs
+    #         c = self._cost(point)
+    #         costs.append(c)
+    #
+    #     return points, costs
