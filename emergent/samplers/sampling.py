@@ -20,10 +20,18 @@ class Sampling():
         elif self.end_at == 'Last point':
             last_point = self.points[-1]
         else:
+            last_points = []
+            last_costs = []
             if self.sampler.model is not None:
-                last_point = self.sampler.model.minimum()
-            else:
-                last_point = self.points[np.argmin(self.costs)]
+                min = self.sampler.model.minimum()
+                last_points.append(min)
+                last_costs.append(self.sampler._cost(min))
+            last_points.append(self.points[np.argmin(self.costs)])
+            last_costs.append(np.min(self.costs))
+
+            last_point = last_points[np.argmin(last_costs)]
+
+
         self.sampler._cost(last_point)
 
     def run(self, state):
