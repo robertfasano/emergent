@@ -40,3 +40,5 @@ class Grid(Sampling):
                 c = self.sampler._cost(point)
 
                 self.costs = np.append(self.costs, c)
+
+        return self.points, self.costs

@@ -37,7 +37,7 @@ class Online(Sampling):
         ''' Perform initial random sampling '''
         if self.params['Mode'].value in ['Optimizer', 'Explorer']:
             log.warning('Overriding batch size to 1 for selected mode.')
-            self.params['Batch size'].value = 1        
+            self.params['Batch size'].value = 1
 
         if self.sampler.model.imported:
             log.warning('Overriding presampling selection with loaded model.')
@@ -88,6 +88,8 @@ class Online(Sampling):
 
         self.points = self.sampler.model.points
         self.costs = self.sampler.model.costs
+
+        return self.points, self.costs
 
     def plot(self):
         return None

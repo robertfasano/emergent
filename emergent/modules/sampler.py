@@ -89,11 +89,13 @@ class Sampler():
     def _solve(self):
         ''' Runs an algorithm. '''
         self.hub.enable_watchdogs(False)
-        self.algorithm.run(self.state)
+        points, costs = self.algorithm.run(self.state)
         self.hub.enable_watchdogs(True)
         log.info('Optimization complete!')
         self.log(self.start_time.replace(':','') + ' - ' + self.experiment.__name__ + ' - ' + self.algorithm.name)
         self.active = False
+
+        return points, costs
 
     def callback(self, *args):
         ''' Check if the sampler is active. This is used to terminate processes
