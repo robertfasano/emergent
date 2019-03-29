@@ -123,8 +123,8 @@ class Sampler():
         for col in self.history.columns:
             if col not in ['cost', 'error']:
                 arrays.append(self.history[col].values)
-                thing = col.split('.')[0]
-                knob = col.split('.')[1]
+                thing = col.split(':')[0]
+                knob = col.split(':')[1]
                 if thing not in state.keys():
                     state[thing] = {}
                 state[thing][knob] = 0
@@ -171,7 +171,7 @@ class Sampler():
         self.history.loc[t, 'error'] = error
         for thing in target:
             for knob in target[thing]:
-                self.history.loc[t, thing+'.'+knob] = norm_target[thing][knob]
+                self.history.loc[t, thing+':'+knob] = norm_target[thing][knob]
         return c
 
     def get_limits(self):
@@ -180,9 +180,9 @@ class Sampler():
         for col in self.history.columns:
             if col in ['cost', 'error']:
                 continue
-            thing = col.split('.')[0]
-            knob = col.split('.')[1]
-            limits[col.replace('.', ': ')] = self.limits[thing][knob]
+            thing = col.split(':')[0]
+            knob = col.split(':')[1]
+            limits[col] = self.limits[thing][knob]
 
         return limits
 
