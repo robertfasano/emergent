@@ -11,6 +11,7 @@ import pandas as pd
 import numpy as np
 import datetime
 import logging as log
+import uuid
 from emergent.utilities.plotting import plot_1D
 
 class Sampler():
@@ -19,28 +20,34 @@ class Sampler():
 
         ''' Initialize the sampler and link to the parent Hub. '''
         self.name = name
+        self.id = str(uuid.uuid1())
+
         if t is None:
             t = datetime.datetime.now().strftime('%Y%m%dT%H%M')
         self.state = settings['state']
         self.hub = settings['hub']
         self.limits = settings['range']
         self.trigger = None
+        if 'trigger' in settings['process']:
+            self.trigger = getattr(self.hub, settings['process']['trigger'])
+
         self.index = len(self.hub.samplers)
         self.hub.samplers[self.index] = self
-        self.experiment = settings['experiment']['instance']
+
+        self.experiment = getattr(self.hub, settings['experiment']['name'])
         self.experiment_name = self.experiment.__name__
         self.experiment_params = settings['experiment']['params']
 
         self.algorithm = None
         self.algorithm_params = None
         if 'sampler' in settings:
-            self.algorithm = settings['sampler']['instance']
+            self.algorithm = recommender.get_class('sampler', settings['sampler']['name'])
             self.algorithm.end_at = settings['process']['end at']
             self.algorithm.sampler = self
             self.algorithm_params = settings['sampler']['params']
             self.algorithm.set_params(self.algorithm_params)
         if 'servo' in settings:
-            self.algorithm = settings['servo']['instance']
+            self.algorithm = recommender.get_class('servo', settings['servo']['name'])
             self.algorithm.sampler = self
             self.algorithm_params = settings['servo']['params']
             self.algorithm.set_params(self.algorithm_params)
@@ -50,8 +57,11 @@ class Sampler():
         if 'model' in settings:
             if settings['model']['instance'] is not None:
                 self.model_params = settings['model']['params']
-                self.model = settings['model']['instance']
+                self.model = recommender.get_class('model', settings['model']['name'])
                 self.model.prepare(self)
+            if 'Weights' in settings['model']['params']:
+                filename = self.hub.network.path['data'] + '/' + settings['model']['params']['Weights'].split('.')[0]
+                self.model._import(filename)
 
 
         self.actuate = self.hub.actuate

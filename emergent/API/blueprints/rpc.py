@@ -4,7 +4,6 @@ import requests
 import datetime
 from emergent.utilities import recommender, introspection
 from emergent.modules.sampler import Sampler
-import uuid
 import logging as log
 from copy import deepcopy
 url_prefix = ''
@@ -12,23 +11,8 @@ url_prefix = ''
 def prepare_sampler(settings, network):
     settings = deepcopy(settings)
     settings['hub'] = network.hubs[settings['hub']]
-    settings['experiment']['instance'] = getattr(settings['hub'], settings['experiment']['name'])
     settings['range'] = settings['hub'].range.copy()
-    for x in ['model', 'sampler', 'servo']:
-        if x in settings:
-            settings[x]['instance'] = recommender.get_class(x, settings[x]['name'])
     sampler = Sampler('sampler', settings)
-    sampler.id = str(uuid.uuid1())
-
-    ''' Load previously trained model if specified '''
-    if 'model' in settings:
-        if 'Weights' in settings['model']['params']:
-            filename = network.path['data'] + '/' + settings['model']['params']['Weights'].split('.')[0]
-            sampler.model._import(filename)
-
-
-    if 'trigger' in settings['process']:
-        sampler.trigger = getattr(settings['hub'], settings['process']['trigger'])
 
     return sampler
 
