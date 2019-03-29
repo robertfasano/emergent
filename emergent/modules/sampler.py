@@ -13,6 +13,7 @@ import datetime
 import logging as log
 import uuid
 from emergent.utilities import recommender
+from emergent.modules.scaler import Scaler
 
 class Sampler():
     ''' General methods '''
@@ -26,6 +27,7 @@ class Sampler():
         self.state = settings['state']
         self.hub = settings['hub']
         self.limits = settings['range']
+        self.scaler = Scaler(self.state, self.limits)
         self.trigger = None
         if 'trigger' in settings['process']:
             self.trigger = getattr(self.hub, settings['process']['trigger'])
@@ -105,26 +107,6 @@ class Sampler():
         ''' Set a flag to terminate a process early through the callback check. '''
         self.active = False
 
-    ''' State conversion functions '''
-    def array2state(self, arr):
-        ''' Converts a numpy array into a state dict with keys matching self.state. '''
-        state = {}
-        i = 0
-        for thing in self.state:
-            state[thing] = {}
-            for knob in self.state[thing]:
-                state[thing][knob] = arr[i]
-                i += 1
-        return state
-
-    def state2array(self, state):
-        ''' Converts a state dict into a numpy array. '''
-        arr = np.array([])
-        for thing in state:
-            for knob in state[thing]:
-                arr = np.append(arr, state[thing][knob])
-        return arr
-
     def get_history(self):
         ''' Return a multidimensional array and corresponding points from the history df'''
         arrays = []
@@ -157,11 +139,11 @@ class Sampler():
         ''' Converts the array back to the form of d,
             unnormalizes it, and returns cost evaluated on the result. '''
         if type(state) is np.ndarray:
-            norm_target = self.array2state(state)
+            norm_target = self.scaler.array2state(state)
         else:
             norm_target = state
         if norm:
-            target = self.unnormalize(norm_target)
+            target = self.scaler.unnormalize(norm_target)
         else:
             target = norm_target
         if not self.skip_lock_check:
@@ -212,11 +194,11 @@ class Sampler():
                 cols.append(thing+'.'+knob)
                 num_items += 1
                 self.knobs[thing].append(knob)
-        state = self.normalize(state)
+        state = self.scaler.normalize(state)
         cols.append('cost')
         self.history = pd.DataFrame(columns=cols)
         bounds = np.array(list(itertools.repeat([0, 1], num_items)))
-        state = self.state2array(state)
+        state = self.scaler.state2array(state)
 
         # ''' Sample initial point '''
         # c = self._cost(state)
@@ -224,34 +206,6 @@ class Sampler():
         #     self.model.append(state, c)
 
         return state, bounds
-
-    def normalize(self, unnorm):
-        ''' Normalizes a state or substate based on the bounds passed in at initialization. '''
-        norm = {}
-
-        for thing in unnorm:
-            norm[thing] = {}
-            for i in unnorm[thing]:
-                min_val = self.limits[thing][i]['min']
-                max_val = self.limits[thing][i]['max']
-                norm[thing][i] = (unnorm[thing][i] - min_val)/(max_val-min_val)
-
-        return norm
-
-    def unnormalize(self, norm):
-        ''' Converts normalized (0-1) state to physical state based on specified
-            max and min parameter values. '''
-        if isinstance(norm, np.ndarray):
-            norm = self.array2state(norm)
-        unnorm = {}
-        for thing in norm:
-            unnorm[thing] = {}
-            for i in norm[thing]:
-                min_val = self.limits[thing][i]['min']
-                max_val = self.limits[thing][i]['max']
-                unnorm[thing][i] = min_val + norm[thing][i] * (max_val-min_val)
-
-        return unnorm
 
     def save(self, filename):
         ''' Byte-serialize the sampler and all attached picklable objects and
