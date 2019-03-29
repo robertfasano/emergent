@@ -1,5 +1,4 @@
 import numpy as np
-from emergent.modules.switch import Switch
 from emergent.modules import Thing
 import logging as log
 from emergent.drivers.labjack import LabJackDriver
