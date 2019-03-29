@@ -63,7 +63,7 @@ def launch():
 
     from emergent.API.API import serve
     from threading import Thread
-    thread = Thread(target=serve, args = (network, addr))
+    thread = Thread(target=serve, args = (network, addr, port))
     thread.start()
     log.getLogger('werkzeug').setLevel(log.ERROR)
 
