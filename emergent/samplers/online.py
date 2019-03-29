@@ -5,7 +5,7 @@ from emergent.samplers.sampling import Sampling
 import logging as log
 
 class Online(Sampling):
-    def __init__(self, sampler = None):
+    def __init__(self, sampler=None, params={}):
         ''' Define default parameters '''
         super().__init__(sampler)
         self.name = 'Online'
@@ -32,6 +32,8 @@ class Online(Sampling):
         self.params['Mode'] = Parameter(name='Mode',
                                            value = ['Optimizer', 'Explorer', 'Hybrid'],
                                            description = 'Peak-seeking behavior.')
+        for p in params:
+            self.params[p].value = params[p]
 
     def _run(self, state):
         ''' Perform initial random sampling '''

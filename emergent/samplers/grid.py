@@ -4,7 +4,7 @@ from emergent.utilities.plotting import plot_2D
 from emergent.samplers.sampling import Sampling
 
 class Grid(Sampling):
-    def __init__(self, sampler = None):
+    def __init__(self, sampler=None, params={}):
         ''' Define default parameters '''
         super().__init__(sampler)
         self.name = 'Grid'
@@ -18,6 +18,8 @@ class Grid(Sampling):
                                             min = 1,
                                             max = 10,
                                             description = 'Number of sweeps to do')
+        for p in params:
+            self.params[p].value = params[p]
 
     def _run(self, state):
         ''' Performs a uniformly-spaced sampling of the cost function in the
