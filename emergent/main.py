@@ -67,21 +67,5 @@ def launch():
     thread.start()
     log.getLogger('werkzeug').setLevel(log.ERROR)
 
-    global sys_argv
-    sys_argv = args
-
-
-def restart():
-    # ''' Send shutdown message to dashboard '''
-    import os
-    string = 'ipython --gui qt5 -i main.py -- '
-    string += sys_argv.name
-    if hasattr(sys_argv, 'addr'):
-        string += ' --addr %s'%sys_argv.addr
-    for arg in ['addr', 'port', 'database_addr']:
-        if getattr(sys_argv, arg):
-            string += ' --%s %s'%(arg, getattr(sys_argv, arg))
-    os.system(string)
-
 if __name__ == '__main__':
     launch()
