@@ -30,12 +30,26 @@ class DifferentialEvolution():
         for p in params:
             self.params[p].value = params[p]
 
+    def measure(self, point):
+        ''' Intermediate cost function only used to store the points and costs
+            obtained by the differential evolution routine. '''
+        if self.measured_points is None:
+            self.measured_points = np.atleast_2d(point)
+        else:
+            self.measured_points = np.append(self.measured_points, np.atleast_2d(point), axis=0)
+        c = self.source.measure(point)
+        self.measured_costs = np.append(self.measured_costs, c)
+
+        return c
+
     def run(self, points, costs, bounds=None):
         ''' Differential evolution algorithm from scipy.optimize. '''
         if bounds is None:
             bounds = np.array(list(itertools.repeat([0, 1], points.shape[1])))
 
-        res = differential_evolution(func=self.source.measure,
+        self.measured_points = None
+        self.measured_costs = np.array([])
+        res = differential_evolution(func=self.measure,
                    bounds=bounds,
                    strategy='best1bin',
                    tol = self.params['Tolerance'].value,
@@ -43,6 +57,6 @@ class DifferentialEvolution():
                    recombination = self.params['Recombination'].value,
                    popsize = int(self.params['Population'].value))
 
-        points = np.append(points, np.atleast_2d(res.x), axis=0)
-        costs = np.append(costs, np.array([res.fun]))
+        points = np.append(points, self.measured_points, axis=0)
+        costs = np.append(costs, self.measured_costs, axis=0)
         return points, costs
