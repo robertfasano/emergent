@@ -47,4 +47,8 @@ class GridSearch(Block):
 
         points = np.append(points, grid_points, axis=0)
         costs = np.append(costs, grid_costs)
+
+        best_point = points[np.argmin(costs)]
+        points = np.append(points, np.atleast_2d(best_point), axis=0)
+        costs = np.append(costs, self.source.measure(points[-1]))
         return points, costs
