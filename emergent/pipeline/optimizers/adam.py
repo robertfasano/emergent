@@ -56,7 +56,7 @@ class Adam(Block):
 
     def run(self, points, costs, bounds=None):
         if bounds is not None:
-            log.warn('GradientDescent optimizer does not support bounds!')
+            log.warn('Adam optimizer does not support bounds!')
         dim = points.shape[1]
         m = np.zeros(dim)
         v = np.zeros(dim)
