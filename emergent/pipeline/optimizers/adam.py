@@ -84,6 +84,3 @@ class Adam(Block):
             costs = np.append(costs, self.source.measure(x_i))
 
         return points, costs
-
-
-        self.sampler._cost(arr)
