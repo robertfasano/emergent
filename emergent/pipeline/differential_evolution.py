@@ -7,7 +7,6 @@ from emergent.pipeline import Block
 class DifferentialEvolution(Block):
     def __init__(self, params={}):
         super().__init__()
-        self.name = 'DifferentialEvolution'
         self.params = {}
         self.params['Population'] = Parameter(name= 'Population',
                                             value = 20,

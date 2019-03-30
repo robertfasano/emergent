@@ -6,7 +6,6 @@ from emergent.pipeline import Block
 class ParticleSwarm(Block):
     def __init__(self, params={}):
         super().__init__()
-        self.name = 'ParticleSwarm'
         self.params = {}
         self.params['Steps'] = Parameter(name= 'Steps', value=10)
         self.params['Particles'] = Parameter(name= 'Particles', value=10)

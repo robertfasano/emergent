@@ -6,7 +6,6 @@ from emergent.pipeline import Block
 class GridSearch(Block):
     def __init__(self, params={}):
         super().__init__()
-        self.name = 'GridSearch'
         self.params = {}
 
         self.params['Steps'] = Parameter(name= 'Steps',
