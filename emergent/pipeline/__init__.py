@@ -1,3 +1,4 @@
+from emergent.pipeline.block import Block
 from emergent.pipeline.grid_search import GridSearch
 from emergent.pipeline.gaussian_model import GaussianModel
 from emergent.pipeline.rescale import Rescale
