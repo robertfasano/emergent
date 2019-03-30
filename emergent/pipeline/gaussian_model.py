@@ -44,13 +44,14 @@ class GaussianModel(Model):
     def measure(self, X):
         return self.predict(X)[0][0]
 
-
     def run(self, points, costs, bounds=None):
         ''' Trains on the passed data, numerically optimizes the modeled response
             surface, then makes a physical measurement at the modeled minimum. '''
         self.fit(points, costs)
         x_pred, y_pred = self.optimizer.run(points, costs, bounds)
-        point = points[np.argmin(costs)]
+        x_pred = x_pred[len(points)::]
+        y_pred = y_pred[len(costs)::]
+        point = x_pred[np.argmin(y_pred)]
         best_point, best_cost = point, np.array([self.source.measure(point)])
         points = np.append(points, np.atleast_2d(best_point), axis=0)
         costs = np.append(costs, best_cost)
