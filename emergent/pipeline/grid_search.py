@@ -32,16 +32,18 @@ class GridSearch():
                 space = np.linspace(bounds[n][0], bounds[n][1], int(self.params['Steps'].value))
             grid.append(space)
         grid = np.array(grid)
-        points = np.transpose(np.meshgrid(*[grid[n] for n in range(dim)])).reshape(-1, dim)
+        grid_points = np.transpose(np.meshgrid(*[grid[n] for n in range(dim)])).reshape(-1, dim)
 
         ''' Actuate search '''
-        costs = np.array([])
+        grid_costs = np.array([])
         for i in range(int(self.params['Sweeps'].value)):
-            for point in points:
+            for point in grid_points:
                 # if not self.sampler.callback():
                 #     return self.points[0:len(self.costs)], self.costs
                 c = self.source.measure(point)
 
-                costs = np.append(costs, c)
+                grid_costs = np.append(grid_costs, c)
 
+        points = np.append(points, grid_points, axis=0)
+        costs = np.append(costs, grid_costs)
         return points, costs
