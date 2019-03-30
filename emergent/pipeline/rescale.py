@@ -1,7 +1,9 @@
 import numpy as np
+from emergent.pipeline import Block
 
-class Rescale():
+class Rescale(Block):
     def __init__(self, threshold=0.5):
+        super().__init__()
         self.threshold = threshold
 
     def run(self, points, costs, bounds=None):

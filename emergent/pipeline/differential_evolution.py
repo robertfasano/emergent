@@ -2,9 +2,11 @@ from emergent.utilities.containers import Parameter
 import numpy as np
 from scipy.optimize import differential_evolution
 import itertools
+from emergent.pipeline import Block
 
-class DifferentialEvolution():
+class DifferentialEvolution(Block):
     def __init__(self, params={}):
+        super().__init__()
         self.name = 'DifferentialEvolution'
         self.params = {}
         self.params['Population'] = Parameter(name= 'Population',

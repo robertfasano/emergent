@@ -1,9 +1,11 @@
 from emergent.utilities.containers import Parameter
 import numpy as np
 from emergent.utilities.plotting import plot_2D
+from emergent.pipeline import Block
 
-class GridSearch():
+class GridSearch(Block):
     def __init__(self, params={}):
+        super().__init__()
         self.name = 'GridSearch'
         self.params = {}
 

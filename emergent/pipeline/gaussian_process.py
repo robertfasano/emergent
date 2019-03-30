@@ -4,9 +4,11 @@ import numpy as np
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C, WhiteKernel
 import pickle
+from emergent.pipeline import Block
 
-class GaussianProcess():
+class GaussianProcess(Block):
     def __init__(self, optimizer, params={}):
+        super().__init__()
         self.optimizer = optimizer
         self.optimizer.source = self
         self.params = {}

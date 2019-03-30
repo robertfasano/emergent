@@ -1,9 +1,11 @@
 from emergent.utilities.containers import Parameter
 import numpy as np
 import itertools
+from emergent.pipeline import Block
 
-class ParticleSwarm():
+class ParticleSwarm(Block):
     def __init__(self, params={}):
+        super().__init__()
         self.name = 'ParticleSwarm'
         self.params = {}
         self.params['Steps'] = Parameter(name= 'Steps', value=10)

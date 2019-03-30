@@ -9,13 +9,12 @@ class Pipeline:
         self.bounds = []
         for d in range(self.points.shape[1]):
             self.bounds.append((0,1))
-
+            
         self.blocks = []
 
     def add(self, block):
         self.blocks.append(block)
-        block.source = self.source
-        block.pipeline = self
+        block.connect(self)
 
     def run(self):
         for block in self.blocks:
