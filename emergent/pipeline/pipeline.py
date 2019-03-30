@@ -7,7 +7,7 @@ class Pipeline:
     def __init__(self, state, source):
         self.source = source
         self.points = np.atleast_2d(source.scaler.state2array(source.scaler.normalize(state)))
-        self.costs = np.array([source.measure(state)])
+        self.costs = np.array([source.measure(state, norm=False)])
 
         self.bounds = []
         for d in range(self.points.shape[1]):
