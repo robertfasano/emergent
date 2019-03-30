@@ -1,6 +1,7 @@
 import numpy as np
 import importlib
 import inspect
+import matplotlib.pyplot as plt
 
 class Pipeline:
     def __init__(self, state, source):
@@ -20,7 +21,7 @@ class Pipeline:
 
     def run(self):
         for block in self.blocks:
-            self.points, self.costs = block.run(self.points, self.costs, self.bounds)
+            self.points, self.costs = block._run(self.points, self.costs, self.bounds)
         return self.points, self.costs
 
     def list_optimizers(self):
@@ -52,3 +53,11 @@ class Pipeline:
                 if inspect.isclass(inst):
                     names.append(inst.__name__)
         return names
+
+    def plot(self):
+        if len(self.points) == 0:
+            return
+        plt.plot(self.costs, '.')
+        plt.xlabel('Evalutions')
+        plt.ylabel('Result')
+        plt.show()
