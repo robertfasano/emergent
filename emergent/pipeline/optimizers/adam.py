@@ -6,7 +6,7 @@ from emergent.pipeline import Block
 import logging as log
 
 class Adam(Block):
-    def __init__(self):
+    def __init__(self, params={}):
         super().__init__()
         ''' Define default parameters '''
         self.name = 'Adam'
