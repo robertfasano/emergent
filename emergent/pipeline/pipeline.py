@@ -57,7 +57,9 @@ class Pipeline:
     def plot(self):
         if len(self.points) == 0:
             return
-        plt.plot(self.costs, '.')
+        plt.plot(self.costs, '.k')
+        plt.plot(np.minimum.accumulate(self.costs), '--k')
+
         plt.xlabel('Evalutions')
         plt.ylabel('Result')
         plt.show()
