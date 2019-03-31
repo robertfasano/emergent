@@ -8,8 +8,9 @@ import time
 class Pipeline:
     def __init__(self, state, source):
         self.source = source
-        self.points = np.atleast_2d(source.scaler.state2array(source.scaler.normalize(state)))
+        self._points = np.atleast_2d(source.scaler.state2array(source.scaler.normalize(state)))     # normalized points
         self.costs = np.array([source.measure(state, norm=False)])
+        self.points = self.unnormalize(self._points)
 
         self.bounds = []
         for d in range(self.points.shape[1]):
@@ -21,14 +22,22 @@ class Pipeline:
         self.blocks.append(block)
         block.connect(self)
 
+    def get_physical_bounds(self):
+        min = self.source.scaler.unnormalize(np.array([0,0]), array=True)
+        max = self.source.scaler.unnormalize(np.array([1,1]), array=True)
+
+        return [(min[i],max[i]) for i in range(self._points.shape[1])]
+
     def run(self):
         self.start_indices = []
         self.end_indices = []
         start_time = time.time()
         for block in self.blocks:
             self.start_indices.append(len(self.points))
-            self.points, self.costs = block.run(self.points, self.costs, self.bounds)
+            self._points, self.costs = block.run(self._points, self.costs, self.bounds)
+            self.points = self.unnormalize(self._points)
             self.end_indices.append(len(self.points))
+
         end_time = time.time()
         self.duration = end_time - start_time
         log.info('Optimization complete!')
@@ -68,6 +77,16 @@ class Pipeline:
                 if inspect.isclass(inst):
                     names.append(inst.__name__)
         return names
+
+    def unnormalize(self, points):
+        dim = points.shape[1]
+        _points = points.copy()
+        bounds = self.get_physical_bounds()
+        for d in range(dim):
+            min = bounds[d][0]
+            max = bounds[d][1]
+            _points[:, d] = min + points[:, d] *(max-min)
+        return _points
 
     def plot(self):
         if len(self.points) == 0:
