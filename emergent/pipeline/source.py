@@ -31,7 +31,9 @@ class Source():
 
     def measure(self, state, norm=True):
         ''' Converts the array back to the form of d,
-            unnormalizes it, and returns cost evaluated on the result. '''
+            unnormalizes it, and returns cost evaluated on the result.
+            Args:
+                norm (bool): whether the passed state is normalized '''
         if type(state) is np.ndarray:
             norm_target = self.scaler.array2state(state)
         else:
