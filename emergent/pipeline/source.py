@@ -12,7 +12,7 @@ import numpy as np
 import datetime
 import logging as log
 from emergent.utilities import recommender
-from emergent.modules.scaler import Scaler
+from emergent.pipeline.scaler import Scaler
 
 class Source():
     ''' General methods '''
