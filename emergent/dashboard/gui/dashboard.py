@@ -65,6 +65,8 @@ class Dashboard(QMainWindow):
         self.experiment_panel = ExperimentLayout(self)
         self.experiment_layout.addLayout(self.experiment_panel)
 
+        self.test_signal.connect(self.experiment_panel.pipeline_panel.add_block)
+
         ''' Create task panel '''
         self.task_panel = TaskPanel(self)
         self.experiment_layout.addLayout(self.task_panel)
@@ -110,10 +112,8 @@ class Dashboard(QMainWindow):
         self.post('handshake', {'port': 8000})
 
         @socketio.on('test')
-        def test(*args, **kwargs):
-            self.test_signal.emit({})
-
-
+        def test(d):
+            self.test_signal.emit(d)
 
     def get(self, url, format = 'json'):
         r = requests.get('http://%s:%s/'%(self.addr, self.port)+url)

@@ -18,7 +18,7 @@ from PyQt5.QtWidgets import (QVBoxLayout, QWidget, QTabWidget)
 from emergent.utilities.introspection import list_errors, list_experiments, list_triggers
 from emergent.utilities import recommender
 from emergent.modules import Sampler, ProcessHandler
-from emergent.dashboard.gui import MeasureLayout, ModelLayout, ServoLayout
+from emergent.dashboard.gui import MeasureLayout, ModelLayout, ServoLayout, PipelineLayout
 
 class ExperimentLayout(QVBoxLayout, ProcessHandler):
     def __init__(self, dashboard):
@@ -51,6 +51,13 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         servo_tab.setLayout(self.servo_panel)
         servo_tab.setStyleSheet('background-color: rgba(255, 255, 255, 50%)')
         self.tab_widget.addTab(servo_tab, 'Servo')
+
+        ''' Create Pipeline tab '''
+        pipeline_tab = QWidget()
+        self.pipeline_panel = PipelineLayout(self)
+        pipeline_tab.setLayout(self.pipeline_panel)
+        pipeline_tab.setStyleSheet('background-color: rgba(255, 255, 255, 50%)')
+        self.tab_widget.addTab(pipeline_tab, 'Pipeline')
 
         self.update_panel()
 
