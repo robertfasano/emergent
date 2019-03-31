@@ -7,7 +7,7 @@ import pandas as pd
 from matplotlib.ticker import NullFormatter
 import matplotlib.gridspec as gridspec
 from mpl_toolkits import mplot3d
-
+import pyqtgraph as pg
 plt.ioff()
 
 def plot_1D(points, costs, cost_name = 'Cost', normalized_cost = False, limits = None,
@@ -102,43 +102,14 @@ def plot_2D(points, costs, color_map='viridis_r', ax = None, mode='cross-section
     nullfmt = NullFormatter()
     ax0.xaxis.set_major_formatter(nullfmt)
     ax0.yaxis.set_major_formatter(nullfmt)
-    
-    plt.tight_layout(pad=0.5)
-    return fig
-
-
-
-
-def plot_surface(points, costs, normalized_cost = False, limits = None,
-            save = False, color_map='viridis_r', ax = None):
-    ''' Interpolates and plots a cost function sampled at an array of points. '''
-    costs = costs.copy()[::-1]
-    points = points.copy()[::-1]        # ignore last point where we return to max, since this messes up the interpolation
-    norm_points = points.copy()[::-1]
-
-    if limits is not None:
-        names = list(limits.keys())
-        for i in [0,1]:
-            points[:,i] = limits[names[i]]['min'] + points[:,i]*(limits[names[i]]['max']-limits[names[i]]['min'])
-    ordinate_mesh, abscissa_mesh = np.meshgrid(points[:,0], points[:, 1])
-
-    cost_grid = griddata(points[:,[0, 1]], costs, (ordinate_mesh,abscissa_mesh))
-
-
-
-    ''' Plot cross sections around the best point '''
-    fig = plt.figure(figsize=(10,8))
-    gs = gridspec.GridSpec(10, 10)
-
-    ax0 = plt.axes(projection='3d')
-
-    plot = ax0.plot_surface(ordinate_mesh, abscissa_mesh, cost_grid, rstride=1, cstride=1,
-                cmap='viridis', edgecolor='none')
-
-    nullfmt = NullFormatter()
-    ax0.xaxis.set_major_formatter(nullfmt)
-    ax0.yaxis.set_major_formatter(nullfmt)
-
 
     plt.tight_layout(pad=0.5)
     return fig
+
+def widget(x, y, xlabel='', ylabel=''):
+    pg.setConfigOption('background', 'w')
+    pg.setConfigOption('foreground', 'k')
+    pw = pg.PlotWidget(pen=None, labels={'left': ylabel, 'bottom': xlabel})
+
+    pw.plot(x=x, y=y, symbol='o', symbolSize=5, pen=None)
+    return pw
