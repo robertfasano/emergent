@@ -6,12 +6,12 @@ import logging as log
 import time
 
 class Pipeline:
-    def __init__(self, state, source, network):
-        self.source = source
+    def __init__(self, state, network, source=None):
         self.network = network
-        self._points = np.atleast_2d(source.scaler.state2array(source.scaler.normalize(state)))     # normalized points
-        self.costs = np.array([source.measure(state, norm=False)])
-        self.points = self.unnormalize(self._points)
+        self.state = state
+        if source is not None:
+            self.add_source(source)
+
 
         self.bounds = []
         for d in range(self.points.shape[1]):
@@ -22,6 +22,12 @@ class Pipeline:
     def add(self, block):
         self.blocks.append(block)
         block.connect(self)
+
+    def add_source(self, source):
+        self.source = source
+        self._points = np.atleast_2d(source.scaler.state2array(source.scaler.normalize(self.state)))     # normalized points
+        self.costs = np.array([source.measure(self.state, norm=False)])
+        self.points = self.unnormalize(self._points)
 
     def get_physical_bounds(self):
         min = self.source.scaler.unnormalize(np.array([0,0]), array=True)
