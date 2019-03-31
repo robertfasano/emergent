@@ -8,6 +8,7 @@ from matplotlib.ticker import NullFormatter
 import matplotlib.gridspec as gridspec
 from mpl_toolkits import mplot3d
 import pyqtgraph as pg
+from PyQt5.QtWidgets import QWidget, QTabWidget, QVBoxLayout, QComboBox
 plt.ioff()
 
 def plot_1D(points, costs, cost_name = 'Cost', normalized_cost = False, limits = None,
@@ -106,10 +107,54 @@ def plot_2D(points, costs, color_map='viridis_r', ax = None, mode='cross-section
     plt.tight_layout(pad=0.5)
     return fig
 
-def widget(x, y, xlabel='', ylabel=''):
-    pg.setConfigOption('background', 'w')
-    pg.setConfigOption('foreground', 'k')
-    pw = pg.PlotWidget(pen=None, labels={'left': ylabel, 'bottom': xlabel})
+class PlotWindow(QWidget):
+    def __init__(self, data):
+        super().__init__()
+        self.plot_tabs(data)
+        self.setWindowTitle('Pipeline results')
+        self.show()
 
-    pw.plot(x=x, y=y, symbol='o', symbolSize=5, pen=None)
-    return pw
+    def widget(self, y, x=None, labels={'left': '', 'bottom': ''}):
+        pg.setConfigOption('background', 'w')
+        pg.setConfigOption('foreground', 'k')
+        pw = pg.PlotWidget(pen=None, labels=labels)
+
+        pw.plot(x=x, y=y, symbol='o', symbolSize=5, pen=None)
+        return pw
+
+    def plot_tabs(self, data):
+        import numpy as np
+        layout = QVBoxLayout()
+        self.setLayout(layout)
+
+        tabs = QTabWidget()
+        layout.addWidget(tabs)
+
+        ''' Optimization tab '''
+        plot_data = data['Optimization']
+        tab_widget = self.widget(x=plot_data['x'], y=plot_data['y'], labels=plot_data['labels'])
+        tabs.addTab(tab_widget, 'Optimization')
+
+        ''' Cost vs parameter tab '''
+        tab_widget = QWidget()
+        self.tab_layout = QVBoxLayout()
+        tab_widget.setLayout(self.tab_layout)
+        tabs.addTab(tab_widget, '1D')
+
+        box = QComboBox()
+        box.currentTextChanged.connect(self.plot_axis)
+        pipe_data = data['Data']
+        self.points = np.atleast_2d(data['Data']['points'])
+        self.costs = np.array(data['Data']['costs'])
+        self.axis_widget = self.widget(x=self.points[:, 0], y=self.costs)
+
+        self.tab_layout.addWidget(box)
+        for item in range(self.points.shape[1]):
+            box.addItem(str(item))
+        self.tab_layout.addWidget(self.axis_widget)
+
+    def plot_axis(self, axis):
+        axis = int(axis)
+        new_widget = self.widget(x=self.points[:, axis], y=self.costs, labels={'bottom': str(axis), 'left': 'Result'})
+        self.tab_layout.replaceWidget(self.axis_widget, new_widget)
+        self.axis_widget = new_widget

@@ -6,8 +6,9 @@ import logging as log
 import time
 
 class Pipeline:
-    def __init__(self, state, source):
+    def __init__(self, state, source, network):
         self.source = source
+        self.network = network
         self._points = np.atleast_2d(source.scaler.state2array(source.scaler.normalize(state)))     # normalized points
         self.costs = np.array([source.measure(state, norm=False)])
         self.points = self.unnormalize(self._points)
@@ -88,12 +89,20 @@ class Pipeline:
             _points[:, d] = min + points[:, d] *(max-min)
         return _points
 
-    def plot(self):
-        if len(self.points) == 0:
-            return
-        plt.plot(self.costs, '.k')
-        plt.plot(np.minimum.accumulate(self.costs), '--k')
+    # def plot(self):
+    #     if len(self.points) == 0:
+    #         return
+    #     # widget(self.costs)
+    #     plt.plot(self.costs, '.k')
+    #     plt.plot(np.minimum.accumulate(self.costs), '--k')
+    #
+    #     plt.xlabel('Evalutions')
+    #     plt.ylabel('Result')
+    #     plt.show()
 
-        plt.xlabel('Evalutions')
-        plt.ylabel('Result')
-        plt.show()
+    def plot(self):
+        tabs = {}
+
+        tabs['Optimization'] = {'x': None, 'y': self.costs.tolist(), 'labels': {'bottom': 'Iterations', 'left': 'Result'}}
+        tabs['Data'] = {'points': self.points.tolist(), 'costs': self.costs.tolist()}
+        self.network.emit('plot', tabs)

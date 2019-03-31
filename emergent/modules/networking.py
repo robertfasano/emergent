@@ -150,7 +150,8 @@ class Network():
                    'sequence update',   # inform the GUI that the sequence has been updated
                    'actuate',           # broadcast a new state to the GUI; args: state dict (including hubs)
                    'sequence reorder',   # rearrange elements of a sequence,
-                   'test'               # RPC for testing front-end events
+                   'test',               # RPC for testing front-end events,
+                   'plot',
                     ]
         assert signal in signals
         if hasattr(self, 'socketIO'):

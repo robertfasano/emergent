@@ -42,6 +42,8 @@ class Dashboard(QMainWindow):
         self.actuate_signal = DictSignal()
         self.show_grid_signal = DictSignal()
         self.show_grid_signal.connect(self.show_grid)
+        self.plot_signal = DictSignal()
+        self.plot_signal.connect(self.plot_window)
 
         ''' Wait until connection is established '''
         self._connected = False
@@ -76,6 +78,10 @@ class Dashboard(QMainWindow):
         @socketio.on('actuate')
         def actuate(state):
             self.actuate_signal.emit(state)
+
+        @socketio.on('plot')
+        def plot(data):
+            self.plot_signal.emit(data)
 
         @socketio.on('timestep')
         def update_timestep(d):
@@ -125,3 +131,7 @@ class Dashboard(QMainWindow):
         hub = d['hub']
         self.grid = GridWindow(self, hub)
         self.grid.show()
+
+    def plot_window(self, data):
+        from emergent.pipeline.plotting import PlotWindow
+        self.plot_window = PlotWindow(data)
