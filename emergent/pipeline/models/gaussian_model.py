@@ -4,7 +4,8 @@ import numpy as np
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C, WhiteKernel
 from scipy.optimize import minimize
-from emergent.utilities.plotting import plot_1D, plot_2D
+from emergent.pipeline.plotting import plot_1D, plot_2D
+
 from scipy.optimize import curve_fit
 from emergent.pipeline import Block
 import matplotlib.pyplot as plt
@@ -63,7 +64,7 @@ class GaussianModel(Block):
 
         return points, costs
 
-    def plot(self, axis1, axis2=None, n_points = 30):
+    def plot(self, axis1, axis2=None, n_points = 30, mode='cross-section'):
         dim = len(self.best_point)
         x = np.linspace(self.pipeline.bounds[axis1][0],
                         self.pipeline.bounds[axis1][1],
@@ -79,7 +80,9 @@ class GaussianModel(Block):
             data[:, axis1] = points[:, 0]
             data[:, axis2] = points[:, 1]
             z = self.predict(data)[0]
-            plot_2D(points, z)
+            data = self.pipeline.unnormalize(data)
+            points = data[:, [axis1, axis2]]
+            plot_2D(points, z, mode=mode)
             plt.show()
         else:
             data = np.ones((n_points, dim))
@@ -89,7 +92,7 @@ class GaussianModel(Block):
 
 
             z = self.predict(data)[0]
-
+            x = self.pipeline.unnormalize(data)[:, axis1]
             plt.plot(x, z)
             plt.xlabel('Axis %i'%axis1)
             plt.ylabel('Result')
