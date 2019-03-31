@@ -4,9 +4,10 @@ import numpy as np
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C, WhiteKernel
 from scipy.optimize import minimize
-from emergent.utilities.plotting import plot_2D
+from emergent.utilities.plotting import plot_1D, plot_2D
 from scipy.optimize import curve_fit
 from emergent.pipeline import Block
+import matplotlib.pyplot as plt
 
 class GaussianModel(Block):
     def __init__(self, optimizer, params = {}):
@@ -56,3 +57,35 @@ class GaussianModel(Block):
         costs = np.append(costs, best_cost)
 
         return points, costs
+
+    def plot(self, axis1, axis2=None, n_points = 30):
+        dim = len(self.best_point)
+        x = np.linspace(self.pipeline.bounds[axis1][0],
+                        self.pipeline.bounds[axis1][1],
+                        n_points)
+        if axis2 is not None:
+            y = np.linspace(self.pipeline.bounds[axis2][0],
+                            self.pipeline.bounds[axis2][1],
+                            n_points)
+            points = np.transpose(np.meshgrid(x,y)).reshape(-1, dim)
+            data = np.ones((n_points**2, dim))
+            for d in range(dim):
+                data[:, d] = self.best_point[d]
+            data[:, axis1] = points[:, 0]
+            data[:, axis2] = points[:, 1]
+            z = self.predict(data)[0]
+            plot_2D(points, z)
+            plt.show()
+        else:
+            data = np.ones((n_points, dim))
+            for d in range(dim):
+                data[:, d] = self.best_point[d]
+            data[:, axis1] = x
+
+
+            z = self.predict(data)[0]
+
+            plt.plot(x, z)
+            plt.xlabel('Axis %i'%axis1)
+            plt.ylabel('Result')
+            plt.show()
