@@ -10,10 +10,11 @@ from emergent.pipeline import Block
 import matplotlib.pyplot as plt
 
 class GaussianModel(Block):
-    def __init__(self, optimizer, params = {}):
+    def __init__(self, optimizer=None, params = {}):
         super().__init__()
-        self.optimizer = optimizer
-        self.optimizer.source = self
+        if optimizer is not None:
+            self.optimizer = optimizer
+            self.optimizer.source = self
         self.params = {}
         for p in params:
             self.params[p].value = params[p]
@@ -48,11 +49,15 @@ class GaussianModel(Block):
         ''' Trains on the passed data, numerically optimizes the modeled response
             surface, then makes a physical measurement at the modeled minimum. '''
         self.fit(points, costs)
-        x_pred, y_pred = self.optimizer.run(points, costs, bounds)
-        x_pred = x_pred[len(points)::]
-        y_pred = y_pred[len(costs)::]
-        point = x_pred[np.argmin(y_pred)]
-        self.best_point, best_cost = point, np.array([self.source.measure(point)])
+        if hasattr(self, 'optimizer'):
+            x_pred, y_pred = self.optimizer.run(points, costs, bounds)
+            x_pred = x_pred[len(points)::]
+            y_pred = y_pred[len(costs)::]
+            point = x_pred[np.argmin(y_pred)]
+            self.best_point, best_cost = point, np.array([self.source.measure(point)])
+        else:
+            self.best_point = np.array([self.popt[1], self.popt[2]])
+            best_cost = np.array([self.source.measure(self.best_point)])
         points = np.append(points, np.atleast_2d(self.best_point), axis=0)
         costs = np.append(costs, best_cost)
 
