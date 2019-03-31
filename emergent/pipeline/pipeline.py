@@ -2,6 +2,8 @@ import numpy as np
 import importlib
 import inspect
 import matplotlib.pyplot as plt
+import logging as log
+import time
 
 class Pipeline:
     def __init__(self, state, source):
@@ -20,8 +22,21 @@ class Pipeline:
         block.connect(self)
 
     def run(self):
+        self.start_indices = []
+        self.end_indices = []
+        start_time = time.time()
         for block in self.blocks:
-            self.points, self.costs = block._run(self.points, self.costs, self.bounds)
+            self.start_indices.append(len(self.points))
+            self.points, self.costs = block.run(self.points, self.costs, self.bounds)
+            self.end_indices.append(len(self.points))
+        end_time = time.time()
+        self.duration = end_time - start_time
+        log.info('Optimization complete!')
+        log.info('Time: %.0fs'%self.duration)
+        log.info('Evaluations: %i'%len(self.points))
+        percent_improvement = (self.costs[-1]-self.costs[0])/self.costs[0]*100
+        log.info('Improvement: %.1f%%'%percent_improvement)
+
         return self.points, self.costs
 
     def list_optimizers(self):
