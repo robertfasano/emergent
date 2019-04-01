@@ -20,6 +20,7 @@ class NodeTree(QTreeWidget):
     def __init__(self, dashboard):
         super().__init__()
         self.dashboard = dashboard
+        self.objectName = 'NodeTree'
         self.editorOpen = 0
         self.current_item = None
         self.last_item = None

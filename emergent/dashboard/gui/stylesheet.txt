@@ -20,12 +20,12 @@ QTabWidget::pane {
 QStatusBar {color:"#000000"; font-family: "Exo 2"; font-size: 14px; font-weight: light;  background-color: rgba( 255, 255, 255, 75% )}
 
 QTreeWidget {color:#000000; font-family: "Exo 2"; font-size: 14px; background-color: rgba(255, 255, 255, 80%)}
-QTreeView::item:hover{background-color: rgba(63,91,112,255); color: white}
-QTreeView::branch:hover{background-color: rgba(63,91,112,255); color: white}
+QTreeView#NodeTree::item:hover{background-color: rgba(63,91,112,255); color: white}
+QTreeView#NodeTree::branch:hover{background-color: rgba(63,91,112,255); color: white}
 
-QTreeView::item:selected{background-color: rgba(63,91,112,255); color: white}
-QTreeView::branch:selected{background-color: rgba(63,91,112,255); color: white}
-QTreeWidget::item {
+QTreeView#NodeTree::item:selected{background-color: rgba(63,91,112,255); color: white}
+QTreeView#NodeTree::branch:selected{background-color: rgba(63,91,112,255); color: white}
+QTreeWidget#NodeTree::item {
   padding: 1px 0;
 }
 
