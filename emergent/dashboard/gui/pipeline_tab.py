@@ -2,7 +2,7 @@
     launch optimizations. '''
 from PyQt5.QtWidgets import (QComboBox, QPushButton, QTabWidget, QVBoxLayout, QWidget,
         QTableWidgetItem, QTableWidget, QHBoxLayout, QGridLayout, QLabel, QMenu, QAction,
-        QTreeWidget, QTreeWidgetItem, QAbstractItemView)
+        QTreeWidget, QTreeWidgetItem, QToolBar, QAbstractItemView, QHeaderView)
 from PyQt5.QtCore import *
 from PyQt5.QtGui import QCursor
 from emergent.modules.parallel import ProcessHandler
@@ -13,10 +13,12 @@ from emergent.utilities import recommender
 import importlib, inspect
 
 class CustomTree(QTreeWidget):
-    def __init__(self):
+    def __init__(self, parent):
         super().__init__()
+        self.parent = parent
         self.itemDoubleClicked.connect(self.open_editor)
-
+        self.header().setSectionResizeMode(0, QHeaderView.ResizeToContents)
+        self.header().setMinimumSectionSize(200)
     def keyPressEvent(self, event):
         if event.key() == 16777220:
             self.update_editor()
@@ -44,8 +46,7 @@ class PipelineLayout(QVBoxLayout):
     def __init__(self, parent):
         QVBoxLayout.__init__(self)
 
-
-        self.tree = CustomTree()
+        self.tree = CustomTree(self)
         self.tree.setColumnCount(2)
         header_item = QTreeWidgetItem(['Block', 'Parameter'])
         self.tree.setHeaderItem(header_item)
@@ -56,13 +57,57 @@ class PipelineLayout(QVBoxLayout):
 
         self.addWidget(self.tree)
 
-    def add_block(self, d):
+        self.menu = QMenu()
+        self.setMenuBar(self.menu)
+
+        self.actions = {}
+        import functools
+
+        self.submenu = self.menu.addMenu('Add')
+
+        self.opt_submenu = self.submenu.addMenu('Optimizers')
+        for action in self.list_optimizers():
+            self.actions[action] = self.opt_submenu.addAction(action)
+            self.actions[action].triggered.connect(functools.partial(self.menu_option, action))
+        # self.model_submenu = self.submenu.addMenu('Models')
+        # for action in self.list_models():
+        #     self.actions[action] = self.model_submenu.addAction(action)
+        #     self.actions[action].triggered.connect(functools.partial(self.menu_option, action))
+        # self.block_submenu = self.submenu.addMenu('Blocks')
+        # for action in self.list_blocks():
+        #     self.actions[action] = self.block_submenu.addAction(action)
+        #     self.actions[action].triggered.connect(functools.partial(self.menu_option, action))
+
+        self.button = QPushButton('Run')
+        self.button.clicked.connect(lambda: print(self.get_pipeline()))
+        self.addWidget(self.button)
+
+
+    def menu_option(self, action):
+        self.add_block({'name': action})
+        self.menu.exec()
+
+    def openMenu(self, pos):
+        item = self.itemAt(pos)
+        globalPos = self.mapToGlobal(pos)
+        menu = QMenu()
+        options = ['GridSearch', 'ParticleSwarm', 'DifferentialEvolution']
+        func = lambda name=n: self.add_block({'name': n})
+        for option in options:
+            actions[option] = QAction(option, self)
+            actions[option].triggered.connect(func(option))
+            menu.addAction(actions[option])
+        selectedItem = menu.exec_(globalPos)
+
+    def add_block(self, d, position=None):
+        if position is None or self.tree.currentItem() is None:
+            position = self.tree.topLevelItemCount()
         name = d['name']
         root = QTreeWidgetItem([name])
         root.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled | Qt.ItemIsDragEnabled)
-        root.setFlags(root.flags() & ~Qt.ItemIsSelectable)
+        # root.setFlags(root.flags() & ~Qt.ItemIsSelectable)
 
-        self.tree.insertTopLevelItems(self.tree.topLevelItemCount(), [root])
+        self.tree.insertTopLevelItems(position, [root])
 
         params = self.get_params(name)
         for p in params:
