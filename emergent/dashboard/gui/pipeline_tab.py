@@ -111,3 +111,14 @@ class PipelineLayout(QVBoxLayout):
             params_dict[p] = params[p].value
 
         return params_dict
+
+    def get_pipeline(self):
+        pipeline = []
+        for i in range(self.tree.topLevelItemCount()):
+            item = self.tree.topLevelItem(i)
+            block = {'block': item.text(0), 'params': {}}
+            for j in range(item.childCount()):
+                block['params'][item.child(j).text(0)] = float(item.child(j).text(1))
+            pipeline.append(block)
+
+        return pipeline
