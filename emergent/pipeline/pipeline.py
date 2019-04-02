@@ -4,6 +4,7 @@ import inspect
 import matplotlib.pyplot as plt
 import logging as log
 import time
+import json
 
 class Pipeline:
     def __init__(self, state, network, source=None):
@@ -12,22 +13,33 @@ class Pipeline:
         if source is not None:
             self.add_source(source)
 
-
-        self.bounds = []
-        for d in range(self.points.shape[1]):
-            self.bounds.append((0,1))
-
         self.blocks = []
 
     def add(self, block):
         self.blocks.append(block)
         block.connect(self)
 
+    def add_blocks(self, block_list):
+        ''' Designed for compatibility with the PipelineLayout GUI element.
+            Takes a list of dictionaries, each specifying a block and its params,
+            and adds them. '''
+        module = importlib.import_module('emergent.pipeline')
+        for block in block_list:
+            inst = getattr(module, block['block'])(params=block['params'])
+            self.add(inst)
+
     def add_source(self, source):
         self.source = source
         self._points = np.atleast_2d(source.scaler.state2array(source.scaler.normalize(self.state)))     # normalized points
         self.costs = np.array([source.measure(self.state, norm=False)])
         self.points = self.unnormalize(self._points)
+
+        self.bounds = []
+        for d in range(self.points.shape[1]):
+            self.bounds.append((0,1))
+
+        for block in self.blocks:
+            block.source = source
 
     def get_physical_bounds(self):
         min = self.source.scaler.unnormalize(np.array([0,0]), array=True)
@@ -112,3 +124,29 @@ class Pipeline:
         tabs['Optimization'] = {'x': None, 'y': self.costs.tolist(), 'labels': {'bottom': 'Iterations', 'left': 'Result'}}
         tabs['Data'] = {'points': self.points.tolist(), 'costs': self.costs.tolist()}
         self.network.emit('plot', tabs)
+
+    def get_json(self):
+        blocks = []
+        for block in self.blocks:
+            params = {}
+            for p in block.params:
+                params[p] = block.params[p].value
+            blocks.append({'block': block.__class__.__name__,
+                           'params': params})
+        return blocks
+
+    def save(self, name, pipeline=None):
+        import os
+        if pipeline is None:
+            pipeline = self.get_json()
+        path = self.network.path['pipelines']
+        if not os.path.exists(path):
+            os.makedirs(path)
+
+        with open(path+'%s.json'%name, 'w') as file:
+            json.dump(pipeline, file)
+
+    def load(self, name):
+        path = self.network.path['pipelines']
+        with open(path+'%s.json'%name, 'r') as file:
+            self.add_blocks(json.load(file))

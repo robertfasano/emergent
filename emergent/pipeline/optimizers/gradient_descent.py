@@ -41,7 +41,7 @@ class GradientDescent(Block):
             space spanned by the passed-in state dict. '''
         if bounds is not None:
             log.warn('GradientDescent optimizer does not support bounds!')
-        for i in range(self.params['Iterations'].value):
+        for i in range(int(self.params['Iterations'].value)):
             x_i = points[-1]
             gradient, points, costs = self.gradient(points, costs)
             x_i -= self.params['Learning rate'].value * gradient

@@ -42,6 +42,7 @@ class NodeTree(QTreeWidget):
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.itemDoubleClicked.connect(self.open_editor)
         self.itemSelectionChanged.connect(self.close_editor)
+        self.itemSelectionChanged.connect(self.deselect_nonsiblings)
 
         ''' Populate tree '''
         self.set_state(self.dashboard.get('state'))
@@ -93,6 +94,16 @@ class NodeTree(QTreeWidget):
         leaf = QTreeWidgetItem([name])
         parent.addChild(leaf)
         return leaf
+
+    def deselect_nonsiblings(self):
+        ''' Deselects items who do not live under the same Hub as the
+            current item. '''
+        item = self.currentItem()
+        for i in self.get_all_items():
+            if i.node == 'knob':
+                if i.parent().parent() is not item.parent().parent():
+                    i.setSelected(0)
+
 
     def expand(self):
         ''' Expand all nodes in a given layer. '''
@@ -169,6 +180,20 @@ class NodeTree(QTreeWidget):
             if thing_name not in state:
                 state[thing_name] = {}
             state[thing_name][knob_name] = float(i.text(1))
+
+        return state
+
+    def get_selected_range(self):
+        ''' Build a range dict from all currently selected knobs. '''
+        items = self.selectedItems()
+        state = {}
+        for i in items:
+            knob_name = i.name
+            thing_name = i.parent().text(0)
+            if thing_name not in state:
+                state[thing_name] = {}
+            state[thing_name][knob_name] = {'min': float(i.text(2)),
+                                            'max': float(i.text(3))}
 
         return state
 

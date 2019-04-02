@@ -33,6 +33,8 @@ class Network():
         self.path['state'] = self.path['network']+'/state/'
         self.path['params'] = self.path['network']+'/params/'
         self.path['sequences'] = self.path['network']+'/sequences/'
+        self.path['pipelines'] = self.path['network']+'/pipelines/'
+
         self.tree = None
         self.connection_params = {'sync delay': 0.1, 'reconnect delay': 1}
         self.hubs = {}

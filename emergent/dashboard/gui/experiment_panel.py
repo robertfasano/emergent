@@ -112,6 +112,8 @@ class ExperimentLayout(QVBoxLayout, ProcessHandler):
         self.update_choices(self.servo_panel)
         self.servo_panel.update_params()
 
+        self.update_choices(self.pipeline_panel)
+
     def start_process(self, process='', threaded=True):
         ''' Load settings from the GUI and start a process. '''
         panel = getattr(self, process+'_panel')
