@@ -18,7 +18,7 @@ class Sequencer(Thing):
         if 'labjack' in params:
             self.labjack = params['labjack']
         self.options['Show grid'] = self.open_grid
-
+        self.options['Start ARTIQ'] = self.start_artiq
         goto_option = lambda s: lambda: self.goto(s)
 
         self.ttl = []
@@ -116,6 +116,9 @@ class Sequencer(Thing):
         self.parent.network.emit('sequence update')
         self.parent.network.emit('sequence reorder', {'name': step, 'n': n})
 
+    def start_artiq(self):
+        import os
+        os.system('start "" cmd /k "cd /emergent/emergent/artiq/ & call activate artiq-4 & artiq_run sequencer_kernel.py"')
     def open_grid(self):
         self.parent.network.emit('sequencer', {'hub': self.parent.name})
 
