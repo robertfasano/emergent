@@ -22,7 +22,7 @@ class CustomTree(QTreeWidget):
 
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        
+
     def keyPressEvent(self, event):
         if event.key() == 16777220:
             self.update_editor()
@@ -94,10 +94,10 @@ class PipelineLayout(QVBoxLayout):
         # for action in self.list_models():
         #     self.actions[action] = self.model_submenu.addAction(action)
         #     self.actions[action].triggered.connect(functools.partial(self.menu_option, action))
-        # self.block_submenu = self.submenu.addMenu('Blocks')
-        # for action in self.list_blocks():
-        #     self.actions[action] = self.block_submenu.addAction(action)
-        #     self.actions[action].triggered.connect(functools.partial(self.menu_option, action))
+        self.block_submenu = self.submenu.addMenu('Blocks')
+        for action in self.list_blocks():
+            self.actions[action] = self.block_submenu.addAction(action)
+            self.actions[action].triggered.connect(functools.partial(self.menu_option, action))
 
         self.button = QPushButton('Run')
         self.button.clicked.connect(self.post_pipeline)
