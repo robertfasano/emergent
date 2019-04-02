@@ -4,6 +4,7 @@ import inspect
 import matplotlib.pyplot as plt
 import logging as log
 import time
+import json
 
 class Pipeline:
     def __init__(self, state, network, source=None):
@@ -39,7 +40,7 @@ class Pipeline:
 
         for block in self.blocks:
             block.source = source
-            
+
     def get_physical_bounds(self):
         min = self.source.scaler.unnormalize(np.array([0,0]), array=True)
         max = self.source.scaler.unnormalize(np.array([1,1]), array=True)
@@ -123,3 +124,29 @@ class Pipeline:
         tabs['Optimization'] = {'x': None, 'y': self.costs.tolist(), 'labels': {'bottom': 'Iterations', 'left': 'Result'}}
         tabs['Data'] = {'points': self.points.tolist(), 'costs': self.costs.tolist()}
         self.network.emit('plot', tabs)
+
+    def get_json(self):
+        blocks = []
+        for block in self.blocks:
+            params = {}
+            for p in block.params:
+                params[p] = block.params[p].value
+            blocks.append({'block': block.__class__.__name__,
+                           'params': params})
+        return blocks
+
+    def save(self, name, pipeline=None):
+        import os
+        if pipeline is None:
+            pipeline = self.get_json()
+        path = self.network.path['pipelines']
+        if not os.path.exists(path):
+            os.makedirs(path)
+
+        with open(path+'%s.json'%name, 'w') as file:
+            json.dump(pipeline, file)
+
+    def load(self, name):
+        path = self.network.path['pipelines']
+        with open(path+'%s.json'%name, 'r') as file:
+            self.add_blocks(json.load(file))
