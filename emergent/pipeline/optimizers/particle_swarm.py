@@ -19,7 +19,7 @@ class ParticleSwarm(Block):
 
     def run(self, points, costs, bounds=None):
         ''' Differential evolution algorithm from scipy.optimize. '''
-        particles = self.params['Particles'].value
+        particles = int(self.params['Particles'].value)
         dim = points.shape[1]
         if bounds is None:
             bounds = np.array(list(itertools.repeat((0, 1), dim)))
@@ -42,7 +42,7 @@ class ParticleSwarm(Block):
                 swarm_best_point = points[-1]
                 swarm_best_cost = costs[-1]
 
-        for s in range(self.params['Steps'].value):
+        for s in range(int(self.params['Steps'].value)):
             for i in range(particles):
                 rp = np.random.uniform(size=dim)
                 rg = np.random.uniform(size=dim)

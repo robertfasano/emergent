@@ -12,16 +12,20 @@ class Pipeline:
         if source is not None:
             self.add_source(source)
 
-
-        self.bounds = []
-        for d in range(self.points.shape[1]):
-            self.bounds.append((0,1))
-
         self.blocks = []
 
     def add(self, block):
         self.blocks.append(block)
         block.connect(self)
+
+    def add_blocks(self, block_list):
+        ''' Designed for compatibility with the PipelineLayout GUI element.
+            Takes a list of dictionaries, each specifying a block and its params,
+            and adds them. '''
+        module = importlib.import_module('emergent.pipeline')
+        for block in block_list:
+            inst = getattr(module, block['block'])(params=block['params'])
+            self.add(inst)
 
     def add_source(self, source):
         self.source = source
@@ -29,6 +33,13 @@ class Pipeline:
         self.costs = np.array([source.measure(self.state, norm=False)])
         self.points = self.unnormalize(self._points)
 
+        self.bounds = []
+        for d in range(self.points.shape[1]):
+            self.bounds.append((0,1))
+
+        for block in self.blocks:
+            block.source = source
+            
     def get_physical_bounds(self):
         min = self.source.scaler.unnormalize(np.array([0,0]), array=True)
         max = self.source.scaler.unnormalize(np.array([1,1]), array=True)

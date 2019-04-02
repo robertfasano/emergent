@@ -2,7 +2,7 @@
     launch optimizations. '''
 from PyQt5.QtWidgets import (QComboBox, QPushButton, QTabWidget, QVBoxLayout, QWidget,
         QTableWidgetItem, QTableWidget, QHBoxLayout, QGridLayout, QLabel, QMenu, QAction,
-        QTreeWidget, QTreeWidgetItem, QToolBar, QAbstractItemView, QHeaderView)
+        QTreeWidget, QTreeWidgetItem, QToolBar, QAbstractItemView, QHeaderView, QHBoxLayout)
 from PyQt5.QtCore import *
 from PyQt5.QtGui import QCursor
 from emergent.modules.parallel import ProcessHandler
@@ -19,6 +19,10 @@ class CustomTree(QTreeWidget):
         self.itemDoubleClicked.connect(self.open_editor)
         self.header().setSectionResizeMode(0, QHeaderView.ResizeToContents)
         self.header().setMinimumSectionSize(200)
+
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        
     def keyPressEvent(self, event):
         if event.key() == 16777220:
             self.update_editor()
@@ -45,6 +49,23 @@ class CustomTree(QTreeWidget):
 class PipelineLayout(QVBoxLayout):
     def __init__(self, parent):
         QVBoxLayout.__init__(self)
+        self.parent = parent
+
+        hlayout = QHBoxLayout()
+        self.addLayout(hlayout)
+
+        vlayout = QVBoxLayout()
+        hlayout.addLayout(vlayout)
+        self.experiment_box = QComboBox()
+
+        vlayout.addWidget(self.experiment_box)
+        self.experiment_box.currentTextChanged.connect(self.update_params)
+
+        ''' Experiment parameters '''
+        self.experiment_table = ParameterTable()
+        vlayout.addWidget(self.experiment_table)
+
+
 
         self.tree = CustomTree(self)
         self.tree.setColumnCount(2)
@@ -55,7 +76,7 @@ class PipelineLayout(QVBoxLayout):
         self.tree.setDropIndicatorShown(True)
         self.tree.setDragDropMode(QAbstractItemView.InternalMove)
 
-        self.addWidget(self.tree)
+        hlayout.addWidget(self.tree)
 
         self.menu = QMenu()
         self.setMenuBar(self.menu)
@@ -79,7 +100,7 @@ class PipelineLayout(QVBoxLayout):
         #     self.actions[action].triggered.connect(functools.partial(self.menu_option, action))
 
         self.button = QPushButton('Run')
-        self.button.clicked.connect(lambda: print(self.get_pipeline()))
+        self.button.clicked.connect(self.post_pipeline)
         self.addWidget(self.button)
 
 
@@ -167,3 +188,23 @@ class PipelineLayout(QVBoxLayout):
             pipeline.append(block)
 
         return pipeline
+
+    def update_params(self):
+        experiment = self.experiment_box.currentText()
+        if experiment == '':
+            return
+        hub = self.parent.dashboard.tree_widget.get_selected_hub()
+        d = self.parent.dashboard.get('hubs/%s/experiments/%s'%(hub, experiment))
+        self.experiment_table.set_parameters(d['experiment'])
+
+    def post_pipeline(self):
+        print('Posting new pipeline')
+        payload = {}
+        payload['state'] = self.parent.dashboard.tree_widget.get_selected_state()
+        payload['blocks'] = self.get_pipeline()
+        payload['range'] = self.parent.dashboard.tree_widget.get_selected_range()
+        payload['experiment'] = self.experiment_box.currentText()
+        payload['params'] = self.experiment_table.get_params()
+        self.parent.dashboard.post('hubs/hub/pipeline/new', payload)
+
+        self.tree.clear()

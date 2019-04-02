@@ -172,6 +172,20 @@ class NodeTree(QTreeWidget):
 
         return state
 
+    def get_selected_range(self):
+        ''' Build a range dict from all currently selected knobs. '''
+        items = self.selectedItems()
+        state = {}
+        for i in items:
+            knob_name = i.name
+            thing_name = i.parent().text(0)
+            if thing_name not in state:
+                state[thing_name] = {}
+            state[thing_name][knob_name] = {'min': float(i.text(2)),
+                                            'max': float(i.text(3))}
+
+        return state
+
     def get_state(self):
         ''' Returns a dict representating the state of the tree. '''
         all_items = []

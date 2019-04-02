@@ -8,7 +8,8 @@ class Block():
     def connect(self, pipeline):
         self.pipeline = pipeline
         self.number = len(pipeline.blocks)
-        self.source = pipeline.source
+        if hasattr(pipeline, 'source'):
+            self.source = pipeline.source
 
     def _run(self, points, costs, bounds=None):
         self.start_index = len(points)
