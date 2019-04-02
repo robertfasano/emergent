@@ -46,6 +46,29 @@ class CustomTree(QTreeWidget):
             self.openPersistentEditor(self.current_item, col)
             self.editorOpen = 1
 
+class ModelOptimizerBox(QComboBox):
+    def __init__(self, layout, tree_item, items):
+        QComboBox.__init__(self)
+        self.layout = layout
+        self.tree_item = tree_item
+        self.currentTextChanged.connect(self.update_subparams)
+
+        for item in items:
+            self.addItem(item)
+
+
+
+    def update_subparams(self):
+        for i in reversed(range(self.tree_item.childCount())):
+            self.tree_item.removeChild(self.tree_item.child(i))
+
+        subparams = self.layout.get_params(self.currentText())
+        for s in subparams:
+            subitem = QTreeWidgetItem([s])
+            subitem.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled | Qt.ItemIsDragEnabled)
+            subitem.setText(1, str(subparams[s]))
+            self.tree_item.addChild(subitem)
+
 class PipelineLayout(QVBoxLayout):
     def __init__(self, parent):
         QVBoxLayout.__init__(self)
@@ -90,10 +113,10 @@ class PipelineLayout(QVBoxLayout):
         for action in self.list_optimizers():
             self.actions[action] = self.opt_submenu.addAction(action)
             self.actions[action].triggered.connect(functools.partial(self.menu_option, action))
-        # self.model_submenu = self.submenu.addMenu('Models')
-        # for action in self.list_models():
-        #     self.actions[action] = self.model_submenu.addAction(action)
-        #     self.actions[action].triggered.connect(functools.partial(self.menu_option, action))
+        self.model_submenu = self.submenu.addMenu('Models')
+        for action in self.list_models():
+            self.actions[action] = self.model_submenu.addAction(action)
+            self.actions[action].triggered.connect(functools.partial(self.menu_option, action))
         self.block_submenu = self.submenu.addMenu('Blocks')
         for action in self.list_blocks():
             self.actions[action] = self.block_submenu.addAction(action)
@@ -134,9 +157,23 @@ class PipelineLayout(QVBoxLayout):
         for p in params:
             item = QTreeWidgetItem([p])
             item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled | Qt.ItemIsDragEnabled)
-            item.setText(1, str(params[p]))
+            if not isinstance(params[p], list):
+                item.setText(1, str(params[p]))
 
             root.addChild(item)
+
+            if isinstance(params[p], list):
+                box = ModelOptimizerBox(self, item, self.list_optimizers())
+
+                self.tree.setItemWidget(item, 1, box)
+                ## add subitems
+                # subparams = self.get_params(opt)
+                # for s in subparams:
+                #     subitem = QTreeWidgetItem([s])
+                #     subitem.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled | Qt.ItemIsDragEnabled)
+                #     subitem.setText(1, str(subparams[s]))
+                #     item.addChild(subitem)
+
 
     def list_optimizers(self):
         module = importlib.import_module('emergent.pipeline.optimizers')
