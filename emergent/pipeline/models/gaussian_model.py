@@ -11,7 +11,7 @@ from emergent.pipeline import Block
 import matplotlib.pyplot as plt
 
 class GaussianModel(Block):
-    def __init__(self, optimizer=None, params = {}):
+    def __init__(self, params = {}, optimizer=None):
         super().__init__()
         if optimizer is not None:
             self.optimizer = optimizer
