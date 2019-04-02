@@ -285,23 +285,23 @@ class Sequencer(EnvExperiment):
                         voltages = self.dac_table[col]
                         self.zotino0.set_dac(voltages, self.dac_channels)
                         delay(time)
-
                 ''' TTL '''
                 with sequential:
                     channels2 = self.ttl_channels[0:8]
                     for ch in channels2:
-                        at_mu(start_mu)
+                        at_mu(start_mu+2*ch)            # add 2 ns delay per channel to avoid collisions
                         if self.ttl_table[ch][col]==1:
+                            # print(ch, 'on')
                             ttls[ch].on()
                             delay(time)
                         else:
-
+                            # print(ch, 'off')
                             ttls[ch].off()
                             delay(time)
 
                     channels1 = self.ttl_channels[8:16]
                     for ch in channels1:
-                        at_mu(start_mu+25)
+                        at_mu(start_mu+2+2*ch)          # add 2 ns + 2 ns/channel delay to avoid collisions
                         if self.ttl_table[ch][col]==1:
                             ttls[ch].on()
                             delay(time)
