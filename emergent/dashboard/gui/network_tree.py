@@ -42,6 +42,7 @@ class NodeTree(QTreeWidget):
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.itemDoubleClicked.connect(self.open_editor)
         self.itemSelectionChanged.connect(self.close_editor)
+        self.itemSelectionChanged.connect(self.deselect_nonsiblings)
 
         ''' Populate tree '''
         self.set_state(self.dashboard.get('state'))
@@ -93,6 +94,16 @@ class NodeTree(QTreeWidget):
         leaf = QTreeWidgetItem([name])
         parent.addChild(leaf)
         return leaf
+
+    def deselect_nonsiblings(self):
+        ''' Deselects items who do not live under the same Hub as the
+            current item. '''
+        item = self.currentItem()
+        for i in self.get_all_items():
+            if i.node == 'knob':
+                if i.parent().parent() is not item.parent().parent():
+                    i.setSelected(0)
+
 
     def expand(self):
         ''' Expand all nodes in a given layer. '''
