@@ -121,6 +121,7 @@ class MOT(Hub):
         self.children['sequencer'].current_step = self.children['sequencer'].steps[-1]['name']
 
         data = pd.read_json(response['result'])
+        data = data.set_index(pd.to_timedelta(data.index.values).total_seconds())
         return data
 
     @experiment
