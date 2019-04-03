@@ -122,6 +122,30 @@ class MOT(Hub):
         return data[data.index-data.index[0]<self.state['sequencer']['load']]
 
     @experiment
+    def loading(self, state, params = {'quantity': ['slope', 'fluorescence', 'lifetime']}):
+        self.actuate(state)
+        data = self.measure_loading()[0]
+        fluorescence = data.max()-data.min()
+        slope = np.polyfit(data.index, data.values, 1)[0][0]
+
+        def model(t, A, tau):
+            return A*(1-np.exp(-t/tau))
+
+        popt, pcov = curve_fit(model, data.index.values, data[0].values, p0=(1,1))
+        A_fit = popt[0]
+        lifetime = popt[1]
+        print('Fluorescence:', fluorescence)
+        print('Slope:', slope)
+        print('Lifetime:', lifetime)
+        
+        if params['quantity'] == 'fluorescence':
+            return -fluorescence
+        elif params['quantity'] == 'slope':
+            return -slope
+        elif params['quantity'] == 'lifetime':
+            return -lifetime
+
+    @experiment
     def fluorescence(self, state, params = {}):
         self.actuate(state)
         data = self.measure_loading()[0]
