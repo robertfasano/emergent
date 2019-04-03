@@ -13,6 +13,7 @@ import json
 import pickle
 # from emergent.modules.sequencing import Sequencer
 from emergent.artiq.emergent_sequencer import Sequencer
+import logging as log
 
 class MOT(Hub):
     def __init__(self, name, parent = None, network = None):
@@ -103,6 +104,9 @@ class MOT(Hub):
         return c*x**m
 
     def artiq(self):
+        if not hasattr(self.network, 'artiq_client'):           ## BAD! What if the client has been closed?
+            log.warning('Connect to ARTIQ before submitting an experiment!')
+            return -1
         requests.post('http://localhost:5000/artiq/run', json={})
         print('start:', time.time())
         self.network.artiq_client.emit('submit', self.children['sequencer'].steps)
