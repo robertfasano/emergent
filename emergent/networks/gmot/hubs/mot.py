@@ -152,10 +152,10 @@ class MOT(Hub):
         popt, pcov = curve_fit(model, data.index.values, data[0].values, p0=(1,1))
         A_fit = popt[0]
         lifetime = popt[1]
-        print('Fluorescence:', fluorescence)
-        print('Slope:', slope)
-        print('Lifetime:', lifetime)
-        
+        print('Fluorescence: %.0f mV'%(fluorescence*1000))
+        print('Slope: %.0f mV/s'%(slope*1000))
+        print('Lifetime: %.0f ms'%(lifetime*1000))
+
         if params['quantity'] == 'fluorescence':
             return -fluorescence
         elif params['quantity'] == 'slope':
