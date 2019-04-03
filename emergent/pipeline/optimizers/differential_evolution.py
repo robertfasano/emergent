@@ -10,13 +10,10 @@ class DifferentialEvolution(Block):
         self.params = {}
         self.params['Population'] = Parameter(name= 'Population',
                                             value = 20,
-                                            min = 5,
-                                            max = 100,
+                                            type = int,
                                             description = 'Initial population size')
         self.params['Tolerance'] = Parameter(name= 'Tolerance',
                                             value = 0.01,
-                                            min = 0.001,
-                                            max = 0.1,
                                             description = 'Convergence criterion')
         self.params['Mutation'] = Parameter(name= 'Population size',
                                             value = 1,
@@ -56,7 +53,7 @@ class DifferentialEvolution(Block):
                    tol = self.params['Tolerance'].value,
                    mutation = self.params['Mutation'].value,
                    recombination = self.params['Recombination'].value,
-                   popsize = int(self.params['Population'].value))
+                   popsize = self.params['Population'].value)
 
         points = np.append(points, self.measured_points, axis=0)
         costs = np.append(costs, self.measured_costs, axis=0)

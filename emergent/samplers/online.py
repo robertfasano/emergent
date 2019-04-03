@@ -11,18 +11,15 @@ class Online(Sampling):
         self.name = 'Online'
         self.params['Presampled points'] = Parameter(name= 'Presampled points',
                                             value = 15,
-                                            min = 0,
-                                            max = 100,
+                                            type = int,
                                             description = 'Pre-sampled points before starting regression')
         self.params['Iterations'] = Parameter(name= 'Iterations',
+                                            type = int,
                                             value = 10,
-                                            min = 1,
-                                            max = 10,
                                             description = 'Number of sample/fit cycles')
         self.params['Batch size'] = Parameter(name= 'Batch size',
                                             value = 10,
-                                            min = 1,
-                                            max = 100,
+                                            type = int,
                                             description = 'Points sampled per iteration')
         self.params['Tolerance'] = Parameter(name= 'Tolerance',
                                             value = 0.01,
@@ -31,6 +28,7 @@ class Online(Sampling):
                                             description = 'Relative tolerance required for convergence')
         self.params['Mode'] = Parameter(name='Mode',
                                            value = ['Optimizer', 'Explorer', 'Hybrid'],
+                                           type = str,
                                            description = 'Peak-seeking behavior.')
         for p in params:
             self.params[p].value = params[p]
@@ -56,7 +54,7 @@ class Online(Sampling):
             self.sampler.model.fit()
 
         best_costs = []
-        for i in range(int(self.params['Iterations'].value)):
+        for i in range(self.params['Iterations'].value):
             if not self.sampler.callback():
                 self.points = self.sampler.model.points
                 self.costs = self.sampler.model.costs
@@ -64,7 +62,7 @@ class Online(Sampling):
 
             log.info('Sampling batch %i'%(i+1))
             a = i / (self.params['Iterations'].value-1)        # scale from explorer to optimizer through iterations
-            for j in range(int(self.params['Batch size'].value)):
+            for j in range(self.params['Batch size'].value):
                 if self.params['Batch size'].value > 1:
                     # b = a * j / (self.params['Batch size'].value-1)        # scale from explorer to optimizer throughout batch
                     b = j / (self.params['Batch size'].value-1)        # scale from explorer to optimizer throughout batch

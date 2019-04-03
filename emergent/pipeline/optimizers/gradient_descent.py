@@ -9,7 +9,7 @@ class GradientDescent(Block):
         super().__init__()
         self.params = {}
 
-        self.params['Iterations'] = Parameter(name = 'Iterations', value = 10)
+        self.params['Iterations'] = Parameter(name = 'Iterations', type=int, value = 10)
         self.params['Learning rate'] = Parameter(name = 'Learning rate', value = 0.1)
         self.params['Dither size'] = Parameter(name = 'Dither size', value = 0.01)
 
@@ -41,7 +41,7 @@ class GradientDescent(Block):
             space spanned by the passed-in state dict. '''
         if bounds is not None:
             log.warn('GradientDescent optimizer does not support bounds!')
-        for i in range(int(self.params['Iterations'].value)):
+        for i in range(self.params['Iterations'].value):
             x_i = points[-1]
             gradient, points, costs = self.gradient(points, costs)
             x_i -= self.params['Learning rate'].value * gradient

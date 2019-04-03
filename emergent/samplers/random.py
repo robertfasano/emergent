@@ -10,13 +10,11 @@ class Random(Sampling):
         self.name = 'Random'
         self.params['Steps'] = Parameter(name= 'Steps',
                                             value = 20,
-                                            min = 5,
-                                            max = 100,
+                                            type = int,
                                             description = 'Grid points per dimension')
         self.params['Sweeps'] = Parameter(name= 'Sweeps',
                                             value = 1,
-                                            min = 1,
-                                            max = 10,
+                                            type = int,
                                             description = 'Number of sweeps to do')
         for p in params:
             self.params[p].value = params[p]
@@ -25,7 +23,7 @@ class Random(Sampling):
         ''' Performs a uniformly-spaced sampling of the cost function in the
             space spanned by the passed-in state dict. '''
         dof = sum(len(state[x]) for x in state)
-        self.points = np.random.uniform(size=(int(self.params['Steps'].value),dof))
+        self.points = np.random.uniform(size=(self.params['Steps'].value,dof))
         self.costs = np.array([])
         for point in self.points:
             if not self.sampler.callback():
