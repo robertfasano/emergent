@@ -14,7 +14,7 @@ from PyQt5.QtWidgets import (QWidget, QAbstractItemView, QVBoxLayout,
 from PyQt5.QtGui import QPixmap, QIcon
 from PyQt5.QtCore import *
 from emergent.utilities.containers import State
-from emergent.dashboard.gui.dict_menu import DictMenu
+from emergent.dashboard.structures.dict_menu import DictMenu
 from functools import partial
 
 class NodeTree(QTreeWidget):

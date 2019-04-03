@@ -7,7 +7,7 @@ from PyQt5.QtGui import QCursor
 from emergent.modules.parallel import ProcessHandler
 import logging as log
 import numpy as np
-from emergent.dashboard.gui.parameter_table import ParameterTable
+from emergent.dashboard.structures.parameter_table import ParameterTable
 from emergent.utilities import recommender
 
 class ModelLayout(QVBoxLayout, ProcessHandler):

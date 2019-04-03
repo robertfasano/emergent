@@ -11,7 +11,7 @@ from PyQt5.QtWidgets import (QComboBox, QLabel, QVBoxLayout,
         QWidget, QHBoxLayout, QTabWidget, QGridLayout, QMenu, QAction, QTreeWidget, QTreeWidgetItem)
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from emergent.dashboard.gui.parameter_table import ParameterTable
+from emergent.dashboard.structures.parameter_table import ParameterTable
 from matplotlib.figure import Figure
 plt.ioff()
 from PyQt5.QtCore import QTimer, Qt

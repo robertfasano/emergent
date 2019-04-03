@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import (QComboBox, QLabel, QPushButton, QVBoxLayout,
 from PyQt5.QtCore import *
 import logging as log
 import datetime
-from emergent.dashboard.gui.parameter_table import ParameterTable
+from emergent.dashboard.structures.parameter_table import ParameterTable
 from emergent.modules.parallel import ProcessHandler
 from emergent.utilities import recommender
 
