@@ -8,6 +8,8 @@
 '''
 from copy import deepcopy
 from collections import OrderedDict, Mapping
+import logging as log
+import numpy as np
 
 class DataDict(OrderedDict):
     def as_dict(self):
@@ -125,14 +127,37 @@ class State(OrderedDict):
         return deepcopy(self)
 
 class Parameter():
-    def __init__(self, name, value, min = None, max = None, description = ''):
+    def __init__(self, name, value, type = float, min = None, max = None, options=None, description = ''):
         self.name = name
-        self.value = value
+        self.options = options
+        self.type = type
         self.min = min
         self.max = max
+        self.value = value
         self.description = description
 
-        
+    @property
+    def value(self):
+        return self.__value
+
+    @value.setter
+    def value(self, value):
+        if self.min is not None:
+            if value < self.min:
+                value = self.min
+                log.warning('Clipping parameter "%s" to lower limit.'%self.name)
+        if self.max is not None:
+            if value > self.max:
+                value = self.max
+                log.warning('Clipping parameter "%s" to upper limit.'%self.name)
+        if self.options is not None:
+            if value not in self.options:
+                log.warning('Invalid parameter option.')
+                return
+
+        self.__value = self.type(value)
+
+
 if __name__ == '__main__':
     s = State()
     s['a'] = 1
