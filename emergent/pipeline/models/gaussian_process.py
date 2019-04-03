@@ -29,7 +29,7 @@ class GaussianProcess(Block):
                                             min = 0,
                                             max = 10,
                                             description = 'Amplitude of modeled white noise process')
-        self.params['Optimizer'] = Parameter(name='Optimizer', value=self.list_optimizers())
+        self.params['Optimizer'] = Parameter(name='Optimizer', value=self.list_optimizers(), type=str)
 
         for p in params:
             self.params[p].value = params[p]
