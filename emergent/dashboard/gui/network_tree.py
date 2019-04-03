@@ -14,6 +14,7 @@ from PyQt5.QtWidgets import (QWidget, QAbstractItemView, QVBoxLayout,
 from PyQt5.QtGui import QPixmap, QIcon
 from PyQt5.QtCore import *
 from emergent.utilities.containers import State
+from emergent.dashboard.gui.dict_menu import DictMenu
 from functools import partial
 
 class NodeTree(QTreeWidget):
@@ -283,9 +284,7 @@ class NodeTree(QTreeWidget):
     def openMenu(self, pos):
         item = self.itemAt(pos)
         globalPos = self.mapToGlobal(pos)
-        menu = QMenu()
-        actions = {}
-        options = []
+
         if item.node == 'knob':
             knob = item.name
             thing = item.parent().name
@@ -307,11 +306,11 @@ class NodeTree(QTreeWidget):
 
         if options == []:
             return
-
+        actions = {}
         for option in options:
-            actions[option] = QAction(option, self)
-            actions[option].triggered.connect(partial(self.exec_option, params, option))
-            menu.addAction(actions[option])
+            actions[option] = partial(self.exec_option, params, option)
+        menu = DictMenu(actions)
+
         selectedItem = menu.exec_(globalPos)
 
     def exec_option(self, params, option):
