@@ -20,25 +20,21 @@ class MOT(Hub):
         self.process_manager = ProcessHandler()
         self.labjack = LabJack(params = {'devid': '470017907'}, name='labjack')
 
-        # self.labjack.prepare_stream()
-        # self.labjack.prepare_streamburst(channel=0)
+        ''' Power PMT and set gain '''
         self.labjack.AOut(0, .4)
         self.labjack.AOut(3,-5,TDAC=True)
         self.labjack.AOut(2,5, TDAC=True)
-        # self.TTL = LabJack(params = {'devid': '470016970'}, name = 'TTL')
-        # self.trigger_labjack = LabJack(params = {'devid': '440010734'}, name='trigger')
-        ''' Declare TTLs '''
 
-        # self.switches['slowing rf'] = LabJackSwitch('slowing rf', {'labjack': self.TTL, 'channel': 1}, invert = True)         # artiq 0
-        # self.switches['trap rf'] = LabJackSwitch('trap rf', {'labjack': self.TTL, 'channel': 2}, invert = True)               # 1
-        # self.switches['trap shutter'] = LabJackSwitch('trap shutter', {'labjack': self.TTL, 'channel': 3})                    # 2
-
-        # self.switches['trap servo'] = LabJackSwitch('trap servo', {'labjack': self.TTL, 'channel': 4}, invert = True)         # 3
-                                                                                                                                # 4: slowing servo
-        # self.switches['SHG rf'] = LabJackSwitch('SHG rf', {'labjack': self.TTL, 'channel': 5})                                # 5
-        # self.switches['SHG shutter'] = LabJackSwitch('SHG shutter', {'labjack': self.TTL, 'channel': 6})                      # 6
-        # self.switches['slowing shutter'] = LabJackSwitch('slowing shutter', {'labjack': self.TTL, 'channel': 7})
-
+        ''' Define default experimental sequence. TTL channels are as follows:
+            0: Slowing RF switch. TTL low enables power to AOM.
+            1: Trap RF switch. TTL low enables power to AOM.
+            2: Trap shutter. TTL high is open.
+            3: Trap intensity servo. TTL low is on.
+            4: Slowing intensity servo. TTL low is on.
+            5: RF switch for doubled laser. TTL high is on.
+            6: Shutter for doubled laser. TTL high is on.
+            7: Slowing shutter. TTL high is on.
+        '''
         loading_step = {'name': 'load',
             'duration': 1.5,
             'TTL': [2, 5, 6, 7],       # with inverts: [1, 2, 3, 4, 5, 6, 7]
@@ -67,8 +63,6 @@ class MOT(Hub):
         self.sequencer.ttl = {0: 'slowing rf', 1: 'trap rf', 2: 'trap shutter', 3: 'trap servo', 4: 'slowing servo', 5: 'SHG rf', 6: 'SHG shutter', 7: 'slowing shutter', 8: 'test', 9: 'test', 10: 'test', 11: 'test', 12: 'test', 13: 'test', 14: 'test', 15: 'test',}
         self.sequencer.adc = {0: 'PMT'}
         self.sequencer.goto('load')
-
-        self.result_buffer = []
 
     def atom_number(self, signal, background):
         ''' Experimental variables '''
@@ -108,7 +102,6 @@ class MOT(Hub):
         c=y1/x1**m
         return c*x**m
 
-
     def artiq(self):
         requests.post('http://localhost:5000/artiq/run', json={})
         print('start:', time.time())
@@ -123,7 +116,6 @@ class MOT(Hub):
         data = pd.read_json(response['result'])
         data = data.set_index(pd.to_timedelta(data.index.values).total_seconds())
         return data
-
 
     def measure_loading(self):
         data = self.artiq()
