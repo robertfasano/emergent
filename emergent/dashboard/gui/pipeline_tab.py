@@ -1,7 +1,7 @@
 ''' The OptimizeTab allows the user to choose algorithms and their parameters and
     launch optimizations. '''
 from PyQt5.QtWidgets import (QComboBox, QPushButton, QTabWidget, QVBoxLayout, QWidget,
-        QTableWidgetItem, QTableWidget, QHBoxLayout, QGridLayout, QLabel, QMenu, QAction,
+        QTableWidgetItem, QTableWidget, QHBoxLayout, QGridLayout, QLabel,
         QTreeWidget, QTreeWidgetItem, QToolBar, QAbstractItemView, QHeaderView, QHBoxLayout)
 from PyQt5.QtCore import *
 from PyQt5.QtGui import QCursor
@@ -9,8 +9,10 @@ from emergent.modules.parallel import ProcessHandler
 import logging as log
 import numpy as np
 from emergent.dashboard.gui.parameter_table import ParameterTable
+from emergent.dashboard.gui.dict_menu import DictMenu
 from emergent.utilities import recommender
 import importlib, inspect
+from functools import partial
 
 class CustomTree(QTreeWidget):
     def __init__(self, parent):
@@ -22,6 +24,8 @@ class CustomTree(QTreeWidget):
 
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.customContextMenuRequested.connect(self.openMenu)
+        self.setContextMenuPolicy(Qt.CustomContextMenu)
 
     def keyPressEvent(self, event):
         if event.key() == 16777220:
@@ -45,6 +49,30 @@ class CustomTree(QTreeWidget):
         if col in [1,2,3]:
             self.openPersistentEditor(self.current_item, col)
             self.editorOpen = 1
+
+    def openMenu(self, pos):
+        item = self.itemAt(pos)
+        globalPos = self.mapToGlobal(pos)
+        actions = {'Reset': self.parent.reset}
+        actions['Add'] = {'Optimizer': {}, 'Model': {}, 'Block': {}}
+
+        optimizers = self.parent.list_classes('optimizers')
+        opt_actions = actions['Add']['Optimizer']
+        for opt in optimizers:
+            opt_actions[opt] = partial(self.parent.add_block, {'name': opt})
+
+        models = self.parent.list_classes('models')
+        model_actions = actions['Add']['Model']
+        for model in models:
+            model_actions[model] = partial(self.parent.add_block, {'name': model})
+
+        blocks = self.parent.list_classes('blocks')
+        block_actions = actions['Add']['Block']
+        for block in blocks:
+            block_actions[block] = partial(self.parent.add_block, {'name': block})
+
+        menu = DictMenu(actions)
+        selectedItem = menu.exec_(globalPos)
 
 class ModelOptimizerBox(QComboBox):
     def __init__(self, layout, tree_item, items):
@@ -101,47 +129,15 @@ class PipelineLayout(QVBoxLayout):
 
         hlayout.addWidget(self.tree)
 
-        self.menu = QMenu()
-        self.setMenuBar(self.menu)
-
-        self.actions = {}
-        import functools
-
-        self.submenu = self.menu.addMenu('Add')
-
-        self.opt_submenu = self.submenu.addMenu('Optimizers')
-        for action in self.list_optimizers():
-            self.actions[action] = self.opt_submenu.addAction(action)
-            self.actions[action].triggered.connect(functools.partial(self.menu_option, action))
-        self.model_submenu = self.submenu.addMenu('Models')
-        for action in self.list_models():
-            self.actions[action] = self.model_submenu.addAction(action)
-            self.actions[action].triggered.connect(functools.partial(self.menu_option, action))
-        self.block_submenu = self.submenu.addMenu('Blocks')
-        for action in self.list_blocks():
-            self.actions[action] = self.block_submenu.addAction(action)
-            self.actions[action].triggered.connect(functools.partial(self.menu_option, action))
-
         self.button = QPushButton('Run')
         self.button.clicked.connect(self.post_pipeline)
         self.addWidget(self.button)
 
+        self.reset()
 
-    def menu_option(self, action):
-        self.add_block({'name': action})
-        self.menu.exec()
-
-    def openMenu(self, pos):
-        item = self.itemAt(pos)
-        globalPos = self.mapToGlobal(pos)
-        menu = QMenu()
-        options = ['GridSearch', 'ParticleSwarm', 'DifferentialEvolution']
-        func = lambda name=n: self.add_block({'name': n})
-        for option in options:
-            actions[option] = QAction(option, self)
-            actions[option].triggered.connect(func(option))
-            menu.addAction(actions[option])
-        selectedItem = menu.exec_(globalPos)
+    def reset(self):
+        self.tree.clear()
+        self.add_block({'name': 'GridSearch'})
 
     def add_block(self, d, position=None):
         if position is None or self.tree.currentItem() is None:
@@ -163,7 +159,7 @@ class PipelineLayout(QVBoxLayout):
             root.addChild(item)
 
             if isinstance(params[p], list):
-                box = ModelOptimizerBox(self, item, self.list_optimizers())
+                box = ModelOptimizerBox(self, item, self.list_classes('optimizers'))
 
                 self.tree.setItemWidget(item, 1, box)
                 ## add subitems
@@ -175,28 +171,12 @@ class PipelineLayout(QVBoxLayout):
                 #     item.addChild(subitem)
 
 
-    def list_optimizers(self):
-        module = importlib.import_module('emergent.pipeline.optimizers')
-        names = []
-        for a in dir(module):
-            if '__' not in a:
-                inst = getattr(module, a)
-                if inspect.isclass(inst):
-                    names.append(inst.__name__)
-        return names
-
-    def list_models(self):
-        module = importlib.import_module('emergent.pipeline.models')
-        names = []
-        for a in dir(module):
-            if '__' not in a:
-                inst = getattr(module, a)
-                if inspect.isclass(inst):
-                    names.append(inst.__name__)
-        return names
-
-    def list_blocks(self):
-        module = importlib.import_module('emergent.pipeline.blocks')
+    def list_classes(self, module):
+        ''' Returns a list of all classes in the targeted module.
+            Args:
+                module (str): one of ['optimizers', 'models', 'blocks']
+        '''
+        module = importlib.import_module('emergent.pipeline.%s'%module)
         names = []
         for a in dir(module):
             if '__' not in a:
@@ -244,4 +224,4 @@ class PipelineLayout(QVBoxLayout):
         payload['params'] = self.experiment_table.get_params()
         self.parent.dashboard.post('hubs/hub/pipeline/new', payload)
 
-        self.tree.clear()
+        self.reset()
