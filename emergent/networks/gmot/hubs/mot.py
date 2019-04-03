@@ -132,19 +132,22 @@ class MOT(Hub):
     @experiment
     def fluorescence(self, state, params = {}):
         self.actuate(state)
-        return -self.measure_loading[0].max()
+        data = self.measure_loading()[0]
+        # print(data)
+        return -(data.max()-data.min())
 
     @experiment
     def slope(self, state, params = {}):
         self.actuate(state)
         data = self.measure_loading[0]
-        slope = data.apply(lambda x: np.polyfit(data.index, x, 1)[0])
+        data = self.measure_loading()[0]
+        slope = np.polyfit(data.index, data.values)[0]
         return -slope
 
     @experiment
     def lifetime(self, state, params = {}):
         self.actuate(state)
-        data = self.measure_loading[0]
+        data = self.measure_loading()[0]
 
         def model(t, A, tau):
             return A*(1-np.exp(-t/tau))
