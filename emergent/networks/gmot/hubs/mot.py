@@ -125,15 +125,13 @@ class MOT(Hub):
     def fluorescence(self, state, params = {}):
         self.actuate(state)
         data = self.measure_loading()[0]
-        # print(data)
         return -(data.max()-data.min())
 
     @experiment
     def slope(self, state, params = {}):
         self.actuate(state)
-        data = self.measure_loading[0]
         data = self.measure_loading()[0]
-        slope = np.polyfit(data.index, data.values)[0]
+        slope = np.polyfit(data.index, data.values, 1)[0][0]
         return -slope
 
     @experiment
@@ -144,7 +142,7 @@ class MOT(Hub):
         def model(t, A, tau):
             return A*(1-np.exp(-t/tau))
 
-        popt, pcov = curve_fit(model, data.index, data)
+        popt, pcov = curve_fit(model, data.index.values, data[0].values, p0=(1,1))
         A_fit = popt[0]
         tau_fit = popt[1]
 
