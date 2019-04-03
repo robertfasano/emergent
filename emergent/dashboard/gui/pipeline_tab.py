@@ -130,8 +130,10 @@ class PipelineLayout(QVBoxLayout):
         self.add_block({'name': 'GridSearch'})
 
     def add_block(self, d, position=None):
-        if position is None or self.tree.currentItem() is None:
+        if position is None and self.tree.currentItem() is None:
             position = self.tree.topLevelItemCount()
+        else:
+            position = self.tree.indexOfTopLevelItem(self.tree.currentItem())+1
         name = d['name']
         root = QTreeWidgetItem([name])
         root.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled | Qt.ItemIsDragEnabled)
