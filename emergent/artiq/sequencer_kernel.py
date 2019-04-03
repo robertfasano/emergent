@@ -14,7 +14,6 @@ def prepare_data_sets(times, n_samples) -> TList(TList(TList(TInt32))):
     return [[[0]*8]*n_samples[i] for i in range(len(times))]
 
 def post_results(samples):
-    print('sending data:', time.time())
     requests.post('http://127.0.0.1:5000/artiq/run', json={'result': samples.to_json()})
 
 def post_raw_results(samples):
@@ -253,11 +252,11 @@ class Sequencer(EnvExperiment):
                     # # self.data = [[[0]]]
                     # if self.do_adc == 1:
                     # data = prepare_data_sets(self.times, N_samples) # crashes comms
-                    data = [[[0]*8]*N_samples[i] for i in range(len(self.times))]
-
-                        # print(new_data)
-                        # self.data = new_data
-                # delay(500*ms)
+                    # data = [[[0]*8]*N_samples[i] for i in range(len(self.times))]
+                    data = [[[0 for ch in range(8)] for n in range(N_samples[i])] for i in range(len(self.times))]
+                    ## NOTE: simplifying this declaration using pythonic syntax like
+                    ## [0 for ch in range(8)] -> [0]*8 can cause different list elements
+                    ## to share byte addresses, such that updating one will update all
 
 
             data = self.execute(self._ttls, adc_delay,  N_samples, data)
@@ -313,7 +312,7 @@ class Sequencer(EnvExperiment):
                 # if self.do_adc == 1:
                 with sequential:
                     if 1 in self.adc_table[col]:
-                        self.get_samples(col, N_samples[col], adc_delay, data)
+                        data = self.get_samples(col, N_samples[col], adc_delay, data)
                     else:
                         delay(time)
             col += 1
@@ -323,9 +322,9 @@ class Sequencer(EnvExperiment):
     def get_samples(self, step_number, n, dt, data):
         for i in range(n):
             with parallel:
-                with sequential:
-                    self.sampler0.sample_mu(data[step_number][i])
+                self.sampler0.sample_mu(data[step_number][i])
                 delay(dt)
+        return data
 
     @kernel
     def execute_ttl_pattern(self, ttls, channels, times, table):
