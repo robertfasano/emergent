@@ -56,21 +56,11 @@ class CustomTree(QTreeWidget):
         actions = {'Reset': self.parent.reset}
         actions['Add'] = {'Optimizer': {}, 'Model': {}, 'Block': {}}
 
-        optimizers = self.parent.list_classes('optimizers')
-        opt_actions = actions['Add']['Optimizer']
-        for opt in optimizers:
-            opt_actions[opt] = partial(self.parent.add_block, {'name': opt})
-
-        models = self.parent.list_classes('models')
-        model_actions = actions['Add']['Model']
-        for model in models:
-            model_actions[model] = partial(self.parent.add_block, {'name': model})
-
-        blocks = self.parent.list_classes('blocks')
-        block_actions = actions['Add']['Block']
-        for block in blocks:
-            block_actions[block] = partial(self.parent.add_block, {'name': block})
-
+        for block_type in ['optimizers', 'models', 'blocks']:
+            blocks = self.parent.list_classes(block_type)
+            subdict = actions['Add'][block_type.capitalize()[:-1]]
+            for block in blocks:
+                subdict[block] = partial(self.parent.add_block, {'name': block})
         menu = DictMenu(actions)
         selectedItem = menu.exec_(globalPos)
 
