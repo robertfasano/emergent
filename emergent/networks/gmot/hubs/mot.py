@@ -125,11 +125,25 @@ class MOT(Hub):
         data = self.artiq()
         return data[data.index-data.index[0]<self.state['sequencer']['load']]
 
+    def data_from(self, step_name, data):
+        ''' Returns the section of a dataframe corresponding to a given timestep. '''
+        ## get start of timestep
+        start_time = 0
+        for step in self.children['sequencer'].steps:
+            if step['name'] == step_name:
+                break
+            else:
+                start_time += self.children['sequencer'].state[step['name']]
+        end_time = start_time + self.children['sequencer'].state[step['name']]
+        return data[(data.index >= start_time) & (data.index <= end_time)]
+
     @experiment
     def loading(self, state, params = {'quantity': ['slope', 'fluorescence', 'lifetime']}):
         self.actuate(state)
-        data = self.measure_loading()[0]
-        fluorescence = data.max()-data.min()
+        # data = self.measure_loading()[0]
+        data = self.artiq()
+        data = self.data_from('load', data)
+        fluorescence = (data.max()-data.min())[0]
         slope = np.polyfit(data.index, data.values, 1)[0][0]
 
         def model(t, A, tau):
