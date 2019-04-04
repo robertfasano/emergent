@@ -59,7 +59,9 @@ class MOT(Hub):
           }
 
         steps = [loading_step, delay_step, probe_step]
-
+        import json
+        with open('/emergent/emergent/networks/gmot/sequences/transfer.json', 'r') as file:
+            steps = json.load(file)
         self.sequencer = Sequencer('sequencer', parent = self, params = {'sequence': steps})
         self.sequencer.ttl = {0: 'slowing rf', 1: 'trap rf', 2: 'trap shutter', 3: 'trap servo', 4: 'slowing servo', 5: 'SHG rf', 6: 'SHG shutter', 7: 'slowing shutter', 8: 'test', 9: 'test', 10: 'test', 11: 'test', 12: 'test', 13: 'test', 14: 'test', 15: 'test',}
         self.sequencer.adc = {0: 'PMT'}
@@ -189,6 +191,16 @@ class MOT(Hub):
         tau_fit = popt[1]
 
         return -tau_fit
+
+    @experiment
+    def transfer(self, state, params = {}):
+        self.actuate(state)
+        data = self.artiq()
+        data1 = self.data_from('probe2', data).values.max()
+        data2 = self.data_from('probe', data).values.max()
+        print(data1/data2)
+
+        return -(data1/data2)
 
 
     # @experiment
