@@ -1,6 +1,6 @@
 import numpy as np
 
-class Scaler_dev():
+class Scaler():
     ''' General methods '''
     def __init__(self, state, limits):
         self.state = state
