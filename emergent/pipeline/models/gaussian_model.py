@@ -17,8 +17,12 @@ class GaussianModel(Block):
             self.optimizer = optimizer
             self.optimizer.source = self
         self.params = {}
+        self.params['Optimizer'] = Parameter(name='Optimizer', value=self.list_optimizers(), type=str)
         for p in params:
             self.params[p].value = params[p]
+            if p == 'Optimizer':
+                self.optimizer = params['Optimizer']
+                self.optimizer.measure = self.measure
 
     def gaussian(self, X, *args):
         ''' Args:
@@ -50,19 +54,30 @@ class GaussianModel(Block):
         ''' Trains on the passed data, numerically optimizes the modeled response
             surface, then makes a physical measurement at the modeled minimum. '''
         self.fit(points, costs)
-        if hasattr(self, 'optimizer'):
-            x_pred, y_pred = self.optimizer.run(points, costs, bounds)
-            x_pred = x_pred[len(points)::]
-            y_pred = y_pred[len(costs)::]
-            point = x_pred[np.argmin(y_pred)]
-            self.best_point, best_cost = point, np.array([self.source.measure(point)])
-        else:
-            self.best_point = np.array([self.popt[1], self.popt[2]])
-            best_cost = np.array([self.source.measure(self.best_point)])
+        # if hasattr(self, 'optimizer'):
+        x_pred, y_pred = self.optimizer.run(points.copy(), costs.copy(), bounds)
+        x_pred = x_pred[len(points)::]
+        y_pred = y_pred[len(costs)::]
+        point = x_pred[np.argmin(y_pred)]
+        self.best_point, best_cost = point, np.array([self.pipeline.measure(point)])
+        # else:
+        #     self.best_point = np.array([self.popt[1], self.popt[2]])
+        #     best_cost = np.array([self.pipeline.measure(self.best_point)])
         points = np.append(points, np.atleast_2d(self.best_point), axis=0)
         costs = np.append(costs, best_cost)
 
         return points, costs
+
+    def list_optimizers(self):
+        import importlib, inspect
+        module = importlib.import_module('emergent.pipeline.optimizers')
+        names = []
+        for a in dir(module):
+            if '__' not in a:
+                inst = getattr(module, a)
+                if inspect.isclass(inst):
+                    names.append(inst.__name__)
+        return names
 
     def plot(self, axis1, axis2=None, n_points = 30, mode='cross-section'):
         dim = len(self.best_point)

@@ -15,14 +15,14 @@ class LBFGSB(Block):
         for p in params:
             self.params[p].value = params[p]
 
-    def measure(self, point):
+    def _measure(self, point):
         ''' Intermediate cost function only used to store the points and costs
             obtained by the differential evolution routine. '''
         if self.measured_points is None:
             self.measured_points = np.atleast_2d(point)
         else:
             self.measured_points = np.append(self.measured_points, np.atleast_2d(point), axis=0)
-        c = self.source.measure(point)
+        c = self.measure(point)
         self.measured_costs = np.append(self.measured_costs, c)
 
         return c
@@ -34,7 +34,7 @@ class LBFGSB(Block):
 
         self.measured_points = None
         self.measured_costs = np.array([])
-        res = minimize(fun=self.measure,
+        res = minimize(fun=self._measure,
                    x0=points[-1],
                    bounds=bounds,
                    method='L-BFGS-B',

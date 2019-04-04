@@ -39,7 +39,7 @@ class GridSearch(Block):
             for point in grid_points:
                 # if not self.sampler.callback():
                 #     return self.points[0:len(self.costs)], self.costs
-                c = self.source.measure(point)
+                c = self.measure(point)
 
                 grid_costs = np.append(grid_costs, c)
 
@@ -48,5 +48,5 @@ class GridSearch(Block):
 
         best_point = points[np.argmin(costs)]
         points = np.append(points, np.atleast_2d(best_point), axis=0)
-        costs = np.append(costs, self.source.measure(points[-1]))
+        costs = np.append(costs, self.measure(points[-1]))
         return points, costs

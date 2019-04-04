@@ -44,8 +44,8 @@ class Adam(Block):
 
             p1 = point + step
             p2 = point - step
-            c1 = self.source.measure(p1)
-            c2 = self.source.measure(p2)
+            c1 = self.measure(p1)
+            c2 = self.measure(p2)
             g[d] = (c1-c2)/(2*step[d])
 
             for p in [p1, p2]:
@@ -81,6 +81,6 @@ class Adam(Block):
             ''' move along gradient '''
             x_i -= self.params['Learning rate'].value*mhat/(np.sqrt(vhat)+epsilon)+np.random.normal(0, self.params['Noise'].value, size=dim)
             points = np.append(points, np.atleast_2d(x_i), axis=0)
-            costs = np.append(costs, self.source.measure(x_i))
+            costs = np.append(costs, self.measure(x_i))
 
         return points, costs
