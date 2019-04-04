@@ -74,8 +74,11 @@ class Pipeline:
         return [(min[i],max[i]) for i in range(self._points.shape[1])]
 
     def get_physical_bounds_dev(self):
-        min = self.scaler.unnormalize(np.array([0,0]), array=True)
-        max = self.scaler.unnormalize(np.array([1,1]), array=True)
+        min_state = self.scaler.array2state(np.zeros(self._points.shape[1]))
+        max_state = self.scaler.array2state(np.ones(self._points.shape[1]))
+
+        min = self.scaler.state2array(self.scaler.unnormalize(min_state))
+        max = self.scaler.state2array(self.scaler.unnormalize(max_state))
 
         return [(min[i],max[i]) for i in range(self._points.shape[1])]
 
