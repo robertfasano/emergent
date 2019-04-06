@@ -4,10 +4,10 @@ import numpy as np
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C, WhiteKernel
 import pickle
-from emergent.pipeline import Block
+from emergent.pipeline.models.model import Model
 import logging as log
 
-class GaussianProcess(Block):
+class GaussianProcess(Model):
     def __init__(self, params={}):
         super().__init__()
         self.params = {}
@@ -26,27 +26,12 @@ class GaussianProcess(Block):
                                             min = 0,
                                             max = 10,
                                             description = 'Amplitude of modeled white noise process')
-        self.params['Optimizer'] = Parameter(name='Optimizer', value=self.list_optimizers(), type=str)
 
         for p in params:
             self.params[p].value = params[p]
-            if p == 'Optimizer':
-                self.optimizer = params['Optimizer']
-                self.optimizer.measure = self.measure
 
         kernel = C(self.params['Amplitude'].value, (1e-3, 1e3)) * RBF(self.params['Length scale'].value, (1e-2, 1e2)) + WhiteKernel(self.params['Noise'].value)
         self.model = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=10)
-
-    def list_optimizers(self):
-        import importlib, inspect
-        module = importlib.import_module('emergent.pipeline.optimizers')
-        names = []
-        for a in dir(module):
-            if '__' not in a:
-                inst = getattr(module, a)
-                if inspect.isclass(inst):
-                    names.append(inst.__name__)
-        return names
 
     def fit(self, points, costs):
         self.model.fit(points, costs)
@@ -56,19 +41,3 @@ class GaussianProcess(Block):
 
     def measure(self, X):
         return self.predict(X)[0][0]
-
-    def run(self, points, costs, bounds=None):
-        ''' Trains on the passed data, numerically optimizes the modeled response
-            surface, then makes a physical measurement at the modeled minimum. '''
-        # if not hasattr(self, 'optimizer'):
-        #     log.warn('Attach an optimizer before calling %s.run()'%self.__class__.__name__)
-        self.fit(points, costs)
-        x_pred, y_pred = self.optimizer.run(points.copy(), costs.copy(), bounds)
-        x_pred = x_pred[len(points)::]
-        y_pred = y_pred[len(costs)::]
-        point = x_pred[np.argmin(y_pred)]
-        best_point, best_cost = point, np.array([self.pipeline.measure(point)])
-        points = np.append(points, np.atleast_2d(best_point), axis=0)
-        costs = np.append(costs, best_cost)
-
-        return points, costs
