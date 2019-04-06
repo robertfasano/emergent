@@ -10,8 +10,8 @@ class Prune(Block):
             self.params[p] = params[p]
 
     def run(self, points, costs, bounds=None):
-        valid_points = points[costs<np.min(costs)*self.params['threshold']]
-        valid_costs = costs[costs<np.min(costs)*self.params['threshold']]
+        valid_points = points[costs<np.min(costs)*self.params['threshold'].value]
+        valid_costs = costs[costs<np.min(costs)*self.params['threshold'].value]
 
         return valid_points, valid_costs
 
