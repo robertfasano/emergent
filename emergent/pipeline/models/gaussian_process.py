@@ -8,11 +8,8 @@ from emergent.pipeline import Block
 import logging as log
 
 class GaussianProcess(Block):
-    def __init__(self, params={}, optimizer=None):
+    def __init__(self, params={}):
         super().__init__()
-        if optimizer is not None:
-            self.optimizer = optimizer
-            self.optimizer.source = self
         self.params = {}
         self.params['Amplitude'] = Parameter(name= 'Kernel amplitude',
                                             value = 1,

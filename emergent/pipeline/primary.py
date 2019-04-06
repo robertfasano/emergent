@@ -2,12 +2,11 @@ import numpy as np
 import importlib
 import inspect
 import matplotlib.pyplot as plt
+import logging as log
 import time
 import json
 from emergent.pipeline.scaler_dev import Scaler
-
-import logging as log
-log.basicConfig(level=log.INFO)
+from emergent.pipeline.pipeline_dev import Pipeline
 
 class Pipeline:
     def __init__(self, experiment, params, state, bounds):
@@ -45,7 +44,7 @@ class Pipeline:
         self.blocks.append(block)
         block.pipeline = self
         block.number = len(self.blocks)
-        # block.measure = self.measure
+        block.measure = self.measure
 
         return block
 

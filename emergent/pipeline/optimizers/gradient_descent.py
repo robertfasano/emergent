@@ -26,8 +26,8 @@ class GradientDescent(Block):
 
             p1 = point + step
             p2 = point - step
-            c1 = self.measure(p1)
-            c2 = self.measure(p2)
+            c1 = self.pipeline.measure(p1)
+            c2 = self.pipeline.measure(p2)
             g[d] = (c1-c2)/(2*step[d])
 
             for p in [p1, p2]:
@@ -46,5 +46,5 @@ class GradientDescent(Block):
             gradient, points, costs = self.gradient(points, costs)
             x_i -= self.params['Learning rate'].value * gradient
             points = np.append(points, np.atleast_2d(x_i), axis=0)
-            costs = np.append(costs, self.measure(x_i))
+            costs = np.append(costs, self.pipeline.measure(x_i))
         return points, costs

@@ -36,7 +36,7 @@ class ParticleSwarm(Block):
         best_cost = np.empty(particles)
         for i in range(particles):
             points = np.append(points, np.atleast_2d(pos[i,:]), axis=0)
-            costs = np.append(costs, self.measure(points[-1]))
+            costs = np.append(costs, self.pipeline.measure(points[-1]))
             best_cost[i] = costs[-1]
             if costs[-1] < swarm_best_cost:
                 swarm_best_point = points[-1]
@@ -51,7 +51,7 @@ class ParticleSwarm(Block):
                 vel[i, :] += self.params['Social acceleration'].value*rg*(swarm_best_point[:]-pos[i, :])
                 pos[i, :] += vel[i, :]
                 points = np.append(points, np.atleast_2d(pos[i, :]), axis=0)
-                costs = np.append(costs, self.measure(points[-1]))
+                costs = np.append(costs, self.pipeline.measure(points[-1]))
                 if costs[-1] < best_cost[i]:
                     best_point[i,:] = points[-1]
                     best_cost[i] = costs[-1]
@@ -60,6 +60,6 @@ class ParticleSwarm(Block):
                         swarm_best_cost = costs[-1]
 
         points = np.append(points, np.atleast_2d(swarm_best_point), axis=0)
-        costs = np.append(costs, self.measure(points[-1]))
+        costs = np.append(costs, self.pipeline.measure(points[-1]))
 
         return points, costs
