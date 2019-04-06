@@ -4,17 +4,17 @@ import inspect
 import matplotlib.pyplot as plt
 import time
 import json
-from emergent.pipeline.scaler_dev import Scaler
+from emergent.pipeline import BasePipeline, Scaler
 
 import logging as log
 log.basicConfig(level=log.INFO)
 
-class Pipeline:
+class Pipeline(BasePipeline):
     def __init__(self, experiment, params, state, bounds):
+        super().__init__()
         self.experiment = experiment
         self.params = params
         self.state = state
-        self.blocks = []
 
         self.scaler = Scaler(state, bounds)
 
@@ -41,22 +41,14 @@ class Pipeline:
 
         return self.experiment(target, self.params)
 
-    def add(self, block):
-        self.blocks.append(block)
-        block.pipeline = self
-        block.number = len(self.blocks)
-        # block.measure = self.measure
-
-        return block
-
-    def add_blocks(self, block_list):
-        ''' Designed for compatibility with the PipelineLayout GUI element.
-            Takes a list of dictionaries, each specifying a block and its params,
-            and adds them. '''
-        module = importlib.import_module('emergent.pipeline')
-        for block in block_list:
-            inst = getattr(module, block['block'])(params=block['params'])
-            self.add(inst)
+    # def add_blocks(self, block_list):
+    #     ''' Designed for compatibility with the PipelineLayout GUI element.
+    #         Takes a list of dictionaries, each specifying a block and its params,
+    #         and adds them. '''
+    #     module = importlib.import_module('emergent.pipeline')
+    #     for block in block_list:
+    #         inst = getattr(module, block['block'])(params=block['params'])
+    #         self.add(inst)
 
     def get_physical_bounds(self):
         min_state = self.scaler.array2state(np.zeros(self._points.shape[1]))

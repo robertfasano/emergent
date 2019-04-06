@@ -1,8 +1,8 @@
 from abc import abstractmethod
-from emergent.pipeline.pipeline_dev import Pipeline_dev
+from emergent.pipeline import BasePipeline
 import numpy as np
 
-class Model(Pipeline_dev):
+class Model(BasePipeline):
     ''' The Model class inherits elements from both Pipeline and Block - it is a subpipeline
         which can consume data from the primary pipeline to fit a surface to observed data,
         numerically optimize the surface to inform future sampling choices, then make a physical
