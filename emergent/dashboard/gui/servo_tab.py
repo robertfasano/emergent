@@ -7,13 +7,11 @@ from PyQt5.QtCore import *
 import logging as log
 import datetime
 from emergent.dashboard.structures.parameter_table import ParameterTable
-from emergent.core import ProcessHandler
 from emergent.utilities import recommender
 
-class ServoLayout(QVBoxLayout, ProcessHandler):
+class ServoLayout(QVBoxLayout):
     def __init__(self, parent):
         QVBoxLayout.__init__(self)
-        ProcessHandler.__init__(self)
         self.parent = parent
         self.name = 'Servo'
         layout = QGridLayout()

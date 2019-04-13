@@ -18,13 +18,11 @@ from PyQt5.QtWidgets import (QVBoxLayout, QWidget, QTabWidget)
 from emergent.utilities.introspection import list_errors, list_experiments, list_triggers
 from emergent.utilities import recommender
 from emergent.modules import Sampler
-from emergent.core import ProcessHandler
 from emergent.dashboard.gui import MeasureLayout, ModelLayout, ServoLayout, PipelineLayout
 
-class ExperimentLayout(QVBoxLayout, ProcessHandler):
+class ExperimentLayout(QVBoxLayout):
     def __init__(self, dashboard):
         QVBoxLayout.__init__(self)
-        ProcessHandler.__init__(self)
         self.dashboard = dashboard
         self.tab_widget = QTabWidget()
         self.addWidget(self.tab_widget)

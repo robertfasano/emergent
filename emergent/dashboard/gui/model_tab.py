@@ -4,16 +4,14 @@ from PyQt5.QtWidgets import (QComboBox, QPushButton, QTabWidget, QVBoxLayout, QW
         QTableWidgetItem, QTableWidget, QHBoxLayout, QGridLayout, QLabel, QMenu, QAction)
 from PyQt5.QtCore import *
 from PyQt5.QtGui import QCursor
-from emergent.core import ProcessHandler
 import logging as log
 import numpy as np
 from emergent.dashboard.structures.parameter_table import ParameterTable
 from emergent.utilities import recommender
 
-class ModelLayout(QVBoxLayout, ProcessHandler):
+class ModelLayout(QVBoxLayout):
     def __init__(self, parent):
         QVBoxLayout.__init__(self)
-        ProcessHandler.__init__(self)
         self.parent = parent
         self.name = 'Model'
 
