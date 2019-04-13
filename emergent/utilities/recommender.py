@@ -36,7 +36,7 @@ def get_default_algorithm(hub, experiment_name):
 def get_default_params(module, name):
     if name == 'None':
         return {}
-    module_name = {'sampler': 'emergent.samplers', 'model': 'emergent.models',
+    module_name = {'sampler': 'emergent.modeling.samplers', 'model': 'emergent.modeling.models',
                    'algorithm': 'optimizers', 'servo': 'emergent.servos'}[module]
     instance = getattr(importlib.import_module(module_name), name)()
     params = instance.params
@@ -61,13 +61,13 @@ def get_default_experiment_params(hub, experiment_name):
 def get_class(module, name):
     if name == 'None':
         return None
-    module_name = {'sampler': 'emergent.samplers', 'model': 'emergent.models',
+    module_name = {'sampler': 'emergent.modeling.samplers', 'model': 'emergent.modeling.models',
                    'algorithm': 'optimizers', 'servo': 'emergent.servos'}[module]
     instance = getattr(importlib.import_module(module_name), name)()
     return instance
 
 def list_classes(module_type):
-    module_name = {'sampler': 'emergent.samplers', 'model': 'emergent.models',
+    module_name = {'sampler': 'emergent.modeling.samplers', 'model': 'emergent.modeling.models',
                    'algorithm': 'optimizers', 'servo': 'emergent.servos'}[module_type]
     module = importlib.import_module(module_name)
     names = []

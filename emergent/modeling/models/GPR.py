@@ -3,7 +3,7 @@ from emergent.utilities.decorators import algorithm
 import numpy as np
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C, WhiteKernel
-from emergent.models.model import Model
+from emergent.modeling.models.model import Model
 import pickle
 
 class GaussianProcess(Model):

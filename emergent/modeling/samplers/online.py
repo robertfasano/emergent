@@ -1,7 +1,7 @@
 from emergent.utilities.containers import Parameter
 import numpy as np
 from emergent.utilities.plotting import plot_2D
-from emergent.samplers.sampling import Sampling
+from emergent.modeling.samplers.sampling import Sampling
 import logging as log
 
 class Online(Sampling):
@@ -44,7 +44,7 @@ class Online(Sampling):
         else:
             log.info('Randomly sampling to pre-train model.')
             # X, c = self.sampler.sample(state, 'random_sampling', self.params['Presampled points'].value)
-            from emergent.samplers.random import Random
+            from emergent.modeling.samplers.random import Random
             X, c = Random(sampler=self.sampler,
                           params={'Steps': self.params['Presampled points'].value}
                           )._run(state)

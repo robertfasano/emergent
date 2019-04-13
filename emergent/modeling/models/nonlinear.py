@@ -5,7 +5,7 @@ from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C, WhiteKernel
 from scipy.optimize import minimize
 from emergent.utilities.plotting import plot_2D
-from emergent.models.model import Model
+from emergent.modeling.models.model import Model
 from scipy.optimize import curve_fit
 
 
