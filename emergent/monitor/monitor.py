@@ -5,11 +5,14 @@ from emergent.utilities.decorators import thread
 import time
 import logging as log
 log.basicConfig(level=log.INFO)
+import sched
 
 class Monitor():
     def __init__(self, watchdogs = {}, filename = None):
         self.watchdogs = watchdogs
         self.filename = filename
+        self.scheduler = sched.scheduler(time.time, time.sleep)
+        self.trigger = None
 
     def add(self, key, watchdog):
         self.watchdogs[key] = watchdog
@@ -37,16 +40,29 @@ class Monitor():
         time.sleep(period)
 
     @thread
-    def start(self, period=None):
+    def start_triggered(self, trigger=None):
+        if trigger is None:
+            trigger = self.trigger
         self.on = 1
-        if period is not None:
-            self.trigger = partial(self.wait_trigger, period)
-        if not hasattr(self, 'trigger'):
-            log.warn('Attach a trigger or define a period!')
+
+        if trigger is None:
+            log.warn('Attach or pass a trigger!')
             return
+
         while self.on:
-            self.trigger()
+            trigger()
             self.check()
+
+    @thread
+    def start_periodic(self, period):
+        self.on = 1
+        if not hasattr(self, 'last_time'):
+            self.last_time = time.time()
+        while self.on:
+            self.scheduler.enterabs(self.last_time, 1, self.check)
+            self.last_time += period
+            self.scheduler.run()
+
 
     def stop(self):
         self.on = 0
