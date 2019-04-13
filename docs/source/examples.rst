@@ -20,7 +20,7 @@ by running
 .. code-block :: python
 
    ipython
-   %run main example
+   %run master example
 
 Once EMERGENT launches, a GUI will open. The left pane displays the network tree,
 with top-level Hubs overseeing one or more Things, each of which

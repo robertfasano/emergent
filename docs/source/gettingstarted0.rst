@@ -60,7 +60,7 @@ an IPython session and call
 
 .. code-block :: python
 
-   %run main <network> --addr <addr> --port <port>
+   %run master <network> --addr <addr> --port <port>
 
 The first argument should be replaced with the network name as it appears in your
 ``emergent/emergent/networks`` folder. The second and third arguments are optional and
