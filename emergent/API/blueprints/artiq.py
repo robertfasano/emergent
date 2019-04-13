@@ -18,6 +18,59 @@ def get_blueprint(core):
             core.start_artiq_client()
         return 'connected'
 
+    @blueprint.route('/activate', methods=['POST'])
+    def activate_sequence():
+        core.sequencer.activate(request.get_json()['sequence'])
+
+        return ''
+
+    @blueprint.route('/sequence', methods=['GET', 'POST'])
+    def sequence():
+        s = core.sequencer
+        if request.method == 'POST':
+            s.steps = request.get_json()
+            s.sequences[s.current_sequence] = s.steps
+            s.save(s.current_sequence)
+        return json.dumps(s.steps)
+
+    @blueprint.route('/current_step', methods=['GET', 'POST'])
+    def sequencer_step():
+        if request.method == 'POST':
+            core.sequencer.goto(request.get_json()['step'])
+        return json.dumps(core.sequencer.current_step)
+
+    @blueprint.route('/sequences', methods=['GET'])
+    def get_sequences():
+        return json.dumps(core.sequencer.sequences)
+
+    @blueprint.route('/ttl')
+    def get_ttls():
+        return json.dumps(core.sequencer.ttl)
+
+    @blueprint.route('/dac')
+    def get_dacs():
+        return json.dumps(core.sequencer.dac)
+
+    @blueprint.route('/adc')
+    def get_adcs():
+        return json.dumps(core.sequencer.adc)
+
+    @blueprint.route('/dds')
+    def get_dds():
+        return json.dumps(core.sequencer.dds)
+
+    @blueprint.route('/store', methods=['POST'])
+    def store_sequence():
+        core.sequencer.store(request.get_json()['name'])
+
+        return ''
+
+    @blueprint.route('/delete', methods=['POST'])
+    def delete_sequence(hub):
+        core.sequencer.delete(request.get_json()['name'])
+
+        return ''
+
     @blueprint.route('/data', methods = ['GET', 'POST'])
     def post_data():
         if not hasattr(core, 'artiq_data'):
