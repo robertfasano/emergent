@@ -2,17 +2,19 @@ import numpy as np
 import importlib
 import inspect
 import matplotlib.pyplot as plt
-import logging as log
 import time
 import json
-from emergent.pipeline.scaler_dev import Scaler
+from emergent.pipeline import BasePipeline, Scaler
 
-class Pipeline:
+import logging as log
+log.basicConfig(level=log.INFO)
+
+class Pipeline(BasePipeline):
     def __init__(self, experiment, params, state, bounds):
+        super().__init__()
         self.experiment = experiment
         self.params = params
         self.state = state
-        self.blocks = []
 
         self.scaler = Scaler(state, bounds)
 
@@ -39,18 +41,14 @@ class Pipeline:
 
         return self.experiment(target, self.params)
 
-    def add(self, block):
-        self.blocks.append(block)
-        block.connect(self)
-
-    def add_blocks(self, block_list):
-        ''' Designed for compatibility with the PipelineLayout GUI element.
-            Takes a list of dictionaries, each specifying a block and its params,
-            and adds them. '''
-        module = importlib.import_module('emergent.pipeline')
-        for block in block_list:
-            inst = getattr(module, block['block'])(params=block['params'])
-            self.add(inst)
+    # def add_blocks(self, block_list):
+    #     ''' Designed for compatibility with the PipelineLayout GUI element.
+    #         Takes a list of dictionaries, each specifying a block and its params,
+    #         and adds them. '''
+    #     module = importlib.import_module('emergent.pipeline')
+    #     for block in block_list:
+    #         inst = getattr(module, block['block'])(params=block['params'])
+    #         self.add(inst)
 
     def get_physical_bounds(self):
         min_state = self.scaler.array2state(np.zeros(self._points.shape[1]))
@@ -76,6 +74,9 @@ class Pipeline:
         log.info('Optimization complete!')
         log.info('Time: %.0fs'%self.duration)
         log.info('Evaluations: %i'%len(self.points))
+        log.info('Initial cost: %f'%self.costs[0])
+        log.info('Final cost: %f'%self.costs[-1])
+
         percent_improvement = (self.costs[-1]-self.costs[0])/self.costs[0]*100
         log.info('Improvement: %.1f%%'%percent_improvement)
 
@@ -108,15 +109,15 @@ class Pipeline:
     #     tabs['Data'] = {'points': self.points.tolist(), 'costs': self.costs.tolist()}
     #     self.network.emit('plot', tabs)
 
-    def get_json(self):
-        blocks = []
-        for block in self.blocks:
-            params = {}
-            for p in block.params:
-                params[p] = block.params[p].value
-            blocks.append({'block': block.__class__.__name__,
-                           'params': params})
-        return blocks
+    # def get_json(self):
+    #     blocks = []
+    #     for block in self.blocks:
+    #         params = {}
+    #         for p in block.params:
+    #             params[p] = block.params[p].value
+    #         blocks.append({'block': block.__class__.__name__,
+    #                        'params': params})
+    #     return blocks
 
     # def save(self, name, pipeline=None):
     #     import os

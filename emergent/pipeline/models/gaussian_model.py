@@ -11,11 +11,8 @@ from emergent.pipeline import Block
 import matplotlib.pyplot as plt
 
 class GaussianModel(Block):
-    def __init__(self, params = {}, optimizer=None):
+    def __init__(self, params = {}):
         super().__init__()
-        if optimizer is not None:
-            self.optimizer = optimizer
-            self.optimizer.source = self
         self.params = {}
         self.params['Optimizer'] = Parameter(name='Optimizer', value=self.list_optimizers(), type=str)
         for p in params:
@@ -48,6 +45,7 @@ class GaussianModel(Block):
         return self.gaussian(X, *tuple(self.popt)), 0
 
     def measure(self, X):
+        print('measure model')
         return self.predict(X)[0][0]
 
     def run(self, points, costs, bounds=None):

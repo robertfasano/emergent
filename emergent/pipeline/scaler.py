@@ -11,46 +11,38 @@ class Scaler():
         ''' Converts a numpy array into a state dict with keys matching self.state. '''
         state = {}
         i = 0
-        for thing in self.state:
-            state[thing] = {}
-            for knob in self.state[thing]:
-                state[thing][knob] = arr[i]
-                i += 1
+        for var in self.state:
+            state[var] = arr[i]
+            i += 1
         return state
 
     def state2array(self, state):
         ''' Converts a state dict into a numpy array. '''
         arr = np.array([])
-        for thing in state:
-            for knob in state[thing]:
-                arr = np.append(arr, state[thing][knob])
+        for var in state:
+            arr = np.append(arr, state[var])
         return arr
 
-    def normalize(self, unnorm):
-        ''' Normalizes a state or substate based on the bounds passed in at initialization. '''
-        norm = {}
-
-        for thing in unnorm:
-            norm[thing] = {}
-            for i in unnorm[thing]:
-                min_val = self.limits[thing][i]['min']
-                max_val = self.limits[thing][i]['max']
-                norm[thing][i] = (unnorm[thing][i] - min_val)/(max_val-min_val)
-
+    def normalize(self, state, bounds=None, norm = {}):
+        ''' Recursively normalizes a dictionary with arbitrary nesting
+            matching the passed bounds dict. '''
+        if bounds is None:
+            bounds = self.limits
+        for key in state:
+            if not isinstance(state[key], dict):
+                norm[key] = (state[key] - bounds[key][0])/(bounds[key][1]-bounds[key][0])
+            else:
+                norm[key] = {}
+                normalize(state[key], bounds[key], norm[key])
         return norm
 
-    def unnormalize(self, norm, array=False):
-        ''' Converts normalized (0-1) state to physical state based on specified
-            max and min parameter values. '''
-        if isinstance(norm, np.ndarray):
-            norm = self.array2state(norm)
-        unnorm = {}
-        for thing in norm:
-            unnorm[thing] = {}
-            for i in norm[thing]:
-                min_val = self.limits[thing][i]['min']
-                max_val = self.limits[thing][i]['max']
-                unnorm[thing][i] = min_val + norm[thing][i] * (max_val-min_val)
-        if array:
-            return self.state2array(unnorm)
+    def unnormalize(self, state, bounds=None, unnorm = {}):
+        if bounds is None:
+            bounds = self.limits
+        for key in state:
+            if not isinstance(state[key], dict):
+                unnorm[key] = bounds[key][0] + state[key] * (bounds[key][1]-bounds[key][0])
+            else:
+                unnorm[key] = {}
+                unnormalize(state[key], bounds[key], unnorm[key])
         return unnorm
