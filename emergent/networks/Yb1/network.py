@@ -4,8 +4,8 @@ from emergent.things.labjack import LabJack
 from emergent.networks.monitor import network as monitor
 from __main__ import *
 
-def initialize(network):
-    pa = Photoassociation(name = 'photoassociation', network = network, addr='127.0.0.1')
+def initialize(core):
+    pa = Photoassociation(name = 'photoassociation', core = core, addr='127.0.0.1')
     pa.labjack = LabJack(name = 'labjack', params = {'devid': '440010742'}, parent = pa)
     pa.labjack.add_knob('TDAC6')
 
@@ -19,7 +19,7 @@ def initialize(network):
     #                     'Blue error signal': {'threshold': 0.1, 'channel': 'A3'},
     #                     }
     #                  }
-    # monitor.initialize(network, params = params)
+    # monitor.initialize(core, params = params)
 
     for hub in [pa]:
-        network.add_hub(hub)
+        core.add_hub(hub)

@@ -35,7 +35,7 @@ class Hub(Node):
     ''' The Hub oversees connected Things, allowing the Knobs to be
         algorithmically tuned to optimize some target function. '''
 
-    def __init__(self, name, params={}, addr='127.0.0.1', network=None, parent=None):
+    def __init__(self, name, params={}, addr='127.0.0.1', core=None, parent=None):
         """Initializes a Hub.
 
         Args:
@@ -48,22 +48,22 @@ class Hub(Node):
         self._name_ = name      # save hardcoded name as private variable
         ''' Update self.params with any parameters associated with the Network '''
         try:
-            network_params = network.params[name]
+            core_params = core.params[name]
         except KeyError:
-            network.params[name] = {}
-            network_params = {}
-        for p in network_params:
-            self.params[p] = network_params[p]
-        if 'name' in network_params:
-            name = network_params['name']
+            core.params[name] = {}
+            core_params = {}
+        for p in core_params:
+            self.params[p] = core_params[p]
+        if 'name' in core_params:
+            name = core_params['name']
         self.watchdogs = {}
-        self.network = network
+        self.core = core
         self.name = name
         self.addr = addr
         self.manager = ProcessHandler()
         if self.addr is None:
             self.addr = get_address()
-        # if network.addr != addr and addr is not None:
+        # if core.addr != addr and addr is not None:
         if self.addr not in get_local_addresses():
             self.local = False
             return
@@ -82,7 +82,7 @@ class Hub(Node):
 
     def __getstate__(self):
         d = {}
-        ignore = ['root', 'watchdogs', 'samplers', 'network', 'leaf', 'options']
+        ignore = ['root', 'watchdogs', 'samplers', 'core', 'leaf', 'options']
         ignore.extend(self.ignored)
         unpickled = []
         for item in ignore:
@@ -127,7 +127,7 @@ class Hub(Node):
                     locked = locked and c          # check the watchdog state
                     states[w.name] = w.value
             ''' Here, add overall watchdog state to a queue to write to the database '''
-            # self.network.database.write(states, measurement = 'watchdog')
+            # self.core.database.write(states, measurement = 'watchdog')
             if not block:
                 return
             if not locked:
@@ -143,7 +143,7 @@ class Hub(Node):
     # def load(self):
     #     ''' Load knob states from file. '''
     #     try:
-    #         with open(self.network.path['state']+self.name+'.json', 'r') as file:
+    #         with open(self.core.path['state']+self.name+'.json', 'r') as file:
     #             state = json.load(file)
     #     except FileNotFoundError:
     #         state = {}
@@ -169,7 +169,7 @@ class Hub(Node):
     def load(self):
         ''' Load knob states from file. '''
         try:
-            with open(self.network.path['state']+self.name+'.json', 'r') as file:
+            with open(self.core.path['state']+self.name+'.json', 'r') as file:
                 state = DataDict(json.load(file))
         except FileNotFoundError:
             state = DataDict({})
@@ -229,7 +229,7 @@ class Hub(Node):
                 state[thing][node.name]['min'] = self.range[thing][knob]['min']
                 state[thing][node.name]['max'] = self.range[thing][knob]['max']
                 state[thing][node.name]['display name'] = self.children[thing].children[knob].display_name
-        with open(self.network.path['state']+self.name+'.json', 'w') as file:
+        with open(self.core.path['state']+self.name+'.json', 'w') as file:
             json.dump(state, file)
 
     def _on_load(self):

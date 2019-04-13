@@ -43,11 +43,11 @@ class Thing(Node):
         self.params = params
         ''' Update self.params with any parameters associated with the Network '''
         try:
-            network_params = parent.network.params[parent._name_]['params'][name]['params']
+            core_params = parent.core.params[parent._name_]['params'][name]['params']
         except KeyError:
-            network_params = {}
-        for p in network_params:
-            self.params[p] = network_params[p]
+            core_params = {}
+        for p in core_params:
+            self.params[p] = core_params[p]
         if 'name' in self.params:
             name = self.params['name']
 
@@ -106,7 +106,7 @@ class Thing(Node):
         self.parent.range[self.name][name] = {}
         for qty in ['min', 'max']:
             self.parent.range[self.name][name][qty] = None
-        self.parent.network.emit('actuate', {self.parent.name: self.parent.state})
+        self.parent.core.emit('actuate', {self.parent.name: self.parent.state})
         #if self.loaded:
             # self.actuate({name:self.parent.state[self.name][name]})
             #log.warning('Knobs changed but not actuated; physical state not synced with virtual state. Run parent.actuate(parent.state) to resolve, where parent is the name of the parent hub node.')
@@ -181,7 +181,7 @@ class Thing(Node):
         self.update(state)
 
         if send_over_p2p:
-            self.parent.network.emit('actuate', {self.parent.name: {self.name: state}})
+            self.parent.core.emit('actuate', {self.parent.name: {self.name: state}})
 
     def update(self, state):
         """Synchronously updates the state of the Knob, Thing, and Hub.

@@ -6,7 +6,7 @@ from emergent.networks.autoAlign4 import network as autoAlign4
 from emergent.modules.node import Thing
 from emergent.networks.monitor import network as monitor
 
-def initialize(network):
+def initialize(core):
     ''' Import autoAlign hubs '''
     cooling_params = {'autoAlign': {'name': 'cooling',
                             'params': {'MEMS':
@@ -20,12 +20,12 @@ def initialize(network):
 
                                         }}}
 
-    autoAlign.initialize(network, cooling_params)
-    autoAlign4.initialize(network, slowing_params)
+    autoAlign.initialize(core, cooling_params)
+    autoAlign4.initialize(core, slowing_params)
 
 
     ''' Define MOT hub '''
-    mot = MOT(name='MOT', network = network)
+    mot = MOT(name='MOT', core = core)
     feedthrough = NetControls('feedthrough', params = {'port': 'COM7'}, parent = mot)
     novatech = Novatech('novatech', params = {'port': 'COM4'}, parent = mot)
     servo = IntensityServo('servo', params = {'devid': '470016973'}, parent = mot)
@@ -37,8 +37,8 @@ def initialize(network):
                         'Chamber ion pump current': {'threshold': 0.1, 'channel': 'A0', 'units': 'mV'}
                         }
                      }
-    monitor.initialize(network, params = params)
+    monitor.initialize(core, params = params)
 
-    ''' Add hubs to network '''
+    ''' Add hubs to core '''
     for hub in [mot]:
-        network.add_hub(hub)
+        core.add_hub(hub)

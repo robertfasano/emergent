@@ -190,7 +190,7 @@ class Sequencer(Thing):
         return stream
 
     def open_grid(self):
-        self.parent.network.emit('sequencer', {'hub': self.parent.name})
+        self.parent.core.emit('sequencer', {'hub': self.parent.name})
 
     def prepare(self):
         ''' Parse the sequence into the proper form to send to the LabJack.
@@ -254,7 +254,7 @@ class Sequencer(Thing):
     #     return data
 
     # def save(self):
-    #     filename = self.parent.network.path['state'] + 'sequence.json'
+    #     filename = self.parent.core.path['state'] + 'sequence.json'
     #     sequence = {}
     #     for step in self.steps:
     #         sequence[step] = {'duration': self.state[step],
@@ -263,7 +263,7 @@ class Sequencer(Thing):
     #         json.dump(sequence, file)
 
     # def load(self):
-    #     filename = self.parent.network.path['state'] + 'sequence.json'
+    #     filename = self.parent.core.path['state'] + 'sequence.json'
     #     with open(filename, 'r') as file:
     #         sequence = json.load(file)
     #

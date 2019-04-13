@@ -15,7 +15,7 @@ import json
 import inspect
 
 def save_default_algorithm(hub, experiment_name, algorithm_name):
-    params_filename = hub.network.path['params'] + '%s.%s.txt'%(hub.name, experiment_name)
+    params_filename = hub.core.path['params'] + '%s.%s.txt'%(hub.name, experiment_name)
     with open(params_filename, 'r') as file:
         params = json.load(file)
     params['algorithm']['default'] = algorithm_name
@@ -24,7 +24,7 @@ def save_default_algorithm(hub, experiment_name, algorithm_name):
 
 
 def get_default_algorithm(hub, experiment_name):
-    params_filename = hub.network.path['params'] + '%s.%s.txt'%(hub.name, experiment_name)
+    params_filename = hub.core.path['params'] + '%s.%s.txt'%(hub.name, experiment_name)
     with open(params_filename, 'r') as file:
         params = json.load(file)
     try:
@@ -91,7 +91,7 @@ def load_algorithm_parameters(hub, experiment_name, algorithm_name, module_type,
     '''
 
     ''' Look for relevant parameters in the json file in the network's params directory '''
-    params_filename = hub.network.path['params'] + '%s.%s.txt'%(hub.name, experiment_name)
+    params_filename = hub.core.path['params'] + '%s.%s.txt'%(hub.name, experiment_name)
     if module_type in ['algorithm', 'servo']:
         key = 'algorithm'
     else:
@@ -143,7 +143,7 @@ def load_all_error_parameters(hub, experiment_name, servo_name):
     ''' Look for relevant parameters in the json file in the network's params directory '''
 
     ''' TO ADD: get default params only as an option'''
-    params_filename = hub.network.path['params'] + '%s.%s.txt'%(hub.name, experiment_name)
+    params_filename = hub.core.path['params'] + '%s.%s.txt'%(hub.name, experiment_name)
 
     ''' Try to open the params file '''
     try:
@@ -185,7 +185,7 @@ def load_all_experiment_parameters(hub, experiment_name, model_name=None, sample
     ''' Look for relevant parameters in the json file in the network's params directory '''
 
     ''' TO ADD: get default params only as an option'''
-    params_filename = hub.network.path['params'] + '%s.%s.txt'%(hub.name, experiment_name)
+    params_filename = hub.core.path['params'] + '%s.%s.txt'%(hub.name, experiment_name)
 
     ''' Try to open the params file '''
     try:
@@ -242,7 +242,7 @@ def load_experiment_parameters(hub, experiment_name, default = False):
     '''
 
     ''' Look for relevant parameters in the json file in the network's params directory '''
-    params_filename = hub.network.path['params'] + '%s.%s.txt'%(hub.name, experiment_name)
+    params_filename = hub.core.path['params'] + '%s.%s.txt'%(hub.name, experiment_name)
 
     if not default:
         try:

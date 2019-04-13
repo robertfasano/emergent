@@ -17,7 +17,7 @@ import logging as log
 
 class MOT(Hub):
     def __init__(self, name, parent = None, network = None):
-        super().__init__(name, parent = parent, network = network)
+        super().__init__(name, parent = parent, core = core)
         self.process_manager = ProcessHandler()
         self.labjack = LabJack(params = {'devid': '470017907'}, name='labjack')
 
@@ -106,12 +106,12 @@ class MOT(Hub):
         return c*x**m
 
     def artiq(self):
-        if not hasattr(self.network, 'artiq_client'):           ## BAD! What if the client has been closed?
+        if not hasattr(self.core, 'artiq_client'):           ## BAD! What if the client has been closed?
             log.warning('Connect to ARTIQ before submitting an experiment!')
             return -1
         requests.post('http://localhost:5000/artiq/run', json={})
         print('start:', time.time())
-        self.network.artiq_client.emit('submit', self.children['sequencer'].steps)
+        self.core.artiq_client.emit('submit', self.children['sequencer'].steps)
         while True:
             response = requests.get('http://localhost:5000/artiq/run').json()
             if 'result' in response:

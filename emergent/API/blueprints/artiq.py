@@ -8,24 +8,24 @@ import logging as log
 url_prefix = '/artiq'
 
 
-def get_blueprint(network):
+def get_blueprint(core):
     blueprint = Blueprint('artiq', __name__)
 
     @blueprint.route("/handshake", methods=['GET', 'POST'])
     def handshake():
         if request.method == 'POST':
             log.info('Connecting to ARTIQ master.')
-            network.start_artiq_client()
+            core.start_artiq_client()
         return 'connected'
 
     @blueprint.route('/data', methods = ['GET', 'POST'])
     def post_data():
-        if not hasattr(network, 'artiq_data'):
-            network.artiq_data = {}
+        if not hasattr(core, 'artiq_data'):
+            core.artiq_data = {}
         if request.method == 'GET':
-            return json.dumps(network.artiq_data)
+            return json.dumps(core.artiq_data)
         elif request.method == 'POST':
-            network.artiq_data = request.get_json()
+            core.artiq_data = request.get_json()
 
     @blueprint.route('/pid')
     def get_pid():
@@ -33,17 +33,17 @@ def get_blueprint(network):
 
     @blueprint.route('/run', methods=['GET', 'POST'])
     def submit():
-        if not hasattr(network, 'artiq_link'):
-            network.artiq_link = {}
+        if not hasattr(core, 'artiq_link'):
+            core.artiq_link = {}
         if request.method == 'POST':
             d = request.get_json()
             if d == {}:
-                network.artiq_link = {}
+                core.artiq_link = {}
             else:
                 for key in d:
-                    network.artiq_link[key] = d[key]
+                    core.artiq_link[key] = d[key]
             return ''
         elif request.method == 'GET':
-            return json.dumps(network.artiq_link)
+            return json.dumps(core.artiq_link)
 
     return blueprint

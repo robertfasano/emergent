@@ -20,7 +20,7 @@ def load_all_experiment_parameters(hub, experiment_name, model_name = None, samp
 
     ''' Look for relevant parameters in the json file in the network's params directory '''
 
-    params_filename = hub.network.path['params'] + '%s.%s.txt'%(hub.name, experiment_name)
+    params_filename = hub.core.path['params'] + '%s.%s.txt'%(hub.name, experiment_name)
     params = {'experiment': {}}
     params['experiment'] = recommender.get_default_experiment_params(hub, experiment_name)
     p = {'experiment': params['experiment']}
@@ -43,12 +43,12 @@ def load_all_experiment_parameters(hub, experiment_name, model_name = None, samp
 
     return p
 
-def get_blueprint(network):
+def get_blueprint(core):
     blueprint = Blueprint('hubs', __name__)
 
     @blueprint.route('/')
     def list_hubs():
-        hubs = list(network.hubs.keys())
+        hubs = list(core.hubs.keys())
         links = []
         html = ''
         for hub in hubs:
@@ -72,7 +72,7 @@ def get_blueprint(network):
 
     @blueprint.route('/<hub>/state', methods = ['GET', 'POST'])
     def hub_state(hub):
-        hub = network.hubs[hub]
+        hub = core.hubs[hub]
         if request.method == 'POST':
             state = request.get_json()
             hub.actuate(state, send_over_p2p=False)
@@ -80,21 +80,21 @@ def get_blueprint(network):
 
     @blueprint.route('/<hub>/range', methods = ['GET', 'POST'])
     def hub_range(hub):
-        hub = network.hubs[hub]
+        hub = core.hubs[hub]
         if request.method == 'POST':
             range = request.get_json()
-            network.set_range({hub.name: range})
+            core.set_range({hub.name: range})
         return json.dumps(hub.range)
 
     @blueprint.route('/<hub>/options')
     def hub_options(hub):
-        hub = network.hubs[hub]
+        hub = core.hubs[hub]
         return json.dumps(list(hub.options.keys()))
 
     @blueprint.route('/<hub>/exec', methods=['POST'])
     def hub_exec(hub):
         ''' Runs a target function on the hub '''
-        hub = network.hubs[hub]
+        hub = core.hubs[hub]
         r = request.get_json()
         func = getattr(hub, r['method'])
         if 'args' in r:
@@ -111,39 +111,39 @@ def get_blueprint(network):
     ''' Hub experiment endpoints '''
     @blueprint.route('/<hub>/experiments')
     def list_experiments(hub):
-        hub = network.hubs[hub]
+        hub = core.hubs[hub]
         return json.dumps(introspection.list_experiments(hub))
 
     @blueprint.route('/<hub>/experiments/<experiment>')
     def list_experiment_params(hub, experiment):
         sampler = request.args.get('sampler')
         model = request.args.get('model')
-        hub = network.hubs[hub]
+        hub = core.hubs[hub]
         params = load_all_experiment_parameters(hub, experiment, model, sampler)
         return json.dumps(params)
 
     @blueprint.route('/<hub>/errors/<error>')
     def list_error_params(hub, error):
-        hub = network.hubs[hub]
+        hub = core.hubs[hub]
         servo = request.args.get('servo')
         params = recommender.load_all_error_parameters(hub, error, servo)
         return json.dumps(params)
 
     @blueprint.route('/<hub>/errors')
     def list_errors(hub):
-        hub = network.hubs[hub]
+        hub = core.hubs[hub]
         return json.dumps(introspection.list_errors(hub))
 
     @blueprint.route('/<hub>/triggers')
     def list_triggers(hub):
-        hub = network.hubs[hub]
+        hub = core.hubs[hub]
         return json.dumps(introspection.list_triggers(hub))
 
 
     ''' Hub sampler endpoints '''
     @blueprint.route('/<hub>/samplers')
     def list_samplers(hub):
-        hub = network.hubs[hub]
+        hub = core.hubs[hub]
         ids = []
         for s in hub.samplers.values():
             ids.append(s.id)
@@ -151,7 +151,7 @@ def get_blueprint(network):
 
     @blueprint.route('/<hub>/samplers/active')
     def list_active_samplers(hub):
-        hub = network.hubs[hub]
+        hub = core.hubs[hub]
         ids = []
         for s in hub.samplers.values():
             if s.active:
@@ -159,7 +159,7 @@ def get_blueprint(network):
         return json.dumps(ids)
 
     def get_sampler_by_id(hub, sampler_id):
-            hub = network.hubs[hub]
+            hub = core.hubs[hub]
 
             for s in hub.samplers.values():
                 if s.id == sampler_id:
@@ -178,7 +178,7 @@ def get_blueprint(network):
         obj = get_sampler_by_id(hub, sampler_id)
         if obj is None:
             return
-        hub = network.hubs[hub]
+        hub = core.hubs[hub]
 
         d = {}
         d['experiment'] = {'name': obj.experiment.__name__, 'params': obj.experiment_params}
@@ -259,13 +259,13 @@ def get_blueprint(network):
     ''' Hub sequencing endpoints '''
     @blueprint.route('/<hub>/switches')
     def hub_switches(hub):
-        switches = network.hubs[hub].switches
+        switches = core.hubs[hub].switches
         return json.dumps(list(switches.keys()))
 
     @blueprint.route('/<hub>/switches/ttl')
     def hub_switch_ttl(hub):
         s = {}
-        switches = network.hubs[hub].switches
+        switches = core.hubs[hub].switches
         for switch in switches:
             if hasattr(switches[switch], 'channel'):
                 channel = switches[switch].channel

@@ -4,25 +4,25 @@ from emergent.utilities import recommender, introspection
 
 url_prefix = '/hubs/<hub>/things'
 
-def get_blueprint(network):
+def get_blueprint(core):
     blueprint = Blueprint('things', __name__)
 
     ''' Thing endpoints '''
     @blueprint.route('/')
     def things(hub):
-        hub = network.hubs[hub]
+        hub = core.hubs[hub]
         return json.dumps(list(hub.children.keys()))
 
     @blueprint.route('/<thing>/options')
     def thing_options(hub, thing):
-        hub = network.hubs[hub]
+        hub = core.hubs[hub]
         thing = hub.children[thing]
         return json.dumps(list(thing.options.keys()))
 
     @blueprint.route('/<thing>/exec', methods=['POST'])
     def thing_exec(hub, thing):
         ''' Runs a target function on the hub '''
-        hub = network.hubs[hub]
+        hub = core.hubs[hub]
         thing = hub.children[thing]
         r = request.get_json()
         func = getattr(thing, r['method'])

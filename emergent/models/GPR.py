@@ -35,11 +35,11 @@ class GaussianProcess(Model):
         return self.model.predict(np.atleast_2d(X), return_std = True)
 
     def _export(self):
-        filename = self.sampler.hub.network.path['data'] + 'weights' + self.extension
+        filename = self.sampler.hub.core.path['data'] + 'weights' + self.extension
         with open(filename, 'wb') as file:
             pickle.dump(self.model, file)
 
     def _import(self):
-        filename = self.sampler.hub.network.path['data'] + 'weights' + self.extension
+        filename = self.sampler.hub.core.path['data'] + 'weights' + self.extension
         with open(filename, 'rb') as file:
             self.model = pickle.load(file)

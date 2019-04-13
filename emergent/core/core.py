@@ -71,7 +71,7 @@ class Core():
                 return
 
         self.hubs[hub.name] = hub
-        hub.network = self
+        hub.core = self
 
     def add_params(self, params):
         ''' Add parameters passed in from the network's initialize() method

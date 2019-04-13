@@ -5,7 +5,7 @@ import time
 
 class Photoassociation(Hub):
     def __init__(self, name, addr = None, network = None):
-        super().__init__(name = name, addr = addr, network = network)
+        super().__init__(name = name, addr = addr, core = core)
         self.trigger_channel = 4
         self.ignored = ['labjack']          # add the names of any unpicklable attributes here
         self.servo_setpoint = -0.3

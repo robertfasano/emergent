@@ -107,7 +107,7 @@ class Pipeline(BasePipeline):
     #
     #     tabs['Optimization'] = {'x': None, 'y': self.costs.tolist(), 'labels': {'bottom': 'Iterations', 'left': 'Result'}}
     #     tabs['Data'] = {'points': self.points.tolist(), 'costs': self.costs.tolist()}
-    #     self.network.emit('plot', tabs)
+    #     self.core.emit('plot', tabs)
 
     # def get_json(self):
     #     blocks = []
@@ -123,7 +123,7 @@ class Pipeline(BasePipeline):
     #     import os
     #     if pipeline is None:
     #         pipeline = self.get_json()
-    #     path = self.network.path['pipelines']
+    #     path = self.core.path['pipelines']
     #     if not os.path.exists(path):
     #         os.makedirs(path)
     #
@@ -131,6 +131,6 @@ class Pipeline(BasePipeline):
     #         json.dump(pipeline, file)
     #
     # def load(self, name):
-    #     path = self.network.path['pipelines']
+    #     path = self.core.path['pipelines']
     #     with open(path+'%s.json'%name, 'r') as file:
     #         self.add_blocks(json.load(file))

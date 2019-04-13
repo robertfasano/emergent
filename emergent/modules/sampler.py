@@ -57,7 +57,7 @@ class Sampler():
             self.model_params = settings['model']['params']
             self.model = recommender.get_class('model', settings['model']['name'])
             if 'Weights' in settings['model']['params']:
-                filename = self.hub.network.path['data'] + '/' + settings['model']['params']['Weights'].split('.')[0]
+                filename = self.hub.core.path['data'] + '/' + settings['model']['params']['Weights'].split('.')[0]
                 self.model._import(filename)
 
         self.active = True        # a boolean allowing early termination through the callback method
@@ -215,10 +215,10 @@ class Sampler():
     def save(self, filename):
         ''' Byte-serialize the sampler and all attached picklable objects and
             save to file. '''
-        self.history.to_csv(self.hub.network.path['data']+filename+'.csv')
+        self.history.to_csv(self.hub.core.path['data']+filename+'.csv')
         self.hub.macro_buffer.add(self.hub.state)
         try:
-            with open(self.hub.network.path['data']+'%s.sci'%filename, 'wb') as file:
+            with open(self.hub.core.path['data']+'%s.sci'%filename, 'wb') as file:
                 pickle.dump(self, file)
         except Exception as e:
             log.warning('Could not pickle Sampler state:', e)

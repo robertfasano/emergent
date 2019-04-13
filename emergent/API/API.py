@@ -6,12 +6,12 @@ import importlib, inspect
 
 manager = ProcessHandler()
 
-def serve(network, addr, port):
+def serve(core, addr, port):
     app = Flask(__name__)
 
     blueprints=importlib.import_module('emergent.API.blueprints')
     for item in inspect.getmembers(blueprints, inspect.ismodule):
-        blueprint = item[1].get_blueprint(network)
+        blueprint = item[1].get_blueprint(core)
         app.register_blueprint(blueprint, url_prefix=item[1].url_prefix)
 
     @app.route("/")
@@ -21,7 +21,7 @@ def serve(network, addr, port):
     @app.route("/handshake", methods=['GET', 'POST'])
     def handshake():
         if request.method == 'POST':
-            network.start_flask_socket_server()
+            core.start_flask_socket_server()
         return 'connected'
 
     ''' Network endpoints '''
@@ -29,22 +29,22 @@ def serve(network, addr, port):
     def state():
         if request.method == 'POST':
             state = request.get_json()
-            network.actuate(state, send_over_p2p=False)
-        return json.dumps(network.state())
+            core.actuate(state, send_over_p2p=False)
+        return json.dumps(core.state())
 
     @app.route('/range', methods=['GET', 'POST'])
     def range():
         if request.method == 'POST':
             range = request.get_json()
-            network.set_range(range)
-        return json.dumps(network.range())
+            core.set_range(range)
+        return json.dumps(core.range())
 
     @app.route('/models/<model>/weights')
     def list_weights(model):
         model = recommender.get_class('model', model)
         files = []
         import os
-        files = [x for x in os.listdir(os.getcwd()+'/'+network.path['data']) if model.extension in x]
+        files = [x for x in os.listdir(os.getcwd()+'/'+core.path['data']) if model.extension in x]
 
         return json.dumps(files)
 

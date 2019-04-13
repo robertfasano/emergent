@@ -5,7 +5,7 @@ import time
 class Monitor(Hub):
     def __init__(self, name, addr = None, network = None, params = []):
         ''' Each entry in params should contain a name and params dict. '''
-        super().__init__(name, addr = addr, network = network, params = params)
+        super().__init__(name, addr = addr, core = core, params = params)
         self.trigger_channel = 'A4'
 
         from emergent.things.labjack import LabJack, MultiJack

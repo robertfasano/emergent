@@ -8,21 +8,21 @@ import logging as log
 from copy import deepcopy
 url_prefix = ''
 
-def prepare_sampler(settings, network):
+def prepare_sampler(settings, core):
     settings = deepcopy(settings)
-    settings['hub'] = network.hubs[settings['hub']]
+    settings['hub'] = core.hubs[settings['hub']]
     settings['range'] = settings['hub'].range.copy()
     sampler = Sampler('sampler', settings)
 
     return sampler
 
-def get_blueprint(network):
+def get_blueprint(core):
     blueprint = Blueprint('rpc', __name__)
 
     @blueprint.route('/run', methods=['POST'])
     def run():
         settings = request.get_json()
-        sampler = prepare_sampler(settings, network)
+        sampler = prepare_sampler(settings, core)
 
         ''' Create task_panel task '''
         params = {'start time': datetime.datetime.now().isoformat(),
@@ -31,7 +31,7 @@ def get_blueprint(network):
                   'hub': sampler.hub.name}
         if 'algorithm' in settings:
             params['algorithm'] = settings['algorithm']['name']
-        requests.post(network.url+url_for('tasks.task', id=sampler.id), json=params)
+        requests.post(core.url+url_for('tasks.task', id=sampler.id), json=params)
 
 
         ''' Run process '''
@@ -41,7 +41,7 @@ def get_blueprint(network):
         func = sampler._solve
         if settings['process']['type'] == 'measure':
             func = sampler._run
-        network.manager._run_thread(func, stoppable=False)
+        core.manager._run_thread(func, stoppable=False)
 
         return 'done'
 

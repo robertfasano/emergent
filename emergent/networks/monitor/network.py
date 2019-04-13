@@ -11,7 +11,7 @@ def initialize(network, params = {}):
                             'CH1': {'threshold': 1, 'channel': 1},
                             }
                          }
-    monitor = Monitor('monitor', network = network, params = params)
+    monitor = Monitor('monitor', core = core, params = params)
 
 
     for hub in [monitor]:

@@ -76,11 +76,11 @@ class Sequencer(Thing):
     def goto(self, step_name):
         ''' Go to a step specified by a string name. '''
         sequence = [self.get_step_by_name(step_name)]
-        if hasattr(self.parent.network, 'artiq_client'):
-            self.parent.network.artiq_client.emit('hold', sequence)
+        if hasattr(self.parent.core, 'artiq_client'):
+            self.parent.core.artiq_client.emit('hold', sequence)
 
         self.current_step = step_name
-        self.parent.network.emit('timestep', {'name': step_name})
+        self.parent.core.emit('timestep', {'name': step_name})
 
     def add_step(self, name, position = -1):
         step = {'name': name,
@@ -113,17 +113,17 @@ class Sequencer(Thing):
             return
 
         self.steps.insert(i+n, self.steps.pop(i))
-        self.parent.network.emit('sequence update')
-        self.parent.network.emit('sequence reorder', {'name': step, 'n': n})
+        self.parent.core.emit('sequence update')
+        self.parent.core.emit('sequence reorder', {'name': step, 'n': n})
 
     def start_artiq(self):
         import os
         os.system('start "" cmd /k "cd /emergent/emergent/artiq/ & call activate artiq-4 & artiq_run sequencer_kernel.py"')
     def open_grid(self):
-        self.parent.network.emit('sequencer', {'hub': self.parent.name})
+        self.parent.core.emit('sequencer', {'hub': self.parent.name})
 
     def get_saved_sequences(self):
-        path = self.parent.network.path['sequences']
+        path = self.parent.core.path['sequences']
         if not os.path.exists(path):
             os.makedirs(path)
 
@@ -133,11 +133,11 @@ class Sequencer(Thing):
         ''' Load a sequence from file '''
         if name == 'default':
             return
-        path = self.parent.network.path['sequences']
+        path = self.parent.core.path['sequences']
         with open(path+'%s.json'%name, 'r') as file:
             self.steps = json.load(file)
         self.store(name)
-        # self.parent.network.emit('sequence update')
+        # self.parent.core.emit('sequence update')
 
     def save(self, name, steps=None):
         ''' Save the current sequence to file '''
@@ -145,13 +145,13 @@ class Sequencer(Thing):
             return
         if steps is None:
             steps = self.steps
-        path = self.parent.network.path['sequences']
+        path = self.parent.core.path['sequences']
         with open(path+'%s.json'%name, 'w') as file:
             json.dump(self.steps, file)
 
     def activate(self, name):
         self.steps = self.sequences[name]
-        self.parent.network.emit('sequence update')
+        self.parent.core.emit('sequence update')
         self.current_sequence = name
 
     def store(self, name, steps=None):
@@ -166,5 +166,5 @@ class Sequencer(Thing):
         if name == 'default':
             return
         del self.sequences[name]
-        path = self.parent.network.path['sequences']
+        path = self.parent.core.path['sequences']
         os.remove(path+'%s.json'%name)
