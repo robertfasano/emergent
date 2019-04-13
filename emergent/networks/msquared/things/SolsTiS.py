@@ -4,7 +4,7 @@ import socket
 import time
 import json
 import numpy as np
-from emergent.modules import Sampler
+from emergent.modeling.sampler import Sampler
 from emergent.utilities import recommender
 
 class SolsTiS(Thing):

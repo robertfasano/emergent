@@ -25,7 +25,7 @@ import json
 import time
 import logging as log
 import datetime
-# from emergent.modules import Sampler
+# from emergent.modeling import Sampler
 from emergent.utilities.containers import DataDict
 from emergent.utilities import recommender
 from emergent.utilities.networking import get_address, get_local_addresses

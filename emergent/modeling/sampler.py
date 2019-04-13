@@ -13,7 +13,7 @@ import datetime
 import logging as log
 import uuid
 from emergent.utilities import recommender
-from emergent.modules.scaler import Scaler
+from emergent.modeling.scaler import Scaler
 
 class Sampler():
     ''' General methods '''

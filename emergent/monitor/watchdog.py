@@ -2,7 +2,6 @@
 
 import logging as log
 log.basicConfig(level=log.INFO)
-from emergent.modules import Sampler
 from emergent.utilities import recommender
 from emergent.utilities.units import Units
 from abc import abstractmethod

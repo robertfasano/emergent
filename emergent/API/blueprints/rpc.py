@@ -3,7 +3,7 @@ import json
 import requests
 import datetime
 from emergent.utilities import recommender, introspection
-from emergent.modules.sampler import Sampler
+from emergent.modeling.sampler import Sampler
 import logging as log
 from copy import deepcopy
 url_prefix = ''

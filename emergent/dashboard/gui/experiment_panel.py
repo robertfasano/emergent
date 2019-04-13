@@ -17,7 +17,7 @@ import logging as log
 from PyQt5.QtWidgets import (QVBoxLayout, QWidget, QTabWidget)
 from emergent.utilities.introspection import list_errors, list_experiments, list_triggers
 from emergent.utilities import recommender
-from emergent.modules import Sampler
+from emergent.modeling.sampler import Sampler
 from emergent.dashboard.gui import MeasureLayout, ModelLayout, ServoLayout, PipelineLayout
 
 class ExperimentLayout(QVBoxLayout):

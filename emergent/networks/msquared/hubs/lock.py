@@ -5,7 +5,6 @@ import datetime
 import time
 import numpy as np
 from emergent.core import ProcessHandler
-from emergent.modules import Watchdog
 
 class Lock(Hub):
     def __init__(self, name, network=None):

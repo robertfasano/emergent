@@ -11,8 +11,7 @@ import requests
 import pandas as pd
 import json
 import pickle
-# from emergent.modules.sequencing import Sequencer
-from emergent.artiq.emergent_sequencer import Sequencer
+from emergent.artiq.sequencer import Sequencer
 import logging as log
 
 class MOT(Hub):
