@@ -2,7 +2,7 @@ import sys
 sys.path.append('O:\\Public\\Yb clock')
 sys.path.append('C:\\Users\yblab\Documents\GitHub')
 from emergent.protocols.serial import Serial, PARITY_NONE, STOPBITS_ONE, EIGHTBITS
-from emergent.modules import Thing
+from emergent.core import Thing
 import time
 
 class Genesys(Thing):

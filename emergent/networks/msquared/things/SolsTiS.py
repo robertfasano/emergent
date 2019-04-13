@@ -1,4 +1,4 @@
-from emergent.modules import Thing
+from emergent.core import Thing
 import logging as log
 import socket
 import time

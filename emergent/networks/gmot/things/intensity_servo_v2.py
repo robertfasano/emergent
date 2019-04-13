@@ -1,4 +1,4 @@
-from emergent.modules import Thing
+from emergent.core import Thing
 from emergent.things.labjack import LabJack
 import functools
 import time

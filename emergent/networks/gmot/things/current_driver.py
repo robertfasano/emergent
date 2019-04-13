@@ -3,8 +3,8 @@ import numpy as np
 sys.path.append('O:/Public/Yb clock')
 from emergent.things.genesys import Genesys
 from emergent.things import LabJack
-from emergent.modules import Thing
-from emergent.modules.parallel import ProcessHandler
+from emergent.core import Thing
+from emergent.core import ProcessHandler
 from scipy.stats import linregress
 from scipy.optimize import newton
 import matplotlib.pyplot as plt

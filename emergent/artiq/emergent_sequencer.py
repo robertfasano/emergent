@@ -7,7 +7,7 @@ import logging as log
 import pandas as pd
 import numpy as np
 import json
-from emergent.modules import Thing
+from emergent.core import Thing
 import requests
 import os
 

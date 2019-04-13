@@ -13,7 +13,7 @@ import os
 import logging as log
 import argparse
 import importlib
-from emergent.modules.networking import Network
+from emergent.core import Core
 from emergent.utilities.networking import get_address
 
 def launch():
@@ -23,7 +23,7 @@ def launch():
         ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID('EMERGENT')
     except AttributeError:
         pass
-    global network
+    global core
     char = {'nt': '\\', 'posix': '/'}[os.name]
     sys.path.append(char.join(os.getcwd().split(char)[0:-3]))
     sys.path.append('networks/%s'%sys.argv[1])
@@ -56,14 +56,14 @@ def launch():
     database_addr = None
     if args.database_addr:
         database_addr = args.database_addr
-    network = Network(name=args.name, addr=addr, port=port, database_addr=database_addr)
-    network.initialize()        # instantiate nodes
-    network.load()              # load previous state from file
-    network.post_load()         # run post-load routine to prepare physical state
+    core = Core(name=args.name, addr=addr, port=port, database_addr=database_addr)
+    core.initialize()        # instantiate nodes
+    core.load()              # load previous state from file
+    core.post_load()         # run post-load routine to prepare physical state
 
     from emergent.API.API import serve
     from threading import Thread
-    thread = Thread(target=serve, args = (network, addr, port))
+    thread = Thread(target=serve, args = (core, addr, port))
     thread.start()
     log.getLogger('werkzeug').setLevel(log.ERROR)
 

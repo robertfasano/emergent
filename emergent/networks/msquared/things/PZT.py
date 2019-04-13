@@ -1,5 +1,5 @@
 from emergent.things.labjack import LabJack
-from emergent.modules import Thing
+from emergent.core import Thing
 
 class PZT(Thing):
     def __init__(self, params, name = 'PZT', parent = None):

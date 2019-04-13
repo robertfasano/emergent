@@ -7,7 +7,7 @@ from PyQt5.QtCore import *
 import logging as log
 import datetime
 from emergent.dashboard.structures.parameter_table import ParameterTable
-from emergent.modules.parallel import ProcessHandler
+from emergent.core import ProcessHandler
 
 class MeasureLayout(QVBoxLayout, ProcessHandler):
     def __init__(self, parent):

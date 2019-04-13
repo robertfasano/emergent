@@ -1,6 +1,6 @@
 import time
 from emergent.things.labjack import LabJack
-from emergent.modules import Thing
+from emergent.core import Thing
 import numpy as np
 import sys
 import os

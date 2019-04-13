@@ -1,6 +1,6 @@
 from emergent.protocols.serial import Serial, PARITY_NONE, STOPBITS_ONE, EIGHTBITS
 import numpy as np
-from emergent.modules import Thing, ProcessHandler
+from emergent.core import Thing, ProcessHandler
 
 class NetControls(Thing, ProcessHandler):
     def __init__(self, name, params = {'port': 'COM11'}, parent = None):

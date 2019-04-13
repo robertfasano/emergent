@@ -1,7 +1,7 @@
 import serial
 import sys
 from emergent.protocols.serial import Serial
-from emergent.modules import Thing
+from emergent.core import Thing
 import logging as log
 
 class Novatech(Thing):

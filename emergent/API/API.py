@@ -1,7 +1,7 @@
 from flask import Flask, request
 import json
 from emergent.utilities import recommender, introspection
-from emergent.modules import ProcessHandler
+from emergent.core import ProcessHandler
 import importlib, inspect
 
 manager = ProcessHandler()

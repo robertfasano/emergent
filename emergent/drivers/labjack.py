@@ -1,5 +1,5 @@
 from labjack import ljm
-from emergent.modules.parallel import ProcessHandler
+from emergent.core import ProcessHandler
 from emergent.utilities.fifo import FIFO
 import numpy as np
 from emergent.utilities.decorators import queue

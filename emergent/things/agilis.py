@@ -3,8 +3,8 @@ import os
 import numpy as np
 from emergent.protocols import serial
 import serial as ser
-from emergent.modules import Thing
-from emergent.modules.parallel import ProcessHandler
+from emergent.core import Thing
+from emergent.core import ProcessHandler
 import time
 
 def getChar():

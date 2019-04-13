@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import (QComboBox, QPushButton, QTabWidget, QVBoxLayout, QW
         QTableWidgetItem, QTableWidget, QHBoxLayout, QGridLayout, QLabel, QMenu, QAction)
 from PyQt5.QtCore import *
 from PyQt5.QtGui import QCursor
-from emergent.modules.parallel import ProcessHandler
+from emergent.core import ProcessHandler
 import logging as log
 import numpy as np
 from emergent.dashboard.structures.parameter_table import ParameterTable

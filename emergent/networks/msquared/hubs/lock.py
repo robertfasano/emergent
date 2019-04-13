@@ -1,10 +1,10 @@
 import numpy as np
-from emergent.modules import Hub
+from emergent.core import Hub
 from emergent.utilities.decorators import experiment, error
 import datetime
 import time
 import numpy as np
-from emergent.modules.parallel import ProcessHandler
+from emergent.core import ProcessHandler
 from emergent.modules import Watchdog
 
 class Lock(Hub):

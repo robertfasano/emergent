@@ -1,4 +1,4 @@
-from emergent.modules import Hub
+from emergent.core import Hub
 from emergent.utilities.decorators import experiment, trigger
 import numpy as np
 import time

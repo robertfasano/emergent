@@ -1,10 +1,10 @@
-from emergent.modules import Hub
+from emergent.core import Hub
 import time
 from emergent.utilities.decorators import experiment
 from scipy.stats import linregress
 from scipy.optimize import curve_fit
 import numpy as np
-from emergent.modules.parallel import ProcessHandler
+from emergent.core import ProcessHandler
 from emergent.things.labjack import LabJack
 import matplotlib.pyplot as plt
 import requests

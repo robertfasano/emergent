@@ -1,10 +1,10 @@
 import logging as log
 import importlib
 from emergent.utilities.networking import get_address
-from emergent.modules import ProcessHandler
+from emergent.core import ProcessHandler
 from emergent.protocols.tick import TICKClient
 
-class Network():
+class Core():
     ''' This class implements a container for multiple Hubs on a PC, as well as methods
         for getting or changing the state of Hubs on remote PCs.
 

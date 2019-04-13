@@ -1,4 +1,4 @@
-from emergent.modules import Thing
+from emergent.core import Thing
 import bristol671
 
 class Wavemeter(Thing):

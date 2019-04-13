@@ -1,5 +1,5 @@
 import numpy as np
-from emergent.modules import Thing
+from emergent.core import Thing
 import logging as log
 from emergent.drivers.labjack import LabJackDriver
 from labjack import ljm

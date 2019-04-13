@@ -1,4 +1,4 @@
-from emergent.modules import Hub, Watchdog
+from emergent.core import Hub, Watchdog
 from emergent.utilities.decorators import experiment, trigger
 import time
 
