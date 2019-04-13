@@ -1,1 +1,1 @@
-from emergent.networks import autoAlign, monitor
+from emergent.networks import autoAlign
