@@ -36,7 +36,7 @@ the following instructions:
 	from emergent.networks.demo.things import DemoThing
 
 	def initialize(network):
-	    hub = DemoHub('hub', network = network)
+	    hub = DemoHub('hub', core = core)
 	    thing = DemoThing('thing', params = {'inputs': ['Z']}, parent=hub)
 
 	    ''' Add hubs to network '''
@@ -65,7 +65,7 @@ initialize method within our own initialize method:
 	from emergent.networks.example import network as nw
 
 	def initialize(network):
-	    hub = DemoHub('hub', network = network)
+	    hub = DemoHub('hub', core = core)
 
 	    thing = DemoThing('thing', params = {'inputs': ['Z']}, parent=hub)
 
