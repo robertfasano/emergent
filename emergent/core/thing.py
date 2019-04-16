@@ -117,15 +117,6 @@ class Thing(Node):
         del self.state[name]
         del self.parent.state[self.name][name]
 
-    def __rename_knob(self, node, name):
-        self.state[name] = self.state.pop(node.display_name)
-        self.children[name] = self.children.pop(node.display_name)
-        self._rename_knob(node, name)
-
-    def _rename_knob(self, node, name):
-        ''' Reimplement if any class-specific tasks need to be done when renaming
-            children '''
-
     @abstractmethod
     def _actuate(self, state):
         """Private placeholder for the thing-specific driver.

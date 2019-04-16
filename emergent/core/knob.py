@@ -44,17 +44,6 @@ class Knob(Node):
         self.state = None
         self.node_type = 'knob'
 
-
-
-    def rename(self, name):
-        ''' Update Thing '''
-        thing = self.parent
-        hub = self.parent.parent
-        thing.__rename_knob(self, name)
-        hub.__rename_knob(self, name)
-        self.display_name = name
-        self.leaf.setText(0, name)
-
     def __getstate__(self):
         ''' When the pickle module attempts to serialize this node to file, it
             calls this method to obtain a dict to serialize. We intentionally omit

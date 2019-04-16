@@ -212,11 +212,6 @@ class Hub(Node):
         self.enable_watchdogs(True)
         sampler.active = False
 
-    def __rename_knob(self, node, name):
-        thing = node.parent
-        self.state[thing.name][name] = self.state[thing.name].pop(node.display_name)
-        self.range[thing.name][name] = self.range[thing.name].pop(node.display_name)
-
     def save(self):
         ''' Save knob states to file. '''
         state = {}
