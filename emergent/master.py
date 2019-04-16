@@ -42,15 +42,13 @@ def launch():
     else:
         log.basicConfig(level=log.INFO)
 
-    ''' Initialize network  '''
+    ''' Initialize core  '''
     if args.addr:
         addr = args.addr
     else:
         addr = '127.0.0.1'
         # addr = get_address()
     port = 5000
-
-
     if args.port:
         port = args.port
     database_addr = None
@@ -65,6 +63,7 @@ def launch():
     from threading import Thread
     thread = Thread(target=serve, args = (core, addr, port))
     thread.start()
+    print('API running at %s:%i'%(addr, port))
     log.getLogger('werkzeug').setLevel(log.ERROR)
 
 if __name__ == '__main__':
