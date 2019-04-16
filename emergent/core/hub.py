@@ -1,18 +1,4 @@
-''' Implements the Node class, which contains methods for relating EMERGENT building
-    blocks to one another. Three further classes inherit from Node: the Knob, Thing,
-    and Hub.
-
-    A Knob represents a physical quantity that you can set in the lab, like a
-    voltage or a mirror position. The Knob class simply tracks a value for a
-    "knob" in your experiment.
-
-    A Thing is some sort of actuator that can control the state of Knobs, like a
-    DAC (for voltage generation) or a voltage driver for MEMS or motorized mirror
-    mounts. The user must write a device driver script which implements the actuate()
-    method to define the interface between EMERGENT and the manufacturer API. The Thing
-    class also contains methods for updating the macroscopic state representation
-    after actuation and for adding or removing knobs dynamically.
-
+''' 
     A Hub is an object which controls one or more Things to regulate the outcome
     of an experiment. For example, for beam alignment into an optical fiber we would
     require one or more Things for mirror control, as well as a Hub which measures
