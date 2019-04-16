@@ -111,61 +111,6 @@ class Hub(Node):
 
         self.buffer.add(state)
 
-    def _check_lock(self, block=False):
-        ''' Return True if none of the monitored signals are outside a threshold. '''
-        if len(self.watchdogs) == 0:
-            return
-        locked = False
-        ''' Block until all watchdogs are enabled and locked '''
-        states = {}
-        while not locked:
-            locked = True
-            for w in self.watchdogs.values():
-                locked = locked and not w.reacting # if a watchdog is reacting, we are unlocked
-                if w.enabled:
-                    c = w.check()
-                    locked = locked and c          # check the watchdog state
-                    states[w.name] = w.value
-            ''' Here, add overall watchdog state to a queue to write to the database '''
-            # self.core.database.write(states, measurement = 'watchdog')
-            if not block:
-                return
-            if not locked:
-                time.sleep(0.1)
-
-        return
-
-    def enable_watchdogs(self, enabled):
-        ''' Enable or disable all attached watchdogs. '''
-        for w in self.watchdogs.values():
-            w.enabled = enabled
-
-    # def load(self):
-    #     ''' Load knob states from file. '''
-    #     try:
-    #         with open(self.core.path['state']+self.name+'.json', 'r') as file:
-    #             state = json.load(file)
-    #     except FileNotFoundError:
-    #         state = {}
-    #
-    #     for thing in self.children.values():
-    #         thing_children = list(thing.children.values())
-    #         for knob in thing_children:
-    #             try:
-    #                 if 'display name' in state[thing.name][knob.name]:
-    #                     display_name = state[thing.name][knob.name]['display name']
-    #                     self.children[thing.name].children[knob.name].display_name = display_name
-    #                     self.children[thing.name].children[display_name] = self.children[thing.name].children.pop(knob.name)
-    #                     self.children[thing.name].state[display_name] = self.children[thing.name].state.pop(knob.name)
-    #                 self.state[thing.name][knob.display_name] = state[thing.name][knob.name]['state']
-    #                 self.range[thing.name][knob.display_name] = {}
-    #                 for setting in ['min', 'max']:
-    #                     self.range[thing.name][knob.display_name][setting] = state[thing.name][knob.name][setting]
-    #             except Exception as e:
-    #                 self.state[thing.name][knob.display_name] = 0
-    #                 self.range[thing.name][knob.display_name] = {'min': 0, 'max': 1}
-    #                 log.warning('Could not find csv for knob %s; creating new settings.', knob.display_name)
-
     def load(self):
         ''' Load knob states from file. '''
         try:
@@ -176,41 +121,6 @@ class Hub(Node):
         self.state.patch(state.find('state', label=False))
         self.range.patch(state.find('min'))
         self.range.patch(state.find('max'))
-
-
-
-
-    def optimize(self, state, experiment_name, threaded=True, skip_lock_check=False):
-        ''' Launch an optimization. '''
-        if threaded:
-            self.manager._run_thread(self._optimize_thread,
-                                     args=(state, experiment_name, skip_lock_check),
-                                     stoppable=False)
-        else:
-            self._optimize_thread(state, experiment_name, skip_lock_check)
-
-    def _optimize_thread(self, state, experiment_name, skip_lock_check=False):
-        ''' Optimizes an experiment with the default settings from file '''
-        experiment_params = recommender.load_experiment_parameters(self, experiment_name)
-        algorithm = recommender.get_default_algorithm(self, experiment_name)
-        algorithm_params = recommender.load_algorithm_parameters(self, experiment_name, algorithm.name)
-        start_time = datetime.datetime.now().strftime('%Y%m%dT%H%M')
-        experiment = getattr(self, experiment_name)
-
-        sampler = Sampler(algorithm.name,
-                          state,
-                          self,
-                          experiment,
-                          experiment_params,
-                          algorithm,
-                          algorithm_params,
-                          t=start_time)
-        sampler.skip_lock_check = skip_lock_check
-        self.enable_watchdogs(False)
-        sampler.algorithm.run(sampler.state)
-
-        self.enable_watchdogs(True)
-        sampler.active = False
 
     def save(self):
         ''' Save knob states to file. '''
