@@ -20,16 +20,16 @@ class Sequencer():
         self.ttl = []
         self.adc = []
         self.dac = []
-        for step in sequence:
-            for ch in step['TTL']:
-                if ch not in self.ttl:
-                    self.ttl.append(ch)
-            for ch in step['ADC']:
-                if ch not in self.adc:
-                    self.adc.append(ch)
-            for ch in step['DAC']:
-                if ch not in self.dac:
-                    self.dac.append(ch)
+        # for step in sequence:
+        #     for ch in step['TTL']:
+        #         if ch not in self.ttl:
+        #             self.ttl.append(ch)
+        #     for ch in step['ADC']:
+        #         if ch not in self.adc:
+        #             self.adc.append(ch)
+        #     for ch in step['DAC']:
+        #         if ch not in self.dac:
+        #             self.dac.append(ch)
 
         self.steps = sequence
         self.sequences = {'default': sequence}
@@ -69,6 +69,23 @@ class Sequencer():
 
         self.current_step = step_name
         self.core.emit('timestep', {'name': step_name})
+
+    def add(self, step):
+        self.steps.append(step)
+
+        if 'TTL' in step:
+            for ch in step['TTL']:
+                if ch not in self.ttl:
+                    self.ttl.append(ch)
+        if 'ADC' in step:
+            for ch in step['ADC']:
+                if ch not in self.adc:
+                    self.adc.append(ch)
+        if 'DAC' in step:
+            for ch in step['DAC']:
+                if ch not in self.dac:
+                    self.dac.append(ch)
+
 
     def add_step(self, name, position = -1):
         step = {'name': name,

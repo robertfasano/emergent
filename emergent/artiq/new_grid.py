@@ -6,7 +6,7 @@ from PyQt5.QtGui import QPainter
 from emergent.utilities.units import Units
 import time
 import numpy as np
-from emergent.artiq.sequencer_table import SequencerTable
+# from emergent.artiq.sequencer_table import SequencerTable
 
 class ttlLabel(QLabel):
     def __init__(self, name, channel, grid):
