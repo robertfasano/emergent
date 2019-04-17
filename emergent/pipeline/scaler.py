@@ -21,7 +21,7 @@ class Scaler():
             else:
                 state[key] = arr[self.i]
                 self.i += 1
-        return state
+        return deepcopy(state)
 
     def state2array(self, state, arr=np.array([])):
         ''' Converts a state dict into a numpy array. '''
