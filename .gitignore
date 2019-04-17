@@ -9,5 +9,5 @@ dist/*
 *.txt
 *.json
 *.sci
-*/.ipynb_checkpoints
+*.ipynb_checkpoints*
 emergent/networks/test
