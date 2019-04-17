@@ -14,6 +14,7 @@ import logging as log
 import uuid
 from emergent.utilities import recommender
 from emergent.modeling.scaler import Scaler
+from emergent.utilities.decorators import thread
 
 class Sampler():
     ''' General methods '''
@@ -76,6 +77,7 @@ class Sampler():
 
         return d
 
+    @thread
     def _run(self):
         count = 0
         while self.active:
@@ -89,6 +91,7 @@ class Sampler():
         self.save(self.start_time.replace(':','') + ' - ' + self.experiment.__name__)
         self.active = False
 
+    @thread
     def _solve(self):
         ''' Runs an algorithm. '''
         self.hub.enable_watchdogs(False)

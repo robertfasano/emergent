@@ -41,7 +41,8 @@ def get_blueprint(core):
         func = sampler._solve
         if settings['process']['type'] == 'measure':
             func = sampler._run
-        core.manager._run_thread(func, stoppable=False)
+        func()
+        # core.manager._run_thread(func, stoppable=False)
 
         return 'done'
 
