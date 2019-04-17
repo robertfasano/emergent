@@ -8,10 +8,12 @@ class Scaler():
         self.limits = limits
 
     ''' State conversion functions '''
-    def array2state(self, arr, protostate=None, state={}, i=0):
+    def array2state(self, arr, protostate=None, state=None, i=0):
         ''' Converts a state dict into a numpy array. '''
         if i == 0:
             self.i = 0
+        if state is None:
+            state = {}
         if protostate is None:
             protostate = deepcopy(self.state)
         for key in protostate:
