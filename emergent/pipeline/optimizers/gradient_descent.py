@@ -18,7 +18,7 @@ class GradientDescent(Block):
 
     def gradient(self, points, costs):
         point = points[-1]
-        dim = self.pipeline.scaler.dim
+        dim = points.shape[1]
         g = np.zeros(dim)
         for d in range(dim):
             step = np.zeros(dim)

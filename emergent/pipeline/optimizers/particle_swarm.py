@@ -20,7 +20,7 @@ class ParticleSwarm(Block):
     def run(self, points, costs, bounds=None):
         ''' Differential evolution algorithm from scipy.optimize. '''
         particles = self.params['Particles'].value
-        dim = self.pipeline.scaler.dim
+        dim = points.shape[1]
         if bounds is None:
             bounds = np.array(list(itertools.repeat((0, 1), dim)))
         pos = np.empty((particles, dim))
