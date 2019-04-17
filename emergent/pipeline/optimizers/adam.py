@@ -33,6 +33,8 @@ class Adam(Block):
         self.params['Noise'] = Parameter(name= 'Noise',
                                             value = 0,
                                             description = 'Noise injection for stochastic optimization')
+        for p in params:
+            self.params[p].value = params[p]
 
     def gradient(self, points, costs):
         point = points[-1]
