@@ -10,8 +10,9 @@ import logging as log
 log.basicConfig(level=log.INFO)
 
 class Pipeline(BasePipeline):
-    def __init__(self, experiment, params, state, bounds, substate=None):
+    def __init__(self, experiment, params, state, bounds, substate=None, verbose=True):
         super().__init__()
+        self.verbose = verbose
         self.experiment = experiment
         self.params = params
         self.state = state
@@ -81,14 +82,15 @@ class Pipeline(BasePipeline):
 
         end_time = time.time()
         self.duration = end_time - start_time
-        log.info('Optimization complete!')
-        log.info('Time: %.0fs'%self.duration)
-        log.info('Evaluations: %i'%len(self.points))
-        log.info('Initial cost: %f'%self.costs[0])
-        log.info('Final cost: %f'%self.costs[-1])
+        if self.verbose:
+            log.info('Optimization complete!')
+            log.info('Time: %.0fs'%self.duration)
+            log.info('Evaluations: %i'%len(self.points))
+            log.info('Initial cost: %f'%self.costs[0])
+            log.info('Final cost: %f'%self.costs[-1])
 
-        percent_improvement = (self.costs[-1]-self.costs[0])/self.costs[0]*100
-        log.info('Improvement: %.1f%%'%percent_improvement)
+            percent_improvement = (self.costs[-1]-self.costs[0])/self.costs[0]*100
+            log.info('Improvement: %.1f%%'%percent_improvement)
 
         return self.points, self.costs
 
