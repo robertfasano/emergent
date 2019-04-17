@@ -36,7 +36,6 @@ class Watchdog():
 
         return self.value, self.state
 
-    @abstractmethod
     def react(self):
         ''' Overload this method to allow a custom reaction when monitored
             variables leave the acceptable range. '''
