@@ -35,9 +35,11 @@ class Scaler():
 
         return arr
 
-    def normalize(self, state, bounds=None, norm = {}):
+    def normalize(self, state, bounds=None, norm = None):
         ''' Recursively normalizes a dictionary with arbitrary nesting
             matching the passed bounds dict. '''
+        if norm is None:
+            norm = {}
         if bounds is None:
             bounds = self.limits
         for key in state:
@@ -48,7 +50,9 @@ class Scaler():
                 self.normalize(state[key], bounds[key], norm[key])
         return norm
 
-    def unnormalize(self, state, bounds=None, unnorm = {}):
+    def unnormalize(self, state, bounds=None, unnorm = None):
+        if unnorm is None:
+            unnorm = {}
         if bounds is None:
             bounds = self.limits
         for key in state:
