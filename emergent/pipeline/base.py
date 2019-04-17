@@ -22,3 +22,20 @@ class BasePipeline:
     @abstractmethod
     def measure(self, point):
         return
+
+    def from_json(self, block_dict):
+        for b in block_dict:
+            block = getattr(importlib.import_module('emergent.pipeline'), b['block'])
+            if 'params' not in b:
+                b['params'] = {}
+            self.add(block(b['params']))
+
+    def to_json(self):
+        lst = []
+        for block in self.blocks:
+            block_dict = {'block': block.__class__.__name__, 'params': {}}
+            for p in block.params:
+                block_dict['params'][p] = block.params[p].value
+            lst.append(block_dict)
+        return lst
+        
