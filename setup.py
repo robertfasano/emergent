@@ -12,10 +12,20 @@ setup(
     packages=find_packages(exclude=['docs']),
     license='MIT',
     long_description=open('README.md').read(),
-    install_requires=['pyqt5==5.9.2', 'pyserial', 'ipython', 'influxdb',
-                      'pint', 'matplotlib', 'pandas', 'scipy', 'psutil',
-                      'scikit-learn', 'eventlet', 'flask-socketio', 'socketIO_client',
-                      'flask', 'jupyter']
+    install_requires=['pyqt5==5.9.2',   # LGPL
+                      'pyserial',       # BSD
+                      'ipython',        # BSD
+                      'influxdb',       # MIT
+                      'pint',           # BSD
+                      'matplotlib',     # PSF/BSD
+                      'pandas',         # BSD
+                      'scipy',          # new BSD
+                      'scikit-learn',   # new BSD
+                      'eventlet',       # MIT
+                      'flask-socketio', # MIT
+                      'socketIO_client',# MIT
+                      'flask',          # new BSD
+                      'jupyter']        # BSD 
 )
 
 # packages = ['pyqt5', 'pyqt5-sip', 'pyqt5-tools']
