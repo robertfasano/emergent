@@ -6,6 +6,7 @@ class Scaler():
     def __init__(self, state, limits):
         self.state = state
         self.limits = limits
+        self.dim = len(self.state2array(state))
 
     ''' State conversion functions '''
     def array2state(self, arr, protostate=None, state=None, i=0):

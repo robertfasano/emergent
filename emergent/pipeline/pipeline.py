@@ -10,16 +10,18 @@ import logging as log
 log.basicConfig(level=log.INFO)
 
 class Pipeline(BasePipeline):
-    def __init__(self, experiment, params, state, bounds):
+    def __init__(self, experiment, params, state, bounds, substate=None):
         super().__init__()
         self.experiment = experiment
         self.params = params
         self.state = state
+        self.substate = substate
+        if substate is None:
+            self.substate = self.state
+        self.scaler = Scaler(self.substate, bounds)
 
-        self.scaler = Scaler(state, bounds)
-
-        self._points = np.atleast_2d(self.scaler.state2array(self.scaler.normalize(self.state)))     # normalized points
-        self.costs = np.array([self.measure(self.state, norm=False)])
+        self._points = np.atleast_2d(self.scaler.state2array(self.scaler.normalize(self.substate)))     # normalized points
+        self.costs = np.array([self.measure(self.substate, norm=False)])
         self.points = self.unnormalize(self._points)
         self.bounds = []
         for d in range(self.points.shape[1]):
@@ -39,8 +41,16 @@ class Pipeline(BasePipeline):
         else:
             target = norm_target
 
-        return self.experiment(target, self.params)
+        return self.experiment(self.fill(target), self.params)
 
+    def fill(self, substate):
+        d = {}
+        for key in self.state:
+            if key in substate:
+                d[key] = substate[key]
+            else:
+                d[key] = self.state[key]
+        return d
     # def add_blocks(self, block_list):
     #     ''' Designed for compatibility with the PipelineLayout GUI element.
     #         Takes a list of dictionaries, each specifying a block and its params,

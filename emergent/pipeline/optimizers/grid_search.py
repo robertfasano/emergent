@@ -22,7 +22,8 @@ class GridSearch(Block):
     def run(self, points, costs, bounds=None):
         ''' Performs a uniformly-spaced sampling of the cost function in the
             space spanned by the passed-in state dict. '''
-        dim = points.shape[1]
+        # dim = points.shape[1]
+        dim = self.pipeline.scaler.dim
         grid = []
         for n in range(dim):
             if bounds is None:
