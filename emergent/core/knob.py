@@ -1,4 +1,4 @@
-''' 
+'''
     A Knob represents a physical quantity that you can set in the lab, like a
     voltage or a mirror position. The Knob class simply tracks a value for a
     "knob" in your experiment.
@@ -17,11 +17,6 @@ class Knob(Node):
             name (str): node name. Nodes which share a Thing should have unique names.
             parent (str): name of parent Thing.
         """
-        # self._name_ = name
-        # hub = parent.parent
-        # if parent._name_ in hub.renaming:
-        #     if name in hub.renaming[parent._name_]['knobs']:
-        #         name = hub.renaming[parent._name_]['knobs'][name]['name']
         super().__init__(name, parent=parent)
         self.state = None
         self.node_type = 'knob'

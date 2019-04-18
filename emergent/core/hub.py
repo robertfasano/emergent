@@ -1,4 +1,4 @@
-''' 
+'''
     A Hub is an object which controls one or more Things to regulate the outcome
     of an experiment. For example, for beam alignment into an optical fiber we would
     require one or more Things for mirror control, as well as a Hub which measures
@@ -64,8 +64,6 @@ class Hub(Node):
         ''' Establish switch interface '''
         self.switches = {}
 
-        # self.renaming = {'MEMS': {'name': 'mems', 'knobs':{'X': {'name': 'x'}}}}
-
     def __getstate__(self):
         d = {}
         ignore = ['root', 'watchdogs', 'samplers', 'core', 'leaf', 'options']
@@ -119,7 +117,6 @@ class Hub(Node):
                 state[thing][node.name]['state'] = self.state[thing][knob]
                 state[thing][node.name]['min'] = self.range[thing][knob]['min']
                 state[thing][node.name]['max'] = self.range[thing][knob]['max']
-                state[thing][node.name]['display name'] = self.children[thing].children[knob].display_name
         with open(self.core.path['state']+self.name+'.json', 'w') as file:
             json.dump(state, file)
 

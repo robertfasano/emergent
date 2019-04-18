@@ -13,7 +13,6 @@ class Node():
         ''' Initializes a Node with a name and optionally registers
             to a parent. '''
         self.name = name
-        self.display_name = name
         self.children = {}
         if parent is not None:
             self.register(parent)
