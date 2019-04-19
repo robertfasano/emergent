@@ -16,22 +16,9 @@ class Node():
         self.children = {}
         if parent is not None:
             self.register(parent)
-        self.root = self.get_root()
         self.options = {}
         self.buffer = StateBuffer(self)
         self.macro_buffer = MacroBuffer(self)
-
-    def exec_option(self, option):
-        self.options[option]()
-
-    def get_root(self):
-        ''' Returns the root Hub of any branch. '''
-        root = self
-        while True:
-            try:
-                root = root.parent
-            except AttributeError:
-                return root
 
     def register(self, parent):
         ''' Register self with parent node. '''

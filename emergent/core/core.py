@@ -1,8 +1,6 @@
 import logging as log
 import importlib
-from emergent.utilities.networking import get_address
-from emergent.core import ProcessHandler
-from emergent.protocols.tick import TICKClient
+from emergent.utilities.persistence import __getstate__
 
 class Core():
     ''' This class implements a container for multiple Hubs on a PC, as well as methods
@@ -14,49 +12,16 @@ class Core():
     '''
     def __init__(self, name, addr=None, port=9001, database_addr=None):
         self.addr = addr
-        if self.addr is None:
-            self.addr = get_address()
-        if database_addr is not None:
-            self.database = TICKClient(database_addr, 'admin', 'admin', name)
-            already_exists = False
-            dbs = self.database.client.get_list_database()
-            for db in dbs:
-                if db['name'] == name:
-                    already_exists = True
-                    break
-            if not already_exists:
-                self.database.client.create_database(name)
         self.port = port
         self.name = name
         self.path = {'network': 'networks/%s'%name}
-        self.path['data'] = self.path['network']+'/data/'
-        self.path['state'] = self.path['network']+'/state/'
-        self.path['params'] = self.path['network']+'/params/'
-        self.path['sequences'] = self.path['network']+'/sequences/'
-        self.path['pipelines'] = self.path['network']+'/pipelines/'
-
-        self.tree = None
-        self.connection_params = {'sync delay': 0.1, 'reconnect delay': 1}
+        for subpath in ['data', 'state', 'params', 'sequences', 'pipelines']:
+            self.path[subpath] = self.path['network'] + '/%s/'%subpath
         self.hubs = {}
         self.params = {}
         self.tasks = {}
         self.url = 'http://' + self.addr + ':' + str(self.port)
-        self.manager = ProcessHandler()
-
-    def __getstate__(self):
-        ''' This method is called by the pickle module when attempting to serialize an
-            instance of this class. We make sure to exclude any unpicklable objects from
-            the return value, including anything with threads or Qt modules. '''
-        d = {}
-        ignore = ['manager', 'tree']
-        unpickled = []
-        for item in ignore:
-            if hasattr(self, item):
-                unpickled.append(getattr(self, item))
-        for item in self.__dict__:
-            if self.__dict__[item] not in unpickled:
-                d[item] = self.__dict__[item]
-        return d
+        self.__getstate__ = lambda: __getstate__([])
 
     def actuate(self, state, send_over_p2p = True):
         ''' Issues a macroscopic actuation to all connected Hubs. '''
@@ -66,10 +31,6 @@ class Core():
     def add_hub(self, hub):
         ''' If the address and port match self.addr and self.port, add a local
             hub. '''
-        if hub.addr is not None:
-            if not hub.addr == self.addr:
-                return
-
         self.hubs[hub.name] = hub
         hub.core = self
 
@@ -130,12 +91,6 @@ class Core():
             state[hub.name] = hub.state
 
         return state
-
-
-    def save_to_database(self):
-        ''' Write the network state to the database. '''
-        if hasattr(self, 'database'):
-            self.database.write_network_state(self.state())
 
     def start_flask_socket_server(self):
         ''' Initialize Flask socket '''

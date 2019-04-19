@@ -4,6 +4,7 @@
     "knob" in your experiment.
 '''
 from emergent.core import Node
+from emergent.utilities.persistence import __getstate__
 
 class Knob(Node):
     ''' Knob nodes represent physical variables which may affect the outcome of
@@ -21,22 +22,4 @@ class Knob(Node):
         self.state = None
         self.node_type = 'knob'
 
-    def __getstate__(self):
-        ''' When the pickle module attempts to serialize this node to file, it
-            calls this method to obtain a dict to serialize. We intentionally omit
-            any unpicklable objects from this dict to avoid errors. '''
-        d = {}
-        ignore = ['parent', 'root', 'leaf', 'options']
-        unpickled = []
-        for item in ignore:
-            if hasattr(self, item):
-                unpickled.append(item)
-
-        for item in self.__dict__:
-            obj = getattr(self, item)
-            if hasattr(obj, 'picklable'):
-                if not obj.picklable:
-                    continue
-            if item not in unpickled:
-                d[item] = self.__dict__[item]
-        return d
+        self.__getstate__ = lambda: __getstate__(['parent', 'options'])
