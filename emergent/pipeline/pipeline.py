@@ -103,46 +103,26 @@ class Pipeline(BasePipeline):
             max = bounds[d][1]
             _points[:, d] = min + points[:, d] *(max-min)
         return _points
-    # def plot(self):
-    #     if len(self.points) == 0:
-    #         return
-    #     # widget(self.costs)
-    #     plt.plot(self.costs, '.k')
-    #     plt.plot(np.minimum.accumulate(self.costs), '--k')
-    #
-    #     plt.xlabel('Evalutions')
-    #     plt.ylabel('Result')
-    #     plt.show()
 
-    # def plot(self):
-    #     tabs = {}
-    #
-    #     tabs['Optimization'] = {'x': None, 'y': self.costs.tolist(), 'labels': {'bottom': 'Iterations', 'left': 'Result'}}
-    #     tabs['Data'] = {'points': self.points.tolist(), 'costs': self.costs.tolist()}
-    #     self.core.emit('plot', tabs)
 
-    # def get_json(self):
-    #     blocks = []
-    #     for block in self.blocks:
-    #         params = {}
-    #         for p in block.params:
-    #             params[p] = block.params[p].value
-    #         blocks.append({'block': block.__class__.__name__,
-    #                        'params': params})
-    #     return blocks
+    def save(self, path, filename, pipeline=None):
+        import os
+        if pipeline is None:
+            pipeline = self.to_json()
+        if not os.path.exists(path):
+            os.makedirs(path)
+        try:
+            with open(path+'/'+filename, 'r') as file:
+                d = json.load(file)
+        except FileNotFoundError:
+            d = {}
+        d['pipeline'] = pipeline
+        with open(path+'/'+filename, 'w') as file:
+            json.dump(d, file)
 
-    # def save(self, name, pipeline=None):
-    #     import os
-    #     if pipeline is None:
-    #         pipeline = self.get_json()
-    #     path = self.core.path['pipelines']
-    #     if not os.path.exists(path):
-    #         os.makedirs(path)
-    #
-    #     with open(path+'%s.json'%name, 'w') as file:
-    #         json.dump(pipeline, file)
-    #
-    # def load(self, name):
-    #     path = self.core.path['pipelines']
-    #     with open(path+'%s.json'%name, 'r') as file:
-    #         self.add_blocks(json.load(file))
+    def load(self, path, filename):
+        self.blocks = []
+        with open(path+'%s'%filename, 'r') as file:
+            d = json.load(file)
+        self.from_json(d['pipeline'])
+        return d['pipeline']
