@@ -1,5 +1,5 @@
 import time
-from emergent.things.labjack import LabJack
+from emergent.things import LabJack
 from emergent.core import Thing
 import numpy as np
 import sys
@@ -10,39 +10,34 @@ import logging as log
 
 class PicoAmp(Thing):
     ''' Thing driver for the Mirrorcle PicoAmp board. '''
-    def __init__(self, name, params = {'labjack': None, 'type': 'digital'}, parent = None):
+    def __init__(self, name, params = {'devid': None, 'type': 'digital'}, parent = None):
         ''' Initialize the Thing for use. '''
         super().__init__(name, parent = parent, params = params)
         self.addr = {'A': '000', 'B': '001', 'C': '010', 'D': '011', 'ALL': '111'}
-        self.labjack = self.params['labjack']
+        self.labjack = LabJack(name='labjack', params = {'devid': devid})
+
         assert self.params['type'] in ['digital', 'analog']
         self.add_knob('X')
         self.add_knob('Y')
-
-        # self._connect()
 
     def _connect(self):
         ''' Initializes the PicoAmp via SPI. '''
         if self.labjack._connected:
             if self.params['type'] == 'digital':
                 self.labjack.spi_initialize(mode=0, CLK = 0, CS = 1, MISO = 3, MOSI = 2)
-            self._initialize()
+            self.labjack.PWM(3, 49000, 50)
+
+            if self.params['type'] == 'digital':
+                FULL_RESET = '001010000000000000000001'    #2621441
+                ENABLE_INTERNAL_REFERENCE =  '001110000000000000000001'     #3670017
+                ENABLE_ALL_DAC_CHANNELS = '001000000000000000001111'      #2097167
+                ENABLE_SOFTWARE_LDAC = '001100000000000000000001'    #3145728
+
+                self.Vbias = 80.0
+                for cmd in [FULL_RESET, ENABLE_INTERNAL_REFERENCE, ENABLE_ALL_DAC_CHANNELS, ENABLE_SOFTWARE_LDAC]:
+                    self.command(cmd)
         else:
             log.error('Error: could not initialize PicoAmp - LabJack not connected!')
-
-    def _initialize(self):
-        ''' Initializes the DAC and sets the bias voltage on all four channels to 80 V. '''
-        self.labjack.PWM(3, 49000, 50)
-
-        if self.params['type'] == 'digital':
-            FULL_RESET = '001010000000000000000001'    #2621441
-            ENABLE_INTERNAL_REFERENCE =  '001110000000000000000001'     #3670017
-            ENABLE_ALL_DAC_CHANNELS = '001000000000000000001111'      #2097167
-            ENABLE_SOFTWARE_LDAC = '001100000000000000000001'    #3145728
-
-            self.Vbias = 80.0
-            for cmd in [FULL_RESET, ENABLE_INTERNAL_REFERENCE, ENABLE_ALL_DAC_CHANNELS, ENABLE_SOFTWARE_LDAC]:
-                self.command(cmd)
 
     def _actuate(self, state):
         ''' Updates MEMS to a target state. Axes not included in the state dict are unaffected.'''
@@ -78,19 +73,3 @@ class PicoAmp(Thing):
             V = np.clip(float(V),-5,5)
             channel = {'X':0, 'Y':1}[axis]
             self.labjack.AOut(channel, V, TDAC=True)
-
-    def wave(self, amplitude=1, frequency = 1):
-        ''' Switch between 0 and the current setpoint.
-
-        Args:
-            channel (int): 0-3
-            frequency (float): wave frequency
-        '''
-        x = self.state['X']
-        i = 0
-        setpoints = [x,x+amplitude]
-        self.waving = True
-        while self.waving:
-            i = (i+1) % 2
-            self._actuate({'X':setpoints[i]})
-            time.sleep(2/frequency)
