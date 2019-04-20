@@ -25,9 +25,9 @@ class Watchdog():
         self.value = self.experiment()
         state = 1
         if self.threshold[0] is not None:
-            state = state and self.value > self.threshold[0]
+            state = state and self.value >= self.threshold[0]
         if self.threshold[1] is not None:
-            state = state and self.value < self.threshold[1]
+            state = state and self.value <= self.threshold[1]
         self.state = state
 
         if not self.state:
