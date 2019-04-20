@@ -124,7 +124,7 @@ class Dashboard(QMainWindow):
         elif format == 'pickle':
             return pickle.loads(r.content)
 
-    def post(self, url, payload):
+    def post(self, url, payload={}):
         requests.post('http://%s:%s/'%(self.addr, self.port)+url, json=payload)
 
     def show_grid(self, d):
