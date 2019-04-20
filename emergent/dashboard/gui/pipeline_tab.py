@@ -61,7 +61,15 @@ class CustomTree(QTreeWidget):
             blocks = self.parent.list_classes(block_type)
             subdict = actions['Add'][block_type.capitalize()[:-1]]
             for block in blocks:
-                subdict[block] = partial(self.parent.add_block, {'name': block})
+                if item is not None:
+                    if self.parent.is_pipeline(item.text(0)):
+                        subdict[block] = partial(self.parent.add_block, {'name': block}, parent=item)
+                    else:
+                        subdict[block] = partial(self.parent.add_block, {'name': block})
+
+                else:
+                    subdict[block] = partial(self.parent.add_block, {'name': block})
+
         menu = DictMenu(actions)
         selectedItem = menu.exec_(globalPos)
 
@@ -83,7 +91,7 @@ class ModelOptimizerBox(QComboBox):
         for i in reversed(range(self.tree_item.childCount())):
             self.tree_item.removeChild(self.tree_item.child(i))
 
-        subparams = self.layout.get_params(self.currentText())
+        subparams = self.layout.get_default_params(self.currentText())
         for s in subparams:
             subitem = QTreeWidgetItem([s])
             subitem.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled | Qt.ItemIsDragEnabled)
@@ -132,7 +140,12 @@ class PipelineLayout(QVBoxLayout):
         self.tree.clear()
         self.add_block({'name': 'GridSearch'})
 
-    def add_block(self, d, position=None):
+    def add_block(self, d, position=None, parent=None):
+        ''' Args:
+                d (dict): block description
+                position (int): where to add the block
+                parent (QTreeWidgetItem): parent of new block. If None, add top level item.
+        '''
         if position is None and self.tree.currentItem() is None:
             position = self.tree.topLevelItemCount()
         else:
@@ -142,9 +155,15 @@ class PipelineLayout(QVBoxLayout):
         root.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled | Qt.ItemIsDragEnabled)
         # root.setFlags(root.flags() & ~Qt.ItemIsSelectable)
 
-        self.tree.insertTopLevelItems(position, [root])
+        if parent is None:
+            self.tree.insertTopLevelItems(position, [root])
+        else:
+            if self.is_pipeline(parent.text(0)):
+                blocks = QTreeWidgetItem(['Blocks'])
+                parent.addChild(blocks)
+                blocks.addChild(root)
 
-        params = self.get_params(name)
+        params = self.get_default_params(name)
         for p in params:
             item = QTreeWidgetItem([p])
             item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled | Qt.ItemIsDragEnabled)
@@ -172,7 +191,13 @@ class PipelineLayout(QVBoxLayout):
                     names.append(inst.__name__)
         return names
 
-    def get_params(self, name):
+    def is_pipeline(self, name):
+        module = getattr(importlib.import_module('emergent.pipeline'), name)
+        has_blocks = hasattr(module(), 'blocks')
+        print(module().__class__.__name__, has_blocks)
+        return has_blocks
+
+    def get_default_params(self, name):
         module = getattr(importlib.import_module('emergent.pipeline'), name)
         params = module().params
 
@@ -191,6 +216,7 @@ class PipelineLayout(QVBoxLayout):
                 block['params'][item.child(j).text(0)] = float(item.child(j).text(1))
             pipeline.append(block)
 
+            
         return pipeline
 
     def update_params(self):
