@@ -23,19 +23,36 @@ class BasePipeline:
     def measure(self, point):
         return
 
-    def from_json(self, block_dict):
+    def from_json(self, block_dict, subblock=None):
+        ''' Recursively constructs blocks and subpipelines to prepare a pipeline
+            from the passed dict. '''
+        if subblock is None:
+            subblock = self
         for b in block_dict:
             block = getattr(importlib.import_module('emergent.pipeline'), b['block'])
             if 'params' not in b:
                 b['params'] = {}
-            self.add(block(b['params']))
+            block = block(b['params'])
+            subblock.add(block)
 
-    def to_json(self):
+            if 'blocks' in b:
+                self.from_json(b['blocks'], subblock=block)
+
+    def to_json(self, pipeline=None):
+        ''' Recursively converts all blocks and subpipelines to a representative
+            dict '''
+        if pipeline is None:
+            pipeline = self
         lst = []
-        for block in self.blocks:
-            block_dict = {'block': block.__class__.__name__, 'params': {}}
-            for p in block.params:
-                block_dict['params'][p] = block.params[p].value
-            lst.append(block_dict)
+        for block in pipeline.blocks:
+            if issubclass(block.__class__, BasePipeline):
+                name = block.__class__.__name__
+                lst.append({'block': name,
+                            'params': {k: v.value for k, v in block.params.items()},
+                            'blocks': self.to_json(pipeline=block)})
+            else:
+                block_dict = {'block': block.__class__.__name__, 'params': {}}
+                for p in block.params:
+                    block_dict['params'][p] = block.params[p].value
+                lst.append(block_dict)
         return lst
-        
