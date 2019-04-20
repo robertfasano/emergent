@@ -19,6 +19,7 @@ if os.name == 'nt':
 parser = argparse.ArgumentParser()
 parser.add_argument("--addr", help='EMERGENT session IP address', default='127.0.0.1')
 parser.add_argument("--port", help='EMERGENT session port', default=5000)
+args = parser.parse_args()
 
 QApplication.setStyle(QStyleFactory.create("Fusion"))
 app = QApplication.instance()
