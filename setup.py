@@ -13,7 +13,8 @@ setup(
     license='MIT',
     long_description=open('README.md').read(),
     install_requires=['pyqt5==5.9.2',   # LGPL
-                      'pyserial',       # BSD
+                      'pyserial',       # BSD,
+                      'pyqtgraph',
                       'ipython',        # BSD
                       'influxdb',       # MIT
                       'pint',           # BSD
@@ -25,7 +26,7 @@ setup(
                       'flask-socketio', # MIT
                       'socketIO_client',# MIT
                       'flask',          # new BSD
-                      'jupyter']        # BSD 
+                      'jupyter']        # BSD
 )
 
 # packages = ['pyqt5', 'pyqt5-sip', 'pyqt5-tools']
