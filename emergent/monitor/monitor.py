@@ -24,7 +24,7 @@ class Monitor():
         for w in self.watchdogs:
             value, tf = self.watchdogs[w].check()
             state['values'][w] = value
-            state['states'][w] = tf
+            state['states'][w] = int(tf)
 
         if self.filename is not None:
             self.log(state, self.filename)
