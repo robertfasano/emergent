@@ -1,5 +1,5 @@
 from emergent.networks.msquared.hubs.lock import Lock
-from emergent.networks.msquared.things import PZT, SolsTiS, Wavemeter
+from emergent.networks.msquared.devices import PZT, SolsTiS, Wavemeter
 import sys
 
 def initialize(core, params = {}):

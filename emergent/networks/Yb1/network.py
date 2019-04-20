@@ -1,6 +1,6 @@
 from emergent.networks.Yb1.hubs.PA import Photoassociation
-from emergent.networks.Yb1.things.e4430b import E4430B
-from emergent.things.labjack import LabJack
+from emergent.networks.Yb1.devices.e4430b import E4430B
+from emergent.devices.labjack import LabJack
 from emergent.networks.monitor import network as monitor
 from __main__ import *
 

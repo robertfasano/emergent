@@ -1,9 +1,8 @@
 from emergent.networks.gmot.hubs import MOT
-from emergent.things import LabJack, NetControls, Novatech
-from emergent.networks.gmot.things import CurrentDriver, IntensityServo
+from emergent.devices import LabJack, NetControls, Novatech
+from emergent.networks.gmot.devices import CurrentDriver, IntensityServo
 from emergent.networks.autoAlign import network as autoAlign
 from emergent.networks.autoAlign4 import network as autoAlign4
-from emergent.core.node import Thing
 from emergent.networks.monitor import network as monitor
 
 def initialize(core):

@@ -1,11 +1,11 @@
-from emergent.core import Thing
-from emergent.things.labjack import LabJack
+from emergent.core import Device
+from emergent.devices.labjack import LabJack
 import functools
 import time
 import numpy as np
 
-class IntensityServo(Thing):
-    ''' Thing driver for a four-channel intensity servo with an embedded pair of
+class IntensityServo(Device):
+    ''' Device driver for a four-channel intensity servo with an embedded pair of
         LabJack T4 DAQs for hub.
 
         DAC0: probe TTL for integrator/rf switch

@@ -1,10 +1,10 @@
 import serial
 import sys
 from emergent.protocols.serial import Serial
-from emergent.core import Thing
+from emergent.core import Device
 import logging as log
 
-class Novatech(Thing):
+class Novatech(Device):
     def __init__(self, name, params = {'port': None}, parent = None):
         super().__init__(name='novatech', params = params, parent = parent)
         # self._connected = self._connect()

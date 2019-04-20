@@ -7,13 +7,13 @@ import logging as log
 import pandas as pd
 import numpy as np
 import json
-from emergent.core import Thing
+from emergent.core import Device
 import requests
 import os
 
-class Sequencer(Thing):
+class Sequencer(Device):
     def __init__(self, name, parent, params={'sequence': {}}):
-        Thing.__init__(self, name, parent, params=params)
+        Device.__init__(self, name, parent, params=params)
         self.channels = []
         if 'labjack' in params:
             self.labjack = params['labjack']

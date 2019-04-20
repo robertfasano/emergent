@@ -1,4 +1,4 @@
-from emergent.core import Thing
+from emergent.core import Device
 import logging as log
 import socket
 import time
@@ -7,7 +7,7 @@ import numpy as np
 from emergent.modeling.sampler import Sampler
 from emergent.utilities import recommender
 
-class SolsTiS(Thing):
+class SolsTiS(Device):
     def __init__(self, params, name = 'SolsTiS', parent = None):
         ''' Args:
                 params (dict): dictionary containing the following fields:

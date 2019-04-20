@@ -40,8 +40,8 @@ class Core():
         for hub in params:
             if hub not in self.params:
                 self.params[hub] = {}
-            for thing in params[hub]:
-                self.params[hub][thing] = params[hub][thing]
+            for device in params[hub]:
+                self.params[hub][device] = params[hub][device]
 
     def initialize(self):
         ''' Import the network.py file for the user-specified network and runs
@@ -67,12 +67,12 @@ class Core():
     def set_range(self, settings):
         for hub_name in settings:
             hub = self.hubs[hub_name]
-            for thing_name in settings[hub_name]:
-                for knob_name in settings[hub_name][thing_name]:
-                    d = settings[hub_name][thing_name][knob_name]
+            for device_name in settings[hub_name]:
+                for knob_name in settings[hub_name][device_name]:
+                    d = settings[hub_name][device_name][knob_name]
                     for qty in ['min', 'max']:
                         if qty in d:
-                            hub.range[thing_name][knob_name][qty] = d[qty]
+                            hub.range[device_name][knob_name][qty] = d[qty]
 
     def range(self):
         ''' Obtains a macroscopic range dict from aggregating the settings of all

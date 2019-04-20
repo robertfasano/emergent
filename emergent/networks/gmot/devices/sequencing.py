@@ -7,7 +7,7 @@ import logging as log
 import pandas as pd
 import numpy as np
 import json
-from emergent.core import Thing
+from emergent.core import Device
 
 class Sequence():
     ''' A container for a sequence of one or more Timesteps. '''
@@ -15,12 +15,12 @@ class Sequence():
         self.name = name
         self.steps = steps
 
-class Sequencer(Thing):
+class Sequencer(Device):
     ''' This class handles TTL pattern generation in a way that is easy
         to define, device-agnostic, and easily testable in the lab. '''
 
     def __init__(self, name, parent, params={'sequence': {}, 'labjack': None}):
-        Thing.__init__(self, name, parent, params=params)
+        Device.__init__(self, name, parent, params=params)
         if 'labjack' in params:
             self.labjack = params['labjack']
         self.options['Show grid'] = self.open_grid

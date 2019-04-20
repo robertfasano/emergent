@@ -101,26 +101,26 @@ class State(OrderedDict):
             only {'a':{'x':1}}. '''
         state = {}
         if type(keys) is list:
-            for thing in keys:
-                state[thing] = self[thing]
+            for device in keys:
+                state[device] = self[device]
         elif type(keys) is dict:
-            for thing in keys:
-                print(thing)
-                state[thing] = {}
-                for knob in keys[thing]:
+            for device in keys:
+                print(device)
+                state[device] = {}
+                for knob in keys[device]:
                     print(knob)
-                    state[thing][knob] = self[thing][knob]
+                    state[device][knob] = self[device][knob]
         return state
 
     def update(self, state):
         ''' Returns a state dict formed by updating self with the passed state. '''
         new_state = self.copy()
-        for thing in state:
-            if type(state[thing]) is dict:        # then this is a (nested) hub state
-                for knob in state[thing]:
-                    new_state[thing][knob] = state[thing][knob]
-            else:                               # this is a thing state
-                new_state[thing] = state[thing]
+        for device in state:
+            if type(state[device]) is dict:        # then this is a (nested) hub state
+                for knob in state[device]:
+                    new_state[device][knob] = state[device][knob]
+            else:                               # this is a device state
+                new_state[device] = state[device]
         return new_state
 
     def copy(self):

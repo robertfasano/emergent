@@ -85,11 +85,11 @@ class PlotWidget(QWidget):
         hub = params['hub']
         top = QTreeWidgetItem([hub])
         tree.insertTopLevelItems(0, [top])
-        for thing in params['knobs']:
-            thing_item = QTreeWidgetItem([thing])
-            top.addChild(thing_item)
+        for device in params['knobs']:
+            device_item = QTreeWidgetItem([device])
+            top.addChild(device_item)
             for knob in params['knobs']:
-                thing_item.addChild(QTreeWidgetItem([knob]))
+                device_item.addChild(QTreeWidgetItem([knob]))
         tree.header().hide()
         tree.expandAll()
         self.layout.addWidget(tree, 1,0)

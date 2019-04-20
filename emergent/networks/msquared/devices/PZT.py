@@ -1,7 +1,7 @@
-from emergent.things.labjack import LabJack
-from emergent.core import Thing
+from emergent.devices.labjack import LabJack
+from emergent.core import Device
 
-class PZT(Thing):
+class PZT(Device):
     def __init__(self, params, name = 'PZT', parent = None):
         super().__init__(name=name, parent = parent)
         self.labjack = LabJack(params=params)

@@ -22,7 +22,7 @@ class MacroBuffer(list):
         last_state = self[self.index-1]
         if self.parent.node_type == 'knob':
             self.parent.parent.actuate({self.parent.name: last_state})
-        elif self.parent.node_type == 'thing':
+        elif self.parent.node_type == 'device':
             self.parent.parent.actuate({self.parent.name: last_state})
         elif self.parent.node_type == 'hub':
             self.parent.actuate(last_state)
@@ -35,7 +35,7 @@ class MacroBuffer(list):
         last_state = self[self.index+1]
         if self.parent.node_type == 'knob':
             self.parent.parent.actuate({self.parent.name: last_state})
-        elif self.parent.node_type == 'thing':
+        elif self.parent.node_type == 'device':
             self.parent.parent.actuate({self.parent.name: last_state})
         elif self.parent.node_type == 'hub':
             self.parent.actuate(last_state)
@@ -72,7 +72,7 @@ class StateBuffer(list):
         self.index -= 1
         if self.parent.node_type == 'knob':
             self.parent.parent.actuate({self.parent.name: last_state})
-        elif self.parent.node_type == 'thing':
+        elif self.parent.node_type == 'device':
             self.parent.parent.actuate({self.parent.name: last_state})
         elif self.parent.node_type == 'hub':
             self.parent.actuate(last_state)
@@ -89,7 +89,7 @@ class StateBuffer(list):
         index = self.index
         if self.parent.node_type == 'knob':
             self.parent.parent.actuate({self.parent.name: last_state})
-        elif self.parent.node_type == 'thing':
+        elif self.parent.node_type == 'device':
             self.parent.parent.actuate({self.parent.name: last_state})
         elif self.parent.node_type == 'hub':
             self.parent.actuate(last_state)

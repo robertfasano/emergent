@@ -1,10 +1,10 @@
 import serial
 import sys
 from emergent.protocols.serial import Serial
-from emergent.core import Thing
+from emergent.core import Device
 import logging as log
 
-class E4430B(Thing):
+class E4430B(Device):
     def __init__(self, name, params = {}, parent = None):
         super().__init__(name=name, params = params, parent = parent)
         self._connected = self._connect()

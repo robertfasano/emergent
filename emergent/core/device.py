@@ -1,8 +1,8 @@
 '''
-    A Thing is some sort of actuator that can control the state of Knobs, like a
+    A Device is some sort of actuator that can control the state of Knobs, like a
     DAC (for voltage generation) or a voltage driver for MEMS or motorized mirror
     mounts. The user must write a device driver script which implements the actuate()
-    method to define the interface between EMERGENT and the manufacturer API. The Thing
+    method to define the interface between EMERGENT and the manufacturer API. The Device
     class also contains methods for updating the macroscopic state representation
     after actuation and for adding or removing knobs dynamically.
 '''
@@ -10,15 +10,15 @@ from abc import abstractmethod
 from emergent.core import Node, Knob
 from emergent.utilities.persistence import __getstate__
 
-class Thing(Node):
-    ''' Things represent apparatus which can control the state of Knob
+class Device(Node):
+    ''' Devices represent apparatus which can control the state of Knob
         nodes, such as a synthesizer or motorized actuator. '''
 
     def __init__(self, name, parent, params={}):
-        """Initializes a Thing.
+        """Initializes a Device.
 
         Args:
-            name (str): node name. Things which share a Hub should have unique names.
+            name (str): node name. Devices which share a Hub should have unique names.
             parent (str): name of parent Hub.
         """
         self._name_ = name      # save hardcoded name as private variable
@@ -40,7 +40,7 @@ class Thing(Node):
         self.parent.state[self.name] = {}
         self.parent.range[self.name] = {}
 
-        self.node_type = 'thing'
+        self.node_type = 'device'
         self.ignored = []       # objects to ignore during pickling
 
         ''' Add knobs passed in params dict '''
@@ -52,7 +52,7 @@ class Thing(Node):
 
     def add_knob(self, name):
         ''' Attaches a Knob node with the specified name. This should correspond
-            to a specific name in the _actuate() function of a non-abstract Thing
+            to a specific name in the _actuate() function of a non-abstract Device
             class: for example, the PicoAmp MEMS driver has knobs explicitly named
             'X' and 'Y' which are referenced in PicoAmp._actuate().'''
         knob = Knob(name, parent=self)
@@ -72,15 +72,15 @@ class Thing(Node):
 
     @abstractmethod
     def _actuate(self, state):
-        """Private placeholder for the thing-specific driver.
+        """Private placeholder for the device-specific driver.
 
         Note:
-            State actuation is done by first calling the Thing.actuate() method,
-            which calls Thing._actuate(state) to change something in the lab, then
-            calls Thing.update(state) to register this new state with EMERGENT.
-            When you write a driver inheriting from Thing, you should reimplement
-            this method to update your thing to the specified state only - do not
-            update any stored states such as Thing.state, Knob.state, or Hub.state
+            State actuation is done by first calling the Device.actuate() method,
+            which calls Device._actuate(state) to change something in the lab, then
+            calls Device.update(state) to register this new state with EMERGENT.
+            When you write a driver inheriting from Device, you should reimplement
+            this method to update your device to the specified state only - do not
+            update any stored states such as Device.state, Knob.state, or Hub.state
             from this method.
 
         Args:
@@ -90,11 +90,11 @@ class Thing(Node):
 
     @abstractmethod
     def _connect(self):
-        """Private placeholder for the thing-specific initiation method. """
+        """Private placeholder for the device-specific initiation method. """
         return 1
 
     def actuate(self, state, send_over_p2p = True):
-        """Makes a physical thing change in the lab with the _actuate() method, then registers this change with EMERGENT.
+        """Makes a physical device change in the lab with the _actuate() method, then registers this change with EMERGENT.
 
         Args:
             state (dict): Target state of the form {'param1':value1, 'param2':value2,...}.
@@ -106,9 +106,9 @@ class Thing(Node):
         self._actuate(state)
 
 
-        ''' Update the state of the Knob, Thing, and Hub '''
+        ''' Update the state of the Knob, Device, and Hub '''
         for knob in state:
-            self.state[knob] = state[knob]    # update Thing
+            self.state[knob] = state[knob]    # update Device
             self.children[knob].state = state[knob]   # update Knob
             self.parent.state[self.name][knob] = state[knob]   # update Hub
 

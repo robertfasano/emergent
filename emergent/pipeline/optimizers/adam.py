@@ -57,8 +57,8 @@ class Adam(Block):
         return g, points, costs
 
     def run(self, points, costs, bounds=None):
-        if bounds is not None:
-            log.warn('Adam optimizer does not support bounds!')
+        # if bounds is not None:
+            # log.warn('Adam optimizer does not support bounds!')
         dim = points.shape[1]
         m = np.zeros(dim)
         v = np.zeros(dim)

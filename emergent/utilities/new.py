@@ -12,7 +12,7 @@ base_path = 'networks/%s/'%args.name
 pathlib.Path(base_path).mkdir(parents=True, exist_ok=True)
 
 ''' Make subdirectories '''
-for dir in ['data', 'hubs', 'params', 'state', 'things', 'watchdogs']:
+for dir in ['data', 'hubs', 'params', 'state', 'devices', 'watchdogs']:
     pathlib.Path(base_path+dir).mkdir(parents=True, exist_ok=True)
     ''' Add init.py file to each subdirectory '''
 

@@ -1,8 +1,8 @@
 '''
-    A Hub is an object which controls one or more Things to regulate the outcome
+    A Hub is an object which controls one or more Devices to regulate the outcome
     of an experiment. For example, for beam alignment into an optical fiber we would
-    require one or more Things for mirror control, as well as a Hub which measures
-    the transmitted power and coordinates commands to its connected Things to maximize
+    require one or more Devices for mirror control, as well as a Hub which measures
+    the transmitted power and coordinates commands to its connected Devices to maximize
     the signal. The Hub class also contains methods for saving and loading states
     to/from file, for monitoring important variables through the Watchdog framework,
     and for optimizing itself by interfacing with other modules.
@@ -14,7 +14,7 @@ from emergent.core import Node
 from emergent.utilities.persistence import __getstate__
 
 class Hub(Node):
-    ''' The Hub oversees connected Things, allowing the Knobs to be
+    ''' The Hub oversees connected Devices, allowing the Knobs to be
         algorithmically tuned to optimize some target function. '''
 
     def __init__(self, name, params={}, core=None):
@@ -50,10 +50,10 @@ class Hub(Node):
         """Updates all Knobs in the given state to the given values and optionally logs the state.
 
         Args:
-            state (dict): Target state of the form {'thingA.param1':1, 'thingA.param1':2,...}
+            state (dict): Target state in nested dict form
         """
-        for thing in state:
-            self.children[thing].actuate(state[thing], send_over_p2p)
+        for device in state:
+            self.children[device].actuate(state[device], send_over_p2p)
 
         self.buffer.add(state)
 
@@ -71,17 +71,17 @@ class Hub(Node):
     def save(self):
         ''' Save knob states to file. '''
         state = {}
-        for thing in self.state:
-            state[thing] = {}
-            for knob in self.state[thing]:
-                state[thing][knob] = {'state': self.state[thing][knob],
-                                      'min': self.range[thing][knob]['min'],
-                                      'max': self.range[thing][knob]['max']}
+        for device in self.state:
+            state[device] = {}
+            for knob in self.state[device]:
+                state[device][knob] = {'state': self.state[device][knob],
+                                      'min': self.range[device][knob]['min'],
+                                      'max': self.range[device][knob]['max']}
         with open(self.core.path['state']+self.name+'.json', 'w') as file:
             json.dump(state, file, indent=2)
 
     def _on_load(self):
-        """Tasks to be carried out after all Things and Knobs are initialized."""
-        for thing in self.children.values():
-            thing._connected = thing._connect()
+        """Tasks to be carried out after all Devices and Knobs are initialized."""
+        for device in self.children.values():
+            device._connected = device._connect()
         self.actuate(self.state)

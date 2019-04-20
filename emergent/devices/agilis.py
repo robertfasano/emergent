@@ -3,7 +3,7 @@ import os
 import numpy as np
 from emergent.protocols import serial
 import serial as ser
-from emergent.core import Thing
+from emergent.core import Device
 from emergent.core import ProcessHandler
 import time
 
@@ -36,12 +36,12 @@ def getChar():
             getChar._func=_ttyRead
 
     return getChar._func()
-    
-class Agilis(Thing, ProcessHandler):
+
+class Agilis(Device, ProcessHandler):
     def __init__(self, port, name = 'agilis', parent = None, connect = False):
         self.mirrors = [1]
         if parent is not None:
-            Thing.__init__(self, name, parent = parent)
+            Device.__init__(self, name, parent = parent)
             ProcessHandler.__init__(self)
             self.zero = {}
             for mirror in self.mirrors:

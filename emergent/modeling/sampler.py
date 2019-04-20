@@ -126,11 +126,11 @@ class Sampler():
         for col in self.history.columns:
             if col not in ['cost', 'error']:
                 arrays.append(self.history[col].values)
-                thing = col.split(':')[0]
+                device = col.split(':')[0]
                 knob = col.split(':')[1]
-                if thing not in state.keys():
-                    state[thing] = {}
-                state[thing][knob] = 0
+                if device not in state.keys():
+                    state[device] = {}
+                state[device][knob] = 0
         if len(arrays) > 0:
             points = np.vstack(arrays).T.astype(float)
         else:
@@ -172,9 +172,9 @@ class Sampler():
         t = time.time()
         self.history.loc[t, 'cost'] = c
         self.history.loc[t, 'error'] = error
-        for thing in target:
-            for knob in target[thing]:
-                self.history.loc[t, thing+':'+knob] = norm_target[thing][knob]
+        for device in target:
+            for knob in target[device]:
+                self.history.loc[t, device+':'+knob] = norm_target[device][knob]
         return c
 
     def get_limits(self):
@@ -183,9 +183,9 @@ class Sampler():
         for col in self.history.columns:
             if col in ['cost', 'error']:
                 continue
-            thing = col.split(':')[0]
+            device = col.split(':')[0]
             knob = col.split(':')[1]
-            limits[col] = self.limits[thing][knob]
+            limits[col] = self.limits[device][knob]
 
         return limits
 
@@ -193,12 +193,12 @@ class Sampler():
         num_items = 0
         cols = []
         self.knobs = {}
-        for thing in state:
-            self.knobs[thing] = []
-            for knob in state[thing]:
-                cols.append(thing+':'+knob)
+        for device in state:
+            self.knobs[device] = []
+            for knob in state[device]:
+                cols.append(device+':'+knob)
                 num_items += 1
-                self.knobs[thing].append(knob)
+                self.knobs[device].append(knob)
         state = self.scaler.normalize(state)
         cols.append('cost')
         self.history = pd.DataFrame(columns=cols)

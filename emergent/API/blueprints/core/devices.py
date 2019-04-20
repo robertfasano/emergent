@@ -2,30 +2,30 @@ from flask import Blueprint, request
 import json
 from emergent.utilities import recommender, introspection
 
-url_prefix = '/hubs/<hub>/things'
+url_prefix = '/hubs/<hub>/devices'
 
 def get_blueprint(core):
-    blueprint = Blueprint('things', __name__)
+    blueprint = Blueprint('devices', __name__)
 
-    ''' Thing endpoints '''
+    ''' Device endpoints '''
     @blueprint.route('/')
-    def things(hub):
+    def devices(hub):
         hub = core.hubs[hub]
         return json.dumps(list(hub.children.keys()))
 
-    @blueprint.route('/<thing>/options')
-    def thing_options(hub, thing):
+    @blueprint.route('/<device>/options')
+    def device_options(hub, device):
         hub = core.hubs[hub]
-        thing = hub.children[thing]
-        return json.dumps(list(thing.options.keys()))
+        device = hub.children[device]
+        return json.dumps(list(device.options.keys()))
 
-    @blueprint.route('/<thing>/exec', methods=['POST'])
-    def thing_exec(hub, thing):
+    @blueprint.route('/<device>/exec', methods=['POST'])
+    def device_exec(hub, device):
         ''' Runs a target function on the hub '''
         hub = core.hubs[hub]
-        thing = hub.children[thing]
+        device = hub.children[device]
         r = request.get_json()
-        func = getattr(thing, r['method'])
+        func = getattr(device, r['method'])
         if 'args' in r:
             if 'kwargs' in r:
                 func(*r['args'], **r['kwargs'])

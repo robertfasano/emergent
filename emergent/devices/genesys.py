@@ -2,11 +2,11 @@ import sys
 sys.path.append('O:\\Public\\Yb clock')
 sys.path.append('C:\\Users\yblab\Documents\GitHub')
 from emergent.protocols.serial import Serial, PARITY_NONE, STOPBITS_ONE, EIGHTBITS
-from emergent.core import Thing
+from emergent.core import Device
 import time
 
-class Genesys(Thing):
-    ''' Thing driver for the TDK Genesys programmable power supply. '''
+class Genesys(Device):
+    ''' Device driver for the TDK Genesys programmable power supply. '''
     def __init__(self, name, port, parent = None):
         if parent:
             super().__init__(name, parent = parent)

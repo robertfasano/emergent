@@ -1,5 +1,5 @@
 import time
-from emergent.things.labjack import LabJack
+from emergent.devices.labjack import LabJack
 from emergent.core import Hub
 import numpy as np
 import sys

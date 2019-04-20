@@ -15,8 +15,8 @@ class Knob(Node):
             offers a useful internal representation of a state.
 
         Args:
-            name (str): node name. Nodes which share a Thing should have unique names.
-            parent (str): name of parent Thing.
+            name (str): node name. Nodes which share a Device should have unique names.
+            parent (str): name of parent Device.
         """
         super().__init__(name, parent=parent)
         self.state = None

@@ -1,10 +1,10 @@
 from emergent.protocols.serial import Serial, PARITY_NONE, STOPBITS_ONE, EIGHTBITS
 import numpy as np
-from emergent.core import Thing, ProcessHandler
+from emergent.core import Device, ProcessHandler
 
-class NetControls(Thing, ProcessHandler):
+class NetControls(Device, ProcessHandler):
     def __init__(self, name, params = {'port': 'COM11'}, parent = None):
-        Thing.__init__(self, name = name, parent = parent, params = params)
+        Device.__init__(self, name = name, parent = parent, params = params)
         ProcessHandler.__init__(self)
         self.add_knob('Z')
         self.children['Z'].tooltip = 'Feedthrough position in mm'

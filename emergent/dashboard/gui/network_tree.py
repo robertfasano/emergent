@@ -5,7 +5,7 @@
     * Local or remote actuate() calls can be issued by changing a value and pressing enter.
     * The NodeTree.generate(network) method examines the passed network; any new Hubs are added, while existing hubs have their state display updated.
     * The Hub.actuate() method emits a signal which updates leaves corresponding to actuated nodes.
-    * Undo/redo buttons allow Thing/Hub states to be recalled from a buffer.
+    * Undo/redo buttons allow Device/Hub states to be recalled from a buffer.
 '''
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
@@ -68,26 +68,26 @@ class NodeTree(QTreeWidget):
 
     def actuate(self, hub, state):
         hub_item = self.get_hub(hub)
-        for thing_name in state:
-            thing = self.get_thing(hub, thing_name)
-            for knob in state[thing_name]:
-                value = state[thing_name][knob]
-                if self.get_knob(hub, thing_name, knob) is None:
+        for device_name in state:
+            device = self.get_device(hub, device_name)
+            for knob in state[device_name]:
+                value = state[device_name][knob]
+                if self.get_knob(hub, device_name, knob) is None:
                     leaf = KnobWidget(knob)
-                    thing.addChild(leaf)
+                    device.addChild(leaf)
                 if value is not None:
-                    self.get_knob(hub, thing_name, knob).state_signal.emit(state[thing_name][knob])
+                    self.get_knob(hub, device_name, knob).state_signal.emit(state[device_name][knob])
 
     def set_range(self, hub, settings):
         hub_item = self.get_hub(hub)
-        for thing_name in settings:
-            thing = self.get_thing(hub, thing_name)
-            for knob in settings[thing_name]:
-                leaf = self.get_knob(hub, thing_name, knob)
-                min = settings[thing_name][knob]['min']
+        for device_name in settings:
+            device = self.get_device(hub, device_name)
+            for knob in settings[device_name]:
+                leaf = self.get_knob(hub, device_name, knob)
+                min = settings[device_name][knob]['min']
                 if min is not None:
                     leaf.min_signal.emit(min)
-                max = settings[thing_name][knob]['max']
+                max = settings[device_name][knob]['max']
                 if max is not None:
                     leaf.max_signal.emit(max)
 
@@ -122,10 +122,10 @@ class NodeTree(QTreeWidget):
                 continue
             root = HubWidget(hub)
             self.insertTopLevelItems(self.topLevelItemCount(), [root])
-            for thing in network[hub]:
-                branch = ThingWidget(thing)
+            for device in network[hub]:
+                branch = DeviceWidget(device)
                 root.addChild(branch)
-                for knob in network[hub][thing]:
+                for knob in network[hub][device]:
                     leaf = KnobWidget(knob)
                     branch.addChild(leaf)
             self.actuate(hub, network[hub])       # update tree to current hub state
@@ -148,18 +148,18 @@ class NodeTree(QTreeWidget):
             if self.topLevelItem(i).text(0) == hub:
                 return self.topLevelItem(i)
 
-    def get_thing(self, hub, thing):
+    def get_device(self, hub, device):
         hub_item = self.get_hub(hub)
         for i in range(hub_item.childCount()):
-            if hub_item.child(i).text(0) == thing:
+            if hub_item.child(i).text(0) == device:
                 return hub_item.child(i)
 
-    def get_knob(self, hub, thing, knob):
+    def get_knob(self, hub, device, knob):
         hub_item = self.get_hub(hub)
-        thing_item = self.get_thing(hub, thing)
-        for i in range(thing_item.childCount()):
-            if thing_item.child(i).text(0) == knob:
-                return thing_item.child(i)
+        device_item = self.get_device(hub, device)
+        for i in range(device_item.childCount()):
+            if device_item.child(i).text(0) == knob:
+                return device_item.child(i)
 
     def get_selected_hub(self):
         ''' Returns a hub node corresponding to the selected knob node. '''
@@ -177,10 +177,10 @@ class NodeTree(QTreeWidget):
         state = State()
         for i in items:
             knob_name = i.name
-            thing_name = i.parent().text(0)
-            if thing_name not in state:
-                state[thing_name] = {}
-            state[thing_name][knob_name] = float(i.text(1))
+            device_name = i.parent().text(0)
+            if device_name not in state:
+                state[device_name] = {}
+            state[device_name][knob_name] = float(i.text(1))
 
         return state
 
@@ -190,10 +190,10 @@ class NodeTree(QTreeWidget):
         state = {}
         for i in items:
             knob_name = i.name
-            thing_name = i.parent().text(0)
-            if thing_name not in state:
-                state[thing_name] = {}
-            state[thing_name][knob_name] = {'min': float(i.text(2)),
+            device_name = i.parent().text(0)
+            if device_name not in state:
+                state[device_name] = {}
+            state[device_name][knob_name] = {'min': float(i.text(2)),
                                             'max': float(i.text(3))}
 
         return state
@@ -206,11 +206,11 @@ class NodeTree(QTreeWidget):
             hub_item = self.topLevelItem(i)
             state[hub_item.text(0)] = {}
             for j in range(hub_item.childCount()):
-                thing_item = hub_item.child(j)
-                state[hub_item.text(0)][thing_item.text(0)] = {}
-                for k in range(thing_item.childCount()):
-                    knob_item = thing_item.child(k)
-                    state[hub_item.text(0)][thing_item.text(0)][knob_item.text(0)] = knob_item.text(1)
+                device_item = hub_item.child(j)
+                state[hub_item.text(0)][device_item.text(0)] = {}
+                for k in range(device_item.childCount()):
+                    knob_item = device_item.child(k)
+                    state[hub_item.text(0)][device_item.text(0)][knob_item.text(0)] = knob_item.text(1)
         return state
 
     def get_subtree_nodes(self, item):
@@ -255,23 +255,23 @@ class NodeTree(QTreeWidget):
             self.closePersistentEditor(self.last_item, col)
             self.editorOpen = 0
             knob = self.last_item.text(0)
-            thing = self.last_item.parent().text(0)
+            device = self.last_item.parent().text(0)
             hub = self.last_item.parent().parent().text(0)
 
-            key = thing + '.' + knob
+            key = device + '.' + knob
             value = self.current_item.text(col)
 
             hub_name = self.current_item.parent().parent().text(0)
-            thing_name = self.current_item.parent().text(0)
+            device_name = self.current_item.parent().text(0)
             knob_name = self.current_item.text(0)
 
             if col == 1:
-                state = {hub_name: {thing_name:{knob_name: float(value)}}}
+                state = {hub_name: {device_name:{knob_name: float(value)}}}
                 self.dashboard.post('state', state)
                 self.dashboard.actuate_signal.emit(state)
             elif col in [2,3]:
                 qty = {2: 'min', 3: 'max'}[col]
-                range = {hub_name: {thing_name:{knob_name: {qty: float(value)}}}}
+                range = {hub_name: {device_name:{knob_name: {qty: float(value)}}}}
                 self.dashboard.post('range', range)
 
         except AttributeError as e:
@@ -287,19 +287,19 @@ class NodeTree(QTreeWidget):
 
         if item.node == 'knob':
             knob = item.name
-            thing = item.parent().name
+            device = item.parent().name
             hub = item.parent().parent().name
-            params = {'knob': knob, 'thing': thing, 'hub': hub}
-            options = self.dashboard.get('hubs/%s/things/%s/knobs/%s/options'%(hub, thing, knob))
-        elif item.node == 'thing':
+            params = {'knob': knob, 'device': device, 'hub': hub}
+            options = self.dashboard.get('hubs/%s/devices/%s/knobs/%s/options'%(hub, device, knob))
+        elif item.node == 'device':
             knob = None
-            thing = item.name
+            device = item.name
             hub = item.parent().name
-            params = {'thing': thing, 'hub': hub}
-            options = self.dashboard.get('hubs/%s/things/%s/options'%(hub, thing))
+            params = {'device': device, 'hub': hub}
+            options = self.dashboard.get('hubs/%s/devices/%s/options'%(hub, device))
         elif item.node == 'hub':
             knob = None
-            thing = None
+            device = None
             hub = item.name
             params = {'hub': hub}
             options = self.dashboard.get('hubs/%s/options'%hub)
@@ -314,7 +314,7 @@ class NodeTree(QTreeWidget):
         selectedItem = menu.exec_(globalPos)
 
     def exec_option(self, params, option):
-        ''' Takes a params dict containing a node specified by knob, thing, hub
+        ''' Takes a params dict containing a node specified by knob, device, hub
             and a key corresponding to the options dict on the node '''
         d = {}
         for key in params:
@@ -322,8 +322,8 @@ class NodeTree(QTreeWidget):
         d['method'] = option
 
         url = 'hubs/%s'%params['hub']
-        if 'thing' in params:
-            url += '/things/%s'%params['thing']
+        if 'device' in params:
+            url += '/devices/%s'%params['device']
         if 'knob' in params:
             url += '/knobs/%s'%params['knob']
         url += '/exec'
@@ -337,11 +337,11 @@ class HubWidget(QTreeWidgetItem):
         self.name = name
         self.node = 'hub'
 
-class ThingWidget(QTreeWidgetItem):
+class DeviceWidget(QTreeWidgetItem):
     def __init__(self, name):
         super().__init__([name])
         self.name = name
-        self.node = 'thing'
+        self.node = 'device'
 
 class KnobWidget(QTreeWidgetItem):
     def __init__(self, name):

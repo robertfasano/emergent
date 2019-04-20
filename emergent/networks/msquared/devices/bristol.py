@@ -1,7 +1,7 @@
-from emergent.core import Thing
+from emergent.core import Device
 import bristol671
 
-class Wavemeter(Thing):
+class Wavemeter(Device):
     def __init__(self, addr, name = 'Wavemeter', parent = None):
 
 

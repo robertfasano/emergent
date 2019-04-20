@@ -447,7 +447,7 @@ class GridWindow(QWidget):
         self.dashboard.post('hubs/%s/sequencer/sequence'%self.hub, steps)
 
         ''' add knob '''
-        self.dashboard.post('hubs/%s/things/sequencer/exec'%self.hub, {'method': 'add_knob', 'args': (name,)})
+        self.dashboard.post('hubs/%s/devices/sequencer/exec'%self.hub, {'method': 'add_knob', 'args': (name,)})
 
     def move(self, step, n):
         ''' Moves the passed step (integer or string) n places to the left (negative n)

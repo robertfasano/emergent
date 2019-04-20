@@ -5,7 +5,7 @@ from scipy.stats import linregress
 from scipy.optimize import curve_fit
 import numpy as np
 from emergent.core import ProcessHandler
-from emergent.things.labjack import LabJack
+from emergent.devices.labjack import LabJack
 import matplotlib.pyplot as plt
 import requests
 import pandas as pd

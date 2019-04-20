@@ -173,11 +173,11 @@ class Visualizer(QWidget):
         for col in history.columns:
             if col not in ['cost', 'error']:
                 arrays.append(history[col].values)
-                thing = col.split(':')[0]
+                device = col.split(':')[0]
                 knob = col.split(':')[1]
-                if thing not in state.keys():
-                    state[thing] = {}
-                state[thing][knob] = 0
+                if device not in state.keys():
+                    state[device] = {}
+                state[device][knob] = 0
         if len(arrays) > 0:
             points = np.vstack(arrays).T.astype(float)
         else:
@@ -214,9 +214,9 @@ class Visualizer(QWidget):
             for i in range(num_knobs):
                 p = points[:,i]
                 name =  history.columns[i]
-                thing = history.columns[i].split(':')[0]
+                device = history.columns[i].split(':')[0]
                 knob = history.columns[i].split(':')[1]
-                limits = {name: params['limits'][thing][knob]}
+                limits = {name: params['limits'][device][knob]}
                 new_ax, fig = plot_1D(p, costs, limits=limits, cost_name = params['experiment']['name'], errors = errors)
                 cost_vs_param[history.columns[i]] = fig
                 ax0[i].set_xlabel(history.columns[i])
@@ -226,10 +226,10 @@ class Visualizer(QWidget):
             for i in range(num_knobs):
                 p = points[:,i]
                 name =  history.columns[i]
-                thing = history.columns[i].split(':')[0]
+                device = history.columns[i].split(':')[0]
                 knob = history.columns[i].split(':')[1]
                 limits = params['limits']
-                p = limits[thing][knob]['min'] + p*(limits[thing][knob]['max']-limits[thing][knob]['min'])
+                p = limits[device][knob]['min'] + p*(limits[device][knob]['max']-limits[device][knob]['min'])
 
                 if num_knobs == 1:
                     cax = ax[1]

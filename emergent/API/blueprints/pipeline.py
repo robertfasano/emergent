@@ -11,10 +11,10 @@ def get_blueprint(network):
 
     def range_dict_to_tuple(d):
         new_dict = {}
-        for thing in d:
-            new_dict[thing] = {}
-            for knob in d[thing]:
-                new_dict[thing][knob] = (d[thing][knob]['min'], d[thing][knob]['max'])
+        for device in d:
+            new_dict[device] = {}
+            for knob in d[device]:
+                new_dict[device][knob] = (d[device][knob]['min'], d[device][knob]['max'])
         return new_dict
 
     @blueprint.route('/new', methods=['POST'])
