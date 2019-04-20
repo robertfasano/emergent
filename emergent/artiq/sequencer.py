@@ -151,6 +151,8 @@ class Sequencer():
         if steps is None:
             steps = self.steps
         path = self.core.path['sequences']
+        if not os.path.exists(path):
+            os.makedirs(path)
         with open(path+'%s.json'%name, 'w') as file:
             json.dump(self.steps, file)
 
