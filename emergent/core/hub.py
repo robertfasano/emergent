@@ -78,7 +78,7 @@ class Hub(Node):
                                       'min': self.range[thing][knob]['min'],
                                       'max': self.range[thing][knob]['max']}
         with open(self.core.path['state']+self.name+'.json', 'w') as file:
-            json.dump(state, file)
+            json.dump(state, file, indent=2)
 
     def _on_load(self):
         """Tasks to be carried out after all Things and Knobs are initialized."""

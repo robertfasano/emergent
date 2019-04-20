@@ -118,7 +118,7 @@ class Pipeline(BasePipeline):
             d = {}
         d['pipeline'] = pipeline
         with open(path+'/'+filename, 'w') as file:
-            json.dump(d, file)
+            json.dump(d, file, indent=2)
 
     def load(self, path, filename):
         self.blocks = []
