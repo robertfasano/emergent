@@ -28,10 +28,9 @@ class Block():
                                   steps)
         meta_costs = []
         for point in meta_points:
-            pipe = Pipeline(self.pipeline.experiment,
-                            self.pipeline.params,
-                            self.pipeline.state,
+            pipe = Pipeline(self.pipeline.state,
                             self.pipeline.scaler.limits,
+                            self.pipeline.experiment,
                             verbose=False)
             self.params[parameter].value = point
             pipe.add(self)
