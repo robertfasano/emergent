@@ -53,7 +53,8 @@ class CustomTree(QTreeWidget):
     def openMenu(self, pos):
         item = self.itemAt(pos)
         globalPos = self.mapToGlobal(pos)
-        actions = {'Reset': self.parent.reset}
+        actions = {'Reset': self.parent.reset,
+                   'Delete': lambda: self.delete_item(item)}
         actions['Add'] = {'Optimizer': {}, 'Model': {}, 'Block': {}}
 
         for block_type in ['optimizers', 'models', 'blocks']:
@@ -64,6 +65,10 @@ class CustomTree(QTreeWidget):
         menu = DictMenu(actions)
         selectedItem = menu.exec_(globalPos)
 
+    def delete_item(self, item):
+        index = self.indexOfTopLevelItem(item)
+        self.takeTopLevelItem(index)
+
 class ModelOptimizerBox(QComboBox):
     def __init__(self, layout, tree_item, items):
         QComboBox.__init__(self)
@@ -73,8 +78,6 @@ class ModelOptimizerBox(QComboBox):
 
         for item in items:
             self.addItem(item)
-
-
 
     def update_subparams(self):
         for i in reversed(range(self.tree_item.childCount())):
@@ -152,15 +155,7 @@ class PipelineLayout(QVBoxLayout):
 
             if isinstance(params[p], list):
                 box = ModelOptimizerBox(self, item, self.list_classes('optimizers'))
-
                 self.tree.setItemWidget(item, 1, box)
-                ## add subitems
-                # subparams = self.get_params(opt)
-                # for s in subparams:
-                #     subitem = QTreeWidgetItem([s])
-                #     subitem.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled | Qt.ItemIsDragEnabled)
-                #     subitem.setText(1, str(subparams[s]))
-                #     item.addChild(subitem)
 
 
     def list_classes(self, module):
@@ -216,4 +211,4 @@ class PipelineLayout(QVBoxLayout):
         payload['params'] = self.experiment_table.get_params()
         self.parent.dashboard.post('hubs/hub/pipeline/new', payload)
 
-        self.reset()
+        # self.reset()
