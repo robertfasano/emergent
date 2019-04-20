@@ -10,7 +10,7 @@ import logging as log
 log.basicConfig(level=log.INFO)
 
 class Pipeline(BasePipeline):
-    def __init__(self, experiment, params, state, bounds, substate=None, verbose=True):
+    def __init__(self, state, bounds, experiment, params=None, substate=None, verbose=True):
         super().__init__()
         self.verbose = verbose
         self.experiment = experiment
@@ -41,8 +41,10 @@ class Pipeline(BasePipeline):
             target = self.scaler.unnormalize(norm_target)
         else:
             target = norm_target
-
-        return self.experiment(self.fill(target), self.params)
+        if self.params is None:
+            return self.experiment(self.fill(target))
+        else:
+            return self.experiment(self.fill(target), self.params)
 
     def fill(self, substate):
         d = {}
