@@ -19,6 +19,18 @@ def serve(core, addr, port):
     def hello():
         return "EMERGENT API"
 
+    @app.route("/save", methods=['POST'])
+    def save():
+        print('Saving core state to file.')
+        core.save()
+        return ''
+
+    @app.route("/load", methods=['POST'])
+    def load():
+        print('Loading core state from file.')
+        core.load()
+        return ''
+
     @app.route("/handshake", methods=['GET', 'POST'])
     def handshake():
         if request.method == 'POST':

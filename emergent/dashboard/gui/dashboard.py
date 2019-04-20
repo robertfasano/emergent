@@ -22,11 +22,13 @@ class Dashboard(QMainWindow):
         self.addr = addr
         self.port = port
         self.app = app
+
         ''' Set window style '''
         self.setWindowTitle('EMERGENT Dashboard')
         QFontDatabase.addApplicationFont('dashboard/gui/media/Exo2-Light.ttf')
         with open('dashboard/gui/stylesheet.txt', "r") as file:
             self.setStyleSheet(file.read())
+
         self.central_widget = QWidget()
         self.setWindowIcon(QIcon('../dashboard/gui/media/icon.png'))
         self.setCentralWidget(self.central_widget)
@@ -36,6 +38,7 @@ class Dashboard(QMainWindow):
 
         self.resize(width, height)
 
+        ''' Define Qt signals '''
         self.timestep_signal = DictSignal()
         self.sequence_update_signal = DictSignal()
         self.test_signal = DictSignal()
@@ -44,7 +47,6 @@ class Dashboard(QMainWindow):
         self.show_grid_signal.connect(self.show_grid)
         self.plot_signal = DictSignal()
         self.plot_signal.connect(self.plot_window)
-
         ''' Wait until connection is established '''
         self._connected = False
         while True:
@@ -53,11 +55,24 @@ class Dashboard(QMainWindow):
                 break
             except Exception:
                 continue
+        ''' Load modules '''
+
         ''' Create QTreeWidget '''
         self.tree_layout = QVBoxLayout()
         self.tree_widget = NodeTree(self)
         self.tree_layout.addWidget(self.tree_widget)
         layout.addLayout(self.tree_layout)
+
+        self.menu_bar = QMenuBar()
+        self.setMenuBar(self.menu_bar)
+        self.core_menu = self.menu_bar.addMenu('Core')
+
+        self.create_menu_action(self.core_menu,
+                            'Save state',
+                            lambda: self.post('save'))
+        self.create_menu_action(self.core_menu,
+                            'Load state',
+                            lambda: self.post('load'))
 
         ''' Experiment interface '''
         self.experiment_layout = QVBoxLayout()
@@ -71,7 +86,7 @@ class Dashboard(QMainWindow):
         self.task_panel = TaskPanel(self)
         self.experiment_layout.addLayout(self.task_panel)
 
-        ''' Launch Flask socketIO server '''
+        ''' Open reverse connection to master '''
         logging.getLogger('socketio').setLevel(logging.ERROR)
         logging.getLogger('engineio').setLevel(logging.ERROR)
         app = Flask(__name__)
@@ -134,3 +149,8 @@ class Dashboard(QMainWindow):
     def plot_window(self, data):
         from emergent.pipeline.plotting import PlotWindow
         self.plot_window = PlotWindow(data)
+
+    def create_menu_action(self, menu, name, function):
+        ''' Add a new menu action to a menu. '''
+        action = menu.addAction(name)
+        action.triggered.connect(function)
