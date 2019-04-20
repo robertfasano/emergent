@@ -107,9 +107,9 @@ class Dashboard(QMainWindow):
             self.task_panel.add_event(event)
         print('Starting flask-socketio server')
         from threading import Thread
-        thread = Thread(target=socketio.run, args=(app,), kwargs={'port': 8000})
+        thread = Thread(target=socketio.run, args=(app,), kwargs={'port': self.port+1})
         thread.start()
-        self.post('handshake', {'port': 8000})
+        self.post('handshake', {'port': self.port+1})
 
         @socketio.on('test')
         def test(d):

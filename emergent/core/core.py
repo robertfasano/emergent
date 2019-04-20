@@ -96,7 +96,7 @@ class Core():
         ''' Initialize Flask socket '''
         log.info('Starting socketIO client.')
         from socketIO_client import SocketIO, LoggingNamespace
-        self.socketIO = SocketIO('localhost', 8000, LoggingNamespace)
+        self.socketIO = SocketIO('localhost', self.port+1, LoggingNamespace)
 
     def emit(self, signal, arg=None):
         ''' Emit a signal over the SocketIO protocol. Using this method ensures
