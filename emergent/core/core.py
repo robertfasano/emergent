@@ -10,7 +10,7 @@ class Core():
         initialize() method. For each local hub (Hub.addr matching the local address or
         unspecified), the Network adds the hub to its hubs dict.
     '''
-    def __init__(self, name, addr=None, port=9001, database_addr=None):
+    def __init__(self, name, addr=None, port=9001):
         self.addr = addr
         self.port = port
         self.name = name

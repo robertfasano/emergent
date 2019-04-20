@@ -1,16 +1,17 @@
 from flask import Flask, request
 import json
-from emergent.utilities import recommender, introspection
-from emergent.core import ProcessHandler
+from emergent.utilities import recommender
 import importlib, inspect
+from emergent.utilities.decorators import thread
 
-manager = ProcessHandler()
-
+@thread
 def serve(core, addr, port):
     app = Flask(__name__)
 
     blueprints=importlib.import_module('emergent.API.blueprints')
     for item in inspect.getmembers(blueprints, inspect.ismodule):
+        if item[0] in ['core']:
+            continue
         blueprint = item[1].get_blueprint(core)
         app.register_blueprint(blueprint, url_prefix=item[1].url_prefix)
 

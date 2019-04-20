@@ -4,7 +4,6 @@
         name: the name of a network in the emergent/networks folder
         --addr: specify an IP address if you want to define localhost for testing
         --port: the networking port of a decentralized EMERGENT session
-        --database_addr: the IP address of a remote InfluxDB server
         --verbose: increase the output verbosity for debugging
 '''
 #from __main__ import *
@@ -12,59 +11,32 @@ import sys
 import os
 import logging as log
 import argparse
-import importlib
 from emergent.core import Core
-from emergent.utilities.networking import get_address
 
-def launch():
-    ''' Register app with OS '''
-    try:
-        import ctypes
-        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID('EMERGENT')
-    except AttributeError:
-        pass
-    global core
-    char = {'nt': '\\', 'posix': '/'}[os.name]
-    sys.path.append(char.join(os.getcwd().split(char)[0:-3]))
-    sys.path.append('networks/%s'%sys.argv[1])
+''' Register app with OS '''
+if os.name == 'nt':
+    import ctypes
+    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID('EMERGENT')
 
-    ''' Parse arguments and set verbosity for logging '''
-    parser = argparse.ArgumentParser()
-    parser.add_argument("name", help="Network name")
-    parser.add_argument("--addr", help='EMERGENT session IP address')
-    parser.add_argument("--port", help='EMERGENT session networking port', type=int)
-    parser.add_argument("--database_addr", help='Remote InfluxDB address')
+''' Parse arguments and set verbosity for logging '''
+parser = argparse.ArgumentParser()
+parser.add_argument("name", help="Network name")
+parser.add_argument("--addr", help='EMERGENT session IP address', default='127.0.0.1')
+parser.add_argument("--port", help='EMERGENT session networking port', type=int, default='5000')
+parser.add_argument("-v", "--verbose", help="Increase output verbosity", action="store_true")
+args = parser.parse_args()
+if args.verbose:
+    log.basicConfig(level=log.DEBUG)
+else:
+    log.basicConfig(level=log.INFO)
 
-    parser.add_argument("-v", "--verbose", help="Increase output verbosity", action="store_true")
-    args = parser.parse_args()
-    if args.verbose:
-        log.basicConfig(level=log.DEBUG)
-    else:
-        log.basicConfig(level=log.INFO)
+''' Initialize core  '''
+core = Core(name=args.name, addr=args.addr, port=args.port)
+core.initialize()        # instantiate nodes
+core.load()              # load previous state from file
+core.post_load()         # run post-load routine to prepare physical state
 
-    ''' Initialize core  '''
-    if args.addr:
-        addr = args.addr
-    else:
-        addr = '127.0.0.1'
-        # addr = get_address()
-    port = 5000
-    if args.port:
-        port = args.port
-    database_addr = None
-    if args.database_addr:
-        database_addr = args.database_addr
-    core = Core(name=args.name, addr=addr, port=port, database_addr=database_addr)
-    core.initialize()        # instantiate nodes
-    core.load()              # load previous state from file
-    core.post_load()         # run post-load routine to prepare physical state
-
-    from emergent.API.API import serve
-    from threading import Thread
-    thread = Thread(target=serve, args = (core, addr, port))
-    thread.start()
-    print('API running at %s:%i'%(addr, port))
-    log.getLogger('werkzeug').setLevel(log.ERROR)
-
-if __name__ == '__main__':
-    launch()
+from emergent.API.API import serve
+serve(core, args.addr, args.port)
+print('API running at %s:%i'%(args.addr, args.port))
+log.getLogger('werkzeug').setLevel(log.ERROR)
