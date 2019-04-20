@@ -9,6 +9,14 @@ url_prefix = '/hubs/<hub>/pipeline'
 def get_blueprint(network):
     blueprint = Blueprint('pipeline', __name__)
 
+    def range_dict_to_tuple(d):
+        new_dict = {}
+        for thing in d:
+            new_dict[thing] = {}
+            for knob in d[thing]:
+                new_dict[thing][knob] = (d[thing][knob]['min'], d[thing][knob]['max'])
+        return new_dict
+
     @blueprint.route('/new', methods=['POST'])
     def new_pipeline(hub):
         print('Creating new pipeline.')
@@ -17,13 +25,10 @@ def get_blueprint(network):
 
         if request.method == 'POST':
             payload = request.get_json()
-
             experiment = getattr(hub, payload['experiment'])
-            source = Source(payload['state'], payload['range'], experiment, payload['params'])
-
-            pipe = Pipeline(payload['state'], network)
-            pipe.add_source(source)
-            pipe.add_blocks(request.get_json()['blocks'])
+            bounds = range_dict_to_tuple(payload['range'])
+            pipe = Pipeline(payload['state'], bounds, experiment)
+            pipe.from_json(request.get_json()['blocks'])
 
             if not hasattr(hub, 'pipelines'):
                 hub.pipelines = []
