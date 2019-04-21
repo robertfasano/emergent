@@ -34,7 +34,8 @@ def get_blueprint(network):
                 hub.pipelines = []
             hub.pipelines.append(pipe)
 
-            pipe.run()
+            from threading import Thread
+            Thread(target=pipe.run).start()
         return ''
 
 
