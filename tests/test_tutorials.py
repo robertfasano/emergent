@@ -3,7 +3,7 @@ import os
 from nbconvert.preprocessors import ExecutePreprocessor
 
 os.chdir('../tutorials/modules')
-notebooks = ['monitor', 'sequencing', 'core', 'optimize']
+notebooks = ['sequencing', 'core', 'optimize']
 for notebook in notebooks:
     print('Testing %s notebook.'%notebook)
     notebook_filename = '%s.ipynb'%notebook
