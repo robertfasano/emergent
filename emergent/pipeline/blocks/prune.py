@@ -7,7 +7,7 @@ class Prune(Block):
         super().__init__()
         self.params = {'threshold': Parameter(name='Threshold', value=0.5)}
         for p in params:
-            self.params[p] = params[p]
+            self.params[p].value = params[p]
 
     def run(self, points, costs, bounds=None):
         valid_points = points[costs<np.min(costs)*self.params['threshold'].value]
