@@ -35,8 +35,8 @@ class BasePipeline:
             block = block(b['params'])
             subblock.add(block)
 
-            if 'blocks' in b:
-                self.from_json(b['blocks'], subblock=block)
+            if 'subblocks' in b:
+                self.from_json(b['subblocks'], subblock=block)
 
     def to_json(self, pipeline=None):
         ''' Recursively converts all blocks and subpipelines to a representative
@@ -49,7 +49,7 @@ class BasePipeline:
                 name = block.__class__.__name__
                 lst.append({'block': name,
                             'params': {k: v.value for k, v in block.params.items()},
-                            'blocks': self.to_json(pipeline=block)})
+                            'subblocks': self.to_json(pipeline=block)})
             else:
                 block_dict = {'block': block.__class__.__name__, 'params': {}}
                 for p in block.params:
