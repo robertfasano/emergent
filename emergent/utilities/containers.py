@@ -142,6 +142,7 @@ class Parameter():
 
     @value.setter
     def value(self, value):
+        value = self.type(value)
         if self.min is not None:
             if value < self.min:
                 value = self.min
@@ -155,7 +156,7 @@ class Parameter():
                 log.warning('Invalid parameter option.')
                 return
 
-        self.__value = self.type(value)
+        self.__value = value
 
 
 if __name__ == '__main__':
