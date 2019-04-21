@@ -21,6 +21,7 @@ parser.add_argument("--addr", help='EMERGENT session IP address', default='127.0
 parser.add_argument("--port", help='EMERGENT session port', default=5000)
 args = parser.parse_args()
 
+
 QApplication.setStyle(QStyleFactory.create("Fusion"))
 app = QApplication.instance()
 if app is None:
@@ -29,5 +30,3 @@ app.setStyle(QStyleFactory.create("Fusion"))
 global dash
 dash = Dashboard(app, args.addr, args.port)
 dash.show()
-app.processEvents()
-app.exec()
