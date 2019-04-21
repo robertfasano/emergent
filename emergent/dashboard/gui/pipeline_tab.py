@@ -233,18 +233,6 @@ class PipelineLayout(QVBoxLayout):
 
         return params_dict
 
-    def get_pipeline(self):
-        pipeline = []
-        for i in range(self.tree.topLevelItemCount()):
-            item = self.tree.topLevelItem(i)
-            block = {'block': item.text(0), 'params': {}}
-            for j in range(item.childCount()):
-                block['params'][item.child(j).text(0)] = float(item.child(j).text(1))
-            pipeline.append(block)
-
-            
-        return pipeline
-
     def update_params(self):
         experiment = self.experiment_box.currentText()
         if experiment == '':
@@ -257,7 +245,7 @@ class PipelineLayout(QVBoxLayout):
         print('Posting new pipeline')
         payload = {}
         payload['state'] = self.parent.dashboard.tree_widget.get_selected_state()
-        payload['blocks'] = self.get_pipeline()
+        payload['blocks'] = self.to_json()
         payload['range'] = self.parent.dashboard.tree_widget.get_selected_range()
         payload['experiment'] = self.experiment_box.currentText()
         payload['params'] = self.experiment_table.get_params()
