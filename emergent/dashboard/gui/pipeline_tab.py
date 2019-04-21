@@ -140,6 +140,32 @@ class PipelineLayout(QVBoxLayout):
         self.tree.clear()
         self.add_block({'name': 'GridSearch'})
 
+    def get_pipeline_blocks(self, item):
+        name = item.text(0)
+        d = {'block': name}
+        d['params'] = {}
+        for i in range(item.childCount()):
+            c = item.child(i)
+            child_name = c.text(0)
+
+            if child_name == 'Blocks':
+                d['subblocks'] = []
+                for j in range(c.childCount()):
+                    subchild = c.child(j)
+                    d['subblocks'].append(self.get_pipeline_blocks(subchild))
+            else:
+                d['params'][child_name] = c.text(1)
+
+        return d
+
+    def to_json(self):
+        blocks = []
+        for i in range(self.tree.topLevelItemCount()):
+            item = self.tree.topLevelItem(i)
+            blocks.append(self.get_pipeline_blocks(item))
+
+        return blocks
+
     def add_block(self, d, position=None, parent=None):
         ''' Args:
                 d (dict): block description
