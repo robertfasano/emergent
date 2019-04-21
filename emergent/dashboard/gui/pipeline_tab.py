@@ -185,9 +185,10 @@ class PipelineLayout(QVBoxLayout):
             self.tree.insertTopLevelItems(position, [root])
         else:
             if self.is_pipeline(parent.text(0)):
-                blocks = QTreeWidgetItem(['Blocks'])
-                parent.addChild(blocks)
-                blocks.addChild(root)
+                if not hasattr(parent, 'blocks'):
+                    parent.blocks = QTreeWidgetItem(['Blocks'])
+                    parent.addChild(parent.blocks)
+                parent.blocks.addChild(root)
 
         params = self.get_default_params(name)
         for p in params:
@@ -220,7 +221,6 @@ class PipelineLayout(QVBoxLayout):
     def is_pipeline(self, name):
         module = getattr(importlib.import_module('emergent.pipeline'), name)
         has_blocks = hasattr(module(), 'blocks')
-        print(module().__class__.__name__, has_blocks)
         return has_blocks
 
     def get_default_params(self, name):
