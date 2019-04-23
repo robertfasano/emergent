@@ -13,6 +13,7 @@ from emergent.dashboard.gui import Dashboard
 
 ''' Register app with OS '''
 if os.name == 'nt':
+    import ctypes
     ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID('EMERGENT Dashboard')
 
 ''' Parse arguments and set verbosity for logging '''
