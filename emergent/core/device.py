@@ -110,6 +110,3 @@ class Device(Node):
             ''' update state buffer '''
             self.knobs[knob].buffer.add(state)
         self.buffer.add(self.state)
-
-        if send_over_p2p:
-            self.hub.core.emit('actuate', {self.hub.name: {self.name: state}})

@@ -47,6 +47,8 @@ class Hub(Node):
             self.devices[device].actuate(state[device], send_over_p2p)
 
         self.buffer.add(state)
+        if send_over_p2p:
+            self.core.emit('actuate', {self.name: self.state})
 
     def load(self):
         ''' Load knob states from file. '''
