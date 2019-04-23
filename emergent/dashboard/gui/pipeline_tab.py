@@ -276,7 +276,8 @@ class PipelineLayout(QVBoxLayout):
         payload['range'] = self.parent.dashboard.tree_widget.get_selected_range()
         payload['experiment'] = self.experiment_box.currentText()
         payload['params'] = self.experiment_table.get_params()
-        self.parent.dashboard.post('hubs/hub/pipeline/new', payload)
+        payload['hub'] = self.parent.dashboard.tree_widget.get_selected_hub()
+        self.parent.dashboard.post('optimize/run', payload)
 
     def delete(self):
         name = self.pipeline_selector.currentText()

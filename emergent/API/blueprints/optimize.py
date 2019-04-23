@@ -4,6 +4,8 @@ from emergent.utilities import recommender, introspection
 import pickle
 import uuid
 import os
+from emergent.pipeline import Pipeline
+from threading import Thread
 
 url_prefix = '/optimize'
 
@@ -40,5 +42,32 @@ def get_blueprint(core):
             names.append(name.split('.json')[0])
 
         return json.dumps(names)
+
+    def range_dict_to_tuple(d):
+        new_dict = {}
+        for device in d:
+            new_dict[device] = {}
+            for knob in d[device]:
+                new_dict[device][knob] = (d[device][knob]['min'], d[device][knob]['max'])
+        return new_dict
+
+    @blueprint.route('/run', methods=['POST'])
+    def run():
+        print('Creating new pipeline.')
+
+        if request.method == 'POST':
+            payload = request.get_json()
+            hub = core.hubs[payload['hub']]
+            experiment = getattr(hub, payload['experiment'])
+            bounds = range_dict_to_tuple(payload['range'])
+            pipe = Pipeline(payload['state'], bounds, experiment)
+            pipe.from_json(payload['blocks'])
+
+            if not hasattr(hub, 'pipelines'):
+                hub.pipelines = []
+            hub.pipelines.append(pipe)
+
+            Thread(target=pipe.run).start()
+        return ''
 
     return blueprint
