@@ -7,7 +7,8 @@ class IconButton(QToolButton):
         super().__init__()
         self.objectName = 'IconButton'
         self.setStyleSheet("IconButton{background-color: rgba(255, 255, 255, 0);border-style: outset; border-width: 0px;}");
-        self.clicked.connect(func)
+        if func is not None:
+            self.clicked.connect(func)
         self.setIcon(QIcon(filename))
         self.setIconSize(QSize(20,20))
         self.setPopupMode(2)
