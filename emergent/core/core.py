@@ -1,6 +1,7 @@
 import logging as log
 import importlib
 from emergent.utilities.persistence import __getstate__
+from socketIO_client import SocketIO, LoggingNamespace
 
 class Core():
     ''' This class implements a container for multiple Hubs on a PC, as well as methods
@@ -94,9 +95,8 @@ class Core():
 
     def start_flask_socket_server(self):
         ''' Initialize Flask socket '''
-        log.info('Starting socketIO client.')
-        from socketIO_client import SocketIO, LoggingNamespace
-        self.socketIO = SocketIO('localhost', self.port+1, LoggingNamespace)
+        log.info('Starting dashboard client.')
+        self.socketIO = SocketIO(self.addr, self.port+1, LoggingNamespace)
 
     def emit(self, signal, arg=None):
         ''' Emit a signal over the SocketIO protocol. Using this method ensures
