@@ -31,8 +31,8 @@ class ContextTable(QTableWidget):
         self.setHorizontalHeaderLabels(['Time', 'Experiment', 'Event', 'Active', 'ID', 'Hub'])
         self.horizontalHeader().setStretchLastSection(True)
         self.verticalHeader().hide()
-        self.setStyleSheet('color:"#000000"; font-weight: light; font-family: "Exo 2"; font-size: 14px; background-color: rgba(255, 255, 255, 0%);')
-
+        with open('dashboard/gui/stylesheet.txt', "r") as file:
+            self.setStyleSheet(file.read())
     def contextMenuEvent(self, event):
         self.menu = QMenu(self)
         self.action = QAction('Terminate')
