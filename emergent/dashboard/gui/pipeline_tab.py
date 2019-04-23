@@ -24,9 +24,7 @@ class CustomTree(QTreeWidget):
 
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.customContextMenuRequested.connect(self.openMenu)
-        self.setContextMenuPolicy(Qt.CustomContextMenu)
-
+        
     def keyPressEvent(self, event):
         if event.key() == 16777220:
             self.update_editor()
@@ -49,29 +47,6 @@ class CustomTree(QTreeWidget):
         if col in [1,2,3]:
             self.openPersistentEditor(self.current_item, col)
             self.editorOpen = 1
-
-    def openMenu(self, pos):
-        item = self.itemAt(pos)
-        globalPos = self.mapToGlobal(pos)
-        actions = {'Reset': self.parent.reset,
-                   'Delete': lambda: self.delete_item(item)}
-        actions['Add'] = {'Optimizer': {}, 'Model': {}, 'Block': {}}
-
-        for block_type in ['optimizers', 'models', 'blocks']:
-            blocks = self.parent.list_classes(block_type)
-            subdict = actions['Add'][block_type.capitalize()[:-1]]
-            for block in blocks:
-                if item is not None:
-                    if self.parent.is_pipeline(item.text(0)):
-                        subdict[block] = partial(self.parent.add_block, {'name': block}, parent=item)
-                    else:
-                        subdict[block] = partial(self.parent.add_block, {'name': block})
-
-                else:
-                    subdict[block] = partial(self.parent.add_block, {'name': block})
-
-        menu = DictMenu(actions)
-        selectedItem = menu.exec_(globalPos)
 
     def delete_item(self, item):
         index = self.indexOfTopLevelItem(item)
