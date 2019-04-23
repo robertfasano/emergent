@@ -10,3 +10,4 @@ class IconButton(QToolButton):
         self.clicked.connect(func)
         self.setIcon(QIcon(filename))
         self.setIconSize(QSize(20,20))
+        self.setPopupMode(2)
