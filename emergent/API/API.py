@@ -29,6 +29,7 @@ def serve(core, addr, port):
     def load():
         print('Loading core state from file.')
         core.load()
+        core.actuate(core.state())
         return ''
 
     @app.route("/handshake", methods=['GET', 'POST'])
