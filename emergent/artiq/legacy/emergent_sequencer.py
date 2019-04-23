@@ -26,7 +26,7 @@ class Sequencer(Device):
         self.dac = []
         for step in params['sequence']:
             self.add_knob(step['name'])
-            self.children[step['name']].options = {'Go to %s'%step['name']: (goto_option(step['name']))}
+            self.knobs[step['name']].options = {'Go to %s'%step['name']: (goto_option(step['name']))}
 
             for ch in step['TTL']:
                 if ch not in self.ttl:

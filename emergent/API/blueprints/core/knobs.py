@@ -11,22 +11,22 @@ def get_blueprint(core):
     @blueprint.route('/')
     def knobs(hub, device):
         hub = core.hubs[hub]
-        device = hub.children[device]
-        return json.dumps(list(device.children.keys()))
+        device = hub.devices[device]
+        return json.dumps(list(device.knobs.keys()))
 
     @blueprint.route('/<knob>/options')
     def knob_options(hub, device, knob):
         hub = core.hubs[hub]
-        device = hub.children[device]
-        knob = device.children[knob]
+        device = hub.devices[device]
+        knob = device.knobs[knob]
         return json.dumps(list(knob.options.keys()))
 
     @blueprint.route('/<knob>/exec', methods=['POST'])
     def knob_exec(hub, device, knob):
         ''' Runs a target function on the knob '''
         hub = core.hubs[hub]
-        device = hub.children[device]
-        knob = device.children[knob]
+        device = hub.devices[device]
+        knob = device.knobs[knob]
         r = request.get_json()
         func = getattr(knob, r['method'])
         if 'args' in r:

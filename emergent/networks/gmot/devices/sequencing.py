@@ -36,7 +36,7 @@ class Sequencer(Device):
         self.dac = []
         for step in params['sequence']:
             self.add_knob(step['name'])
-            self.children[step['name']].options = {'Go to %s'%step['name']: (goto_option(step['name']))}
+            self.knobs[step['name']].options = {'Go to %s'%step['name']: (goto_option(step['name']))}
 
             for ch in step['TTL']:
                 if ch not in self.ttl:
@@ -112,9 +112,9 @@ class Sequencer(Device):
     #     move_down_option = lambda s: lambda: self.move(s, 1)
     #     move_up_option = lambda s: lambda: self.move(s, -1)
     #     self.add_knob(step)
-    #     self.children[step].options = {'Go to %s'%step: (goto_option(step))}
-    #     self.children[step].options['Move up'] = move_up_option(step)
-    #     self.children[step].options['Move down'] = move_down_option(step)
+    #     self.knobs[step].options = {'Go to %s'%step: (goto_option(step))}
+    #     self.knobs[step].options['Move up'] = move_up_option(step)
+    #     self.knobs[step].options['Move down'] = move_down_option(step)
     #     self.parent.actuate({'sequencer': {step: 0}})
     #
     #     ''' Redraw grid '''
@@ -159,7 +159,7 @@ class Sequencer(Device):
     #     self.steps.insert(i+n, self.steps.pop(i))
     #
     #     ''' Move in NetworkPanel '''
-    #     knob_node = self.children[step]
+    #     knob_node = self.knobs[step]
     #     knob_node.leaf.move(n)
     #
     #     ''' Redraw grid '''
@@ -268,7 +268,7 @@ class Sequencer(Device):
     #         sequence = json.load(file)
     #
     #     self.steps = []
-    #     knobs = list(self.children.keys())
+    #     knobs = list(self.knobs.keys())
     #     state = {}
     #     for knob in knobs:
     #         self.remove_knob(knob)

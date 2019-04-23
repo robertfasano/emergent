@@ -42,7 +42,7 @@ class PID():
         knobs = list(state[device].keys())
         assert len(knobs) == 1
         knob = knobs[0]
-        knob_node = self.sampler.hub.children[device].children[knob]
+        knob_node = self.sampler.hub.devices[device].knobs[knob]
         knob_node.error_history = pd.Series()
         last_error = error(state, self.sampler.experiment_params)
         last_time = time.time()

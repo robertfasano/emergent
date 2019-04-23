@@ -110,13 +110,13 @@ class MOT(Hub):
             return -1
         requests.post('http://localhost:5000/artiq/run', json={})
         print('start:', time.time())
-        self.core.artiq_client.emit('submit', self.children['sequencer'].steps)
+        self.core.artiq_client.emit('submit', self.devices['sequencer'].steps)
         while True:
             response = requests.get('http://localhost:5000/artiq/run').json()
             if 'result' in response:
                 requests.post('http://localhost:5000/artiq/run', json={})
                 break
-        self.children['sequencer'].current_step = self.children['sequencer'].steps[-1]['name']
+        self.devices['sequencer'].current_step = self.devices['sequencer'].steps[-1]['name']
 
         data = pd.read_json(response['result'])
         data = data.set_index(pd.to_timedelta(data.index.values).total_seconds())
@@ -130,12 +130,12 @@ class MOT(Hub):
         ''' Returns the section of a dataframe corresponding to a given timestep. '''
         ## get start of timestep
         start_time = 0
-        for step in self.children['sequencer'].steps:
+        for step in self.devices['sequencer'].steps:
             if step['name'] == step_name:
                 break
             else:
-                start_time += self.children['sequencer'].state[step['name']]
-        end_time = start_time + self.children['sequencer'].state[step['name']]
+                start_time += self.devices['sequencer'].state[step['name']]
+        end_time = start_time + self.devices['sequencer'].state[step['name']]
         return data[(data.index >= start_time) & (data.index <= end_time)]
 
     @experiment

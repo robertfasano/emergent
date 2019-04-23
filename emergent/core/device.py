@@ -34,6 +34,10 @@ class Device(Node):
             name = self.params['name']
 
         super().__init__(name, parent=parent)
+        parent.devices[name] = self
+        self.parent = parent
+        
+        self.knobs = {}
         self._connected = 0
         self.state = {}
 
@@ -56,8 +60,8 @@ class Device(Node):
             class: for example, the PicoAmp MEMS driver has knobs explicitly named
             'X' and 'Y' which are referenced in PicoAmp._actuate().'''
         knob = Knob(name, parent=self)
-        self.children[name] = knob
-        self.state[name] = None #self.children[name].state
+        self.knobs[name] = knob
+        self.state[name] = None #self.knobs[name].state
         self.parent.state[self.name][name] = None
         self.parent.range[self.name][name] = {}
         for qty in ['min', 'max']:
@@ -66,7 +70,7 @@ class Device(Node):
 
     def remove_knob(self, name):
         ''' Detaches the Knob node with the specified name. '''
-        del self.children[name]
+        del self.knobs[name]
         del self.state[name]
         del self.parent.state[self.name][name]
 
@@ -109,11 +113,11 @@ class Device(Node):
         ''' Update the state of the Knob, Device, and Hub '''
         for knob in state:
             self.state[knob] = state[knob]    # update Device
-            # self.children[knob].state = state[knob]   # update Knob
+            # self.knobs[knob].state = state[knob]   # update Knob
             self.parent.state[self.name][knob] = state[knob]   # update Hub
 
             ''' update state buffer '''
-            self.children[knob].buffer.add(state)
+            self.knobs[knob].buffer.add(state)
         self.buffer.add(self.state)
 
         if send_over_p2p:

@@ -11,7 +11,7 @@ class Novatech(Device):
         self.add_knob('slowing')
         self.add_knob('trapping')
         for knob in ['slowing', 'trapping']:
-            self.children[knob].tooltip = knob.capitalize() + ' frequency in MHz'
+            self.knobs[knob].tooltip = knob.capitalize() + ' frequency in MHz'
         self.frequency = {}
         self.amplitude = {}
 

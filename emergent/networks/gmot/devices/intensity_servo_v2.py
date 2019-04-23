@@ -22,7 +22,7 @@ class IntensityServo(Device):
         self.add_knob('slowing')
         self.add_knob('trapping')
         for knob in ['probe', 'slowing', 'trapping']:
-            self.children[knob].tooltip = knob.capitalize() + ' setpoint in V'
+            self.knobs[knob].tooltip = knob.capitalize() + ' setpoint in V'
         self.options['Probe'] = self.probe
         self.options['Load'] = self.load
 

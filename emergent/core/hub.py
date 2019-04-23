@@ -39,6 +39,7 @@ class Hub(Node):
         self.name = name
 
         super().__init__(name, None)
+        self.devices = {}
         self.state = DataDict()
         self.range = DataDict()
         self.samplers = {}
@@ -53,7 +54,7 @@ class Hub(Node):
             state (dict): Target state in nested dict form
         """
         for device in state:
-            self.children[device].actuate(state[device], send_over_p2p)
+            self.devices[device].actuate(state[device], send_over_p2p)
 
         self.buffer.add(state)
 
@@ -82,6 +83,6 @@ class Hub(Node):
 
     def _on_load(self):
         """Tasks to be carried out after all Devices and Knobs are initialized."""
-        for device in self.children.values():
+        for device in self.devices.values():
             device._connected = device._connect()
         self.actuate(self.state)
