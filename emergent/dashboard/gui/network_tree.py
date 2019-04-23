@@ -118,7 +118,6 @@ class NodeTree(QTreeWidget):
         for hub in network:
             if self.get_hub(hub) is not None:
                 self.actuate(hub, network[hub])
-                self.dashboard.app.processEvents()
                 continue
             root = HubWidget(hub)
             self.insertTopLevelItems(self.topLevelItemCount(), [root])
@@ -130,7 +129,6 @@ class NodeTree(QTreeWidget):
                     branch.addChild(leaf)
             self.actuate(hub, network[hub])       # update tree to current hub state
             self.expand()
-        self.dashboard.app.processEvents()
 
 
     ''' Logistics methods '''
