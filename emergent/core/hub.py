@@ -17,24 +17,14 @@ class Hub(Node):
     ''' The Hub oversees connected Devices, allowing the Knobs to be
         algorithmically tuned to optimize some target function. '''
 
-    def __init__(self, name, params={}, core=None):
+    def __init__(self, name, core=None):
         """Initializes a Hub.
 
         Args:
             name (str): node name. All Hubs should have unique names.
         """
-        self.params = params
         self._name_ = name      # save hardcoded name as private variable
         ''' Update self.params with any parameters associated with the Network '''
-        try:
-            core_params = core.params[name]
-        except KeyError:
-            core.params[name] = {}
-            core_params = {}
-        for p in core_params:
-            self.params[p] = core_params[p]
-        if 'name' in core_params:
-            name = core_params['name']
         self.core = core
         self.name = name
 

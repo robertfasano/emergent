@@ -19,7 +19,6 @@ class Core():
         for subpath in ['data', 'state', 'params', 'sequences', 'pipelines']:
             self.path[subpath] = self.path['network'] + '/%s/'%subpath
         self.hubs = {}
-        self.params = {}
         self.tasks = {}
         self.url = 'http://' + self.addr + ':' + str(self.port)
         self.__getstate__ = lambda: __getstate__([])
@@ -34,15 +33,6 @@ class Core():
             hub. '''
         self.hubs[hub.name] = hub
         hub.core = self
-
-    def add_params(self, params):
-        ''' Add parameters passed in from the network's initialize() method
-            to allow custom chunked networks to be constructed. '''
-        for hub in params:
-            if hub not in self.params:
-                self.params[hub] = {}
-            for device in params[hub]:
-                self.params[hub][device] = params[hub][device]
 
     def initialize(self):
         ''' Import the network.py file for the user-specified network and runs

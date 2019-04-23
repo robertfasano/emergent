@@ -23,15 +23,6 @@ class Device(Node):
         """
         self._name_ = name      # save hardcoded name as private variable
         self.params = params
-        ''' Update self.params with any parameters associated with the Network '''
-        try:
-            core_params = hub.core.params[hub._name_]['params'][name]['params']
-        except KeyError:
-            core_params = {}
-        for p in core_params:
-            self.params[p] = core_params[p]
-        if 'name' in self.params:
-            name = self.params['name']
 
         super().__init__(name)
         hub.devices[name] = self
