@@ -70,6 +70,11 @@ class Dashboard(QMainWindow):
         from emergent.dashboard.structures.icon_button import IconButton
         button_layout.addWidget(IconButton('dashboard/gui/media/Material/content-save-outline.svg', lambda: self.post('save'), tooltip='Save device states'))
         button_layout.addWidget(IconButton('dashboard/gui/media/Material/content-undo.svg', lambda: self.post('load'), tooltip='Load device states'))
+        lock_button = IconButton('dashboard/gui/media/Material/baseline-lock-open.svg',
+                                 self.tree_widget.lock,
+                                 tooltip='Load device states',
+                                 toggle_icon='dashboard/gui/media/Material/baseline-lock-closed.svg')
+        button_layout.addWidget(lock_button)
         button_layout.addStretch()
 
         ''' Experiment interface '''

@@ -25,6 +25,7 @@ class NodeTree(QTreeWidget):
         self.editorOpen = 0
         self.current_item = None
         self.last_item = None
+        self.locked = False
         self.setSelectionMode(QAbstractItemView.MultiSelection)
         self.setColumnCount(6)
         # self.setHeaderLabels(["Node", "Value", "Min", "Max"])
@@ -63,6 +64,10 @@ class NodeTree(QTreeWidget):
         self.dashboard.actuate_signal.connect(self.set_state)
         self.dashboard.sequence_update_signal.connect(self.refresh)
 
+    def lock(self):
+        self.locked = not self.locked
+        if self.locked:
+            self.close_editor()
     def refresh(self):
         self.set_state(self.dashboard.get('state'))
 
@@ -104,7 +109,6 @@ class NodeTree(QTreeWidget):
             if i.node == 'knob':
                 if i.parent().parent() is not item.parent().parent():
                     i.setSelected(0)
-
 
     def expand(self):
         ''' Expand all nodes in a given layer. '''
@@ -222,6 +226,8 @@ class NodeTree(QTreeWidget):
     ''' User interaction methods '''
     def open_editor(self):
         ''' Allow the currently-selected node to be edited. '''
+        if self.locked:
+            return
         self.current_item = self.currentItem()
         self.currentValue = self.current_item.text(1)
         col = self.currentIndex().column()
