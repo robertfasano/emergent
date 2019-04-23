@@ -7,16 +7,26 @@ from PyQt5.QtCore import *
 import logging as log
 import datetime
 from emergent.dashboard.structures.parameter_table import ParameterTable
+from emergent.dashboard.structures.icon_button import IconButton
 
 class MeasureLayout(QVBoxLayout):
     def __init__(self, parent):
         QVBoxLayout.__init__(self)
         self.parent = parent
         self.name = 'Measure'
+
+        box_layout = QHBoxLayout()
+        self.addLayout(box_layout)
         self.experiment_box = QComboBox()
 
-        self.addWidget(self.experiment_box)
+        box_layout.addWidget(self.experiment_box)
         self.experiment_box.currentTextChanged.connect(self.update_params)
+        box_layout.addWidget(IconButton('dashboard/gui/media/Material/content-save-outline.svg', self.update_params))
+        box_layout.addWidget(IconButton('dashboard/gui/media/Material/content-undo.svg', self.update_params))
+        box_layout.addWidget(IconButton('dashboard/gui/media/Material/outline-repeat_one.svg', self.update_params))
+        box_layout.addWidget(IconButton('dashboard/gui/media/Material/outline-hourglass-empty.svg', self.update_params))
+        box_layout.addWidget(IconButton('dashboard/gui/media/Material/outline-play-arrow.svg', self.update_params))
+        box_layout.addWidget(IconButton('dashboard/gui/media/Material/outline-pause.svg', self.update_params))
 
         ''' Experiment parameters '''
         self.experiment_table = ParameterTable()

@@ -108,10 +108,15 @@ class PipelineLayout(QVBoxLayout):
 
         vlayout = QVBoxLayout()
         hlayout.addLayout(vlayout)
+        box_layout = QHBoxLayout()
+        vlayout.addLayout(box_layout)
         self.experiment_box = QComboBox()
 
-        vlayout.addWidget(self.experiment_box)
+        box_layout.addWidget(self.experiment_box)
         self.experiment_box.currentTextChanged.connect(self.update_params)
+        box_layout.addWidget(IconButton('dashboard/gui/media/Material/content-save-outline.svg', self.store))
+        box_layout.addWidget(IconButton('dashboard/gui/media/Material/content-undo.svg', self.store))
+        box_layout.addWidget(IconButton('dashboard/gui/media/Material/outline-timer.svg', self.store))
 
         ''' Experiment parameters '''
         self.experiment_table = ParameterTable()
@@ -130,10 +135,19 @@ class PipelineLayout(QVBoxLayout):
             self.pipeline_selector.addItem(item)
         self.pipeline_selector.currentTextChanged.connect(self.load)
         saveLayout.addWidget(self.pipeline_selector)
-        self.store_button = IconButton('dashboard/gui/media/Material/content-save.svg', self.store)
+        self.store_button = IconButton('dashboard/gui/media/Material/content-save-outline.svg', self.store)
         saveLayout.addWidget(self.store_button)
         self.delete_button = IconButton('dashboard/gui/media/Material/trash.svg', self.delete)
         saveLayout.addWidget(self.delete_button)
+
+
+        self.add_button = IconButton('dashboard/gui/media/Material/content-add.svg', self.store)
+        self.remove_button = IconButton('dashboard/gui/media/Material/content-remove.svg', self.store)
+        self.clear_button = IconButton('dashboard/gui/media/Material/content-undo.svg', self.store)
+
+        for button in [self.add_button, self.remove_button, self.clear_button]:
+            saveLayout.addWidget(button)
+
 
         self.tree = CustomTree(self)
         self.tree.setColumnCount(2)
