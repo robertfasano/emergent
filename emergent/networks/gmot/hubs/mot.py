@@ -15,8 +15,8 @@ from emergent.artiq.sequencer import Sequencer
 import logging as log
 
 class MOT(Hub):
-    def __init__(self, name, parent = None, network = None):
-        super().__init__(name, parent = parent, core = core)
+    def __init__(self, name, core = None):
+        super().__init__(name, core = core)
         self.process_manager = ProcessHandler()
         self.labjack = LabJack(params = {'devid': '470017907'}, name='labjack')
 
@@ -61,7 +61,7 @@ class MOT(Hub):
         import json
         with open('/emergent/emergent/networks/gmot/sequences/transfer.json', 'r') as file:
             steps = json.load(file)
-        self.sequencer = Sequencer('sequencer', parent = self, params = {'sequence': steps})
+        self.sequencer = Sequencer('sequencer', hub = self, params = {'sequence': steps})
         self.sequencer.ttl = {0: 'slowing rf', 1: 'trap rf', 2: 'trap shutter', 3: 'trap servo', 4: 'slowing servo', 5: 'SHG rf', 6: 'SHG shutter', 7: 'slowing shutter', 8: 'test', 9: 'test', 10: 'test', 11: 'test', 12: 'test', 13: 'test', 14: 'test', 15: 'test',}
         self.sequencer.adc = {0: 'PMT'}
         self.sequencer.goto('load')

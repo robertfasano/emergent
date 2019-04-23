@@ -5,10 +5,10 @@ from emergent.drivers.labjack import LabJackDriver
 from labjack import ljm
 
 class LabJack(Device, LabJackDriver):
-    def __init__(self, name = 'LabJack', parent = None, params = {'device': 'ANY', 'connection': 'ANY', 'devid': 'ANY', 'arange': 10}):
+    def __init__(self, name = 'LabJack', hub = None, params = {'device': 'ANY', 'connection': 'ANY', 'devid': 'ANY', 'arange': 10}):
         LabJackDriver.__init__(self, params)
-        if parent is not None:
-            Device.__init__(self, name, parent, params = params)
+        if hub is not None:
+            Device.__init__(self, name, hub, params = params)
             self.input_channels = ['AIN0', 'AIN1', 'AIN2', 'AIN3']
             if self.deviceType == ljm.constants.dtT4:
                 self.digital_channels = ['FIO4', 'FIO5','FIO6','FIO7']

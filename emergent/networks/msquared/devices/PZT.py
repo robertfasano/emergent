@@ -2,8 +2,8 @@ from emergent.devices.labjack import LabJack
 from emergent.core import Device
 
 class PZT(Device):
-    def __init__(self, params, name = 'PZT', parent = None):
-        super().__init__(name=name, parent = parent)
+    def __init__(self, params, name = 'PZT', hub = None):
+        super().__init__(name=name, hub = hub)
         self.labjack = LabJack(params=params)
         self.add_knob('voltage')
         self.options['Toggle lock'] = self.toggle_lock

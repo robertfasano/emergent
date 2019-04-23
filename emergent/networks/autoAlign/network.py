@@ -5,6 +5,6 @@ def initialize(core, params = {'autoAlign': {'name': '', 'params': {'MEMS':{'par
     core.add_params(params)
     devid = params['autoAlign']['params']['MEMS']['params']['devid']
     hub = AutoAlign(name='autoAlign', labjack=labjack, core = core)
-    device = PicoAmp('MEMS', parent=hub, params = {'devid': devid, 'type': 'digital'})
+    device = PicoAmp('MEMS', hub=hub, params = {'devid': devid, 'type': 'digital'})
 
     core.add_hub(hub)

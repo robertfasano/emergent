@@ -5,8 +5,8 @@ from emergent.core import Device
 import logging as log
 
 class Novatech(Device):
-    def __init__(self, name, params = {'port': None}, parent = None):
-        super().__init__(name='novatech', params = params, parent = parent)
+    def __init__(self, name, params = {'port': None}, hub = None):
+        super().__init__(name='novatech', params = params, hub = hub)
         # self._connected = self._connect()
         self.add_knob('slowing')
         self.add_knob('trapping')

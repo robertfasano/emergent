@@ -8,7 +8,7 @@ from emergent.modeling.sampler import Sampler
 from emergent.utilities import recommender
 
 class SolsTiS(Device):
-    def __init__(self, params, name = 'SolsTiS', parent = None):
+    def __init__(self, params, name = 'SolsTiS', hub = None):
         ''' Args:
                 params (dict): dictionary containing the following fields:
                 params['server_ip'] (str): IP address of the ICE-BLOC controller
@@ -16,7 +16,7 @@ class SolsTiS(Device):
                 params['client_ip'] (str): IP address of the PC
         '''
 
-        super().__init__(name=name, parent = parent)
+        super().__init__(name=name, hub = hub)
         self.add_knob('etalon setpoint')
         self.params = params
         self.options['Toggle lock'] =  self.toggle_lock
@@ -45,7 +45,7 @@ class SolsTiS(Device):
 
         error = 999
         settings = {'experiment': {}, 'algorithm': {}}
-        settings['experiment'] = {'name': 'error', 'instance': self.parent.error}
+        settings['experiment'] = {'name': 'error', 'instance': self.hub.error}
         settings['experiment']['params'] = {'setpoint': 394798.3, 'wait': 0.1}
         instance = recommender.get_class('algorithm', 'PID')
         settings['algorithm'] = {'name': 'PID', 'instance': instance}
@@ -53,14 +53,14 @@ class SolsTiS(Device):
                                            'Integral gain': 0.2,
                                            'Derivative gain': 0,
                                            'Sign': 1}
-        settings['state'] = self.parent.state
-        settings['hub'] = self.parent
+        settings['state'] = self.hub.state
+        settings['hub'] = self.hub
         settings['callback'] = self.callback
 
         while np.abs(error) > 1:
             sampler = Sampler('PID', settings)
             sampler._solve()
-            error = self.parent.error(error_params)
+            error = self.hub.error(error_params)
 
         self.lock(1)
 

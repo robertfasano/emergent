@@ -7,9 +7,9 @@ import time
 
 class Genesys(Device):
     ''' Device driver for the TDK Genesys programmable power supply. '''
-    def __init__(self, name, port, parent = None):
-        if parent:
-            super().__init__(name, parent = parent)
+    def __init__(self, name, port, hub = None):
+        if hub:
+            super().__init__(name, hub=hub)
         self.port = port
         self.addr = 6
         self._connected = 0

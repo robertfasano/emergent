@@ -3,8 +3,8 @@ import numpy as np
 from emergent.core import Device, ProcessHandler
 
 class NetControls(Device, ProcessHandler):
-    def __init__(self, name, params = {'port': 'COM11'}, parent = None):
-        Device.__init__(self, name = name, parent = parent, params = params)
+    def __init__(self, name, params = {'port': 'COM11'}, hub = None):
+        Device.__init__(self, name = name, hub = hub, params = params)
         ProcessHandler.__init__(self)
         self.add_knob('Z')
         self.knobs['Z'].tooltip = 'Feedthrough position in mm'
@@ -22,7 +22,7 @@ class NetControls(Device, ProcessHandler):
         if self.serial._connected:
             self.axis = 1
             self._initialize()
-            self.zero = self.parent.state[self.name]['Z']
+            self.zero = self.hub.state[self.name]['Z']
             self._set_load_error(5000)
             self.set_velocity(10000)
             return 1

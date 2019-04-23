@@ -5,8 +5,8 @@ from emergent.core import Device
 import logging as log
 
 class E4430B(Device):
-    def __init__(self, name, params = {}, parent = None):
-        super().__init__(name=name, params = params, parent = parent)
+    def __init__(self, name, params={}, hub=None):
+        super().__init__(name=name, params=params, hub=hub)
         self._connected = self._connect()
         self.add_knob('frequency')
         self.add_knob('amplitude')

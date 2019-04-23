@@ -25,10 +25,10 @@ def initialize(core):
 
     ''' Define MOT hub '''
     mot = MOT(name='MOT', core = core)
-    feedthrough = NetControls('feedthrough', params = {'port': 'COM7'}, parent = mot)
-    novatech = Novatech('novatech', params = {'port': 'COM4'}, parent = mot)
-    servo = IntensityServo('servo', params = {'devid': '470016973'}, parent = mot)
-    coils = CurrentDriver('coils', params = {'devid': '440010680'}, parent = mot)
+    feedthrough = NetControls('feedthrough', params = {'port': 'COM7'}, hub = mot)
+    novatech = Novatech('novatech', params = {'port': 'COM4'}, hub = mot)
+    servo = IntensityServo('servo', params = {'devid': '470016973'}, hub = mot)
+    coils = CurrentDriver('coils', params = {'devid': '440010680'}, hub = mot)
 
     ''' Import monitor hub '''
     params = {'daqs': [{'name': 'labjack', 'params':{'devid': '470018943'}}],

@@ -9,7 +9,7 @@ from emergent.core import ProcessHandler
 class Lock(Hub):
     def __init__(self, name, network=None):
         super().__init__(name, network=network)
-        self.watchdogs['Wavemeter'] = Watchdog(parent=self, experiment=self.frequency, name='wavemeter', threshold=0)
+        self.watchdogs['Wavemeter'] = Watchdog(hub=self, experiment=self.frequency, name='wavemeter', threshold=0)
 
     @experiment
     def frequency(self, state, params = {}):

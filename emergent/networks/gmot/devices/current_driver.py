@@ -24,15 +24,15 @@ class CurrentDriver(Device, ProcessHandler):
     ''' Current driver for quadrupole coils using two TDK Genesys programmable
         power supplies and a bespoke current servo board. '''
 
-    def __init__(self, name, params = {'devid': None}, parent = None):
+    def __init__(self, name, params = {'devid': None}, hub = None):
         ''' Initialize the Device for use.
 
             Args:
                 name (str): Name of Device.
-                parent (str): Name of the parent Hub.
+                hub (str): Name of the parent Hub.
                 labjack (modules.labjack.LabJack): LabJack instance to use.
         '''
-        Device.__init__(self, name=name, parent = parent, params = params)
+        Device.__init__(self, name=name, hub = hub, params = params)
         ProcessHandler.__init__(self)
         self.labjack = LabJack(params = {'devid': self.params['devid']})
         self.enable_setpoint(1)

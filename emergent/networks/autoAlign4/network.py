@@ -15,6 +15,6 @@ def initialize(core, params = {'autoAlign': {'name': '', 'params': {'MEMS':{'par
         labjack = LabJack(name='labjack', params = {'devid': devid})
         if hub is None:
             hub = AutoAlign(name='autoAlign', labjack=labjack, core = core)
-        device = PicoAmp(device, parent=hub, params = {'labjack': labjack, 'type': board_type})
+        device = PicoAmp(device, hub=hub, params = {'labjack': labjack, 'type': board_type})
 
     core.add_hub(hub)

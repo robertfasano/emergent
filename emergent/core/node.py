@@ -9,7 +9,7 @@ class Node():
     providing useful organizational methods which are passed on to the Knob,
     Device, and Hub classes. '''
 
-    def __init__(self, name, parent=None):
+    def __init__(self, name):
         ''' Initializes a Node with a name and optionally registers
             to a parent. '''
         self.name = name

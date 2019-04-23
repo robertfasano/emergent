@@ -19,8 +19,8 @@ class Sequencer(Device):
     ''' This class handles TTL pattern generation in a way that is easy
         to define, device-agnostic, and easily testable in the lab. '''
 
-    def __init__(self, name, parent, params={'sequence': {}, 'labjack': None}):
-        Device.__init__(self, name, parent, params=params)
+    def __init__(self, name, hub, params={'sequence': {}, 'labjack': None}):
+        Device.__init__(self, name, hub, params=params)
         if 'labjack' in params:
             self.labjack = params['labjack']
         self.options['Show grid'] = self.open_grid
@@ -58,7 +58,7 @@ class Sequencer(Device):
             s['duration'] = state[step]
 
     def get_switch_by_channel(self, ch):
-        for switch in self.parent.switches.values():
+        for switch in self.hub.switches.values():
             if switch.channel == ch:
                 return switch
 
@@ -77,7 +77,7 @@ class Sequencer(Device):
     def goto(self, step_name):
         ''' Go to a step specified by a string name. '''
         step = self.get_step_by_name(step_name)
-        for switch in self.parent.switches.values():
+        for switch in self.hub.switches.values():
             if int(switch.channel) in step['TTL'] or str(switch.channel) in step['TTL']:
                 switch.set(1)
             else:
@@ -103,7 +103,7 @@ class Sequencer(Device):
     # def add_step(self, name, duration = 0):
     #     ''' Creates a new step with default TTL off state. '''
     #     state = {}
-    #     for switch in self.parent.switches:
+    #     for switch in self.hub.switches:
     #         state[switch] = 0
     #     step = Timestep(name, duration, state)
     #     self.steps.append(step)
@@ -115,7 +115,7 @@ class Sequencer(Device):
     #     self.knobs[step].options = {'Go to %s'%step: (goto_option(step))}
     #     self.knobs[step].options['Move up'] = move_up_option(step)
     #     self.knobs[step].options['Move down'] = move_down_option(step)
-    #     self.parent.actuate({'sequencer': {step: 0}})
+    #     self.hub.actuate({'sequencer': {step: 0}})
     #
     #     ''' Redraw grid '''
     #     if hasattr(self, 'grid'):
@@ -182,7 +182,7 @@ class Sequencer(Device):
             timeslice = stream.index[(stream.index >= now) & (stream.index <= now + duration)]
             for channel in step['TTL']:
                 state = step['TTL'][channel]         # add invert
-                if self.parent.switches[channel].invert:
+                if self.hub.switches[channel].invert:
                     state = 1-state
                 stream.loc[timeslice, channel] = state          # use the physical state, not the virtual, possibly inverted, state
             now += duration
@@ -190,7 +190,7 @@ class Sequencer(Device):
         return stream
 
     def open_grid(self):
-        self.parent.core.emit('sequencer', {'hub': self.parent.name})
+        self.hub.core.emit('sequencer', {'hub': self.hub.name})
 
     def prepare(self):
         ''' Parse the sequence into the proper form to send to the LabJack.
@@ -201,7 +201,7 @@ class Sequencer(Device):
         ''' Get channel numbers and prepare digital stream '''
         channel_numbers = []
         for channel in self.ttl:
-            channel_numbers.append(self.parent.switches[channel].channel)
+            channel_numbers.append(self.hub.switches[channel].channel)
         self.labjack.prepare_digital_stream(channel_numbers)
         self.labjack.prepare_stream_out(trigger=0)
         stream = self.form_stream()
@@ -218,7 +218,7 @@ class Sequencer(Device):
     #     ''' Get channel numbers and prepare digital stream '''
     #     channel_numbers = []
     #     for channel in self.ttl:
-    #         channel_numbers.append(self.parent.switches[channel].channel)
+    #         channel_numbers.append(self.hub.switches[channel].channel)
     #     self.labjack.prepare_digital_stream(channel_numbers)
     #     self.labjack.prepare_stream_out(trigger=0)
     #     stream = self.form_stream()
@@ -246,15 +246,15 @@ class Sequencer(Device):
     #     self.prepare()
     #     if self.labjack.stream_mode != 'in-triggered':
     #         self.labjack.prepare_streamburst(0, trigger=0)
-    #     self.parent.stream_complete = False
+    #     self.hub.stream_complete = False
     #     data = np.array(self.labjack.streamburst(self.cycle_time))
-    #     self.parent.stream_complete = True
+    #     self.hub.stream_complete = True
     #     self.current_step = self.steps[-1].name
     #
     #     return data
 
     # def save(self):
-    #     filename = self.parent.core.path['state'] + 'sequence.json'
+    #     filename = self.hub.core.path['state'] + 'sequence.json'
     #     sequence = {}
     #     for step in self.steps:
     #         sequence[step] = {'duration': self.state[step],
@@ -263,7 +263,7 @@ class Sequencer(Device):
     #         json.dump(sequence, file)
 
     # def load(self):
-    #     filename = self.parent.core.path['state'] + 'sequence.json'
+    #     filename = self.hub.core.path['state'] + 'sequence.json'
     #     with open(filename, 'r') as file:
     #         sequence = json.load(file)
     #
@@ -277,4 +277,4 @@ class Sequencer(Device):
     #         self.steps.append(s)
     #         self.add_knob(step)
     #         state[step] = s.duration
-    #     self.parent.actuate({'sequencer': state})
+    #     self.hub.actuate({'sequencer': state})

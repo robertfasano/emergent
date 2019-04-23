@@ -38,10 +38,10 @@ def getChar():
     return getChar._func()
 
 class Agilis(Device, ProcessHandler):
-    def __init__(self, port, name = 'agilis', parent = None, connect = False):
+    def __init__(self, port, name = 'agilis', hub = None, connect = False):
         self.mirrors = [1]
-        if parent is not None:
-            Device.__init__(self, name, parent = parent)
+        if hub is not None:
+            Device.__init__(self, name, hub = hub)
             ProcessHandler.__init__(self)
             self.zero = {}
             for mirror in self.mirrors:
@@ -127,12 +127,10 @@ class Agilis(Device, ProcessHandler):
                 except Exception as e:
                     print(e)
                     print(self.command('TE?'))
-        target_parent_state = {self.name:{}}
+        target_hub_state = {self.name:{}}
         for knob in self.state:
-            self.state[knob] = 0
-            self.parent.state[self.name][knob] = 0
-            target_parent_state[self.name][knob] = 0
-        self.parent.actuate(target_parent_state)
+            target_hub_state[self.name][knob] = 0
+        self.hub.actuate(target_hub_state)
 
     def command(self, cmd, reply = True):
         r = self.serial.command(cmd, suffix = '\r\n', reply = reply)
@@ -249,7 +247,7 @@ class Agilis(Device, ProcessHandler):
                 sign = 1
                 # self.relative_move(2, 2, step = step)
             if sign is not None:
-                self.parent.actuate({self.name:{knob:self.state[knob]+sign*step}})
+                self.hub.actuate({self.name:{knob:self.state[knob]+sign*step}})
 
     def zero(self):
         for mirror in [1,2]:

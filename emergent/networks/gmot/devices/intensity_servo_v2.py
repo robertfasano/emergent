@@ -14,8 +14,8 @@ class IntensityServo(Device):
         FIO4-7: LJTick-DAC for channel 0-3 setpoints
         AIN0-3: channel 0-3 monitors
     '''
-    def __init__(self, name, params = {'devid': None}, parent = None):
-        super().__init__(name, parent = parent, params = params)
+    def __init__(self, name, params = {'devid': None}, hub = None):
+        super().__init__(name, hub = hub, params = params)
         self.labjack = LabJack(params={'devid': params['devid']})
 
         self.add_knob('probe')
@@ -71,7 +71,7 @@ class IntensityServo(Device):
     #     unlocked_power = lj.AIn(ch)
     #     # self._actuate({'V%i'%channel:frac*unlocked_power})
     #     state = {self.name: {'V%i'%channel:frac*unlocked_power}}
-    #     self.parent.actuate(state)
+    #     self.hub.actuate(state)
     #     self.lock(channel, 1)
 
     # def wave(self, channel, frequency = 1):

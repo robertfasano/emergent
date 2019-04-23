@@ -14,18 +14,18 @@ class Device(Node):
     ''' Devices represent apparatus which can control the state of Knob
         nodes, such as a synthesizer or motorized actuator. '''
 
-    def __init__(self, name, parent, params={}):
+    def __init__(self, name, hub, params={}):
         """Initializes a Device.
 
         Args:
             name (str): node name. Devices which share a Hub should have unique names.
-            parent (str): name of parent Hub.
+            hub (str): name of parent Hub.
         """
         self._name_ = name      # save hardcoded name as private variable
         self.params = params
         ''' Update self.params with any parameters associated with the Network '''
         try:
-            core_params = parent.core.params[parent._name_]['params'][name]['params']
+            core_params = hub.core.params[hub._name_]['params'][name]['params']
         except KeyError:
             core_params = {}
         for p in core_params:
@@ -33,16 +33,16 @@ class Device(Node):
         if 'name' in self.params:
             name = self.params['name']
 
-        super().__init__(name, parent=parent)
-        parent.devices[name] = self
-        self.parent = parent
-        
+        super().__init__(name)
+        hub.devices[name] = self
+        self.hub = hub
+
         self.knobs = {}
         self._connected = 0
         self.state = {}
 
-        self.parent.state[self.name] = {}
-        self.parent.range[self.name] = {}
+        self.hub.state[self.name] = {}
+        self.hub.range[self.name] = {}
 
         self.node_type = 'device'
         self.ignored = []       # objects to ignore during pickling
@@ -52,27 +52,27 @@ class Device(Node):
             for knob in self.params['knobs']:
                 self.add_knob(knob)
 
-        self.__getstate__ = lambda: __getstate__(['parent', 'options'])
+        self.__getstate__ = lambda: __getstate__(['hub', 'options'])
 
     def add_knob(self, name):
         ''' Attaches a Knob node with the specified name. This should correspond
             to a specific name in the _actuate() function of a non-abstract Device
             class: for example, the PicoAmp MEMS driver has knobs explicitly named
             'X' and 'Y' which are referenced in PicoAmp._actuate().'''
-        knob = Knob(name, parent=self)
+        knob = Knob(name, device=self)
         self.knobs[name] = knob
         self.state[name] = None #self.knobs[name].state
-        self.parent.state[self.name][name] = None
-        self.parent.range[self.name][name] = {}
+        self.hub.state[self.name][name] = None
+        self.hub.range[self.name][name] = {}
         for qty in ['min', 'max']:
-            self.parent.range[self.name][name][qty] = None
-        self.parent.core.emit('actuate', {self.parent.name: self.parent.state})
+            self.hub.range[self.name][name][qty] = None
+        self.hub.core.emit('actuate', {self.hub.name: self.hub.state})
 
     def remove_knob(self, name):
         ''' Detaches the Knob node with the specified name. '''
         del self.knobs[name]
         del self.state[name]
-        del self.parent.state[self.name][name]
+        del self.hub.state[self.name][name]
 
     @abstractmethod
     def _actuate(self, state):
@@ -114,11 +114,11 @@ class Device(Node):
         for knob in state:
             self.state[knob] = state[knob]    # update Device
             # self.knobs[knob].state = state[knob]   # update Knob
-            self.parent.state[self.name][knob] = state[knob]   # update Hub
+            self.hub.state[self.name][knob] = state[knob]   # update Hub
 
             ''' update state buffer '''
             self.knobs[knob].buffer.add(state)
         self.buffer.add(self.state)
 
         if send_over_p2p:
-            self.parent.core.emit('actuate', {self.parent.name: {self.name: state}})
+            self.hub.core.emit('actuate', {self.hub.name: {self.name: state}})

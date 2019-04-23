@@ -38,7 +38,7 @@ class Hub(Node):
         self.core = core
         self.name = name
 
-        super().__init__(name, None)
+        super().__init__(name)
         self.devices = {}
         self.state = DataDict()
         self.range = DataDict()

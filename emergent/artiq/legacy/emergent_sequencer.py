@@ -1,4 +1,4 @@
-''' This module allows definition and generation of TTL patterns. It also offers
+.hub''' This module allows definition and generation of TTL patterns. It also offers
     convenient options to control the TTL state through the GUI - every timestep
     added to the Sequencer appears as a knob whose duration can be altered, and
     a specific state can be set by right-clicking on the knob. '''
@@ -12,8 +12,8 @@ import requests
 import os
 
 class Sequencer(Device):
-    def __init__(self, name, parent, params={'sequence': {}}):
-        Device.__init__(self, name, parent, params=params)
+    def __init__(self, name, hub, params={'sequence': {}}):
+        Device.__init__(self, name, hub, params=params)
         self.channels = []
         if 'labjack' in params:
             self.labjack = params['labjack']
@@ -69,18 +69,18 @@ class Sequencer(Device):
         return now
 
     def get_switch_by_channel(self, ch):
-        for switch in self.parent.switches.values():
+        for switch in self.hub.switches.values():
             if switch.channel == ch:
                 return switch
 
     def goto(self, step_name):
         ''' Go to a step specified by a string name. '''
         sequence = [self.get_step_by_name(step_name)]
-        if hasattr(self.parent.core, 'artiq_client'):
-            self.parent.core.artiq_client.emit('hold', sequence)
+        if hasattr(self.hub.core, 'artiq_client'):
+            self.hub.core.artiq_client.emit('hold', sequence)
 
         self.current_step = step_name
-        self.parent.core.emit('timestep', {'name': step_name})
+        self.hub.core.emit('timestep', {'name': step_name})
 
     def add_step(self, name, position = -1):
         step = {'name': name,
@@ -113,17 +113,17 @@ class Sequencer(Device):
             return
 
         self.steps.insert(i+n, self.steps.pop(i))
-        self.parent.core.emit('sequence update')
-        self.parent.core.emit('sequence reorder', {'name': step, 'n': n})
+        self.hub.core.emit('sequence update')
+        self.hub.core.emit('sequence reorder', {'name': step, 'n': n})
 
     def start_artiq(self):
         import os
         os.system('start "" cmd /k "cd /emergent/emergent/artiq/ & call activate artiq-4 & artiq_run sequencer_kernel.py"')
     def open_grid(self):
-        self.parent.core.emit('sequencer', {'hub': self.parent.name})
+        self.hub.core.emit('sequencer', {'hub': self.hub.name})
 
     def get_saved_sequences(self):
-        path = self.parent.core.path['sequences']
+        path = self.hub.core.path['sequences']
         if not os.path.exists(path):
             os.makedirs(path)
 
@@ -133,11 +133,11 @@ class Sequencer(Device):
         ''' Load a sequence from file '''
         if name == 'default':
             return
-        path = self.parent.core.path['sequences']
+        path = self.hub.core.path['sequences']
         with open(path+'%s.json'%name, 'r') as file:
             self.steps = json.load(file)
         self.store(name)
-        # self.parent.core.emit('sequence update')
+        # self.hub.core.emit('sequence update')
 
     def save(self, name, steps=None):
         ''' Save the current sequence to file '''
@@ -145,13 +145,13 @@ class Sequencer(Device):
             return
         if steps is None:
             steps = self.steps
-        path = self.parent.core.path['sequences']
+        path = self.hub.core.path['sequences']
         with open(path+'%s.json'%name, 'w') as file:
             json.dump(self.steps, file)
 
     def activate(self, name):
         self.steps = self.sequences[name]
-        self.parent.core.emit('sequence update')
+        self.hub.core.emit('sequence update')
         self.current_sequence = name
 
     def store(self, name, steps=None):
@@ -166,5 +166,5 @@ class Sequencer(Device):
         if name == 'default':
             return
         del self.sequences[name]
-        path = self.parent.core.path['sequences']
+        path = self.hub.core.path['sequences']
         os.remove(path+'%s.json'%name)
