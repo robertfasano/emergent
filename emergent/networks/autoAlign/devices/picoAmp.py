@@ -10,12 +10,11 @@ import logging as log
 
 class PicoAmp(Device):
     ''' Device driver for the Mirrorcle PicoAmp board. '''
-    def __init__(self, name, params = {'devid': None, 'type': 'digital'}, hub = None):
+    def __init__(self, name, params = {'labjack': None, 'type': 'digital'}, hub = None):
         ''' Initialize the Device for use. '''
         super().__init__(name, hub = hub, params = params)
         self.addr = {'A': '000', 'B': '001', 'C': '010', 'D': '011', 'ALL': '111'}
-        self.labjack = LabJack(name='labjack', params = {'devid': devid})
-
+        self.labjack = params['labjack']
         assert self.params['type'] in ['digital', 'analog']
         self.add_knob('X')
         self.add_knob('Y')

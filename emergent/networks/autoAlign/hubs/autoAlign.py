@@ -12,8 +12,8 @@ import datetime
 class AutoAlign(Hub):
     ''' Hub for automated fiber alignment. A Labjack T7 is used both for
         MEMS mirror actuation via SPI and for measurement of the transmitted power. '''
-    def __init__(self, name, labjack, hub = None, network = None):
-        super().__init__(name, hub = hub, core = core)
+    def __init__(self, name, labjack, hub = None,core = None):
+        super().__init__(name, core = core)
         self.labjack = labjack
 
     def readADC(self, num = 10, delay = 0):
