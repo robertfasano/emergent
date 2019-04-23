@@ -29,7 +29,7 @@ class BasePipeline:
         if subblock is None:
             subblock = self
         for b in block_dict:
-            block = getattr(importlib.import_module('emergent.pipeline'), b['block'])
+            block = getattr(importlib.import_module('emergent.pipeline'), b['name'])
             if 'params' not in b:
                 b['params'] = {}
             block = block(b['params'])
@@ -47,11 +47,11 @@ class BasePipeline:
         for block in pipeline.blocks:
             if issubclass(block.__class__, BasePipeline):
                 name = block.__class__.__name__
-                lst.append({'block': name,
+                lst.append({'name': name,
                             'params': {k: v.value for k, v in block.params.items()},
                             'subblocks': self.to_json(pipeline=block)})
             else:
-                block_dict = {'block': block.__class__.__name__, 'params': {}}
+                block_dict = {'name': block.__class__.__name__, 'params': {}}
                 for p in block.params:
                     block_dict['params'][p] = block.params[p].value
                 lst.append(block_dict)
