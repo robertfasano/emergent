@@ -5,7 +5,8 @@ QMenu {color:"#000000"; font-weight: light; font-family: "Exo 2"; font-size: 14p
 QMenuBar {color:"#000000"; font-weight: light; font-family: "Exo 2"; font-size: 14px; background-color: rgba( 255, 255, 255, 65% )}
 QLabel {color:"#000000"; font-weight: light; font-family: "Exo 2"; font-size: 14px;  background-color: transparent; border-color: transparent; border: 0px}
 QSlider {background-color: transparent}
-QTableWidget {color:"#000000"; font-weight: light; font-family: "Exo 2"; font-size: 14px; background-color: rgba(255, 255, 255, 80%);}
+QTableWidget {color:"#000000"; font-weight: light; font-family: "Exo 2"; font-size: 14px; background-color: transparent; border: none}
+
 QTableWidgetItem {color:"#000000"; font-weight: light; font-family: "Exo 2"; font-size: 14px}
 QWindow {color:"#000000"; font-weight: light; font-family: "Exo 2"; font-size: 14px}
 QTabWidget {color:"#000000"; font-weight: light; font-family: "Exo 2"; font-size: 14px; background-color: rgba(255, 255, 255, 80%)}
@@ -18,8 +19,9 @@ QTabWidget::pane {
     border-radius: 14px;
 }
 QStatusBar {color:"#000000"; font-family: "Exo 2"; font-size: 14px; font-weight: light;  background-color: rgba( 255, 255, 255, 75% )}
+QFrame {background-color: rgba( 255, 255, 255, 75% )}
 
-QTreeWidget {color:#000000; font-family: "Exo 2"; font-size: 14px; background-color: rgba(255, 255, 255, 80%)}
+QTreeWidget {color:#000000; font-family: "Exo 2"; font-size: 14px; background-color: rgba(255, 255, 255, 0%)}
 QTreeView#NodeTree::item:hover{background-color: rgba(63,91,112,255); color: white}
 QTreeView#NodeTree::branch:hover{background-color: rgba(63,91,112,255); color: white}
 

@@ -7,7 +7,7 @@ import os
 import psutil
 from PyQt5.QtGui import QIcon, QFontDatabase
 from PyQt5.QtWidgets import (QHBoxLayout, QLabel, QVBoxLayout, QPushButton,
-                             QWidget, QMainWindow, QStatusBar, QMenuBar)
+                             QWidget, QMainWindow, QStatusBar, QMenuBar, QFrame)
 from PyQt5.QtCore import QTimer
 from emergent.dashboard.gui import TaskPanel, NodeTree, ExperimentLayout#, GridWindow
 from emergent.artiq.new_grid import GridWindow
@@ -58,21 +58,19 @@ class Dashboard(QMainWindow):
         ''' Load modules '''
 
         ''' Create QTreeWidget '''
+        frame = QFrame()
+        layout.addWidget(frame)
         self.tree_layout = QVBoxLayout()
+        frame.setLayout(self.tree_layout)
+
         self.tree_widget = NodeTree(self)
         self.tree_layout.addWidget(self.tree_widget)
-        layout.addLayout(self.tree_layout)
-
-        self.menu_bar = QMenuBar()
-        self.setMenuBar(self.menu_bar)
-        self.core_menu = self.menu_bar.addMenu('Core')
-
-        self.create_menu_action(self.core_menu,
-                            'Save state',
-                            lambda: self.post('save'))
-        self.create_menu_action(self.core_menu,
-                            'Load state',
-                            lambda: self.post('load'))
+        button_layout = QHBoxLayout()
+        self.tree_layout.addLayout(button_layout)
+        from emergent.dashboard.structures.icon_button import IconButton
+        button_layout.addWidget(IconButton('dashboard/gui/media/Material/content-save-outline.svg', lambda: self.post('save'), tooltip='Save device states'))
+        button_layout.addWidget(IconButton('dashboard/gui/media/Material/content-undo.svg', lambda: self.post('load'), tooltip='Load device states'))
+        button_layout.addStretch()
 
         ''' Experiment interface '''
         self.experiment_layout = QVBoxLayout()
