@@ -2,7 +2,7 @@ QComboBox {color:"#000000"; font-family: "Exo 2"; font-size: 14px; font-weight: 
 QPushButton {color:"#000000"; font-family: "Exo 2"; font-size: 14px; font-weight: light;  }
 QTextEdit {color:#000000; font-family: "Exo 2"; font-size: 14px; font-weight: light}
 QMenu {color:"#000000"; font-weight: light; font-family: "Exo 2"; font-size: 14px}
-QMenuBar {color:"#000000"; font-weight: light; font-family: "Exo 2"; font-size: 14px; background-color: rgba( 255, 255, 255, 85% )}
+QMenuBar {color:"#000000"; font-weight: light; font-family: "Exo 2"; font-size: 14px; background-color: rgba( 255, 255, 255, 65% )}
 QLabel {color:"#000000"; font-weight: light; font-family: "Exo 2"; font-size: 14px;  background-color: transparent; border-color: transparent; border: 0px}
 QSlider {background-color: transparent}
 QTableWidget {color:"#000000"; font-weight: light; font-family: "Exo 2"; font-size: 14px; background-color: rgba(255, 255, 255, 80%);}
