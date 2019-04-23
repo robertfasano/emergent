@@ -1,7 +1,7 @@
 ''' The OptimizeTab allows the user to choose algorithms and their parameters and
     launch optimizations. '''
 from PyQt5.QtWidgets import (QComboBox, QPushButton, QTabWidget, QVBoxLayout, QWidget,
-        QTableWidgetItem, QTableWidget, QHBoxLayout, QGridLayout, QLabel,
+        QTableWidgetItem, QTableWidget, QMenu, QHBoxLayout, QGridLayout, QLabel,
         QTreeWidget, QInputDialog, QTreeWidgetItem, QToolBar, QAbstractItemView, QHeaderView, QHBoxLayout)
 from PyQt5.QtCore import *
 from PyQt5.QtGui import QCursor
@@ -114,9 +114,9 @@ class PipelineLayout(QVBoxLayout):
 
         box_layout.addWidget(self.experiment_box)
         self.experiment_box.currentTextChanged.connect(self.update_params)
-        box_layout.addWidget(IconButton('dashboard/gui/media/Material/content-save-outline.svg', self.store))
-        box_layout.addWidget(IconButton('dashboard/gui/media/Material/content-undo.svg', self.store))
-        box_layout.addWidget(IconButton('dashboard/gui/media/Material/outline-timer.svg', self.store))
+        box_layout.addWidget(IconButton('dashboard/gui/media/Material/content-save-outline.svg', self.save_params))
+        box_layout.addWidget(IconButton('dashboard/gui/media/Material/content-undo.svg', self.reset_params))
+
 
         ''' Experiment parameters '''
         self.experiment_table = ParameterTable()
@@ -140,15 +140,6 @@ class PipelineLayout(QVBoxLayout):
         self.delete_button = IconButton('dashboard/gui/media/Material/trash.svg', self.delete)
         saveLayout.addWidget(self.delete_button)
 
-
-        self.add_button = IconButton('dashboard/gui/media/Material/content-add.svg', self.store)
-        self.remove_button = IconButton('dashboard/gui/media/Material/content-remove.svg', self.store)
-        self.clear_button = IconButton('dashboard/gui/media/Material/content-undo.svg', self.store)
-
-        for button in [self.add_button, self.remove_button, self.clear_button]:
-            saveLayout.addWidget(button)
-
-
         self.tree = CustomTree(self)
         self.tree.setColumnCount(2)
         header_item = QTreeWidgetItem(['Block', 'Parameter'])
@@ -160,11 +151,59 @@ class PipelineLayout(QVBoxLayout):
 
         treeLayout.addWidget(self.tree)
 
+        self.add_button = IconButton('dashboard/gui/media/Material/content-add.svg', None)
+        self.add_button.setMenu(self.get_add_menu())
+        self.remove_button = IconButton('dashboard/gui/media/Material/content-remove.svg', self.delete_item)
+        self.clear_button = IconButton('dashboard/gui/media/Material/content-undo.svg', self.reset)
+
+        for button in [self.add_button, self.remove_button, self.clear_button]:
+            saveLayout.addWidget(button)
+
         self.button = QPushButton('Run')
         self.button.clicked.connect(self.post_pipeline)
         self.addWidget(self.button)
 
         self.reset()
+
+    def reset_params(self):
+        experiment = self.experiment_box.currentText()
+        if experiment == '':
+            return
+        hub = self.parent.dashboard.tree_widget.get_selected_hub()
+        d = self.parent.dashboard.get('hubs/%s/experiments/%s/default'%(hub, experiment))
+        self.experiment_table.set_parameters(d['experiment'])
+
+    def save_params(self):
+        experiment = self.experiment_box.currentText()
+        if experiment == '':
+            return
+        hub = self.parent.dashboard.tree_widget.get_selected_hub()
+        params = self.experiment_table.get_params()
+        self.parent.dashboard.post('hubs/%s/experiments/%s'%(hub, experiment), {'params': params})
+
+    def delete_item(self):
+        items = self.tree.selectedItems()
+        if items == []:
+            return
+        self.tree.delete_item(items[0])
+
+    def get_add_menu(self):
+        actions = {'Optimizer': {}, 'Model': {}, 'Block': {}}
+        items = self.tree.selectedItems()
+        for block_type in ['optimizers', 'models', 'blocks']:
+            blocks = self.list_classes(block_type)
+            subdict = actions[block_type.capitalize()[:-1]]
+            for block in blocks:
+                if items != []:
+                    if self.is_pipeline(items[0].text(0)):
+                        subdict[block] = partial(self.add_block, {'name': block}, parent=items[0])
+                    else:
+                        subdict[block] = partial(self.add_block, {'name': block})
+
+                else:
+                    subdict[block] = partial(self.add_block, {'name': block})
+
+        return DictMenu(actions)
 
     def reset(self):
         self.tree.clear()
