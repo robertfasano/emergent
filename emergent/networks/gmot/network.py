@@ -5,22 +5,14 @@ from emergent.networks.autoAlign import network as autoAlign
 from emergent.networks.autoAlign4 import network as autoAlign4
 from emergent.networks.monitor import network as monitor
 
-def initialize(core):
+def initialize(core, name='gmot', params={}):
     ''' Import autoAlign hubs '''
-    cooling_params = {'autoAlign': {'name': 'cooling',
-                            'params': {'MEMS':
-                                        {'params': {'devid': '470016934'}}}}}
-    slowing_params = {'autoAlign': {'name': 'slowing',
-                            'params': {'MEMS':
-                                        {'params': {'devid': '470017899'}}}}}
-    slowing_params = {'autoAlign': {'name': 'slowing',
-                            'params': {'MEMS': {'params': {'devid': '470017899', 'type': 'digital'}},
-                                       'MEMS2': {'params': {'devid': '470018943', 'type': 'analog'}}
-
-                                        }}}
-
-    autoAlign.initialize(core, cooling_params)
-    autoAlign4.initialize(core, slowing_params)
+    autoAlign.initialize(core, params={'devid': '470016934',
+                                       'type': 'digital'},
+                               name='cooling')
+    autoAlign.initialize(core, params={'devid': '470017899',
+                                       'type': 'digital'},
+                               name='slowing')
 
 
     ''' Define MOT hub '''
