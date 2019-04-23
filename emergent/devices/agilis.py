@@ -4,7 +4,7 @@ import numpy as np
 from emergent.protocols import serial
 import serial as ser
 from emergent.core import Device
-from emergent.core import ProcessHandler
+from emergent.utilities.decorators import thread
 import time
 
 def getChar():
@@ -37,12 +37,11 @@ def getChar():
 
     return getChar._func()
 
-class Agilis(Device, ProcessHandler):
+class Agilis(Device):
     def __init__(self, port, name = 'agilis', hub = None, connect = False):
         self.mirrors = [1]
         if hub is not None:
             Device.__init__(self, name, hub = hub)
-            ProcessHandler.__init__(self)
             self.zero = {}
             for mirror in self.mirrors:
                 for knob in ['X%i'%mirror, 'Y%i'%mirror]:
@@ -195,10 +194,8 @@ class Agilis(Device, ProcessHandler):
             Unsaved axes are written as -1 '''
         self.saved_positions[index] = self.get_position(mirror='all')
 
+    @thread
     def walk(self):
-        self._run_thread(self.walk_thread, stoppable = False)
-
-    def walk_thread(self):
         print('Entering walk mode.')
         step = .05
         while True:

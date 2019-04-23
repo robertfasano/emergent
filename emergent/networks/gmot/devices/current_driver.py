@@ -4,7 +4,6 @@ sys.path.append('O:/Public/Yb clock')
 from emergent.devices.genesys import Genesys
 from emergent.devices import LabJack
 from emergent.core import Device
-from emergent.core import ProcessHandler
 from scipy.stats import linregress
 from scipy.optimize import newton
 import matplotlib.pyplot as plt
@@ -20,7 +19,7 @@ R2 = 0.083645
 Z2 = 0.037488
 N2 = 48.869121
 
-class CurrentDriver(Device, ProcessHandler):
+class CurrentDriver(Device):
     ''' Current driver for quadrupole coils using two TDK Genesys programmable
         power supplies and a bespoke current servo board. '''
 
@@ -33,7 +32,6 @@ class CurrentDriver(Device, ProcessHandler):
                 labjack (modules.labjack.LabJack): LabJack instance to use.
         '''
         Device.__init__(self, name=name, hub = hub, params = params)
-        ProcessHandler.__init__(self)
         self.labjack = LabJack(params = {'devid': self.params['devid']})
         self.enable_setpoint(1)
         self.disable_setpoint(2)
@@ -119,9 +117,6 @@ class CurrentDriver(Device, ProcessHandler):
 
     def _connect(self):
         try:
-            # for coil in [1,2]:
-                # self._run_thread(target=self._connect_to_psu, args=(coil,), stoppable = False)
-                # self._connect_to_psu(coil)
             return 1
         except Exception as e:
              log.error('Failed to connect to coils:', e)

@@ -4,7 +4,6 @@ from emergent.utilities.decorators import experiment
 from scipy.stats import linregress
 from scipy.optimize import curve_fit
 import numpy as np
-from emergent.core import ProcessHandler
 from emergent.devices.labjack import LabJack
 import matplotlib.pyplot as plt
 import requests
@@ -17,7 +16,6 @@ import logging as log
 class MOT(Hub):
     def __init__(self, name, core = None):
         super().__init__(name, core = core)
-        self.process_manager = ProcessHandler()
         self.labjack = LabJack(params = {'devid': '470017907'}, name='labjack')
 
         ''' Power PMT and set gain '''

@@ -4,7 +4,6 @@ from emergent.utilities.decorators import experiment, error
 import datetime
 import time
 import numpy as np
-from emergent.core import ProcessHandler
 
 class Lock(Hub):
     def __init__(self, name, network=None):
