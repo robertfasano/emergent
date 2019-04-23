@@ -21,12 +21,12 @@ class MeasureLayout(QVBoxLayout):
 
         box_layout.addWidget(self.experiment_box)
         self.experiment_box.currentTextChanged.connect(self.update_params)
-        box_layout.addWidget(IconButton('dashboard/gui/media/Material/content-save-outline.svg', self.save_params))
-        box_layout.addWidget(IconButton('dashboard/gui/media/Material/content-undo.svg', self.reset_params))
+        box_layout.addWidget(IconButton('dashboard/gui/media/Material/content-save-outline.svg', self.save_params, tooltip='Save parameters'))
+        box_layout.addWidget(IconButton('dashboard/gui/media/Material/content-undo.svg', self.reset_params, tooltip='Reset parameters'))
         # box_layout.addWidget(IconButton('dashboard/gui/media/Material/outline-repeat_one.svg', self.update_params))
-        trigger_button = IconButton('dashboard/gui/media/Material/outline-hourglass-empty.svg', self.update_params)
+        trigger_button = IconButton('dashboard/gui/media/Material/outline-hourglass-empty.svg', None, tooltip='Trigger')
         box_layout.addWidget(trigger_button)    # placeholder
-        box_layout.addWidget(IconButton('dashboard/gui/media/Material/outline-play-arrow.svg', lambda: parent.start_process(process='measure')))
+        box_layout.addWidget(IconButton('dashboard/gui/media/Material/outline-play-arrow.svg', lambda: parent.start_process(process='measure'), tooltip='Start'))
 
         self.trigger_menu = QMenu()
         self.trigger_menu.addAction('No triggers defined')

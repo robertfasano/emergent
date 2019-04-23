@@ -3,7 +3,7 @@ from PyQt5.QtCore import QSize
 from PyQt5.QtGui import QIcon
 
 class IconButton(QToolButton):
-    def __init__(self, filename, func):
+    def __init__(self, filename, func, tooltip=''):
         super().__init__()
         self.objectName = 'IconButton'
         self.setStyleSheet("IconButton{background-color: rgba(255, 255, 255, 0);border-style: outset; border-width: 0px;}");
@@ -12,3 +12,4 @@ class IconButton(QToolButton):
         self.setIcon(QIcon(filename))
         self.setIconSize(QSize(20,20))
         self.setPopupMode(2)
+        self.setToolTip(tooltip)

@@ -114,8 +114,8 @@ class PipelineLayout(QVBoxLayout):
 
         box_layout.addWidget(self.experiment_box)
         self.experiment_box.currentTextChanged.connect(self.update_params)
-        box_layout.addWidget(IconButton('dashboard/gui/media/Material/content-save-outline.svg', self.save_params))
-        box_layout.addWidget(IconButton('dashboard/gui/media/Material/content-undo.svg', self.reset_params))
+        box_layout.addWidget(IconButton('dashboard/gui/media/Material/content-save-outline.svg', self.save_params, tooltip='Save parameters'))
+        box_layout.addWidget(IconButton('dashboard/gui/media/Material/content-undo.svg', self.reset_params, tooltip='Reset parameters'))
 
 
         ''' Experiment parameters '''
@@ -135,9 +135,9 @@ class PipelineLayout(QVBoxLayout):
             self.pipeline_selector.addItem(item)
         self.pipeline_selector.currentTextChanged.connect(self.load)
         saveLayout.addWidget(self.pipeline_selector)
-        self.store_button = IconButton('dashboard/gui/media/Material/content-save-outline.svg', self.store)
+        self.store_button = IconButton('dashboard/gui/media/Material/content-save-outline.svg', self.store, tooltip='Save preset')
         saveLayout.addWidget(self.store_button)
-        self.delete_button = IconButton('dashboard/gui/media/Material/trash.svg', self.delete)
+        self.delete_button = IconButton('dashboard/gui/media/Material/trash.svg', self.delete, tooltip='Delete preset')
         saveLayout.addWidget(self.delete_button)
 
         self.tree = CustomTree(self)
@@ -151,10 +151,10 @@ class PipelineLayout(QVBoxLayout):
 
         treeLayout.addWidget(self.tree)
 
-        self.add_button = IconButton('dashboard/gui/media/Material/content-add.svg', None)
+        self.add_button = IconButton('dashboard/gui/media/Material/content-add.svg', None, tooltip='Add block')
         self.add_button.setMenu(self.get_add_menu())
-        self.remove_button = IconButton('dashboard/gui/media/Material/content-remove.svg', self.delete_item)
-        self.clear_button = IconButton('dashboard/gui/media/Material/content-undo.svg', self.reset)
+        self.remove_button = IconButton('dashboard/gui/media/Material/content-remove.svg', self.delete_item, tooltip='Remove block')
+        self.clear_button = IconButton('dashboard/gui/media/Material/content-undo.svg', self.reset, tooltip='Reset pipeline')
 
         for button in [self.add_button, self.remove_button, self.clear_button]:
             saveLayout.addWidget(button)
