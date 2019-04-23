@@ -19,6 +19,7 @@ from emergent.utilities.introspection import list_errors, list_experiments, list
 from emergent.utilities import recommender
 from emergent.modeling.sampler import Sampler
 from emergent.dashboard.gui import MeasureLayout, ModelLayout, ServoLayout, PipelineLayout
+from functools import partial
 
 class ExperimentLayout(QVBoxLayout):
     def __init__(self, dashboard):
@@ -95,6 +96,15 @@ class ExperimentLayout(QVBoxLayout):
             for t in self.dashboard.get('hubs/%s/triggers'%hub):
                 panel.trigger_box.addItem(t)
 
+        if hasattr(panel, 'trigger_menu'):
+            panel.trigger_menu.clear()
+            triggers = self.dashboard.get('hubs/%s/triggers'%hub)
+            if triggers == []:
+                action = panel.trigger_menu.addAction('No triggers defined')
+                action.triggered.connect(partial(panel.set_trigger, None))
+            for t in triggers:
+                action = panel.trigger_menu.addAction(t)
+                action.triggered.connect(partial(panel.set_trigger, t))
 
     def update_hub(self):
         hub = self.dashboard.tree_widget.get_selected_hub()

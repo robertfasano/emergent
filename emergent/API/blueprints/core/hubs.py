@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 url_prefix = '/hubs'
 
-def load_all_experiment_parameters(hub, experiment_name, model_name = None, sampler_name = None):
+def load_all_experiment_parameters(hub, experiment_name, model_name = None, sampler_name = None, default=False):
     ''' Looks for algorithm parameters in the parameterfile for the experiment. If none exist,
         get them from the default algorithm parameters.
 
@@ -22,7 +22,15 @@ def load_all_experiment_parameters(hub, experiment_name, model_name = None, samp
 
     params_filename = hub.core.path['params'] + '%s.%s.txt'%(hub.name, experiment_name)
     params = {'experiment': {}}
-    params['experiment'] = recommender.get_default_experiment_params(hub, experiment_name)
+    if not default:
+        try:
+            with open(params_filename, 'r') as file:
+                params['experiment'] = json.load(file)
+        except FileNotFoundError:
+            params['experiment'] = recommender.get_default_experiment_params(hub, experiment_name)
+    else:
+            params['experiment'] = recommender.get_default_experiment_params(hub, experiment_name)
+
     p = {'experiment': params['experiment']}
 
     if model_name is not None:
@@ -114,12 +122,26 @@ def get_blueprint(core):
         hub = core.hubs[hub]
         return json.dumps(introspection.list_experiments(hub))
 
-    @blueprint.route('/<hub>/experiments/<experiment>')
+    @blueprint.route('/<hub>/experiments/<experiment>',  methods=['GET', 'POST'])
     def list_experiment_params(hub, experiment):
+        if request.method == 'POST':
+            params_filename = core.path['params'] + '%s.%s.txt'%(hub, experiment)
+            with open(params_filename, 'w') as file:
+                json.dump(request.get_json()['params'], file)
+            return ''
+        else:
+            sampler = request.args.get('sampler')
+            model = request.args.get('model')
+            hub = core.hubs[hub]
+            params = load_all_experiment_parameters(hub, experiment, model, sampler)
+            return json.dumps(params)
+
+    @blueprint.route('/<hub>/experiments/<experiment>/default',  methods=['GET'])
+    def list_default_experiment_params(hub, experiment):
         sampler = request.args.get('sampler')
         model = request.args.get('model')
         hub = core.hubs[hub]
-        params = load_all_experiment_parameters(hub, experiment, model, sampler)
+        params = load_all_experiment_parameters(hub, experiment, model, sampler, default=True)
         return json.dumps(params)
 
     @blueprint.route('/<hub>/errors/<error>')
