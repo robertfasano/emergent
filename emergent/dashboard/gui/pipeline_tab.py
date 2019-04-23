@@ -141,7 +141,7 @@ class PipelineLayout(QVBoxLayout):
         self.averaging_edit.returnPressed.connect(average_menu.hide)
         widget_action.setDefaultWidget(self.averaging_edit)
         average_menu.addAction(widget_action)
-        saveLayout.addWidget(average_button)
+        box_layout.addWidget(average_button)
 
         saveLayout.addWidget(IconButton('dashboard/gui/media/Material/outline-play-arrow.svg', self.post_pipeline, tooltip='Start'))
 
