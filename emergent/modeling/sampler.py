@@ -151,8 +151,8 @@ class Sampler():
             target = self.scaler.unnormalize(norm_target)
         else:
             target = norm_target
-        if not self.skip_lock_check:
-            self.hub._check_lock()
+        # if not self.skip_lock_check:
+            # self.hub._check_lock()
 
         results = []
         if 'cycles per sample' not in self.experiment_params:
