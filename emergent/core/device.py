@@ -57,7 +57,7 @@ class Device(Node):
             'X' and 'Y' which are referenced in PicoAmp._actuate().'''
         knob = Knob(name, parent=self)
         self.children[name] = knob
-        self.state[name] = self.children[name].state
+        self.state[name] = None #self.children[name].state
         self.parent.state[self.name][name] = None
         self.parent.range[self.name][name] = {}
         for qty in ['min', 'max']:
@@ -109,7 +109,7 @@ class Device(Node):
         ''' Update the state of the Knob, Device, and Hub '''
         for knob in state:
             self.state[knob] = state[knob]    # update Device
-            self.children[knob].state = state[knob]   # update Knob
+            # self.children[knob].state = state[knob]   # update Knob
             self.parent.state[self.name][knob] = state[knob]   # update Hub
 
             ''' update state buffer '''

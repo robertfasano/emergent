@@ -19,7 +19,7 @@ class Knob(Node):
             parent (str): name of parent Device.
         """
         super().__init__(name, parent=parent)
-        self.state = None
+        # self.state = None
         self.node_type = 'knob'
 
         self.__getstate__ = lambda: __getstate__(['parent', 'options'])
