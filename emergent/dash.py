@@ -18,7 +18,7 @@ if os.name == 'nt':
 ''' Parse arguments and set verbosity for logging '''
 parser = argparse.ArgumentParser()
 parser.add_argument("--addr", help='EMERGENT session IP address', default='127.0.0.1')
-parser.add_argument("--port", help='EMERGENT session port', default=5000)
+parser.add_argument("--port", help='EMERGENT session port', default=5000, type=int)
 args = parser.parse_args()
 
 
