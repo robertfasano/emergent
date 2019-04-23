@@ -5,18 +5,20 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from PyQt5.QtGui import QCursor
-from PyQt5.QtWidgets import (QGridLayout,QTableView,QVBoxLayout, QWidget, QMenu,
-                             QAction, QTableWidget, QTableWidgetItem, QFileDialog, QComboBox)
+from PyQt5.QtWidgets import (QGridLayout,QTableView,QVBoxLayout, QHBoxLayout, QWidget, QMenu,
+                             QAction, QTableWidget, QTableWidgetItem, QFileDialog, QComboBox, QFrame)
 from PyQt5.QtCore import *
 from emergent.dashboard.gui import PlotWidget
 from emergent.utilities.plotting import plot_2D, plot_1D
 from emergent.utilities.signals import DictSignal
+from emergent.dashboard.structures.icon_button import IconButton
 import matplotlib.pyplot as plt
 import itertools
 import pickle
 import json
 import pandas as pd
 import numpy as np
+from functools import partial
 
 class ContextTable(QTableWidget):
     def __init__(self, parent):
@@ -28,7 +30,8 @@ class ContextTable(QTableWidget):
             self.hideColumn(col)
         self.setHorizontalHeaderLabels(['Time', 'Experiment', 'Event', 'Active', 'ID', 'Hub'])
         self.horizontalHeader().setStretchLastSection(True)
-        self.setStyleSheet('color:"#000000"; font-weight: light; font-family: "Exo 2"; font-size: 14px; background-color: rgba(255, 255, 255, 80%);')
+        self.verticalHeader().hide()
+        self.setStyleSheet('color:"#000000"; font-weight: light; font-family: "Exo 2"; font-size: 14px; background-color: rgba(255, 255, 255, 0%);')
 
     def contextMenuEvent(self, event):
         self.menu = QMenu(self)
@@ -57,15 +60,31 @@ class TaskPanel(QVBoxLayout):
         super().__init__()
         self.dashboard = dashboard
         self.active_tasks = []
+        frame = QFrame()
+        self.addWidget(frame)
+        layout = QVBoxLayout()
+        frame.setLayout(layout)
+
         self.table = ContextTable(self)
         self.table.cellDoubleClicked.connect(self.on_double_click)
-        self.addWidget(self.table)
+        layout.addWidget(self.table)
 
-        self.show_box = QComboBox()
-        for item in ['All', 'Active', 'Inactive']:
-            self.show_box.addItem(item)
-        self.show_box.currentTextChanged.connect(self.update_visible_rows)
-        self.addWidget(self.show_box)
+        show_button = IconButton('dashboard/gui/media/Material/baseline-search.svg', self.update_visible_rows, tooltip='Visible tasks')
+        menu = QMenu()
+        self.visibility_mode = 'All'
+        for action in ['Active', 'Inactive', 'All']:
+            a = menu.addAction(action)
+            a.triggered.connect(partial(self.change_visibility_mode, action))
+        show_button.setMenu(menu)
+        hlayout = QHBoxLayout()
+        layout.addLayout(hlayout)
+        hlayout.addStretch()
+        hlayout.addWidget(show_button)
+        # self.show_box = QComboBox()
+        # for item in ['All', 'Active', 'Inactive']:
+        #     self.show_box.addItem(item)
+        # self.show_box.currentTextChanged.connect(self.update_visible_rows)
+        # self.addWidget(self.show_box)
 
         self.update_timer = QTimer(self)
         self.update_timer.timeout.connect(lambda: self.update_visible_rows(''))
@@ -74,6 +93,10 @@ class TaskPanel(QVBoxLayout):
         self.signal.connect(self._add_event)
 
         self.load_master_tasks()
+
+    def change_visibility_mode(self, mode):
+        self.visibility_mode = mode
+        self.update_visible_rows('')
 
     def add_event(self, event):
         self.signal.emit(event)
@@ -95,7 +118,9 @@ class TaskPanel(QVBoxLayout):
         self.table.setItem(row, 5, QTableWidgetItem(event['hub']))
 
         ''' Set row visibility based on self.show_box '''
-        if self.show_box.currentText() == 'Inactive':
+        # if self.show_box.currentText() == 'Inactive':
+        if self.visibility_mode == 'Inactive':
+
             self.table.setRowHidden(row, True)
         return row
 
@@ -121,7 +146,8 @@ class TaskPanel(QVBoxLayout):
             self._add_event(self.dashboard.get('tasks/%s'%t))
 
     def update_visible_rows(self, text):
-        text = self.show_box.currentText()
+        # text = self.show_box.currentText()
+        text = self.visibility_mode
         for r in range(self.table.rowCount()):
             self.table.setRowHidden(r, False)
 
