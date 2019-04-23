@@ -124,9 +124,11 @@ class PipelineLayout(QVBoxLayout):
         saveLayout = QHBoxLayout()
         treeLayout.addLayout(saveLayout)
         self.pipeline_selector = QComboBox()
-        for item in ['default']:
+        self.pipeline_selector.addItem('default')
+        saved=self.parent.dashboard.get('optimize/pipelines')
+        for item in saved:
             self.pipeline_selector.addItem(item)
-        # self.sequence_selector.currentTextChanged.connect(self.activate)
+        self.pipeline_selector.currentTextChanged.connect(self.load)
         saveLayout.addWidget(self.pipeline_selector)
         self.store_button = IconButton('dashboard/gui/media/Material/content-save.svg', self.store)
         saveLayout.addWidget(self.store_button)
@@ -156,7 +158,7 @@ class PipelineLayout(QVBoxLayout):
 
     def get_pipeline_blocks(self, item):
         name = item.text(0)
-        d = {'block': name}
+        d = {'name': name}
         d['params'] = {}
         for i in range(item.childCount()):
             c = item.child(i)
@@ -179,6 +181,13 @@ class PipelineLayout(QVBoxLayout):
             blocks.append(self.get_pipeline_blocks(item))
 
         return blocks
+
+    def from_json(self, blocks, parent=None):
+        self.tree.clear()
+        for block in blocks:
+            item = self.add_block(block, parent=parent)
+            if 'subblocks' in blocks:
+                self.from_json(blocks['subblocks'], parent=item)
 
     def add_block(self, d, position=None, parent=None):
         ''' Args:
@@ -205,6 +214,9 @@ class PipelineLayout(QVBoxLayout):
                 parent.blocks.addChild(root)
 
         params = self.get_default_params(name)
+        if 'params' in d:
+            for p in d['params']:
+                params[p] = d['params'][p]
         for p in params:
             item = QTreeWidgetItem([p])
             item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled | Qt.ItemIsDragEnabled)
@@ -216,6 +228,7 @@ class PipelineLayout(QVBoxLayout):
             if isinstance(params[p], list):
                 box = ModelOptimizerBox(self, item, self.list_classes('optimizers'))
                 self.tree.setItemWidget(item, 1, box)
+        return root
 
 
     def list_classes(self, module):
@@ -269,13 +282,20 @@ class PipelineLayout(QVBoxLayout):
         name = self.pipeline_selector.currentText()
         if name == 'default':
             return
-        # self.dashboard.post('artiq/delete', {'name': name})
+        # self.parent.dashboard.post('artiq/delete', {'name': name})
         self.pipeline_selector.removeItem(self.pipeline_selector.currentIndex())
 
     def store(self):
         name, ok = QInputDialog.getText(self.parent.dashboard, 'New pipeline', 'Enter preset name:')
         if not ok:
             return
-        # self.dashboard.post('artiq/store', {'name': name})
+        self.parent.dashboard.post('optimize/save', {'name': name, 'pipeline': self.to_json()})
         self.pipeline_selector.addItem(name)
         self.pipeline_selector.setCurrentIndex(self.pipeline_selector.count()-1)
+
+    def load(self, name):
+        if name == 'default':
+            self.reset()
+        else:
+            pipe = self.parent.dashboard.get('optimize/pipelines/%s'%name)
+            self.from_json(pipe)

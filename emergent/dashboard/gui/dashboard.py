@@ -130,7 +130,7 @@ class Dashboard(QMainWindow):
         def test(d):
             self.test_signal.emit(d)
 
-    def get(self, url, format = 'json'):
+    def get(self, url, request = {}, format = 'json'):
         r = requests.get('http://%s:%s/'%(self.addr, self.port)+url)
         if format == 'json':
             return r.json()
