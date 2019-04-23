@@ -62,7 +62,7 @@ def get_blueprint(core):
             bounds = range_dict_to_tuple(payload['range'])
             pipe = Pipeline(payload['state'], bounds, experiment)
             pipe.from_json(payload['blocks'])
-
+            pipe.cycles_per_sample = int(payload['cycles per sample'])
             if not hasattr(hub, 'pipelines'):
                 hub.pipelines = []
             hub.pipelines.append(pipe)

@@ -17,6 +17,7 @@ class Pipeline(BasePipeline):
         self.params = params
         self.state = state
         self.substate = substate
+        self.cycles_per_sample = 1
         if substate is None:
             self.substate = self.state
         self.scaler = Scaler(self.substate, bounds)
@@ -41,10 +42,13 @@ class Pipeline(BasePipeline):
             target = self.scaler.unnormalize(norm_target)
         else:
             target = norm_target
-        if self.params is None:
-            return self.experiment(self.fill(target))
-        else:
-            return self.experiment(self.fill(target), self.params)
+        results = []
+        for i in range(self.cycles_per_sample):
+            if self.params is None:
+                results.append(self.experiment(self.fill(target)))
+            else:
+                results.append(self.experiment(self.fill(target), self.params))
+        return np.mean(results)
 
     def fill(self, substate):
         d = {}

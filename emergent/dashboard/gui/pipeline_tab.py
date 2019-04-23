@@ -2,7 +2,7 @@
     launch optimizations. '''
 from PyQt5.QtWidgets import (QComboBox, QPushButton, QTabWidget, QVBoxLayout, QWidget,
         QTableWidgetItem, QTableWidget, QMenu, QHBoxLayout, QGridLayout, QLabel,
-        QTreeWidget, QInputDialog, QTreeWidgetItem, QToolBar, QAbstractItemView, QHeaderView, QHBoxLayout)
+        QTreeWidget, QInputDialog, QTreeWidgetItem, QLineEdit, QToolBar, QWidgetAction, QAbstractItemView, QHeaderView, QHBoxLayout)
 from PyQt5.QtCore import *
 from PyQt5.QtGui import QCursor
 import logging as log
@@ -133,6 +133,16 @@ class PipelineLayout(QVBoxLayout):
 
         for button in [self.add_button, self.remove_button, self.clear_button]:
             saveLayout.addWidget(button)
+        self.averaging_edit = QLineEdit('1')
+        average_button = IconButton('dashboard/gui/media/Material/outline-repeat_one.svg', None, tooltip='Point averaging')
+        average_menu = QMenu()
+        average_button.setMenu(average_menu)
+        widget_action = QWidgetAction(average_menu)
+        self.averaging_edit.returnPressed.connect(average_menu.hide)
+        widget_action.setDefaultWidget(self.averaging_edit)
+        average_menu.addAction(widget_action)
+        saveLayout.addWidget(average_button)
+
         saveLayout.addWidget(IconButton('dashboard/gui/media/Material/outline-play-arrow.svg', self.post_pipeline, tooltip='Start'))
 
         self.reset()
@@ -296,6 +306,7 @@ class PipelineLayout(QVBoxLayout):
     def post_pipeline(self):
         print('Posting new pipeline')
         payload = {}
+        payload['cycles per sample'] = self.averaging_edit.text()
         payload['state'] = self.parent.dashboard.tree_widget.get_selected_state()
         payload['blocks'] = self.to_json()
         payload['range'] = self.parent.dashboard.tree_widget.get_selected_range()
