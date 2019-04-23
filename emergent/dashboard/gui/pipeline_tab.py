@@ -2,13 +2,14 @@
     launch optimizations. '''
 from PyQt5.QtWidgets import (QComboBox, QPushButton, QTabWidget, QVBoxLayout, QWidget,
         QTableWidgetItem, QTableWidget, QHBoxLayout, QGridLayout, QLabel,
-        QTreeWidget, QTreeWidgetItem, QToolBar, QAbstractItemView, QHeaderView, QHBoxLayout)
+        QTreeWidget, QInputDialog, QTreeWidgetItem, QToolBar, QAbstractItemView, QHeaderView, QHBoxLayout)
 from PyQt5.QtCore import *
 from PyQt5.QtGui import QCursor
 import logging as log
 import numpy as np
 from emergent.dashboard.structures.parameter_table import ParameterTable
 from emergent.dashboard.structures.dict_menu import DictMenu
+from emergent.dashboard.structures.icon_button import IconButton
 from emergent.utilities import recommender
 import importlib, inspect
 from functools import partial
@@ -117,6 +118,20 @@ class PipelineLayout(QVBoxLayout):
         vlayout.addWidget(self.experiment_table)
 
 
+        treeLayout = QVBoxLayout()
+        hlayout.addLayout(treeLayout)
+
+        saveLayout = QHBoxLayout()
+        treeLayout.addLayout(saveLayout)
+        self.pipeline_selector = QComboBox()
+        for item in ['default']:
+            self.pipeline_selector.addItem(item)
+        # self.sequence_selector.currentTextChanged.connect(self.activate)
+        saveLayout.addWidget(self.pipeline_selector)
+        self.store_button = IconButton('dashboard/gui/media/Material/content-save.svg', self.store)
+        saveLayout.addWidget(self.store_button)
+        self.delete_button = IconButton('dashboard/gui/media/Material/trash.svg', self.delete)
+        saveLayout.addWidget(self.delete_button)
 
         self.tree = CustomTree(self)
         self.tree.setColumnCount(2)
@@ -127,7 +142,7 @@ class PipelineLayout(QVBoxLayout):
         self.tree.setDropIndicatorShown(True)
         self.tree.setDragDropMode(QAbstractItemView.InternalMove)
 
-        hlayout.addWidget(self.tree)
+        treeLayout.addWidget(self.tree)
 
         self.button = QPushButton('Run')
         self.button.clicked.connect(self.post_pipeline)
@@ -250,4 +265,17 @@ class PipelineLayout(QVBoxLayout):
         payload['params'] = self.experiment_table.get_params()
         self.parent.dashboard.post('hubs/hub/pipeline/new', payload)
 
-        # self.reset()
+    def delete(self):
+        name = self.pipeline_selector.currentText()
+        if name == 'default':
+            return
+        # self.dashboard.post('artiq/delete', {'name': name})
+        self.pipeline_selector.removeItem(self.pipeline_selector.currentIndex())
+
+    def store(self):
+        name, ok = QInputDialog.getText(self.parent.dashboard, 'New pipeline', 'Enter preset name:')
+        if not ok:
+            return
+        # self.dashboard.post('artiq/store', {'name': name})
+        self.pipeline_selector.addItem(name)
+        self.pipeline_selector.setCurrentIndex(self.pipeline_selector.count()-1)
