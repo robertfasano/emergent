@@ -142,7 +142,7 @@ class Dashboard(QMainWindow):
     def post(self, url, payload={}):
         requests.post('http://%s:%s/'%(self.addr, self.port)+url, json=payload)
 
-    def show_grid(self, d):
+    def show_grid(self, d={}):
         self.grid = GridWindow(self)
         self.grid.show()
 

@@ -13,6 +13,7 @@ import os
 class Sequencer():
     def __init__(self, core, sequence = []):
         self.core = core
+        core.sequencer = self
         # self.options['Show grid'] = self.open_grid
         # self.options['Start ARTIQ'] = self.start_artiq
         # goto_option = lambda s: lambda: self.goto(s)

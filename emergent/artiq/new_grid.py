@@ -1,9 +1,10 @@
 
 from PyQt5.QtWidgets import (QApplication, QLabel, QLineEdit, QMenu, QAction, QPushButton,
-        QWidget, QCheckBox, QHBoxLayout, QVBoxLayout, QGridLayout, QSizePolicy, QComboBox)
+        QWidget, QInputDialog, QToolButton, QCheckBox, QHBoxLayout, QVBoxLayout, QGridLayout, QSizePolicy, QComboBox)
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPainter
 from emergent.utilities.units import Units
+from emergent.dashboard.structures.icon_button import IconButton
 import time
 import numpy as np
 # from emergent.artiq.sequencer_table import SequencerTable
@@ -176,19 +177,11 @@ class GridWindow(QWidget):
             self.sequence_selector.addItem(item)
         self.sequence_selector.currentTextChanged.connect(self.activate)
         self.selector_layout.addWidget(self.sequence_selector)
-        self.delete_button = QPushButton('Delete')
-        self.delete_button.clicked.connect(self.delete)
+        self.store_button = IconButton('dashboard/gui/media/Material/content-save.svg', self.store)
+        self.selector_layout.addWidget(self.store_button)
+        self.delete_button = IconButton('dashboard/gui/media/Material/trash.svg', self.delete)
         self.selector_layout.addWidget(self.delete_button)
         self.layout.addLayout(self.selector_layout)
-
-
-        self.store_layout = QHBoxLayout()
-        self.store_edit = QLineEdit('Enter name here')
-        self.store_layout.addWidget(self.store_edit)
-        self.store_button = QPushButton('Store')
-        self.store_button.clicked.connect(self.store)
-        self.store_layout.addWidget(self.store_button)
-        self.layout.addLayout(self.store_layout)
 
         self.widget = QWidget()
         self.grid_layout = QGridLayout()
@@ -215,7 +208,9 @@ class GridWindow(QWidget):
         self.sequence_selector.removeItem(self.sequence_selector.currentIndex())
 
     def store(self):
-        name = self.store_edit.text()
+        name, ok = QInputDialog.getText(self, 'New sequence', 'Enter preset name:')
+        if not ok:
+            return
         self.dashboard.post('artiq/store', {'name': name})
         self.sequence_selector.addItem(name)
         self.sequence_selector.setCurrentIndex(self.sequence_selector.count()-1)
