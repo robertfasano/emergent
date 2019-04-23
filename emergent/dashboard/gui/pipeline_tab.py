@@ -24,7 +24,7 @@ class CustomTree(QTreeWidget):
 
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        
+
     def keyPressEvent(self, event):
         if event.key() == 16777220:
             self.update_editor()
@@ -133,10 +133,7 @@ class PipelineLayout(QVBoxLayout):
 
         for button in [self.add_button, self.remove_button, self.clear_button]:
             saveLayout.addWidget(button)
-
-        self.button = QPushButton('Run')
-        self.button.clicked.connect(self.post_pipeline)
-        self.addWidget(self.button)
+        saveLayout.addWidget(IconButton('dashboard/gui/media/Material/outline-play-arrow.svg', self.post_pipeline, tooltip='Start'))
 
         self.reset()
 
