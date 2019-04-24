@@ -1,38 +1,45 @@
-from toptica.lasersdk.client import Client, NetworkConnection
+import socket
 from emergent.core import Device
+import numpy as np
 
 class DLCPro(Device):
     def __init__(self, name, hub, params={'addr': '169.254.120.100'}):
         super().__init__(name, hub)
         self.addr = params['addr']
-        self.add_knob('piezo')
         self.add_knob('current')
+        self.add_knob('piezo')
 
-    def _actuate(self, state):
-        with Client(NetworkConnection(self.addr)) as client:
-            if 'current' in state:
-                client.set('laser1:dl:cc:current-set', state['current'])
-            if 'piezo' in state:
-                client.set('laser1:dl:pc:voltage-set', state['piezo'])
+        self.bounds = {'piezo': (0, 140), 'current': (110, 135)}
 
     def _connect(self):
-        try:
-            with Client(NetworkConnection(self.addr)) as client:
-                self.serial_number = client.get('serial-number', str)
-        except:
-            self._connected = 0
-            return
-        self._connected = 1
+        self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.client.connect((self.addr, 1998))
+        for i in range(8):
+            self.client.recv(4096)
+
+    def _actuate(self, state):
+        for key in state:
+            state[key] = np.clip(state[key], *self.bounds[key])
+
+        if 'current' in state:
+            self.client.sendall(b"(param-set! 'laser1:dl:cc:current-set %f)\n"%state['current'])
+            for i in range(3):
+                self.client.recv(2)
+
+        if 'piezo' in state:
+            self.client.sendall(b"(param-set! 'laser1:dl:pc:voltage-set %f)\n"%state['piezo'])
+            for i in range(3):
+                self.client.recv(2)
 
     def _monitor(self):
-        ''' Queries the controller and returns the current state dict '''
-        with Client(NetworkConnection(self.addr)) as client:
-            state = {'current': client.get('laser1:dl:cc:current-set', float),
-                     'piezo': client.get('laser1:dl:pc:voltage-set', float)
-                    }
-        return state
+        state = {}
+        self.client.sendall(b"(param-ref 'laser1:dl:cc:current-set)\n")
+        state['current'] = float(str(self.client.recv(4096), 'utf-8').split('\n')[0])
+        for i in range(2):
+            self.client.recv(2)
 
-if __name__ == "__main__":
-    laser = DLCPro('DLCPro', None, {'addr': '169.254.120.100'})
-    laser._connect()
-    print(laser._monitor())
+        self.client.sendall(b"(param-ref 'laser1:dl:pc:voltage-set)\n")
+        state['voltage'] = float(str(self.client.recv(4096), 'utf-8').split('\n')[0])
+        for i in range(2):
+            self.client.recv(2)
+        return state
