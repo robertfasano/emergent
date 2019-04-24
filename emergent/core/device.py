@@ -25,15 +25,14 @@ class Device(Node):
         self.params = params
 
         super().__init__(name)
-        hub.devices[name] = self
         self.hub = hub
-
+        if self.hub is not None:
+            hub.devices[name] = self
+            self.hub.state[self.name] = {}
+            self.hub.range[self.name] = {}
         self.knobs = {}
         self._connected = 0
         self.state = {}
-
-        self.hub.state[self.name] = {}
-        self.hub.range[self.name] = {}
 
         self.node_type = 'device'
         self.ignored = []       # objects to ignore during pickling
@@ -53,11 +52,13 @@ class Device(Node):
         knob = Knob(name, device=self)
         self.knobs[name] = knob
         self.state[name] = None #self.knobs[name].state
-        self.hub.state[self.name][name] = None
-        self.hub.range[self.name][name] = {}
-        for qty in ['min', 'max']:
-            self.hub.range[self.name][name][qty] = None
-        self.hub.core.emit('actuate', {self.hub.name: self.hub.state})
+
+        if self.hub is not None:
+            self.hub.state[self.name][name] = None
+            self.hub.range[self.name][name] = {}
+            for qty in ['min', 'max']:
+                self.hub.range[self.name][name][qty] = None
+            self.hub.core.emit('actuate', {self.hub.name: self.hub.state})
 
     def remove_knob(self, name):
         ''' Detaches the Knob node with the specified name. '''
@@ -104,8 +105,8 @@ class Device(Node):
         ''' Update the state of the Knob, Device, and Hub '''
         for knob in state:
             self.state[knob] = state[knob]    # update Device
-            # self.knobs[knob].state = state[knob]   # update Knob
-            self.hub.state[self.name][knob] = state[knob]   # update Hub
+            if self.hub is not None:
+                self.hub.state[self.name][knob] = state[knob]   # update Hub
 
             ''' update state buffer '''
             self.knobs[knob].buffer.add(state)
