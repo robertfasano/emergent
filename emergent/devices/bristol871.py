@@ -1,14 +1,17 @@
-import socket
+from emergent.core import Device, Sensor
 
-class Bristol871:
+class Bristol871(Device):
+    frequency = Sensor('frequency')
+    power = Sensor('power')
+
     def __init__(self, name, hub, params={'addr':'10.199.199.1', 'port': 23}):
+        super().__init__(name, hub, params)
         self.addr = params['addr']
         self.port = params['port']
 
     def _connect(self):
         try:
-            self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.client.connect((self.addr, self.port))
+            self.client = self._open_tcpip(self.addr, self.port)
             for i in range(2):
                 self.client.recv(4096)
         except Exception as e:
@@ -21,20 +24,16 @@ class Bristol871:
         self.client.sendall(b'%s\n'%msg)
         resp = float(str(self.client.recv(1024), 'utf-8').split('\r')[0])
 
-        if threshold is not None:
-            if resp < threshold:
-                return None
         return resp
 
-    def _monitor(self, targets=['frequency']):
-        state = {}
-        if 'frequency' in targets:
-            state['frequency'] = self._query(b':READ:FREQ?', threshold=1)
-            if state['frequency'] is not None:
-                state['frequency'] *= 1000
-        if 'power' in targets:
-            state['power'] = self._query(b':READ:POWER?')
-        if 'wavelength' in targets:
-            state['wavelength'] = self._query(b':READ:WAV?')
+    @frequency.query
+    def frequency(self):
+        f = self._query(b':READ:FREQ?')
+        if f < 1e-3:          # detect read failures and return None
+            return None
+        else:
+            return f * 1000   # return frequency in GHz
 
-        return state
+    @power.query
+    def power(self):
+        return self._query(b':READ:POWER?')

@@ -1,6 +1,5 @@
 import time
-from emergent.devices import LabJack
-from emergent.core import Device
+from emergent.core import Device, Knob, Sensor
 import numpy as np
 import sys
 import os
@@ -9,6 +8,9 @@ sys.path.append(char.join(os.getcwd().split(char)[0:-1]))
 import logging as log
 
 class PicoAmp(Device):
+    X = Knob('X')
+    Y = Knob('Y')
+    power = Sensor('power')
     ''' Device driver for the Mirrorcle PicoAmp board. '''
     def __init__(self, name, params = {'labjack': None, 'type': 'digital'}, hub = None):
         ''' Initialize the Device for use. '''
@@ -16,8 +18,6 @@ class PicoAmp(Device):
         self.addr = {'A': '000', 'B': '001', 'C': '010', 'D': '011', 'ALL': '111'}
         self.labjack = params['labjack']
         assert self.params['type'] in ['digital', 'analog']
-        self.add_knob('X')
-        self.add_knob('Y')
 
     def _connect(self):
         ''' Initializes the PicoAmp via SPI. '''
@@ -38,10 +38,17 @@ class PicoAmp(Device):
         else:
             log.error('Error: could not initialize PicoAmp - LabJack not connected!')
 
-    def _actuate(self, state):
-        ''' Updates MEMS to a target state. Axes not included in the state dict are unaffected.'''
-        for axis in state.keys():
-            self.setDifferential(state[axis], axis)
+    @power.query
+    def power(self):
+        return self.labjack.AIn(0)
+
+    @X.command
+    def X(self, x):
+        self.setDifferential(x, 'X')
+
+    @Y.command
+    def Y(self, y):
+        self.setDifferential(y, 'Y')
 
     def command(self, cmd):
         ''' Separates the bitstring cmd into a series of bytes and sends them through the SPI. '''
