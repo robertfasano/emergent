@@ -83,6 +83,16 @@ class Device():
     def _add_boilerplate(self):
         ''' Replaces each of the user-defined knob properties with a property implementing
             additional EMERGENT boilerplate code. '''
+        def attach_dyn_prop(instance, prop_name, prop_fn):
+            """Attach prop_fn to instance with name prop_name.
+            Assumes that prop_fn takes self as an argument.
+            Reference: https://stackoverflow.com/a/1355444/509706
+            """
+            class_name = instance.__class__.__name__ + 'Child'
+            child_class = type(class_name, (instance.__class__,), {prop_name: property(prop_fn)})
+
+            instance.__class__ = child_class
+
         def get_dict_attr(obj, attr):
             for obj in [obj] + obj.__class__.mro():
                 if attr in obj.__dict__:
@@ -107,8 +117,10 @@ class Device():
             new = '__%s'%prop
             # setattr(self.__class__, new, get_dict_attr(self, prop))
             print('Add boilerplate to', prop)
-            setattr(self.__class__, prop, property(lambda self, name=new: getter(self, name),
-                                                   lambda self, newval, name=new: setter(self, newval, name)))
+            # setattr(self, prop, )
+            newprop = property(lambda self, name=new: getter(self, name),
+                               lambda self, newval, name=new: setter(self, newval, name))
+            attach_dyn_prop(self, prop, newprop)
 
     @abstractmethod
     def _actuate(self, state):
