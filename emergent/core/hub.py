@@ -73,6 +73,13 @@ class Hub(Node):
         with open(self.core.path['state']+self.name+'.json', 'w') as file:
             json.dump(state, file, indent=2)
 
+    # @property
+    # def state(self):
+    #     state = {}
+    #     for dev in self.devices.values():
+    #         state[dev.name] = dev._state()
+    #     return state
+
     def _on_load(self):
         """Tasks to be carried out after all Devices and Knobs are initialized."""
         for device in self.devices.values():
