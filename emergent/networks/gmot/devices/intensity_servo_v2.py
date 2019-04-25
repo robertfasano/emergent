@@ -1,4 +1,4 @@
-from emergent.core import Device
+from emergent.core import Device, Knob
 from emergent.devices.labjack import LabJack
 import functools
 import time
@@ -14,81 +14,44 @@ class IntensityServo(Device):
         FIO4-7: LJTick-DAC for channel 0-3 setpoints
         AIN0-3: channel 0-3 monitors
     '''
-    def __init__(self, name, params = {'devid': None}, hub = None):
-        super().__init__(name, hub = hub, params = params)
-        self.labjack = LabJack(params={'devid': params['devid']})
+    probe = Knob('probe')
+    slowing = Knob('slowing')
+    trapping = Knob('trapping')
 
-        self.add_knob('probe')
-        self.add_knob('slowing')
-        self.add_knob('trapping')
-        for knob in ['probe', 'slowing', 'trapping']:
-            self.knobs[knob].tooltip = knob.capitalize() + ' setpoint in V'
-        self.options['Probe'] = self.probe
-        self.options['Load'] = self.load
+    def __init__(self, name, hub = None, devid=''):
+        super().__init__(name, hub = hub)
+        self.labjack = LabJack(params={'devid': devid})
 
-        # enable MOT and disable probe to start
-        self.options['Load']()
+    @probe.command
+    def probe(self, V):
+        self.labjack.AOut(0, V, TDAC=True)
 
-    def _actuate(self, state):
-        ''' Sets setpoint via analog out hub.
+    @probe.query
+    def probe(self):
+        self.labjack.AIn(0)
 
-            Args:
-                state (dict): State dict of the form {'V1':1, 'V2':2,...}
-        '''
-        for name in state:
-            channel = {'probe': 0, 'slowing': 2, 'trapping': 3}[name]
-            self.labjack.AOut(channel, state[name], TDAC=True)
+    @slowing.command
+    def slowing(self, V):
+        self.labjack.AOut(2, V, TDAC=True)
 
-    def _connect(self):
-        return
+    @slowing.query
+    def slowing(self):
+        self.labjack.AIn(2)
+
+    @trapping.command
+    def trapping(self, V):
+        self.labjack.AOut(3, V, TDAC=True)
+
+    @trapping.query
+    def trapping(self):
+        self.labjack.AIn(3)
 
     def enable(self):
         ''' Switches on rf switches and integrator '''
-        # self.labjack.DOut('FIO1', 0)
         self.labjack.AOut(0,0)
         self.labjack.AOut(1,0)
 
     def disable(self):
         ''' Switches off rf switch and integrator '''
-        # self.labjack.DOut('FIO1', 1)
         self.labjack.AOut(0,3.3)
         self.labjack.AOut(1,3.3)
-
-    def load(self):
-        self.labjack.AOut(0, 3.3)
-        self.labjack.AOut(1, 0)
-
-    def probe(self):
-        self.labjack.AOut(0, 0)
-        self.labjack.AOut(1, 3.3)
-
-    # def autolock(self, channel, frac = 0.9):
-    #     ''' Locks the servo to the specified fraction of the unlocked power. '''
-    #     self.lock(channel, 0)
-    #     time.sleep(1)
-    #     lj = [self.labjack[0], self.labjack[0], self.labjack[1], self.labjack[1]][channel]
-    #     ch = [0, 1, 0, 1][channel]
-    #     unlocked_power = lj.AIn(ch)
-    #     # self._actuate({'V%i'%channel:frac*unlocked_power})
-    #     state = {self.name: {'V%i'%channel:frac*unlocked_power}}
-    #     self.hub.actuate(state)
-    #     self.lock(channel, 1)
-
-    # def wave(self, channel, frequency = 1):
-    #     ''' Switch between 0 and the current setpoint.
-    #
-    #     Args:
-    #         channel (int): 0-3
-    #         frequency (float): wave frequency
-    #     '''
-    #     lj = [self.labjack[0], self.labjack[0], self.labjack[1], self.labjack[1]][channel]
-    #     ch = [0, 1, 0, 1][channel]
-    #     sequence = {}
-    #     stream = {}
-    #     V = self.state['V%i'%channel]
-    #     seq = np.array([[0,0], [1/frequency/2,V]])
-    #
-    #     seq = np.atleast_2d([0, V]).T
-    #     stream, scanRate = lj.resample(seq, 1/frequency)
-    #     # stream, scanRate = lj.sequence2stream(seq, 1/frequency, 1)
-    #     lj.stream_out([ch], stream, scanRate, loop = True)

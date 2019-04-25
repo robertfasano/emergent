@@ -1,37 +1,27 @@
 import serial
 import sys
 from emergent.protocols.serial import Serial
-from emergent.core import Device
+from emergent.core import Device, Knob
 import logging as log
 
 class Novatech(Device):
-    def __init__(self, name, params = {'port': None}, hub = None):
-        super().__init__(name='novatech', params = params, hub = hub)
-        # self._connected = self._connect()
-        self.add_knob('slowing')
-        self.add_knob('trapping')
-        for knob in ['slowing', 'trapping']:
-            self.knobs[knob].tooltip = knob.capitalize() + ' frequency in MHz'
-        self.frequency = {}
-        self.amplitude = {}
+    slowing = Knob('slowing')
+    trapping = Knob('trapping')
 
+    def __init__(self, name, hub=None, port='COM4'):
+        super().__init__(name='novatech', hub = hub)
+        self.port=port
     def _connect(self):
-        self.serial = Serial(
-                port=self.params['port'],
-                baudrate=19200,
-                parity=serial.PARITY_NONE,
-                stopbits=serial.STOPBITS_ONE,
-                bytesize=serial.EIGHTBITS,
-                timeout = 1,
-                encoding = 'ascii',
-                name = 'Novatech DDS'
-            )
+        self.serial = self._open_serial(port=self.port)
         return self.serial._connected
 
-    def _actuate(self, state):
-        for name in state:
-            ch = {'slowing': 0, 'trapping': 1}[name]
-            self.set_frequency(ch, state[name])
+    @slowing.command
+    def slowing(self, f):
+        self.set_frequency(0, f)
+
+    @trapping.command
+    def trapping(self, f):
+        self.set_frequency(1, f)
 
     def set_amplitude(self,ch, V):
         self.amplitude[ch] = V

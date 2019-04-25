@@ -1,23 +1,17 @@
 from emergent.protocols.serial import Serial, PARITY_NONE, STOPBITS_ONE, EIGHTBITS
 import numpy as np
-from emergent.core import Device
+from emergent.core import Device, Knob
 
 class NetControls(Device):
-    def __init__(self, name, params = {'port': 'COM11'}, hub = None):
+    position = Knob('position')
+
+    def __init__(self, name, hub = None, port = 'COM7'):
         Device.__init__(self, name = name, hub = hub, params = params)
-        self.add_knob('Z')
-        self.knobs['Z'].tooltip = 'Feedthrough position in mm'
+        self.port = port
 
     def _connect(self):
-        self.serial = Serial(port = self.params['port'],
-                             baudrate = 38400,
-                             encoding = 'ascii',
-                             parity = PARITY_NONE,
-                             stopbits = STOPBITS_ONE,
-                             bytesize = EIGHTBITS,
-                             timeout = 1,
-                             name = 'NetControls driver')
-
+        self.serial = self._open_serial(port=self.port,
+                                        baudrate=38400)
         if self.serial._connected:
             self.axis = 1
             self._initialize()
@@ -26,16 +20,17 @@ class NetControls(Device):
             self.set_velocity(10000)
             return 1
 
-    def _actuate(self, state):
-        self.set_position(state['Z'])
-
-    def set_position(self, z):
+    @position.command
+    def position(self, z):
         z = np.clip(z, 0, 100)
         z -= self.zero
         z *= 10**4
         r = self.command(cmd = 'p', val = int(z))
         self._wait_until_stopped()
-        self.position = self.get_position()
+
+    @position.query
+    def position(self):
+        return float(self.command('p').split('p')[1].split('\r')[0])/1e4
 
     def command(self, cmd, val = None, axis = None):
         if val == None:
@@ -51,9 +46,6 @@ class NetControls(Device):
 
     def _get_address(self):
         return self.command(cmd='D', axis = 0)
-
-    def get_position(self):
-        return float(self.command('p').split('p')[1].split('\r')[0])/1e4
 
     def get_velocity(self):
         return self.command('v')

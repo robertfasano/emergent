@@ -10,6 +10,7 @@ from abc import abstractmethod
 from emergent.core import Node, Knob
 from emergent.utilities.persistence import __getstate__
 from emergent.utilities.buffers import StateBuffer, MacroBuffer
+from emergent.protocols.serial import Serial
 import socket
 
 class Device():
@@ -96,6 +97,22 @@ class Device():
 
 
     def _open_tcpip(self, addr, port):
+        client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        client.connect((addr, port))
+        return client
+
+    def _open_serial(self, port, baudrate=19200, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, bytesize=serial.EIGHTBITS, timeout=1, encoding='ascii'):
+        return Serial(
+                port=port,
+                baudrate=baudrate,
+                parityparity,
+                stopbits=stopbits,
+                bytesize=bytesize,
+                timeout = timeout,
+                encoding = encoding,
+                name = self.name
+            )
+
         client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         client.connect((addr, port))
         return client
