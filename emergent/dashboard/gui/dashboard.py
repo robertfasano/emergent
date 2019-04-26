@@ -76,6 +76,7 @@ class Dashboard(QMainWindow):
                                  toggle_icon='dashboard/gui/media/Material/baseline-lock-closed.svg')
         button_layout.addWidget(lock_button)
         button_layout.addStretch()
+        button_layout.addWidget(IconButton('dashboard/gui/media/Material/outline-timer.svg', self.show_grid, tooltip='Open timing grid'))
 
         ''' Experiment interface '''
         self.experiment_layout = QVBoxLayout()
