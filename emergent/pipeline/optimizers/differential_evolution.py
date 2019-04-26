@@ -5,7 +5,7 @@ import itertools
 from emergent.pipeline import Block
 
 class DifferentialEvolution(Block):
-    def __init__(self, params={}):
+    def __init__(self, params={}, state=None, bounds=None, cost=None, substate=None):
         super().__init__()
         self.params = {}
         self.params['Population'] = Parameter(name= 'Population',
@@ -27,7 +27,7 @@ class DifferentialEvolution(Block):
                                             description = 'Crossover probability. Increasing this value allows a larger number of mutants to progress into the next generation, but at the risk of population stability.')
         for p in params:
             self.params[p].value = params[p]
-
+        super().__init__(state, bounds, cost, substate)
     def _measure(self, point):
         ''' Intermediate cost function only used to store the points and costs
             obtained by the differential evolution routine. '''

@@ -4,7 +4,7 @@ import itertools
 from emergent.pipeline import Block
 
 class ParticleSwarm(Block):
-    def __init__(self, params={}):
+    def __init__(self, params={}, state=None, bounds=None, cost=None, substate=None):
         super().__init__()
         self.params = {}
         self.params['Steps'] = Parameter(name= 'Steps', type=int, value=10)
@@ -16,6 +16,7 @@ class ParticleSwarm(Block):
 
         for p in params:
             self.params[p].value = params[p]
+        super().__init__(state, bounds, cost, substate)
 
     def run(self, points, costs, bounds=None):
         ''' Differential evolution algorithm from scipy.optimize. '''

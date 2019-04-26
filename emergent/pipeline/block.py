@@ -3,8 +3,14 @@ import time
 import numpy as np
 
 class Block():
-    def __init__(self):
+    def __init__(self, state=None, bounds=None, cost=None, substate=None):
         self.pipeline = None
+
+        if state is not None and bounds is not None and cost is not None:
+            from emergent.pipeline import Pipeline
+            self.pipeline = Pipeline(state, bounds, cost, substate=substate)
+            self.pipeline.add(self)
+            self.pipeline.run()
 
     def _run(self, points, costs, bounds=None):
         self.start_index = len(points)

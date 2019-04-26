@@ -5,7 +5,7 @@ import itertools
 from emergent.pipeline import Block
 
 class LBFGSB(Block):
-    def __init__(self, params={}):
+    def __init__(self, params={}, state=None, bounds=None, cost=None, substate=None):
         super().__init__()
         self.params = {}
 
@@ -14,7 +14,7 @@ class LBFGSB(Block):
                                             description = 'Convergence criterion')
         for p in params:
             self.params[p].value = params[p]
-
+        super().__init__(state, bounds, cost, substate)
     def _measure(self, point):
         ''' Intermediate cost function only used to store the points and costs
             obtained by the differential evolution routine. '''

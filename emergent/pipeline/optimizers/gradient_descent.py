@@ -5,7 +5,7 @@ from emergent.pipeline import Block
 import logging as log
 
 class GradientDescent(Block):
-    def __init__(self, params={}):
+    def __init__(self, params={}, state=None, bounds=None, cost=None, substate=None):
         super().__init__()
         self.params = {}
 
@@ -15,7 +15,7 @@ class GradientDescent(Block):
 
         for p in params:
             self.params[p].value = params[p]
-
+        super().__init__(state, bounds, cost, substate)
     def gradient(self, points, costs):
         point = points[-1]
         dim = points.shape[1]

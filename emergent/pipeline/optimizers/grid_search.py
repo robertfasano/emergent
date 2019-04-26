@@ -4,8 +4,7 @@ from emergent.utilities.plotting import plot_2D
 from emergent.pipeline import Block
 
 class GridSearch(Block):
-    def __init__(self, params={}):
-        super().__init__()
+    def __init__(self, params={}, state=None, bounds=None, cost=None, substate=None):
         self.params = {}
 
         self.params['Steps'] = Parameter(name= 'Steps',
@@ -18,12 +17,13 @@ class GridSearch(Block):
                                             description = 'Number of sweeps to do')
         for p in params:
             self.params[p].value = params[p]
+        super().__init__(state, bounds, cost, substate)
 
     def run(self, points, costs, bounds=None):
         ''' Performs a uniformly-spaced sampling of the cost function in the
             space spanned by the passed-in state dict. '''
         dim = points.shape[1]
-        
+
         grid = []
         for n in range(dim):
             if bounds is None:
