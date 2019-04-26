@@ -60,6 +60,6 @@ class ParticleSwarm(Block):
                         swarm_best_cost = costs[-1]
 
         points = np.append(points, np.atleast_2d(swarm_best_point), axis=0)
-        costs = np.append(costs, self.pipeline.measure(points[-1]))
-
-        return points, costs
+        self.costs = np.append(costs, self.pipeline.measure(points[-1]))
+        self.points = self.pipeline.unnormalize(points)
+        return points, self.costs

@@ -78,3 +78,7 @@ class Model(BasePipeline):
         proxy = pg.SignalProxy(p.scene().sigMouseMoved, rateLimit=60, slot=mouseMoved)
 
         return win, proxy
+
+    def unnormalize(self, points):
+        ''' Model pipelines should return points unnormalized '''
+        return points

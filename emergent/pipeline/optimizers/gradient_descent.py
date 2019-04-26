@@ -47,4 +47,6 @@ class GradientDescent(Block):
             x_i -= self.params['Learning rate'].value * gradient
             points = np.append(points, np.atleast_2d(x_i), axis=0)
             costs = np.append(costs, self.pipeline.measure(x_i))
+        self.points = self.pipeline.unnormalize(points)
+        self.costs = costs
         return points, costs

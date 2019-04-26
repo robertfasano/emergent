@@ -41,5 +41,6 @@ class LBFGSB(Block):
                    tol = self.params['Tolerance'].value)
 
         points = np.append(points, self.measured_points, axis=0)
-        costs = np.append(costs, self.measured_costs, axis=0)
-        return points, costs
+        self.costs = np.append(costs, self.measured_costs, axis=0)
+        self.points = self.pipeline.unnormalize(points)
+        return points, self.costs
