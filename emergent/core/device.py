@@ -12,6 +12,7 @@ from emergent.utilities.persistence import __getstate__
 from emergent.utilities.buffers import StateBuffer, MacroBuffer
 from emergent.protocols.serial import Serial
 import socket
+import serial
 
 class Device():
     ''' Devices represent apparatus which can control the state of Knob
@@ -105,7 +106,7 @@ class Device():
         return Serial(
                 port=port,
                 baudrate=baudrate,
-                parityparity,
+                parity=parity,
                 stopbits=stopbits,
                 bytesize=bytesize,
                 timeout = timeout,
