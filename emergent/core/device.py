@@ -40,6 +40,7 @@ class Device():
         self.buffer = StateBuffer(self)
         self.macro_buffer = MacroBuffer(self)
         self.hub = hub
+        self.state = {}
         if self.hub is not None:
             hub.devices[name] = self
             self.hub.state[self.name] = self._state()

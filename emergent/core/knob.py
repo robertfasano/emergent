@@ -20,6 +20,7 @@ class knob(object):
                 val = self.getter(obj)
             else:
                 val = obj.__dict__['_'+self.name]
+            obj.state[self.name] = val
             return val
         except AttributeError:
             return None
@@ -30,6 +31,7 @@ class knob(object):
         if not obj.simulation:
             self.setter(obj, value)
         obj.__dict__['_'+self.setter.__name__] = value
+        obj.state[self.name] = value
         if obj.hub is not None:
             obj.hub.state[obj.name][self.name] = value
 
