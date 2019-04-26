@@ -5,7 +5,7 @@ from emergent.utilities.containers import Parameter
 class Rescale(Block):
     def __init__(self, params={}):
         super().__init__()
-        self.params = {'threshold': Parameter(name='Threshold', value=0.5)}
+        self.params = {'Threshold': Parameter(name='Threshold', value=0.5)}
         for p in params:
             self.params[p].value = params[p]
 
