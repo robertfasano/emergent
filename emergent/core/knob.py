@@ -36,14 +36,14 @@ class knob(object):
     def command(self, setter):
         ''' Command methods are used to send device commands before updating the internal
             state representation. '''
-        return type(self)(self.name, None, setter)
+        return type(self)(self.name, self.getter, setter)
 
     def query(self, getter):
         ''' Query methods are used to request the current state from the device
             (as opposed to returning the last device set by EMERGENT). Supposing
             we have a property x, the decorator @x.query is used to construct a new
             instance of the property and call __get__ using the tagged method. '''
-        return type(self)(self.name, getter, None)
+        return type(self)(self.name, getter, self.setter)
 
 def Knob(name):
     ''' Convenience function for constructing properties with default getter/setter behavior. '''
