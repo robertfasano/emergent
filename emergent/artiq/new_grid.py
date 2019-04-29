@@ -317,7 +317,7 @@ class GridWindow(QWidget):
         col = 1
         row = 0
         for step in sequence:
-            row = self.add_step(step, col-1)
+            row = self.add_step(step, col)
             col += 1
         total_cycle_time = self.get_cycle_time()*1000
         self.total_time_label = QLabel('%.1f ms'%total_cycle_time)
@@ -369,7 +369,7 @@ class GridWindow(QWidget):
         name = step['name']
         ''' Add label and edit '''
         self.order.append(name)
-        self.labels.append(StepLabel(name, self, col))
+        self.labels.append(StepLabel(name, self, col-1))
         self.grid_layout.addWidget(self.labels[-1], 0, col)
         self.step_edits.append(StepEdit(name, str(step['duration']), self.dashboard, self))
         self.grid_layout.addWidget(self.step_edits[-1], 1, col)
