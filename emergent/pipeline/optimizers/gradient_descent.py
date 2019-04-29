@@ -10,7 +10,7 @@ class GradientDescent(Block):
         self.params = {}
 
         self.params['Iterations'] = Parameter(name = 'Iterations', type=int, value = 10)
-        self.params['Learning rate'] = Parameter(name = 'Learning rate', value = 0.1)
+        self.params['Learning rate'] = Parameter(name = 'Learning rate', value = 1e-3)
         self.params['Dither size'] = Parameter(name = 'Dither size', value = 0.01)
 
         for p in params:
