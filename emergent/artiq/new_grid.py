@@ -3,11 +3,10 @@ from PyQt5.QtWidgets import (QApplication, QLabel, QLineEdit, QMenu, QAction, QP
         QWidget, QInputDialog, QToolButton, QCheckBox, QHBoxLayout, QVBoxLayout, QGridLayout, QSizePolicy, QComboBox)
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPainter
-from emergent.utilities.units import Units
+from emergent.dashboard.structures.unit_edit import UnitEdit
 from emergent.dashboard.structures.icon_button import IconButton
 import time
 import numpy as np
-# from emergent.artiq.sequencer_table import SequencerTable
 
 class EditableLabel(QWidget):
     def __init__(self, text):
@@ -105,7 +104,6 @@ class DACEdit(QLineEdit):
         self.returnPressed.connect(self.onReturn)
         self.setMaximumWidth(75)
         self.setFixedWidth(75)
-        self.unit_parser = Units()
 
     def onReturn(self):
         self.grid.push_sequence()
@@ -114,8 +112,7 @@ class DACEdit(QLineEdit):
             self.dashboard.post('artiq/current_step', {'step': self.name})
 
 
-
-class StepEdit(QLineEdit):
+class StepEdit(UnitEdit):
     def __init__(self, name, text, dashboard, grid):
         super().__init__(text)
         self.picklable = False
@@ -125,19 +122,9 @@ class StepEdit(QLineEdit):
         self.returnPressed.connect(self.onReturn)
         self.setMaximumWidth(75)
         self.setFixedWidth(75)
-        self.unit_parser = Units()
+        self.convert_units()
 
     def onReturn(self):
-        text = self.text()
-        ''' Unit comprehension '''
-        if ' ' in text:
-            value = text.split(' ')[0]
-            unit = text.split(' ')[1]
-            value = float(value)*self.unit_parser.get_scaling(unit)
-        else:
-            value = float(text)
-        self.setText(str(value))
-        # state = {'sequencer':{self.name: value}}
         self.grid.push_sequence()
         self.grid.update_cycle_time()
 
@@ -354,7 +341,7 @@ class GridWindow(QWidget):
     def get_cycle_time(self):
         T = 0
         for edit in self.step_edits:
-            T += float(edit.text())
+            T += edit.magnitude
         return T
 
     def get_sequence(self):
@@ -362,7 +349,7 @@ class GridWindow(QWidget):
         for i in range(len(self.labels)):
             name = self.labels[i].name
             new_step = {}
-            new_step['duration'] = float(self.step_edits[i].text())
+            new_step['duration'] = self.step_edits[i].magnitude 
             new_step['name'] = name
             new_step['TTL'] = []
             new_step['ADC'] = []
