@@ -23,3 +23,6 @@ class Loop(BasePipeline):
                 self.points, self.costs = block.run(self.points, self.costs, self.bounds)
                 self.pipeline.bounds = self.bounds # update parent bounds in case they changed
         return self.points, self.costs
+
+    def unnormalize(self, points):
+        return self.pipeline.unnormalize(points)
