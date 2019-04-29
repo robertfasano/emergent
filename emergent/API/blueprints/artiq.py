@@ -11,6 +11,13 @@ url_prefix = '/artiq'
 def get_blueprint(core):
     blueprint = Blueprint('artiq', __name__)
 
+    @blueprint.route('/connected')
+    def connected():
+        if hasattr(core, 'sequencer'):
+            return '1'
+        else:
+            return '0'
+
     @blueprint.route("/handshake", methods=['GET', 'POST'])
     def handshake():
         if request.method == 'POST':

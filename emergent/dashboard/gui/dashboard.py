@@ -147,8 +147,12 @@ class Dashboard(QMainWindow):
         requests.post('http://%s:%s/'%(self.addr, self.port)+url, json=payload)
 
     def show_grid(self, d={}):
-        self.grid = GridWindow(self)
-        self.grid.show()
+        print(type(self.get('artiq/connected')))
+        if self.get('artiq/connected')==1:
+            self.grid = GridWindow(self)
+            self.grid.show()
+        else:
+            print('No sequencer connected.')
 
     def plot_window(self, data):
         from emergent.pipeline.plotting import PlotWindow
