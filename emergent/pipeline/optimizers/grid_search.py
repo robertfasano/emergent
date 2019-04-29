@@ -46,7 +46,7 @@ class GridSearch(Block):
 
         best_point = points[np.argmin(costs)]
         _points = np.append(points, np.atleast_2d(best_point), axis=0)
-        self.costs = np.append(costs, self.pipeline.measure(points[-1]))
+        self.costs = np.append(costs, self.pipeline.measure(_points[-1]))
 
-        self.points = self.pipeline.unnormalize(points)
+        self.points = self.pipeline.unnormalize(_points)
         return _points, self.costs      # return normalized points
