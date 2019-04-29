@@ -10,7 +10,7 @@ class Rescale(Block):
             self.params[p].value = params[p]
 
     def run(self, points, costs, bounds=None):
-        valid_points = points[costs<np.min(costs)*self.params['threshold'].value]
+        valid_points = points[costs<np.min(costs)*self.params['Threshold'].value]
         new_bounds = []
         for i in range(points.shape[1]):
             new_bounds.append((valid_points[:,i].min(), valid_points[:,i].max()))
