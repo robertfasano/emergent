@@ -1,1 +1,1 @@
-from emergent.artiq.sequencer import Sequencer
+from .sequencer import Sequencer

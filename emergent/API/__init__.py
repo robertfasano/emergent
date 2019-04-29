@@ -1,1 +1,1 @@
-from emergent.API import blueprints
+from . import blueprints
