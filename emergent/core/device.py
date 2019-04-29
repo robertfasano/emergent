@@ -66,7 +66,8 @@ class Device():
     @abstractmethod
     def _actuate(self, state):
         for key in state:
-            setattr(self, key, state[key])
+            if state[key] != getattr(self, key):
+                setattr(self, key, state[key])
 
     def _state(self):
         state = {}
