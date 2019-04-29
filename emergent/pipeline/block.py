@@ -57,3 +57,6 @@ class Block():
         if bounds[1]/bounds[0] > 100:
             plt.xscale('log')
         plt.show()
+
+    def plot(self):
+        self.pipeline.plot()
