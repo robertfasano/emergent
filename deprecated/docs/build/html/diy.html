@@ -1,0 +1,281 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="python" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="python" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Network creation &mdash; EMERGENT 0.1alpha documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'./',
+              VERSION:'0.1alpha',
+              LANGUAGE:'python',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  true,
+              SOURCELINK_SUFFIX: '.txt'
+          };
+      </script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> EMERGENT
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1alpha
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="index.html">EMERGENT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gettingstarted.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="optimization.html">Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference.html">API Reference</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">EMERGENT</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Network creation</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/diy.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="network-creation">
+<h1>Network creation<a class="headerlink" href="#network-creation" title="Permalink to this headline">¶</a></h1>
+<p>So you've worked through the examples and have a pretty good idea of what EMERGENT
+is capable of, at least in a simulated experiment. This page will guide you
+through the process of setting up your own network to run a real experiment.</p>
+<div class="section" id="creating-a-new-network">
+<h2>Creating a new network<a class="headerlink" href="#creating-a-new-network" title="Permalink to this headline">¶</a></h2>
+<p>In order to create a new network for your experiment, simply run</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">new</span><span class="o">.</span><span class="n">py</span> <span class="n">name</span>
+</pre></div>
+</div>
+<p>from the <code class="docutils literal notranslate"><span class="pre">emergent/emergent</span></code> directory, where <code class="docutils literal notranslate"><span class="pre">name</span></code> can be replaced with
+anything you'd like (restricted by your operating system's directory naming
+conventions). The script will create a folder in the <code class="docutils literal notranslate"><span class="pre">emergent/networks/</span></code>
+directory and automatically create the required subdirectory structure and some
+template Python files.</p>
+</div>
+<div class="section" id="network-declaration-syntax">
+<h2>Network declaration syntax<a class="headerlink" href="#network-declaration-syntax" title="Permalink to this headline">¶</a></h2>
+<p>If you open your new network's <code class="docutils literal notranslate"><span class="pre">network.py</span></code> script, you'll see an empty <code class="docutils literal notranslate"><span class="pre">initialize</span></code>
+method which takes a Network object as an argument. When you run EMERGENT, <code class="docutils literal notranslate"><span class="pre">main.py</span></code>
+creates a Network instance and passes it into this function, and any nodes you
+define here will be instantiated and assigned to the network. For example, in the
+demo network we explored in Getting Started, the <code class="docutils literal notranslate"><span class="pre">initialize</span></code> method includes
+the following instructions:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">emergent.networks.demo.hubs</span> <span class="kn">import</span> <span class="n">DemoHub</span>
+<span class="kn">from</span> <span class="nn">emergent.networks.demo.things</span> <span class="kn">import</span> <span class="n">DemoThing</span>
+
+<span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">network</span><span class="p">):</span>
+    <span class="n">hub</span> <span class="o">=</span> <span class="n">DemoHub</span><span class="p">(</span><span class="s1">&#39;hub&#39;</span><span class="p">,</span> <span class="n">network</span> <span class="o">=</span> <span class="n">network</span><span class="p">)</span>
+    <span class="n">thing</span> <span class="o">=</span> <span class="n">DemoThing</span><span class="p">(</span><span class="s1">&#39;thing&#39;</span><span class="p">,</span> <span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;inputs&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Z&#39;</span><span class="p">]},</span> <span class="n">parent</span><span class="o">=</span><span class="n">hub</span><span class="p">)</span>
+
+    <span class="sd">&#39;&#39;&#39; Add hubs to network &#39;&#39;&#39;</span>
+    <span class="k">for</span> <span class="n">hub</span> <span class="ow">in</span> <span class="p">[</span><span class="n">hub</span><span class="p">]:</span>
+        <span class="n">network</span><span class="o">.</span><span class="n">add_hub</span><span class="p">(</span><span class="n">hub</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The important steps include above are:</p>
+<ol class="arabic simple">
+<li>Import the Hubs and Things you need, either from the global emergent/hubs or emergent/things folders or from your network's local folders.</li>
+<li>Instantiate your hubs within the initialize() method with the network as an argument.</li>
+<li>Instantiate Things, pass in relevant parameters, and reference them to their respective Hubs with the <code class="docutils literal notranslate"><span class="pre">parent</span></code> keyword argument.</li>
+<li>Add all Hubs to the network.</li>
+</ol>
+</div>
+<div class="section" id="importing-templates">
+<h2>Importing templates<a class="headerlink" href="#importing-templates" title="Permalink to this headline">¶</a></h2>
+<p>Before we dive into creating a network from scratch, let's try importing
+pre-built networks from EMERGENT. For example, let's say we want to add an autoAlign
+Hub. Luckily for us, this exists in the <code class="docutils literal notranslate"><span class="pre">emergent/networks</span></code> folder, so instead of
+defining the whole thing we can add it by importing it, then adding a call to its
+initialize method within our own initialize method:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">emergent.networks.demo.hubs</span> <span class="kn">import</span> <span class="n">DemoHub</span>
+<span class="kn">from</span> <span class="nn">emergent.networks.demo.things</span> <span class="kn">import</span> <span class="n">DemoThing</span>
+<span class="kn">from</span> <span class="nn">emergent.networks.example</span> <span class="kn">import</span> <span class="n">network</span> <span class="k">as</span> <span class="n">nw</span>
+
+<span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">network</span><span class="p">):</span>
+    <span class="n">hub</span> <span class="o">=</span> <span class="n">DemoHub</span><span class="p">(</span><span class="s1">&#39;hub&#39;</span><span class="p">,</span> <span class="n">network</span> <span class="o">=</span> <span class="n">network</span><span class="p">)</span>
+
+    <span class="n">thing</span> <span class="o">=</span> <span class="n">DemoThing</span><span class="p">(</span><span class="s1">&#39;thing&#39;</span><span class="p">,</span> <span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;inputs&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Z&#39;</span><span class="p">]},</span> <span class="n">parent</span><span class="o">=</span><span class="n">hub</span><span class="p">)</span>
+
+    <span class="sd">&#39;&#39;&#39; Add hubs to network &#39;&#39;&#39;</span>
+    <span class="k">for</span> <span class="n">hub</span> <span class="ow">in</span> <span class="p">[</span><span class="n">hub</span><span class="p">]:</span>
+        <span class="n">network</span><span class="o">.</span><span class="n">add_hub</span><span class="p">(</span><span class="n">hub</span><span class="p">)</span>
+
+    <span class="sd">&#39;&#39;&#39; Load other network &#39;&#39;&#39;</span>
+    <span class="n">nw</span><span class="o">.</span><span class="n">initialize</span><span class="p">(</span><span class="n">network</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="creating-hubs">
+<h2>Creating Hubs<a class="headerlink" href="#creating-hubs" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="creating-things">
+<h2>Creating Things<a class="headerlink" href="#creating-things" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Robert Fasano
+
+    </p>
+  </div> 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

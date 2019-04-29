@@ -2,7 +2,7 @@ import nbformat
 import os
 from nbconvert.preprocessors import ExecutePreprocessor
 
-os.chdir('../tutorials/modules')
+os.chdir('../docs/tutorials')
 notebooks = ['sequencing', 'core', 'optimize']
 for notebook in notebooks:
     print('Testing %s notebook.'%notebook)

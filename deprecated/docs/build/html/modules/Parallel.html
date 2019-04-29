@@ -1,0 +1,389 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="python" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="python" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Process manager &mdash; EMERGENT 0.1alpha documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'../',
+              VERSION:'0.1alpha',
+              LANGUAGE:'python',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  true,
+              SOURCELINK_SUFFIX: '.txt'
+          };
+      </script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Queues" href="fifo.html" />
+    <link rel="prev" title="API Reference" href="../reference.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> EMERGENT
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1alpha
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../index.html">EMERGENT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gettingstarted.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../optimization.html">Optimization</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../reference.html">API Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../reference.html#modules">Modules</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Process manager</a></li>
+<li class="toctree-l3"><a class="reference internal" href="fifo.html">Queues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="networking.html">Networking</a></li>
+<li class="toctree-l3"><a class="reference internal" href="node.html">Nodes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="sampler.html">Sampler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="watchdog.html">Watchdog</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../reference.html#samplers">Samplers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference.html#gui">GUI</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">EMERGENT</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../reference.html">API Reference</a> &raquo;</li>
+        
+      <li>Process manager</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/modules/Parallel.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-parallel">
+<span id="process-manager"></span><h1>Process manager<a class="headerlink" href="#module-parallel" title="Permalink to this headline">¶</a></h1>
+<p>This module implements a convenient framework for parallelizing code with either
+the multiprocessing or threading modules. The _run_thread() and _run_process()
+methods allow for one-line parallelization as well as tracking all running
+threads/processes for easy termination.</p>
+<dl class="class">
+<dt id="parallel.Process">
+<em class="property">class </em><code class="descclassname">parallel.</code><code class="descname">Process</code><span class="sig-paren">(</span><em>target</em>, <em>args</em>, <em>parent</em><span class="sig-paren">)</span><a class="headerlink" href="#parallel.Process" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">multiprocessing.context.Process</span></code></p>
+<p>Inherits from multiprocessing.Process to provide streamlined, intuitive
+process instantiation and termination.</p>
+<dl class="method">
+<dt id="parallel.Process.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>target</em>, <em>args</em>, <em>parent</em><span class="sig-paren">)</span><a class="headerlink" href="#parallel.Process.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates and starts a process running the target function and
+registers it with the parent ProcessHandler.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="parallel.Process.stop">
+<code class="descname">stop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#parallel.Process.stop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Terminates the process.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="parallel.ProcessHandler">
+<em class="property">class </em><code class="descclassname">parallel.</code><code class="descname">ProcessHandler</code><a class="headerlink" href="#parallel.ProcessHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A task manager allowing functions to be started and stopped in processes or threads.</p>
+<dl class="method">
+<dt id="parallel.ProcessHandler.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#parallel.ProcessHandler.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes the ProcessHandler with no threads.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="parallel.ProcessHandler._quit_process">
+<code class="descname">_quit_process</code><span class="sig-paren">(</span><em>target</em><span class="sig-paren">)</span><a class="headerlink" href="#parallel.ProcessHandler._quit_process" title="Permalink to this definition">¶</a></dt>
+<dd><p>Terminates a process by looking for the first running process in
+self.processes matching the target function and stopping it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>target</strong> (<em>function/str</em>) -- function or string matching function name</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="parallel.ProcessHandler._quit_thread">
+<code class="descname">_quit_thread</code><span class="sig-paren">(</span><em>target</em><span class="sig-paren">)</span><a class="headerlink" href="#parallel.ProcessHandler._quit_thread" title="Permalink to this definition">¶</a></dt>
+<dd><p>Terminates a thread by looking for the first running thread in self.threads
+matching the target function and stops it.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Stopping a thread can have unintended consequences, as threads
+share memory with the rest of the code.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>target</strong> (<em>function/str</em>) -- function or string matching function name</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="parallel.ProcessHandler._run_process">
+<code class="descname">_run_process</code><span class="sig-paren">(</span><em>func</em>, <em>args=None</em><span class="sig-paren">)</span><a class="headerlink" href="#parallel.ProcessHandler._run_process" title="Permalink to this definition">¶</a></dt>
+<dd><p>Instantiates and starts a process running a target function.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Processes do not share memory with the rest of the code, so they
+must be entirely self-contained.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>func</strong> (<em>function/str</em>) -- target function to run in process. Can also
+pass a string matching the function name.</li>
+<li><strong>args</strong> (<em>tuple</em>) -- arguments to be passed in to func</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="parallel.ProcessHandler._run_thread">
+<code class="descname">_run_thread</code><span class="sig-paren">(</span><em>target</em>, <em>args=None</em>, <em>stoppable=True</em><span class="sig-paren">)</span><a class="headerlink" href="#parallel.ProcessHandler._run_thread" title="Permalink to this definition">¶</a></dt>
+<dd><p>Instantiates and starts a thread running a target function.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Threads can share memory freely with the rest of the code.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The <code class="docutils literal notranslate"><span class="pre">stoppable</span></code> flag allows early termination of functions.
+To properly implement a stoppable threaded function, the main loop
+of the function should be executed inside a <code class="docutils literal notranslate"><span class="pre">while</span> <span class="pre">not</span> <span class="pre">stopped():</span></code>
+statement.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>target</strong> (<em>function/str</em>) -- target function to run in thread. Can also
+pass a string matching the function name.</li>
+<li><strong>args</strong> (<em>tuple</em>) -- arguments to pass into func</li>
+<li><strong>stoppable</strong> (<em>bool</em>) -- whether or not we should allow early termination of the Thread</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="parallel.Thread">
+<em class="property">class </em><code class="descclassname">parallel.</code><code class="descname">Thread</code><span class="sig-paren">(</span><em>target</em>, <em>args</em>, <em>parent</em>, <em>stoppable=True</em><span class="sig-paren">)</span><a class="headerlink" href="#parallel.Thread" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">threading.Thread</span></code></p>
+<p>Inherits from threading.Thread to provide streamlined, intuitive
+thread instantiation and termination.</p>
+<dl class="method">
+<dt id="parallel.Thread.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>target</em>, <em>args</em>, <em>parent</em>, <em>stoppable=True</em><span class="sig-paren">)</span><a class="headerlink" href="#parallel.Thread.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates and starts a thread running the target function and
+registers it with the parent ProcessHandler.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="parallel.Thread.stop">
+<code class="descname">stop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#parallel.Thread.stop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets self._stopper to True, such that self.stopped() will yield
+True and trigger early termination within the target function.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="parallel.Thread.stopped">
+<code class="descname">stopped</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#parallel.Thread.stopped" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a boolean check for stoppable Threads.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="fifo.html" class="btn btn-neutral float-right" title="Queues" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="../reference.html" class="btn btn-neutral float-left" title="API Reference" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Robert Fasano
+
+    </p>
+  </div> 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

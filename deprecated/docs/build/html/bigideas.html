@@ -1,0 +1,293 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="python" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="python" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>In-depth guide &mdash; EMERGENT 0.1alpha documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'./',
+              VERSION:'0.1alpha',
+              LANGUAGE:'python',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  true,
+              SOURCELINK_SUFFIX: '.txt'
+          };
+      </script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> EMERGENT
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1alpha
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="index.html">EMERGENT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gettingstarted.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="optimization.html">Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference.html">API Reference</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">EMERGENT</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>In-depth guide</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/bigideas.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="in-depth-guide">
+<h1>In-depth guide<a class="headerlink" href="#in-depth-guide" title="Permalink to this headline">¶</a></h1>
+<p>Before reading this, you should have worked through the examples in the Getting
+Started page to familiarize yourself with the basic concepts behind EMERGENT. This
+guide fleshes those concepts out, explaining how to modify EMERGENT to fit your
+needs as well as the underlying design philosophy. For many parts of this page,
+I will contrast EMERGENT to earlier scripts accomplishing similar tasks.</p>
+<div class="section" id="optimization">
+<h2>Optimization<a class="headerlink" href="#optimization" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="history">
+<h3>History<a class="headerlink" href="#history" title="Permalink to this headline">¶</a></h3>
+<p>EMERGENT's earliest ancestor was a standalone Python script which offered keyboard
+control of piezoelectric mirror mounts on an in-vacuum optical cavity. Flirting
+with the idea of automatic alignment, we first implemented a grid search method –
+a brute-force search over the 4D parameter space of the two pairs of knobs. After
+this proved to be too slow, we implemented a gradient-based fiber alignment routine
+on a test setup consisting of an input fiber, steering mirror, and output fiber.
+This worked so well that we decided to implement it on a real laser system, where
+we ran into trouble: the high-frequency whine of the piezo mounts caused the laser
+to unlock from its doubling cavity, so we had to add an additional delay between
+actuations to let the laser reacquire lock! This made each iteration take long enough
+that we needed a more intelligent algorithm, which we found in the Nelder-Mead (simplex)
+method, which, after a bit of tuning, became the new standard for fiber alignment.</p>
+<p>The great performance of the simplex method motivated us to apply the fiber-coupling
+technique to other parts of our lab. We purchased several high-bandwidth MEMS mirrors
+and wrote the basic driver code to set mirror positions through the voltage control board.
+Next, we copy-pasted in the simplex code, made a few revisions, and were good to go! Then
+we thought: since we could use the simplex routine for alignment on two different mirror
+mounts, could we use it with other products? Translation stages? Motorized rotation
+mounts? Could our whole lab run on the simplex routine?</p>
+<p>The essential first step to developing EMERGENT was ensuring scalability by removing
+the need to copy-paste the algorithm into every device driver - instead, we would
+write the algorithm in a hardware-agnostic way and include a method in each device
+driver script to translate the control command formats specified by manufacturers
+into a standardized format used by the algorithm. This meant that any of our algorithms –
+grid search, gradient descent, or simplex – could be used to optimize any device, which
+at the time was limited to piezoelectric and MEMS mirror mounts. As our stable of
+algorithms grew to include more sophisticated methods, like Gaussian process regression,
+differential evolution, and neural networks, we extended the capabilities to work on
+multiple devices, towards a goal of optimizing many-parameter experiments!</p>
+</div>
+<div class="section" id="architecture">
+<h3>Architecture<a class="headerlink" href="#architecture" title="Permalink to this headline">¶</a></h3>
+<p>Through several rounds of refinement, the system above grew into a three-layer
+architecture.</p>
+<p>The physical end is represented by a Hub which issues commands to a
+Thing to make physical changes in the lab, like steering a mirror. States are represented
+through nested dictionaries using the real values of the parameters that are being
+set – for example, a 60 V MEMS mirror setpoint could be represented through the dict
+<code class="docutils literal notranslate"><span class="pre">{'MEMS':</span> <span class="pre">{'X':</span> <span class="pre">60}}</span></code>.</p>
+<p>The virtual end is represented by an Algorithm which is entirely unaware of the
+physical task it's accomplishing. The algorithm &quot;lives&quot; in a normalized parameter
+space spanning 0 to 1 for each degree of freedom, and has the simple task of suggesting
+a new point within these bounds based on information gained from previous points.</p>
+<p>The Sampler class unifies these two ends. Before running an optimization, a
+Sampler is initialized with the experiment and algorithm to run, any relevant
+parameters, and user-defined bounds determining the scaling between the physical and
+normalized coordinate systems. At each step of the optimization, the Algorithm
+suggests a new normalized point and the Sampler converts it to a real experimental
+state and passes it to the Hub for actuation.</p>
+</div>
+</div>
+<div class="section" id="monitoring">
+<h2>Monitoring<a class="headerlink" href="#monitoring" title="Permalink to this headline">¶</a></h2>
+<p>Not too long before EMERGENT's development started, we underwent an eight-month
+measurement campaign between our optical lattice clock and other optical clocks
+in Boulder, CO, resulting in improved measurements of the transition frequencies for
+all three atomic species. For this measurement to be rigorous, we would need a way
+to know exactly when our clock was fully operational (&quot;locked&quot;) so that we could
+reject bad data. Unlocks compromise the accuracy of the clock, and can come from
+a number of sources: unlocks of lasers from optical cavities, loss of fiber-transmitted
+power, other other equipment failure. We built a standalone monitoring script to
+solve this problem with a very simple method:</p>
+<ol class="arabic simple">
+<li>Once per second, an ADC measures about 16 signals from different parts of the lab.</li>
+<li>Logical comparisons are made between the measured signals and user-defined thresholds.</li>
+<li>Data is marked as &quot;locked&quot; or &quot;unlocked&quot; based on the overall comparison.</li>
+</ol>
+<p>To fulfill the EMERGENT design philosophy of scalability, we decided to overhaul
+this script by breaking it up, from a single centralized monitoring engine to
+a number of Watchdog class instances, each of which are associated with a signal
+in the lab, such as fiber-transmitted power. Before EMERGENT runs an experiment,
+it first commands all Watchdogs to report their state. If any are unlocked, they
+will call their <code class="docutils literal notranslate"><span class="pre">react()</span></code> method to attempt to reacquire lock in a user-defined way.
+This redesign accomplishes a few things:</p>
+<p>1. Monitoring can be split across multiple ADCs or even across networked PCs.
+2.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Robert Fasano
+
+    </p>
+  </div> 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

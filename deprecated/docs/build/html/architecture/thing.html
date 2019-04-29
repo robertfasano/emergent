@@ -1,0 +1,369 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="python" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="python" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Thing &mdash; EMERGENT 0.1alpha documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'../',
+              VERSION:'0.1alpha',
+              LANGUAGE:'python',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  true,
+              SOURCELINK_SUFFIX: '.txt'
+          };
+      </script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> EMERGENT
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1alpha
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../index.html">EMERGENT</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gettingstarted.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../optimization.html">Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reference.html">API Reference</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">EMERGENT</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>Thing</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/architecture/thing.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-node">
+<span id="thing"></span><h1>Thing<a class="headerlink" href="#module-node" title="Permalink to this headline">¶</a></h1>
+<p>Implements the Node class, which contains methods for relating EMERGENT building
+blocks to one another. Three further classes inherit from Node: the Input, Thing,
+and Hub.</p>
+<p>An Input represents a physical quantity that you can set in the lab, like a
+voltage or a mirror position. The Input class simply tracks a value for a
+&quot;knob&quot; in your experiment.</p>
+<p>A Thing is some sort of actuator that can control the state of Inputs, like a
+DAC (for voltage generation) or a voltage driver for MEMS or motorized mirror
+mounts. The user must write a device driver script which implements the actuate()
+method to define the interface between EMERGENT and the manufacturer API. The Thing
+class also contains methods for updating the macroscopic state representation
+after actuation and for adding or removing inputs dynamically.</p>
+<p>A Hub is an object which controls one or more Things to regulate the outcome
+of an experiment. For example, for beam alignment into an optical fiber we would
+require one or more Things for mirror control, as well as a Hub which measures
+the transmitted power and coordinates commands to its connected Things to maximize
+the signal. The Hub class also contains methods for saving and loading states
+to/from file, for monitoring important variables through the Watchdog framework,
+and for optimizing itself by interfacing with other modules.</p>
+<dl class="class">
+<dt id="node.Thing">
+<em class="property">class </em><code class="descclassname">node.</code><code class="descname">Thing</code><span class="sig-paren">(</span><em>name</em>, <em>parent</em>, <em>params={}</em><span class="sig-paren">)</span><a class="headerlink" href="#node.Thing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="../modules/node.html#node.Node" title="node.Node"><code class="xref py py-class docutils literal notranslate"><span class="pre">node.Node</span></code></a></p>
+<p>Things represent apparatus which can control the state of Input
+nodes, such as a synthesizer or motorized actuator.</p>
+<dl class="method">
+<dt id="node.Thing.__getstate__">
+<code class="descname">__getstate__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#node.Thing.__getstate__" title="Permalink to this definition">¶</a></dt>
+<dd><p>When the pickle module attempts to serialize this node to file, it
+calls this method to obtain a dict to serialize. We intentionally omit
+any unpicklable objects from this dict to avoid errors.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="node.Thing.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>name</em>, <em>parent</em>, <em>params={}</em><span class="sig-paren">)</span><a class="headerlink" href="#node.Thing.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes a Thing.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> (<em>str</em>) -- node name. Things which share a Hub should have unique names.</li>
+<li><strong>parent</strong> (<em>str</em>) -- name of parent Hub.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="node.Thing._actuate">
+<code class="descname">_actuate</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#node.Thing._actuate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Private placeholder for the thing-specific driver.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">State actuation is done by first calling the Thing.actuate() method,
+which calls Thing._actuate(state) to change something in the lab, then
+calls Thing.update(state) to register this new state with EMERGENT.
+When you write a driver inheriting from Thing, you should reimplement
+this method to update your thing to the specified state only - do not
+update any stored states such as Thing.state, Input.state, or Hub.state
+from this method.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>state</strong> (<em>dict</em>) -- Target state such as {'param1':value1, 'param2':value2}.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="node.Thing._connect">
+<code class="descname">_connect</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#node.Thing._connect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Private placeholder for the thing-specific initiation method.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="node.Thing._rename_input">
+<code class="descname">_rename_input</code><span class="sig-paren">(</span><em>node</em>, <em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#node.Thing._rename_input" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reimplement if any class-specific tasks need to be done when renaming
+children</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="node.Thing._translate">
+<code class="descname">_translate</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#node.Thing._translate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a state with display names into a state with original names.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="node.Thing.actuate">
+<code class="descname">actuate</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#node.Thing.actuate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Makes a physical thing change in the lab with the _actuate() method, then registers this change with EMERGENT.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>state</strong> (<em>dict</em>) -- Target state of the form {'param1':value1, 'param2':value2,...}.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="node.Thing.add_input">
+<code class="descname">add_input</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#node.Thing.add_input" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attaches an Input node with the specified name. This should correspond
+to a specific name in the _actuate() function of a non-abstract Thing
+class: for example, the PicoAmp MEMS driver has inputs explicitly named
+'X' and 'Y' which are referenced in PicoAmp._actuate().</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="node.Thing.ignored">
+<code class="descname">ignored</code><em class="property"> = None</em><a class="headerlink" href="#node.Thing.ignored" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add inputs passed in params dict</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="node.Thing.node_type">
+<code class="descname">node_type</code><em class="property"> = None</em><a class="headerlink" href="#node.Thing.node_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add signals for input creation and removal</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="node.Thing.params">
+<code class="descname">params</code><em class="property"> = None</em><a class="headerlink" href="#node.Thing.params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update self.params with any parameters associated with the Network</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="node.Thing.remove_input">
+<code class="descname">remove_input</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#node.Thing.remove_input" title="Permalink to this definition">¶</a></dt>
+<dd><p>Detaches the Input node with the specified name.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="node.Thing.rename_input">
+<code class="descname">rename_input</code><span class="sig-paren">(</span><em>node</em>, <em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#node.Thing.rename_input" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="node.Thing.update">
+<code class="descname">update</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="headerlink" href="#node.Thing.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Synchronously updates the state of the Input, Thing, and Hub.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>state</strong> (<em>dict</em>) -- New state, e.g. {'param1':value1, 'param2':value2}.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Robert Fasano
+
+    </p>
+  </div> 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
