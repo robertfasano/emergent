@@ -177,6 +177,8 @@ class StepLabel(EditableLabel):
         #     actions[option].triggered.connect(move_options[option])
         #     move_menu.addAction(actions[option])
 
+        remove = menu.addAction('Remove')
+        remove.triggered.connect(lambda: self.grid.remove_step(self.index))
         selectedItem = menu.exec_(globalPos)
 
     def move_left(self):
@@ -188,9 +190,6 @@ class StepLabel(EditableLabel):
     def update_name(self):
         self.name = self.edit.text()
         self.grid.push_sequence()
-
-
-
 
 class GridWindow(QWidget):
     def __init__(self, dashboard):
@@ -331,7 +330,7 @@ class GridWindow(QWidget):
         col = 1
         row = 0
         for step in sequence:
-            row = self.add_step(step, col)
+            row = self.add_step(step, col-1)
             col += 1
         total_cycle_time = self.get_cycle_time()*1000
         self.total_time_label = QLabel('%.1f ms'%total_cycle_time)
@@ -340,9 +339,10 @@ class GridWindow(QWidget):
         # self.bold_active_step()
         QApplication.processEvents()        # determine new minimumSize
         self.resize(self.minimumSize())
+
     def redraw(self, sequence):
         for step in range(len(self.labels)):
-            self.remove_step(step)
+            self.remove_step_widgets(step)
         self.grid_layout.removeWidget(self.total_time_label)
         self.total_time_label.deleteLater()
         self.draw(sequence)
@@ -427,14 +427,32 @@ class GridWindow(QWidget):
             row += 1
         return row
 
-    def remove_step(self, step):
-        remove = [self.labels[step], self.step_edits[step]]
-        for ttl in self.ttls:
-            remove.append(self.checkboxes[step][ttl])
-        for adc in self.adcs:
-            remove.append(self.adc_checkboxes[step][adc])
-        for dac in self.dacs:
-            remove.append(self.dac_edits[step][dac])
+    def remove_step(self, i):
+        ''' Removes the step labeled by i '''
+        self.remove_step_widgets(i)
+        self.step_edits.pop(i)
+        self.labels.pop(i)
+        self.checkboxes.pop(i)
+        self.adc_checkboxes.pop(i)
+        self.dac_edits.pop(i)
+        for j in range(i, len(self.labels)):
+            self.labels[j].index -= 1
+        self.redraw(self.get_sequence())
+
+        self.push_sequence()
+
+    def remove_step_widgets(self, step):
+        remove = [self.labels[step],
+                  self.step_edits[step],
+                  *self.checkboxes[step].values(),
+                  *self.adc_checkboxes[step].values(),
+                  *self.dac_edits[step].values()]
+        # for ttl in self.ttls:
+        #     remove.append(self.checkboxes[step][ttl])
+        # for adc in self.adcs:
+        #     remove.append(self.adc_checkboxes[step][adc])
+        # for dac in self.dacs:
+        #     remove.append(self.dac_edits[step][dac])
         for widget in remove:
             self.grid_layout.removeWidget(widget)
             widget.deleteLater()
@@ -487,27 +505,27 @@ class GridWindow(QWidget):
 
         self.dashboard.post('artiq/sequence', steps)
 
-    def swap(self, row1, col1, row2, col2):
-        ''' Swaps two widgets '''
-        widget1 = self.grid_layout.itemAtPosition(row1, col1).widget()
-        widget2 = self.grid_layout.itemAtPosition(row2, col2).widget()
-        self.grid_layout.removeWidget(widget1)
-        self.grid_layout.removeWidget(widget2)
-        self.grid_layout.addWidget(widget1, row2, col2)
-        self.grid_layout.addWidget(widget2, row1, col1)
-
-    def swap_columns(self, col1, col2):
-        header_rows = [0, 1]        # headers
-        ttl_rows = list(range(header_rows[-1]+2, header_rows[-1]+2+len(self.ttls)))
-        header_rows.extend(ttl_rows)
-        adc_rows = list(range(ttl_rows[-1]+2, ttl_rows[-1]+2+len(self.adcs)))
-        header_rows.extend(adc_rows)
-        dac_rows = list(range(adc_rows[-1]+2, adc_rows[-1]+2+len(self.dacs)))
-        header_rows.extend(dac_rows)
-
-        for row in header_rows:
-            self.swap(row, col1, row, col2)
-            time.sleep(1e-6)            # need a short pause here or Qt will crash
+    # def swap(self, row1, col1, row2, col2):
+    #     ''' Swaps two widgets '''
+    #     widget1 = self.grid_layout.itemAtPosition(row1, col1).widget()
+    #     widget2 = self.grid_layout.itemAtPosition(row2, col2).widget()
+    #     self.grid_layout.removeWidget(widget1)
+    #     self.grid_layout.removeWidget(widget2)
+    #     self.grid_layout.addWidget(widget1, row2, col2)
+    #     self.grid_layout.addWidget(widget2, row1, col1)
+    #
+    # def swap_columns(self, col1, col2):
+    #     header_rows = [0, 1]        # headers
+    #     ttl_rows = list(range(header_rows[-1]+2, header_rows[-1]+2+len(self.ttls)))
+    #     header_rows.extend(ttl_rows)
+    #     adc_rows = list(range(ttl_rows[-1]+2, ttl_rows[-1]+2+len(self.adcs)))
+    #     header_rows.extend(adc_rows)
+    #     dac_rows = list(range(adc_rows[-1]+2, adc_rows[-1]+2+len(self.dacs)))
+    #     header_rows.extend(dac_rows)
+    #
+    #     for row in header_rows:
+    #         self.swap(row, col1, row, col2)
+    #         time.sleep(1e-6)            # need a short pause here or Qt will crash
 
     # def swap_timesteps(self, name1, name2):
     #     widget1 = self.labels[name1]
