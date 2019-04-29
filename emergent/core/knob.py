@@ -9,10 +9,11 @@ class knob(object):
         The command() and query() methods allow implementation of user-defined device
         communications. Tagging a method with x.command will execute the command before setting x,
         while tagging with x.query will request and return a state from the device. '''
-    def __init__(self, name, getter=None, setter=None):
+    def __init__(self, name, getter=None, setter=None, read_only=False):
         self.name = name
         self.getter = getter
         self.setter = setter
+        self.read_only = read_only
 
     def __get__(self, obj, objtype=None):
         try:
@@ -38,14 +39,14 @@ class knob(object):
     def command(self, setter):
         ''' Command methods are used to send device commands before updating the internal
             state representation. '''
-        return type(self)(self.name, self.getter, setter)
+        return type(self)(self.name, self.getter, setter, read_only=self.read_only)
 
     def query(self, getter):
         ''' Query methods are used to request the current state from the device
             (as opposed to returning the last device set by EMERGENT). Supposing
             we have a property x, the decorator @x.query is used to construct a new
             instance of the property and call __get__ using the tagged method. '''
-        return type(self)(self.name, getter, self.setter)
+        return type(self)(self.name, getter, self.setter, read_only=self.read_only)
 
 def Knob(name):
     ''' Convenience function for constructing properties with default getter/setter behavior. '''
@@ -72,4 +73,4 @@ def Sensor(name):
 
     def setter(self, newval):
         print("Sensor '%s.%s' value is read-only!"%(self.name, name))
-    return knob(name, getter, setter)
+    return knob(name, getter, setter, read_only=True)

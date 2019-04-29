@@ -58,10 +58,11 @@ class Device():
         d = self.__class__.__dict__
         for item in d:
             if isinstance(d[item], knob):
-                self.knobs.append(item)
-                if self.hub is not None:
-                    self.hub.state[self.name][item] = None
-                    self.hub.range[self.name][item] = {'min': None, 'max': None}
+                if not d[item].read_only:
+                    self.knobs.append(item)
+                    if self.hub is not None:
+                        self.hub.state[self.name][item] = None
+                        self.hub.range[self.name][item] = {'min': None, 'max': None}
 
     @abstractmethod
     def _actuate(self, state):
