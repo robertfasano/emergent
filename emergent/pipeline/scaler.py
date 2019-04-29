@@ -6,7 +6,10 @@ class Scaler():
     def __init__(self, state, limits):
         self.state = state
         self.limits = limits
+        self.labels = []
+        self.loaded = False
         self.dim = len(self.state2array(state))
+        self.loaded = True
 
     ''' State conversion functions '''
     def array2state(self, arr, protostate=None, state=None, i=0):
@@ -33,6 +36,8 @@ class Scaler():
                 arr = self.state2array(state[key], arr)
             else:
                 arr = np.append(arr, state[key])
+                if not self.loaded:
+                    self.labels.append(key)
 
         return arr
 
