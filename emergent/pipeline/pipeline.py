@@ -132,3 +132,18 @@ class Pipeline(BasePipeline):
             d = json.load(file)
         self.from_json(d['pipeline'])
         return d['pipeline']
+
+    def plot(self):
+        from itertools import combinations
+        axes = list(range(self.points.shape[1]))
+        combos = list(combinations(axes, 2))
+
+        for combo in combos:
+            x = self.points[:, combo[0]]
+            y = self.points[:, combo[1]]
+            z = self.costs
+            plt.figure()
+            plt.scatter(x, y, c=z)
+            plt.colorbar()
+            plt.xlabel(self.scaler.labels[combo[0]])
+            plt.ylabel(self.scaler.labels[combo[1]])
