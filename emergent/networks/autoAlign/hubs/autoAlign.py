@@ -16,7 +16,7 @@ class AutoAlign(Hub):
         super().__init__(name, core = core)
         self.labjack = labjack
 
-    def readADC(self, num = 10, delay = 0):
+    def readADC(self, num = 1, delay = 0):
         ''' Reads the transmitted power from Labjack channel AIN0 with an optional
             delay. num samplings can be averaged together to improve the signal to
             noise. '''
