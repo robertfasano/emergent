@@ -3,7 +3,7 @@ from emergent.core import Device, Knob
 class DLCPro(Device):
     piezo = Knob('piezo')
     current = Knob('current')
-
+    temperature = Knob('temperature')
     def __init__(self, name, hub, params={'addr': '169.254.120.100'}):
         super().__init__(name, hub)
         self.addr = params['addr']
@@ -25,6 +25,12 @@ class DLCPro(Device):
         for i in range(3):
             self.client.recv(2)
 
+    @temperature.command
+    def temperature(self, T):
+        self.client.sendall(b"(param-set! 'laser1:dl:tc:temp-set %f)\n"%T)
+        for i in range(3):
+            self.client.recv(2)
+
     @piezo.query
     def piezo(self):
         self.client.sendall(b"(param-ref 'laser1:dl:pc:voltage-set)\n")
@@ -36,6 +42,14 @@ class DLCPro(Device):
     @current.query
     def current(self):
         self.client.sendall(b"(param-ref 'laser1:dl:cc:current-set)\n")
+        I = float(str(self.client.recv(4096), 'utf-8').split('\n')[0])
+        for i in range(2):
+            self.client.recv(2)
+        return I
+
+    @temperature.query
+    def temperature(self):
+        self.client.sendall(b"(param-ref 'laser1:dl:tc:temp-act)\n")
         I = float(str(self.client.recv(4096), 'utf-8').split('\n')[0])
         for i in range(2):
             self.client.recv(2)
