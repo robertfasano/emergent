@@ -45,9 +45,13 @@ class Pipeline(BasePipeline):
         results = []
         for i in range(self.cycles_per_sample):
             if self.params is None:
-                results.append(self.experiment(self.fill(target)))
+                result = self.experiment(self.fill(target))
+                if result is not None:
+                    results.append(result)
             else:
-                results.append(self.experiment(self.fill(target), self.params))
+                result = self.experiment(self.fill(target), self.params)
+                if result is not None:
+                    results.append(result)
         return np.mean(results)
 
     def fill(self, substate):
