@@ -1,4 +1,6 @@
 from emergent.core import Device, Knob
+from emergent.utilities.fifo import FIFO
+from emergent.utilities.decorators import queue, thread
 
 class DLCPro(Device):
     piezo = Knob('piezo')
@@ -7,11 +9,34 @@ class DLCPro(Device):
     def __init__(self, name, hub, params={'addr': '169.254.120.100'}):
         super().__init__(name, hub)
         self.addr = params['addr']
+        self.queue = FIFO()
+        self.queue.run()
 
     def _connect(self):
         self.client = self._open_tcpip(self.addr, 1998)
         for i in range(8):
             r=self.client.recv(4096)
+
+    @queue
+    def _command(self, msg):
+        self.client.sendall(msg)
+        self.drain()
+
+    @queue
+    def _query(self, msg):
+        self.client.sendall(msg)
+        r = self.client.recv(4096)
+        resp = str(r, 'utf-8')
+        if '>' not in resp:
+            self.drain()
+        return resp.split('\n')[0]
+
+    def drain(self):
+        while True:
+            r = str(self.client.recv(16), 'utf-8')
+            if '>' in r:
+                break
+
 
     @piezo.command
     def piezo(self, V):
