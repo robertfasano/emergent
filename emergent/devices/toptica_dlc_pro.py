@@ -40,42 +40,24 @@ class DLCPro(Device):
 
     @piezo.command
     def piezo(self, V):
-        self.client.sendall(b"(param-set! 'laser1:dl:pc:voltage-set %f)\n"%V)
-        for i in range(3):
-            self.client.recv(2)
+        self._command(b"(param-set! 'laser1:dl:pc:voltage-set %f)\n"%V)
 
     @current.command
     def current(self, I):
-        self.client.sendall(b"(param-set! 'laser1:dl:cc:current-set %f)\n"%I)
-        for i in range(3):
-            self.client.recv(2)
+        self._command(b"(param-set! 'laser1:dl:cc:current-set %f)\n"%I)
 
     @temperature.command
     def temperature(self, T):
-        self.client.sendall(b"(param-set! 'laser1:dl:tc:temp-set %f)\n"%T)
-        for i in range(3):
-            self.client.recv(2)
+        self._command(b"(param-set! 'laser1:dl:tc:temp-set %f)\n"%T)
 
     @piezo.query
     def piezo(self):
-        self.client.sendall(b"(param-ref 'laser1:dl:pc:voltage-set)\n")
-        V = float(str(self.client.recv(4096), 'utf-8').split('\n')[0])
-        for i in range(2):
-            self.client.recv(2)
-        return V
+        return float(self._query(b"(param-ref 'laser1:dl:pc:voltage-set)\n"))
 
     @current.query
     def current(self):
-        self.client.sendall(b"(param-ref 'laser1:dl:cc:current-set)\n")
-        I = float(str(self.client.recv(4096), 'utf-8').split('\n')[0])
-        for i in range(2):
-            self.client.recv(2)
-        return I
+        return float(self._query(b"(param-ref 'laser1:dl:cc:current-set)\n"))
 
     @temperature.query
     def temperature(self):
-        self.client.sendall(b"(param-ref 'laser1:dl:tc:temp-act)\n")
-        I = float(str(self.client.recv(4096), 'utf-8').split('\n')[0])
-        for i in range(2):
-            self.client.recv(2)
-        return I
+        return float(self._query(b"(param-ref 'laser1:dl:tc:temp-act)\n"))
