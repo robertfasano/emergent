@@ -19,7 +19,7 @@ class Block():
 
         return points, costs
 
-    def tune(self, parameter, bounds, steps=20, mode='improvement'):
+    def tune(self, parameter, bounds, steps=20, mode='cumulative'):
         ''' Args:
                 parameter (str): the parameter to optimize
                 bounds (tuple): optimization range
@@ -47,12 +47,15 @@ class Block():
                 meta_costs.append(-(costs[-1]-costs[0])/len(points))
             elif mode == 'result':
                 meta_costs.append(-(costs[-1]-costs[0]))
+            elif mode == 'cumulative':
+                meta_costs.append(np.sum(costs))
 
         plt.plot(meta_points, meta_costs)
         plt.xlabel(parameter)
         labels = {'iterations': 'Iterations for convergence',
                   'improvement': 'Improvement per iteration',
-                  'result': 'Final result'}
+                  'result': 'Final result',
+                  'cumulative': 'Cumulative cost'}
         plt.ylabel(labels[mode])
         if bounds[1]/bounds[0] > 100:
             plt.xscale('log')
