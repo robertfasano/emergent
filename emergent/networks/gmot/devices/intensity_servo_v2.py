@@ -55,3 +55,8 @@ class IntensityServo(Device):
         ''' Switches off rf switch and integrator '''
         self.labjack.AOut(0,3.3)
         self.labjack.AOut(1,3.3)
+
+if __name__ == '__main__':
+    servo = IntensityServo('servo', params = {'devid': '470016973'}, hub = None)
+    servo.probe = 1 # set probe setpoint to 1 V
+    servo.trapping = 2 # set trapping setpoint to 2 V
