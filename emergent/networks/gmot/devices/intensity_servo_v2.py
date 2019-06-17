@@ -1,5 +1,5 @@
 from emergent.core import Device, Knob
-from emergent.devices.labjack import LabJack
+from labyak import LabDAQ
 import functools
 import time
 import numpy as np
@@ -18,9 +18,9 @@ class IntensityServo(Device):
     slowing = Knob('slowing')
     trapping = Knob('trapping')
 
-    def __init__(self, name, hub = None, devid=''):
+    def __init__(self, name, params={'devid': ''}, hub = None, devid=''):
         super().__init__(name, hub = hub)
-        self.labjack = LabJack(params={'devid': devid})
+        self.labjack = LabDAQ(devid=params['devid'])
 
     @probe.command
     def probe(self, V):
@@ -58,5 +58,5 @@ class IntensityServo(Device):
 
 if __name__ == '__main__':
     servo = IntensityServo('servo', params = {'devid': '470016973'}, hub = None)
-    servo.probe = 1 # set probe setpoint to 1 V
-    servo.trapping = 2 # set trapping setpoint to 2 V
+    # servo.probe = 1 # set probe setpoint to 1 V
+    # servo.trapping = 2 # set trapping setpoint to 2 V
